@@ -1,1 +1,2 @@
 Django>=1.11.2,<1.11.99
+django-post-office>=2.0.8,<2.0.99
