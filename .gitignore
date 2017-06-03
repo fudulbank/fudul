@@ -1,0 +1,5 @@
+fudul/secrets.py
+db.sqlite3
+*pyc
+*~
+~#
