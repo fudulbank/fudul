@@ -4,18 +4,21 @@
 <div class="text-center">
 	<div class="icon-object border-success text-success"><i class="icon-reading"></i></div>
 	<h5 class="content-group">{% blocktrans with user.username as username %}Account &raquo; {{ username }}{% endblocktrans %}</h5>
-  <form action="" method="post">
-    <ul id="box-nav">
-      <li class="first"><a href="{% url 'userena_profile_detail' user.username %}"><span>{% trans 'View profile' %}</span></a></li>
-      <li><a href="{% url 'userena_profile_edit' user.username %}">{% trans "Edit profile" %}</a></li>
-      <li><a href="{% url 'userena_password_change' user.username %}">{% trans "Change password" %}</a></li>
-      <li class="last selected"><a href="{% url 'userena_email_change' user.username %}">{% trans "Change email" %}</a></li>
-    </ul>
-    {% csrf_token %}
-    {% bootstrap_form form %}
+</div>
+<form action="" method="post">
+  <ul id="box-nav">
+    <li class="first"><a href="{% url 'userena_profile_detail' user.username %}"><span>{% trans 'View profile' %}</span></a></li>
+    <li><a href="{% url 'userena_profile_edit' user.username %}">{% trans "Edit profile" %}</a></li>
+    <li><a href="{% url 'userena_password_change' user.username %}">{% trans "Change password" %}</a></li>
+    <li class="last selected"><a href="{% url 'userena_email_change' user.username %}">{% trans "Change email" %}</a></li>
+  </ul>
+  {% csrf_token %}
+  <div class="text-center">
+    {% bootstrap_form form show_label=False %}
     <div class="form-group">
 			<button type="submit" class="btn btn-primary btn-block">{% trans "Change email" %} <i class="icon-circle-right2 position-right"></i></button>
 		</div>
-  </form>
-</div>
+  </div>
+</form>
+
 {% endblock %}
