@@ -54,16 +54,8 @@ class College(models.Model):
     def __str__(self):
         return self.name
 
-    class Meta:
-        verbose_name = "كلية"
-        verbose_name_plural = "الكليات"
-
 class Institution(models.Model):
     name = models.CharField("الاسم", max_length=100)
 
     def __str__(self):
         return self.name
-
-    class Meta:
-        verbose_name = "مؤسسة"
-        verbose_name_plural = "المؤسسات"
