@@ -1,0 +1,97 @@
+{% extends 'accounts/base.html' %}{% load bootstrap3 %}
+{% block title %}Sign-up{% endblock %}
+{% block content %}
+<form method="post">
+	{% csrf_token %}
+	<div class="panel panel-body login-form">
+		<div class="text-center">
+			<div class="icon-object border-success text-success"><i class="icon-plus3"></i></div>
+			<h5 class="content-group">Create account <small class="display-block">All fields are required</small></h5>
+		</div>
+
+		<div class="content-divider text-muted form-group"><span>Your name</span></div>
+
+		<div class="form-group has-feedback has-feedback-left">
+			{% bootstrap_field form.first_name show_label=False %}
+			<div class="form-control-feedback">
+				<i class="icon-user-check text-muted"></i>
+			</div>
+		</div>
+
+		<div class="form-group has-feedback has-feedback-left">
+			{% bootstrap_field form.middle_name show_label=False %}
+			<div class="form-control-feedback">
+				<i class="icon-user-check text-muted"></i>
+			</div>
+		</div>
+
+		<div class="form-group has-feedback has-feedback-left">
+			{% bootstrap_field form.last_name show_label=False %}
+			<div class="form-control-feedback">
+				<i class="icon-user-check text-muted"></i>
+			</div>
+		</div>
+
+		<div class="content-divider text-muted form-group"><span>Your contact</span></div>
+<p><i class="icon-info22"></i>Parts of this question bank are solely available to a given university.  Make sure you use your correct <strong>university address</strong> to get an access to these parts.</p>
+		<div class="form-group has-feedback has-feedback-left">
+			{% bootstrap_field form.email show_label=False %}
+			<div class="form-control-feedback">
+				<i class="icon-envelop3 text-muted"></i>
+			</div>
+		</div>
+<p><i class="icon-info22"></i>You can optionally enter an alternative, personal email address below.</p>
+		<div class="form-group has-feedback has-feedback-left">
+			{% bootstrap_field form.alternative_email show_label=False %}
+			<div class="form-control-feedback">
+				<i class="icon-envelop5 text-muted"></i>
+			</div>
+		</div>
+
+		<div class="form-group has-feedback has-feedback-left">
+			{% bootstrap_field form.mobile_number show_label=False %}
+			<div class="form-control-feedback">
+				<i class="icon-mobile text-muted"></i>
+			</div>
+		</div>
+		<div class="content-divider text-muted form-group"><span>Your secret</span></div>
+		<div class="form-group has-feedback has-feedback-left">
+			{% bootstrap_field form.password1 show_label=False %}
+			<div class="form-control-feedback">
+				<i class="icon-user-lock text-muted"></i>
+			</div>
+		</div>
+		<div class="form-group has-feedback has-feedback-left">
+			{% bootstrap_field form.password2 show_label=False %}
+			<div class="form-control-feedback">
+				<i class="icon-user-lock text-muted"></i>
+			</div>
+		</div>
+		<div class="content-divider text-muted form-group"><span>Additions</span></div>
+
+		<div class="form-group">
+			<div class="checkbox">
+				<label>
+					<input id="agree" type="checkbox" class="styled">
+					I confirm that all information I have entered are correct.
+				</label>
+			</div>
+		</div>
+
+		<button disabled type="submit" class="btn bg-teal btn-block btn-lg">Register <i class="icon-circle-right2 position-right"></i></button>
+	</div>
+</form>
+
+<script>
+$(function(){
+  $("#agree").on('ready change', function(){
+    if($("#agree:checked").length){
+      $("button[type=submit]").removeAttr('disabled');
+    } else {
+      $("button[type=submit]").attr('disabled', true);
+    }
+  });
+});
+</script>
+
+{% endblock %}
