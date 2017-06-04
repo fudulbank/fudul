@@ -1,0 +1,10 @@
+{% extends 'userena/base_userena.html' %}{% load i18n %}
+{% block title %}{% trans "Disabled account" %}{% endblock %}
+{% block content %}
+<div class="text-center">
+	<div class="icon-object border-danger text-danger"><i class="icon-alert"></i></div>
+	<h5 class="content-group">{% trans "Your account has been disabled" %}</h5>
+	<p>{% trans "It seems your account has been disabled." %}</p>
+	<p>{% trans "If you are unsure why this was done, you can <a href='mailto:support@fudulbank.com'>contact us</a> to find out why" %}</p>
+</div>
+{% endblock %}

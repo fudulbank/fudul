@@ -1,0 +1,10 @@
+{% autoescape off %}
+نرحب بكم في فضول!
+
+لتنشيط حسابكم نرجو زيارة الرابط التالي:
+https://{{ site.domain }}{% url 'userena_activate' activation_key %}
+
+آملين أن تجد فضول مفيدة وأن تحوز على رضاك.
+
+مع تحيات إدارة فضول.
+{% endautoescape %}

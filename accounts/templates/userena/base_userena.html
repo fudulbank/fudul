@@ -36,7 +36,7 @@
 	<!-- Main navbar -->
 	<div class="navbar navbar-inverse">
 		<div class="navbar-header">
-			<a class="navbar-brand" href="index.html"><img src="{% static 'limitless/assets/images/logo_light.png' %}" alt=""></a>
+			<a class="navbar-brand" href="{% url 'index' %}"><img src="{% static 'limitless/assets/images/logo_light.png' %}" alt=""></a>
 
 			<ul class="nav navbar-nav pull-right visible-xs-block">
 				<li><a data-toggle="collapse" data-target="#navbar-mobile"><i class="icon-tree5"></i></a></li>
@@ -57,9 +57,9 @@
 
 				<!-- Content area -->
 				<div class="content">
-
+	<div class="panel panel-body login-form">
 {% block content %}{% endblock %}
-
+	</div>
 
 					<!-- Footer -->
 					<div class="footer text-muted text-center">

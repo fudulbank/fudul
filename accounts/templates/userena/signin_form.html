@@ -1,10 +1,9 @@
-{% extends 'accounts/base.html' %}{% load bootstrap3 %}
+{% extends 'userena/base_userena.html' %}{% load bootstrap3 %}
 {% block title %}Login{% endblock %}
 {% block content %}
  {% bootstrap_form_errors form %}
 <form method="post">
 	{% csrf_token %}
-	<div class="panel panel-body login-form">
 		<div class="text-center">
 			<div class="icon-object border-slate-300 text-slate-300"><i class="icon-reading"></i></div>
 			<h5 class="content-group">Login to your account <small class="display-block">Enter your credentials below</small></h5>
@@ -31,6 +30,5 @@
 		<div class="text-center">
 			<a href="{% url 'userena_password_reset' %}">Forgot password?</a>
 		</div>
-	</div>
 </form>
 {% endblock %}

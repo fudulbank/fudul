@@ -1,9 +1,8 @@
-{% extends 'accounts/base.html' %}{% load bootstrap3 %}
+{% extends 'userena/base_userena.html' %}{% load bootstrap3 %}
 {% block title %}Sign-up{% endblock %}
 {% block content %}
 <form method="post">
 	{% csrf_token %}
-	<div class="panel panel-body login-form">
 		<div class="text-center">
 			<div class="icon-object border-success text-success"><i class="icon-plus3"></i></div>
 			<h5 class="content-group">Create account <small class="display-block">All fields are required</small></h5>
@@ -73,13 +72,13 @@
 			<div class="checkbox">
 				<label>
 					<input id="agree" type="checkbox" class="styled">
-					I confirm that all information I have entered are correct.
+					I confirm that all information I have entered is correct.
 				</label>
 			</div>
 		</div>
 
 		<button disabled type="submit" class="btn bg-teal btn-block btn-lg">Register <i class="icon-circle-right2 position-right"></i></button>
-	</div>
+
 </form>
 
 <script>
