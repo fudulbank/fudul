@@ -1,2 +1,4 @@
 Django>=1.11.2,<1.11.99
 django-post-office>=2.0.8,<2.0.99
+django-userena>=2.0.1,<2.0.99
+django-guardian>=1.4.8,<1.4.99
