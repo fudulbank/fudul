@@ -1,0 +1,38 @@
+#support-us h2{
+    color: #0A8AAD;
+}
+
+#support-us{
+    padding: 25px 25px 10px 25px;
+    background: rgb(255, 255, 255);
+    box-shadow: inset 0px 0px 10px -5px #ccc;
+    border-radius: 2%; 
+    margin-bottom: 10px;
+    color: black;
+}
+
+.header{
+    color: #ffdc00;
+}
+
+.text-vertical-center h1 {
+    font-size: 6.5em;
+}
+
+.main-stat{
+    background: white;
+    color: black;
+    padding: 15px 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    font-size: 20px
+}
+
+#about p{
+    font-size: 17.5px;
+}
+
+#about footer{
+    padding: 0px;
+    text-align: right;
+}
