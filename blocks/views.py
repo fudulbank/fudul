@@ -22,15 +22,15 @@ def list_colleges(request,pk):
 
 def list_years(request,pk):
     college = get_object_or_404(College,pk=pk)
-    year = Year.objects.filter(college=college)
-    context={'year':year}
+    years = Year.objects.filter(college=college)
+    context = {'year': years}
     return render(request,'blocks/list_years.html',context)
 
 
 def list_blocks(request,pk):
     year = get_object_or_404(Year, pk=pk)
     blocks = Block.objects.filter(year=year)
-    context ={'blocks':blocks}
+    context = {'blocks': blocks}
     return render(request,'blocks/list_blocks.html',context)
 
 
@@ -56,7 +56,7 @@ def handle_block(request,year_pk):
     elif request.method == 'GET':
         form = forms.BlockForm(year=year)
     context['form'] = form
-    return render(request, 'blocks/partials/submit_survey.html', context)
+    return render(request, 'blocks/partials/add_block.html', context)
 
 @decorators.ajax_only
 def handle_question(request, subject_pk):

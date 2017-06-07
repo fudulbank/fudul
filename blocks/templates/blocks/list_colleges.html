@@ -10,12 +10,20 @@
 					</div>
 {% endblock %}
 {% block content %}
+<style>
+.panel-body a {
+    color: white;
+    font-size: medium;
+    font-weight: bold;
+    margin-top: auto
+}
+</style>
     {% for college in colleges %}
     <div class="row">
         <div class="col-lg-4">
             <div class="panel bg-teal-400">
                        <div class="panel-body">
-        <a  style="color: white; font-size: medium; font-weight: bold; margin-top: auto" href={% url "blocks:list_blocks" college.pk %}>{{ college.name }}</a>
+        <a href={% url "blocks:list_years" college.pk %}>{{ college.name }}</a>
                         </div>
             </div>
         </div>

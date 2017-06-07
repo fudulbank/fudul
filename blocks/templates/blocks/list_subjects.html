@@ -10,6 +10,14 @@
 					</div>
 {% endblock %}
 {% block content %}
+<style>
+.panel-body a {
+    color: white;
+    font-size: medium;
+    font-weight: bold;
+    margin-top: auto
+}
+</style>
     {% for subject in subjects %}
     <div class="row">
         <div class="col-lg-4">
@@ -34,10 +42,6 @@
 
 {% block customscript %}
         <script src="{% static 'js/toastr.js' %}"></script>
-	<link rel="stylesheet" href="{% static 'css/jquery.dataTables.min.css' %}">
-	<link rel="stylesheet" href="{% static 'js/datatables/responsive/css/responsive.dataTables.min.css' %}">
-	<script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
-    <script src="{% static 'js/datatables/responsive/js/dataTables.responsive.min.js' %}"></script>
 
 <script type="text/javascript">
     $(function () {
@@ -48,6 +52,7 @@
           show    : false,
         });
         $("#Add_Question").click(function () {
+            console.log("hi");
             subject_pk =  $(this).data("subject_pk");
             block_pk =  $(this).data("block_pk");
             url = $(this).data('url');
@@ -55,7 +60,7 @@
             $("#edit-question-modal").modal('show');
 
             $("#edit-question-modal .modal-title").html("Add a Question");
-            $("#edit-question-modal .modal-body").load("{% url 'blocks:handle_question' subject_pk %}");
+            $("#edit-question-modal .modal-body").load(url);
 
             var $submitButton = $("#edit-question-modal button.submit-button");
             $submitButton.off('click');

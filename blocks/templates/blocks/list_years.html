@@ -10,13 +10,21 @@
 					</div>
 {% endblock %}
 {% block content %}
-    {% for year in years %}
+<style>
+.panel-body a {
+    color: white;
+    font-size: medium;
+    font-weight: bold;
+    margin-top: auto
+}
+</style>
+{% for year in years %}
     <div class="row">
         <div class="col-lg-4">
             <div class="panel bg-teal-400">
-                       <div class="panel-body">
-        <a  style="color: white; font-size: medium; font-weight: bold; margin-top: auto" href={% url "blocks:list_blocks" year.pk %}>{{ year.name }}</a>
-                         </div>
+                <div class="panel-body">
+                    <a href="{% url 'blocks:list_blocks' year.pk %}">{{ year.name }}</a>
+                </div>
             </div>
         </div>
     </div>

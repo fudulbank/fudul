@@ -21,19 +21,13 @@
             </div>
         </div>
     </div>
-                        <button style="float:right;" data-year_pk="{{ block.year.pk }}" data-url="{% url 'blocks:handle_block' block.year.pk %}" class="block btn btn-icon btn-success">
+                        <button id='Add' style="float:right;" data-year_pk="{{ block.year.pk }}" data-url="{% url 'blocks:handle_block' block.year.pk %}" class="block btn btn-icon btn-success">
                    Add Block
                         </button>
     {% endfor %}
 {% endblock %}
 {% block customscript %}
     <script src="{% static 'js/toastr.js' %}"></script>
-	<link rel="stylesheet" href="{% static 'css/jquery.dataTables.min.css' %}">
-	<link rel="stylesheet" href="{% static 'js/datatables/responsive/css/responsive.dataTables.min.css' %}">
-	<script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
-    <script src="{% static 'js/datatables/responsive/js/dataTables.responsive.min.js' %}"></script>
-
-{% load staticfiles %}
 <script type="text/javascript">
     $(function () {
         // initialize project edit modal
@@ -42,7 +36,7 @@
           backdrop: 'static',
           show    : false,
         });
-        $(".block").click(function () {
+        $("#Add").click(function () {
             year_pk =  $(this).data("year_pk");
             url = $(this).data('url');
 
