@@ -1,0 +1,29 @@
+{% extends 'base.html' %} {% load staticfiles %}
+{% block title %}{% endblock %}
+{% block breadcrumb %}
+
+{% endblock %}
+{% block content %}
+<style>
+.a{
+    color: white;
+    font-size: medium;
+    font-weight: bold;
+    margin-top: auto;
+}
+</style>
+
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="panel bg-teal-400">
+                       <div class="panel-body">
+                     <a href={% url "blocks:list_subjects" block.pk %}>{{ block.name }}</a>
+                        <button style="float:right;" data-year_pk="{{ block.year.pk }}" data-url="{% url 'blocks:handle_block' block.year.pk %}" class="block btn btn-icon btn-success">
+                   Add Block
+                        </button>
+                       </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

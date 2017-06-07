@@ -42,7 +42,7 @@
 	<!-- Main navbar -->
 	<div class="navbar navbar-inverse">
 		<div class="navbar-header">
-			<a class="navbar-brand" href="{% url 'index' %}"><img src="{% static 'limitless/assets/images/logo_light.png' %}" alt=""></a>
+			<a class="navbar-brand" href="{% url 'index' %}"><img alt=""></a>
 
 			<ul class="nav navbar-nav visible-xs-block">
 				<li><a data-toggle="collapse" data-target="#navbar-mobile"><i class="icon-tree5"></i></a></li>
@@ -54,7 +54,7 @@
 			<ul class="nav navbar-nav navbar-right">
 				<li class="dropdown dropdown-user">
 					<a class="dropdown-toggle" data-toggle="dropdown">
-						<img src="{% static 'limitless/assets/images/placeholder.jpg' %}" alt="">
+						<img src="{% static "img/Logo.png" %}" alt="">
 						<span>{{ user.username }}</span>
 						<i class="caret"></i>
 					</a>
@@ -83,7 +83,7 @@
 					<div class="sidebar-user">
 						<div class="category-content">
 							<div class="media">
-								<a href="#" class="media-left"><img src="{% static 'limitless/assets/images/placeholder.jpg' %}" class="img-circle img-sm" alt=""></a>
+								<a href="#" class="media-left"><img class="img-circle img-sm" alt=""></a>
 								<div class="media-body">
 									<span class="media-heading text-semibold">{{ user.username }}</span>
 								</div>
@@ -150,6 +150,8 @@
 
 	</div>
 	<!-- /page container -->
+	{% block customscript %}
 
+    {% endblock %}
 </body>
 </html>

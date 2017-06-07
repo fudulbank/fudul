@@ -5,4 +5,6 @@ from .forms import CustomSignupForm
 urlpatterns = [
     url(r'^signup/$', userena_views.signup, {'signup_form': CustomSignupForm, 'template_name': 'accounts/signup.html'}, name="signup"),
     url(r'', include('userena.urls')),
+
+
 ]

@@ -1,0 +1,66 @@
+{% extends 'base.html' %} {% load staticfiles %}
+{% block title %}institutions{% endblock %}
+{% block breadcrumb %}
+
+					<div class="breadcrumb-line">
+						<ul class="breadcrumb">
+							<li><a href="index.html"><i class="icon-home2 position-left"></i> Year </a></li>
+							<li class="active">Blocks</li>
+						</ul>
+					</div>
+{% endblock %}
+{% block content %}
+
+    {% for block in blocks %}
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="panel bg-teal-400">
+                       <div class="panel-body">
+                     <a style="color: white; font-size: medium; font-weight: bold; margin-top: auto" href={% url "blocks:list_subjects" block.pk %}>{{ block.name }}</a>
+                       </div>
+            </div>
+        </div>
+    </div>
+                        <button style="float:right;" data-year_pk="{{ block.year.pk }}" data-url="{% url 'blocks:handle_block' block.year.pk %}" class="block btn btn-icon btn-success">
+                   Add Block
+                        </button>
+    {% endfor %}
+{% endblock %}
+{% block customscript %}
+    <script src="{% static 'js/toastr.js' %}"></script>
+	<link rel="stylesheet" href="{% static 'css/jquery.dataTables.min.css' %}">
+	<link rel="stylesheet" href="{% static 'js/datatables/responsive/css/responsive.dataTables.min.css' %}">
+	<script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'js/datatables/responsive/js/dataTables.responsive.min.js' %}"></script>
+
+{% load staticfiles %}
+<script type="text/javascript">
+    $(function () {
+        // initialize project edit modal
+        $('#edit-question-modal').modal({
+          keyboard: false,
+          backdrop: 'static',
+          show    : false,
+        });
+        $(".block").click(function () {
+            year_pk =  $(this).data("year_pk");
+            url = $(this).data('url');
+
+            $("#edit-question-modal").modal('show');
+
+            $("#edit-question-modal .modal-title").html("add block");
+            $("#edit-question-modal .modal-body").load(url);
+
+            var $submitButton = $("#edit-question-modal button.submit-button");
+            $submitButton.off('click');
+            $submitButton.click(function () {
+                $("form#edit-question-form").submit();
+            });
+        });
+    });
+{% include 'blocks/modals/adjust_modal_size.js' %}
+</script>
+{% with modal_id='edit-survey-modal' %}
+    {% include "blocks/modals/common_edit_modal.html" %}
+{% endwith %}
+{% endblock %}
