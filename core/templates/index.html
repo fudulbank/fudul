@@ -9,4 +9,26 @@
 						</ul>
 					</div>
 {% endblock %}
-{% block content %}{% endblock %}
+{% block content %}
+<style>
+.panel-body a {
+    color: white;
+    font-size: medium;
+    font-weight: bold;
+    margin-top: auto;
+
+}
+</style>
+ {% for institution in institutions %}
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="panel bg-teal-400">
+                       <div class="panel-body">
+            <a href={% url "blocks:list_colleges" institution.pk %}>{{ institution.name }}</a>
+                          </div>
+            </div>
+        </div>
+    </div>
+
+ {% endfor %}
+{% endblock %}

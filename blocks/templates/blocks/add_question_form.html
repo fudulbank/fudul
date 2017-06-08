@@ -1,0 +1,9 @@
+{% load bootstrap3 %}{% load staticfiles %}
+
+<div class="form-group">
+<form class="text-center" id="edit-question-form" action="post">
+{% csrf_token %}
+{% bootstrap_form form%}
+
+</form>
+</div>

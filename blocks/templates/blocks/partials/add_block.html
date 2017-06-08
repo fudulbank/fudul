@@ -3,7 +3,7 @@
 
 </style>
 <div class="form-group">
-<form class="text-center" id="add-block-form" action="post">
+<form class="text-center" id="edit-block-form" action="post">
 {% csrf_token %}
 {% bootstrap_form form %}
 </form>
@@ -25,7 +25,7 @@ $(function () {
     $(".header-field").removeClass("form-control");
     $("div.radio").removeClass("radio").css("display", "inline");
 
-    $("form#add-block-form").submit(function (event) {
+    $("form#edit-block-form").submit(function (event) {
 
         /* stop form from submitting normally */
         event.preventDefault();

@@ -4,13 +4,16 @@ from accounts.models import Institution,College
 from blocks.models import Year,Block,Subject,Question
 from core import decorators
 from blocks import forms
+from django.http import HttpResponse, HttpResponseRedirect, Http404
+
+from django.contrib.auth.models import User
 # Create your views here.
 
 
 def list_institutions(request):
     institutions = Institution.objects.all()
-    context = {'institutions':institutions}
-    return render(request,'blocks/list_institutions.html',context)
+    context = {'institutions': institutions}
+    return render(request, 'index.html', context)
 
 
 def list_colleges(request,pk):
@@ -23,7 +26,7 @@ def list_colleges(request,pk):
 def list_years(request,pk):
     college = get_object_or_404(College,pk=pk)
     years = Year.objects.filter(college=college)
-    context = {'year': years}
+    context = {'years': years}
     return render(request,'blocks/list_years.html',context)
 
 
@@ -42,40 +45,63 @@ def list_subjects(request,pk):
 
 
 @decorators.ajax_only
-def handle_block(request,year_pk):
+def handle_block(request, year_pk):
     year = get_object_or_404(Year,pk=year_pk)
 
-    context = {'year':year}
+    context = {'year': year}
 
     if request.method == 'POST':
-        form = forms.BlockForm(request.POST,year=year)
+        instance =Block(year=year,submitter=request.user)
+        form = forms.BlockForm(request.POST,instance=instance)
         if form.is_valid():
-            form.save(submitter=request.user)
+            form.save()
             show_url= reverse('blocks:list_blocks')
             return {"message": "success", "show_url": show_url}
     elif request.method == 'GET':
-        form = forms.BlockForm(year=year)
+        form = forms.BlockForm()
     context['form'] = form
     return render(request, 'blocks/partials/add_block.html', context)
 
 @decorators.ajax_only
+
 def handle_question(request, subject_pk):
     subject = get_object_or_404(Subject, pk=subject_pk)
-
-    context = {'subject':subject}
+    context = {'subject': subject}
 
     if request.method == 'POST':
-        instance = Question(subject=subject, submitter=request.user)
+        instance = Question(subject=subject,submitter=request.user)
         form = forms.QuestionForm(request.POST, request.FILES, instance=instance)
         if form.is_valid():
             form.save()
             show_url = reverse('blocks:list_subjects')
             full_url = request.build_absolute_uri(show_url)
+            context['form'] = form
             return {"message": "success", "show_url": show_url}
     elif request.method == 'GET':
-        instance = Question(subject=subject, submitter=request.user)
-        form = forms.QuestionForm(instance=instance)
+        form = forms.QuestionForm()
     context['form'] = form
 
-    return render(request,'blocks/partials/submit_question.html')
+
+    return render(request,'blocks/partials/submit_question.html',context)
+
+def list_questions(request, pk):
+    subject = get_object_or_404(Subject, pk=pk)
+    questions = Question.objects.filter(subject=subject)
+    context = {'questions':questions}
+    return render(request,'blocks/list_questions.html',context)
+
+def add_question(request):
+    context={}
+    if request.method == 'POST':
+        form= forms.QuestionForm(request.POST,request.FILES,submitter=request.user)
+        if form.is_valid() :
+            question = form.save()
+            return HttpResponseRedirect(reverse('blocks:add_question'))
+    elif request.method == 'GET':
+        form= forms.QuestionForm()
+    context['form'] = form
+    return render(request, 'blocks/add_question_form.html', context)
+
+
+
 

@@ -31,7 +31,7 @@
 <script type="text/javascript">
     $(function () {
         // initialize project edit modal
-        $('#edit-question-modal').modal({
+        $('#edit-block-modal').modal({
           keyboard: false,
           backdrop: 'static',
           show    : false,
@@ -40,15 +40,15 @@
             year_pk =  $(this).data("year_pk");
             url = $(this).data('url');
 
-            $("#edit-question-modal").modal('show');
+            $("#edit-block-modal").modal('show');
 
-            $("#edit-question-modal .modal-title").html("add block");
-            $("#edit-question-modal .modal-body").load(url);
+            $("#edit-block-modal .modal-title").html("add block");
+            $("#edit-block-modal .modal-body").load(url);
 
-            var $submitButton = $("#edit-question-modal button.submit-button");
+            var $submitButton = $("#edit-block-modal button.submit-button");
             $submitButton.off('click');
             $submitButton.click(function () {
-                $("form#edit-question-form").submit();
+                $("form#edit-block-form").submit();
             });
         });
     });

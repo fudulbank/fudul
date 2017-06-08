@@ -9,8 +9,8 @@ class BlockForm(forms.ModelForm):
 
 
 class QuestionForm(forms.ModelForm):
-    
+
     class Meta:
-        model= Question
-        fields=['subject','batch','text','explanation','figure','type']
+        model = Question
+        fields = ['subject','batch','text','explanation','figure','type']
 

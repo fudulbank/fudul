@@ -18,12 +18,13 @@
     margin-top: auto
 }
 </style>
+
     {% for subject in subjects %}
     <div class="row">
         <div class="col-lg-4">
             <div class="panel bg-teal-400">
                        <div class="panel-body">
-        <a>{{ subject.name }}</a>
+        <a href={% url "blocks:list_questions" subject.pk %}>{{ subject.name }}</a>
         <div style="float: right;">
             <button id="Add_Question" data-subject_pk="{{ subject.pk }}" data-block_pk="{{ subject.block.pk }}" data-url="{% url 'blocks:handle_question' subject.pk %}" class='question btn btn-icon btn-success'>
                  <i class="entypo-plus"></i>
@@ -37,6 +38,7 @@
 
 
     {% endfor %}
+
 {% endblock %}
 
 
