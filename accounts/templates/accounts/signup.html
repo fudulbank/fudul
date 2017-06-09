@@ -1,6 +1,7 @@
 {% extends 'userena/base_userena.html' %}{% load bootstrap3 %}
 {% block title %}Sign-up{% endblock %}
 {% block content %}
+{% bootstrap_form_errors form %}
 <form method="post">
 	{% csrf_token %}
 		<div class="text-center">
@@ -53,6 +54,31 @@
 				<i class="icon-mobile text-muted"></i>
 			</div>
 		</div>
+		<div class="form-group has-feedback has-feedback-left">
+                        <select {% if form.institution.value and not form.institution.errors %}value="{{ form.institution.value }}" {% endif %} title="" id="institution-list" class="form-control">
+                              <option value="" selected="">---------</option>
+                           {% for institution in institutions %}
+                              <option value="{{ institution.name }}">{{ institution.name }}</option>
+                           {% endfor %}
+                              <option value="Other">Other</option>
+                        </select>
+			<div class="form-control-feedback">
+				<i class="icon-library2 text-muted"></i>
+			</div>
+		</div>
+                <input {% if form.institution.value and not form.institution.errors %}value="{{ form.institution.value }}" {% endif %}type="text" class="form-control" id="institution-text-field" placeholder="Write your institution here" style="display: none"/>
+		<div style="display: none" class="form-group has-feedback has-feedback-left">
+			{% bootstrap_field form.college show_label=False %}
+			<div class="form-control-feedback">
+				<i class="icon-book text-muted"></i>
+			</div>
+		</div>
+		<div style="display: none" class="form-group has-feedback has-feedback-left">
+			{% bootstrap_field form.batch show_label=False %}
+			<div class="form-control-feedback">
+				<i class="icon-graduation2 text-muted"></i>
+			</div>
+		</div>
 		<div class="content-divider text-muted form-group"><span>Your secret</span></div>
 		<div class="form-group has-feedback has-feedback-left">
 			{% bootstrap_field form.password1 show_label=False %}
@@ -76,20 +102,73 @@
 				</label>
 			</div>
 		</div>
-
+            <input type="hidden" name="institution">
 		<button disabled type="submit" class="btn bg-teal btn-block btn-lg">Register <i class="icon-circle-right2 position-right"></i></button>
 
 </form>
 
 <script>
-$(function(){
-  $("#agree").on('ready change', function(){
-    if($("#agree:checked").length){
-      $("button[type=submit]").removeAttr('disabled');
-    } else {
-      $("button[type=submit]").attr('disabled', true);
-    }
-  });
+$(function() {
+    empty_option = $('<option value="" selected="">---------</option>');
+    
+    batches = null;
+    $('#institution-list').change(function() {
+        value = $(this).val();
+        if ($('#institution-list option[value=Other]:checked').length) {
+            $('#institution-text-field').show();
+            $('#id_college, #id_batch').closest('.form-group.has-feedback').hide();
+            $('#id_college, #id_batch').html('');
+            $('#institution-text-field').attr('required', 'required');
+        } else {
+            $('#institution-text-field').hide();
+            $('#institution-text-field').removeAttr('required');
+            $('input[name=institution]').val(value);
+            if (value.length) {
+                $.ajax({
+                    url: "{% url 'get_institution_details' %}",
+                    data: {
+                        name: value
+                    },
+                    success: function(data) {
+                        $("#id_college").html(empty_option);
+                        $("#id_college").closest('.form-group.has-feedback').show();
+                        $.each(data.colleges, function(pk, name) {
+                            option = $("<option>").val(pk).html(name);
+                            option.appendTo("#id_college");
+                        });
+                        batches = data.batches;
+                    }
+                });
+            }
+        }
+    });
+    $('#institution-text-field').change(function() {
+        value = $(this).val();
+        $('input[name=institution]').val(value);
+    });
+    $("#id_college").change(function() {
+        value = $(this).val();
+        if (value.length) {
+            $("#id_batch").html(empty_option);
+            $("#id_batch").closest('.form-group.has-feedback').show();
+            college_batches = batches[value]
+            $.each(college_batches, function(index, batch_data) {
+                pk = batch_data[0];
+                name = batch_data[1];
+                option = $("<option>").val(pk).html(name);
+                option.appendTo("#id_batch");
+            });
+        }
+
+    });
+
+    $("#agree").on('ready change', function() {
+        if ($("#agree:checked").length) {
+            $("button[type=submit]").removeAttr('disabled');
+        } else {
+            $("button[type=submit]").attr('disabled', true);
+        }
+    });
 });
 </script>
 

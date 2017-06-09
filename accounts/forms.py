@@ -1,7 +1,7 @@
 from django import forms
 from accounts.models import Profile
 from userena.forms import SignupFormOnlyEmail, EditProfileForm
-from .models import Profile
+from .models import Profile, College, Batch
 
 
 class CustomSignupForm(SignupFormOnlyEmail):
@@ -9,16 +9,30 @@ class CustomSignupForm(SignupFormOnlyEmail):
     middle_name = forms.CharField(max_length=30)
     last_name = forms.CharField(max_length=30)
     alternative_email = forms.EmailField()
+    institution = forms.CharField(max_length=100)
+    college = forms.ModelChoiceField(queryset=College.objects.all(),
+                                     required=False)
+    batch = forms.ModelChoiceField(queryset=Batch.objects.all(),
+                                   required=False)    
     mobile_number = forms.CharField(max_length=15)
 
     def clean(self, *args, **kwargs):
         cleaned_data = super(CustomSignupForm, self).clean(*args, **kwargs)
-        if 'email' in cleaned_data:
-            cleaned_data['email'] = cleaned_data['email'].lower()
-            if not cleaned_data['email'].endswith('ksau-hs.edu.sa'):
-                email_msg = "Please enter a university address"
-                self._errors['email'] = self.error_class([email_msg])
-                del cleaned_data['email']
+        if not 'college' in cleaned_data or \
+           not 'email' in cleaned_data or \
+           not cleaned_data['college'] or \
+           not cleaned_data['email']:
+            return cleaned_data
+
+        email = self.cleaned_data['email']
+        college = self.cleaned_data['college']
+        institution = college.institution
+
+        if not institution.is_email_allowed(email):
+            msg = ("The email you entered does not allow you to sign "
+                   "up for {}.".format(institution.name))
+            self._errors['email'] = self.error_class([msg])
+            del cleaned_data['email']
 
         return cleaned_data
 
@@ -38,6 +52,9 @@ class CustomSignupForm(SignupFormOnlyEmail):
         user_profile.middle_name = self.cleaned_data['middle_name']
         user_profile.last_name = self.cleaned_data['last_name']
         user_profile.mobile_number = self.cleaned_data['mobile_number']
+        user_profile.institution = self.cleaned_data['institution']
+        user_profile.college = self.cleaned_data.get('college', None)
+        user_profile.batch = self.cleaned_data.get('batch', None)
 
         user_profile.save()
 

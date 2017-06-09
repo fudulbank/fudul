@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+import re
 
 
 class Profile(models.Model):
@@ -7,7 +8,9 @@ class Profile(models.Model):
     first_name = models.CharField(max_length=30)
     middle_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
-    college = models.ForeignKey('College', null=True)
+    batch = models.ForeignKey('Batch', null=True, blank=True)
+    college = models.ForeignKey('College', null=True, blank=True)
+    institution = models.CharField(max_length=100, default="")
     mobile_number = models.CharField(max_length=14)
     alternative_email = models.EmailField(blank=True)
     submission_date = models.DateTimeField(auto_now_add=True)
@@ -17,28 +20,42 @@ class Profile(models.Model):
         return self.user.username
 
     def get_full_name(self):
-        try:
-            # If the first name is missing, let's assume the rest is
-            # also missing.
-            if self.first_name:
-                ar_fullname = " ".join([self.first_name,
-                                        self.middle_name,
-                                        self.last_name])
-        except AttributeError: # If the user has their details missing
-            pass
+        # If the first name is missing, let's assume the rest is also
+        # missing.
+        if self.first_name:
+            ar_fullname = " ".join([self.first_name,
+                                    self.middle_name,
+                                    self.last_name])
+            return ar_fullname
 
-        return ar_fullname
+class Batch(models.Model):
+    name = models.CharField(max_length=50)
+    college = models.ForeignKey('College')
 
+    def __str__(self):
+        return "{} ({})".format(self.name, self.college.name)
 
 class College(models.Model):
     name = models.CharField(max_length=50)
     institution = models.ForeignKey('Institution')
 
     def __str__(self):
-        return self.name
+        return "{} ({})".format(self.name, self.institution.name)
 
 
 class Institution(models.Model):
     name = models.CharField(max_length=100)
+    email_regex = models.CharField(max_length=100, blank=True,
+                                   default="")
+
+    def is_email_allowed(self, email):
+        if not self.email_regex:
+            return True
+        else:
+            return bool(re.findall(self.email_regex, email, re.I))
+
+    def is_user_allowed(self, user):
+        return is_email_allowed(user.email)
+
     def __str__(self):
         return self.name
