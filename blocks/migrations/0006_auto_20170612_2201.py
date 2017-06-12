@@ -8,7 +8,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('blocks', '0005_modify_fields'),
+        ('blocks', '0005_fields_modification'),
     ]
 
     operations = [
