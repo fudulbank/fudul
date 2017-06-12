@@ -109,17 +109,15 @@ def list_meta_categories(request):
     return render(request,'blocks/list-categories.html',context)
 
 def list_categories(request,slug):
-    category =  get_object_or_404(Category, slug=slug)
-    categories=Category.objects.filter(parent_category=category)
+    category = get_object_or_404(Category, slug=slug)
+    categories = Category.objects.filter(parent_category=category)
     last_categories = Category.objects.filter(children__isnull=True)
-    for a in last_categories:
-        if Exam.objects.filter(parent_category=a).exists():
-            exams = Exam.objects.filter(parent_category=a)
+    context = {'categories': categories,'last_categories':last_categories}
+    for a in last_categories :
+        if Exam.objects.filter(parent_category=a,is_deleted=False).exists():
+            exams = Exam.objects.filter(parent_category=a,is_deleted=False)
+            context['exams']=exams
 
-            return exams
-    exams = Exam.objects.filter(parent_category=category)
-
-    context = {'categories': categories,'last_categories':last_categories,'exams':exams}
     return render(request, "blocks/list-categories.html", context)
 
 

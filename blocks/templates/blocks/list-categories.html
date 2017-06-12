@@ -20,6 +20,26 @@
 </style>
 {% for category in categories %}
     {% if category in last_categories %}
+        {% if exams %}
+            {% for exam in exams%}
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <div class="panel bg-teal-400">
+                                <div class="panel-body">
+                                    <a href="#">{{ exam.name }}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+            {% endfor %}
+
+    {% else %}
+        <div class="col-md-6">
+        <div class="panel panel-flat">
+            <h1 style="text-align: center">There is no subdivisions </h1>
+        </div>
+        </div>
+    {% endif %}
 
     {% else %}
     <div class="row">
