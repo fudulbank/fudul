@@ -19,8 +19,8 @@ class QuestionForm(forms.ModelForm):
         subject = Subject.objects.filter(exam=exam)
         self.fields['subject'].queryset = subject
         self.subject = None
-        # college = get_user_college(self.user)
-        # self.fields['source'].queryset = Source.objects.filter(college=college)
+        college = get_user_college(self.user)
+        self.fields['source'].queryset = Source.objects.filter(college=college)
         # self.source = None
 
     def save(self, *args, **kwargs):

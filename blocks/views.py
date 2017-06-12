@@ -101,8 +101,7 @@ def show_category(request, slugs):
 
 def add_question(request,pk):
     exam = get_object_or_404(Exam,pk=pk)
-    sources = Source.objects.all()
-    context={'exam':exam,'sources':sources}
+    context={'exam':exam}
     if request.method == 'POST':
         instance = Revision(submitter=request.user)
         questionform = forms.QuestionForm(request.POST,

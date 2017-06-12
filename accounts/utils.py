@@ -10,7 +10,7 @@ def get_user_institution(user):
     return institution
 
 def get_user_college(user):
-    if not user.is_authenticated() or user.is_superuser:
+    if not user.is_authenticated():
         return ''
     try:
         college= user.profile.college
