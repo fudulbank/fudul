@@ -1,15 +1,20 @@
 {% extends 'base.html' %}
-{% block title %}institutions{% endblock %}
+{% block title %}Fudul | {{ category.name }}
+{% endblock %}
 {% block breadcrumb %}
 
 					<div class="breadcrumb-line">
 						<ul class="breadcrumb">
-							<li><a href="index.html"><i class="icon-home2 position-left"></i> Fudul</a></li>
-							<li class="active">Institutions</li>
+							<li><a href="{% url 'index' %}"><i class="icon-home2 position-left"></i> Fudul</a></li>
+                                                        {% for parent_category in category.get_parent_categories %}
+							<li><a href="{% url 'blocks:list_categories' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
+                                                        {% endfor %}
+                                                        <li class="active">{{ category.name }}</li>
 						</ul>
 					</div>
 {% endblock %}
 {% block content %}
+<h1>{{ category.name }}</h1>
 <style>
 .panel-body a {
     color: white;
@@ -18,10 +23,8 @@
     margin-top: auto
 }
 </style>
-{% for category in categories %}
-    {% if category in last_categories %}
-        {% if exams %}
-            {% for exam in exams%}
+{% if exams.exists and not category.children.exists %}
+            {% for exam in exams %}
                     <div class="row">
                         <div class="col-lg-4">
                             <div class="panel bg-teal-400">
@@ -32,25 +35,20 @@
         </div>
     </div>
             {% endfor %}
+{% elif category.children.exists %}
 
-    {% else %}
-        <div class="col-md-6">
-        <div class="panel panel-flat">
-            <h1 style="text-align: center">There is no subdivisions </h1>
-        </div>
-        </div>
-    {% endif %}
-
-    {% else %}
+{% for child_category in category.children.all %}
     <div class="row">
         <div class="col-lg-4">
             <div class="panel bg-teal-400">
                 <div class="panel-body">
-                    <a href="{% url 'blocks:list_categories' category.slug %}">{{ category.name }}</a>
+                    <a href="{% url 'blocks:list_categories' child_category.get_slugs %}">{{ child_category.name }}</a>
                 </div>
             </div>
         </div>
     </div>
-    {% endif %}
     {% endfor %}
+{% else %}
+   <p>No subdivisions!</p>
+{% endif %}
 {% endblock %}

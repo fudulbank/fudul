@@ -7,7 +7,6 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 
 
-@login_required
 def show_index(request):
     if request.user.is_authenticated():
         user_institution = utils.get_user_institution(request.user)
@@ -19,9 +18,9 @@ def show_index(request):
                     sub_categories = Category.objects.filter(parent_category=categories)
                     if sub_categories.count() <= 1:
                         sub_category = Category.objects.get(parent_category=institutions)
-                        HttpResponseRedirect(reverse("blocks:list_categories",args=(sub_category.slug)))
+                        HttpResponseRedirect(reverse("blocks:show_category",args=(sub_category.slug,)))
                     else:
-                        HttpResponseRedirect(reverse("blocks:list_categories",args=(institutions.slug)))
+                        HttpResponseRedirect(reverse("blocks:show_category",args=(institutions.slug,)))
                 else:
                     HttpResponseRedirect(reverse('blocks:list_meta_categories'))
 
