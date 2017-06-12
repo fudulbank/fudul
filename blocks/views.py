@@ -112,6 +112,11 @@ def list_categories(request,slug):
     category =  get_object_or_404(Category, slug=slug)
     categories=Category.objects.filter(parent_category=category)
     last_categories = Category.objects.filter(children__isnull=True)
+    for a in last_categories:
+        if Exam.objects.filter(parent_category=a).exists():
+            exams = Exam.objects.filter(parent_category=a)
+
+            return exams
     exams = Exam.objects.filter(parent_category=category)
 
     context = {'categories': categories,'last_categories':last_categories,'exams':exams}

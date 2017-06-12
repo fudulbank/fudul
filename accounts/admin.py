@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.admin.forms import AdminAuthenticationForm
 from django.contrib.auth.models import User
 from .models import Batch, College, Institution, Profile
+from blocks.models import Category
 
 class EditorAuthenticationForm(AdminAuthenticationForm):
     def confirm_login_allowed(self, user):
