@@ -5,16 +5,21 @@
 
 					<div class="breadcrumb-line">
 						<ul class="breadcrumb">
-							<li><a href="{% url 'index' %}"><i class="icon-home2 position-left"></i> Fudul</a></li>
+							<li><a href="{% url 'index' %}"><i class="icon-home2 position-left"></i> Home</a></li>
+                                                        {% if category %}<li><a href="{% url 'blocks:list_meta_categories' %}">Exams</a></li>{% endif %}
                                                         {% for parent_category in category.get_parent_categories %}
-							<li><a href="{% url 'blocks:list_categories' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
+							<li><a href="{% url 'blocks:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
                                                         {% endfor %}
-                                                        <li class="active">{{ category.name }}</li>
+                                                        <li class="active">{% if category %}{{ category.name }}{% else %}Exams{% endif %}</li>
 						</ul>
 					</div>
 {% endblock %}
 {% block content %}
+{% if category %}
 <h1>{{ category.name }}</h1>
+{% else %}
+<h1>Explore exams</h1>
+{% endif %}
 <style>
 .panel-body a {
     color: white;
@@ -23,11 +28,11 @@
     margin-top: auto
 }
 </style>
-{% if exams.exists and not category.children.exists %}
+{% if exams.exists %}
             {% for exam in exams %}
                     <div class="row">
                         <div class="col-lg-4">
-                            <div class="panel bg-teal-400">
+                            <div class="panel bg-primary-600">
                                 <div class="panel-body">
                                     <a href="#">{{ exam.name }}</a>
                 </div>
@@ -35,14 +40,14 @@
         </div>
     </div>
             {% endfor %}
-{% elif category.children.exists %}
+{% elif subcategories.exists %}
 
-{% for child_category in category.children.all %}
+{% for subcategory in subcategories %}
     <div class="row">
         <div class="col-lg-4">
-            <div class="panel bg-teal-400">
+            <div class="panel bg-primary-600">
                 <div class="panel-body">
-                    <a href="{% url 'blocks:list_categories' child_category.get_slugs %}">{{ child_category.name }}</a>
+                    <a href="{% url 'blocks:show_category' subcategory.get_slugs %}">{{ subcategory.name }}</a>
                 </div>
             </div>
         </div>

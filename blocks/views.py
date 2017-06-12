@@ -76,9 +76,9 @@ def list_questions(request, pk):
 
 
 def list_meta_categories(request):
-    categories=Category.objects.filter(parent_category__isnull=True)
-    context = {"categories":categories}
-    return render(request,'blocks/list-categories.html',context)
+    subcategories = Category.objects.filter(parent_category__isnull=True)
+    context = {"subcategories": subcategories}
+    return render(request, 'blocks/show_category.html', context)
 
 def show_category(request, slugs):
     slug_list = [slug for slug in slugs.split('/') if slug]
@@ -91,13 +91,12 @@ def show_category(request, slugs):
         level += '__parent_category'
     category = get_object_or_404(Category, **kwargs)
     exams = Exam.objects.filter(category=category)
-
+    subcategories = category.children.all()
     context = {'category': category,
+               'subcategories': subcategories,
                'exams': exams}
 
-    return render(request, "blocks/list-categories.html", context)
-
-
+    return render(request, "blocks/show_category.html", context)
 
 def add_question(request,pk):
     exam = get_object_or_404(Exam,pk=pk)
