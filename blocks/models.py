@@ -64,13 +64,14 @@ question_type_choices = (
 
 
 class Question(models.Model):
-    source = models.ForeignKey(Source,default='',null=True)
+    source = models.ManyToManyField(Source,default='',blank=True)
     subject = models.ForeignKey(Subject)
     figure = models.FileField(upload_to="exams/question"
                                         "_image", blank=True, null=True)
     exam_type = models.CharField(max_length=1, choices=question_type_choices,
                                  verbose_name="type", default="")
     is_deleted = models.BooleanField(default=False)
+    is_complete = models.BooleanField(default=True)
 
     def __unicode__(self):
         return self.name

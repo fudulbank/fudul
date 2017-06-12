@@ -116,7 +116,7 @@ def list_categories(request,slug):
     for a in last_categories :
         if Exam.objects.filter(parent_category=a,is_deleted=False).exists():
             exams = Exam.objects.filter(parent_category=a,is_deleted=False)
-            context['exams']=exams
+            context['exams'] = exams
 
     return render(request, "blocks/list-categories.html", context)
 

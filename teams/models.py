@@ -11,7 +11,7 @@ class Team(models.Model):
         ('editors', 'Editors'),
         ('collectors', 'Collectors')
         )
-    access = models.CharField(max_length=10, choices=access_choices)
+    access = models.CharField(max_length=10, choices=access_choices,default='')
 
     def get_member_count(self):
         return self.members.count()

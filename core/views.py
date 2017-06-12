@@ -16,10 +16,12 @@ def show_index(request):
         if categories.exists():
             for institutions in categories:
                 if categories.count() <= 1:
-                    category = Category.objects.filter(parent_category=categories)
-                    for a in category:
-                        slug = a.slug
-                    HttpResponseRedirect(reverse("blocks:list_categories",args=(slug)))
+                    sub_categories = Category.objects.filter(parent_category=categories)
+                    if sub_categories.count() <= 1:
+                        sub_category = Category.objects.get(parent_category=institutions)
+                        HttpResponseRedirect(reverse("blocks:list_categories",args=(sub_category.slug)))
+                    else:
+                        HttpResponseRedirect(reverse("blocks:list_categories",args=(institutions.slug)))
                 else:
                     HttpResponseRedirect(reverse('blocks:list_meta_categories'))
 
