@@ -1,7 +1,7 @@
 from django.shortcuts import render,get_object_or_404
 from django.core.urlresolvers import reverse
 from accounts.models import Institution,College
-from blocks.models import Year,Block,Subject,Question
+from blocks.models import Year,Exam,Subject,Question,Category
 from core import decorators
 from blocks import forms
 from django.http import HttpResponse, HttpResponseRedirect, Http404
@@ -30,9 +30,9 @@ def list_years(request,pk):
     return render(request,'blocks/list_years.html',context)
 
 
-def list_blocks(request,pk):
+def list_exams(request,pk):
     year = get_object_or_404(Year, pk=pk)
-    blocks = Block.objects.filter(year=year)
+    blocks = Exam.objects.filter(year=year)
     context = {'blocks': blocks}
     return render(request,'blocks/list_blocks.html',context)
 
@@ -52,13 +52,13 @@ def handle_block(request, year_pk):
 
     if request.method == 'POST':
         instance =Block(year=year,submitter=request.user)
-        form = forms.BlockForm(request.POST,instance=instance)
+        form = forms.ExamForm(request.POST,instance=instance)
         if form.is_valid():
             form.save()
-            show_url= reverse('blocks:list_blocks')
+            show_url= reverse('blocks:list_exams')
             return {"message": "success", "show_url": show_url}
     elif request.method == 'GET':
-        form = forms.BlockForm()
+        form = forms.ExamForm()
     context['form'] = form
     return render(request, 'blocks/partials/add_block.html', context)
 
@@ -101,6 +101,22 @@ def add_question(request):
         form= forms.QuestionForm()
     context['form'] = form
     return render(request, 'blocks/add_question_form.html', context)
+
+
+def list_meta_categories(request):
+    categories=Category.objects.filter(parent_category__isnull=True)
+    context = {"categories":categories}
+    return render(request,'blocks/list-categories.html',context)
+
+def list_categories(request,slug):
+    category =  get_object_or_404(Category, slug=slug)
+    categories=Category.objects.filter(parent_category=category)
+    last_categories = Category.objects.filter(children__isnull=True)
+    exams = Exam.objects.filter(parent_category=category)
+
+    context = {'categories': categories,'last_categories':last_categories,'exams':exams}
+    return render(request, "blocks/list-categories.html", context)
+
 
 
 

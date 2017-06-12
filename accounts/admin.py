@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.models import User
-from .models import Batch, College, Institution
+from .models import Batch, College, Institution, Profile
 
 
 class BatchInline(admin.StackedInline):

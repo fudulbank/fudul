@@ -18,16 +18,19 @@
     margin-top: auto
 }
 </style>
-{% for year in years %}
+{% for category in categories %}
+    {% if category in last_categories %}
+
+    {% else %}
     <div class="row">
         <div class="col-lg-4">
             <div class="panel bg-teal-400">
                 <div class="panel-body">
-                    <a href="{% url 'blocks:list_exams' year.pk %}">{{ year.name }}</a>
+                    <a href="{% url 'blocks:list_categories' category.slug %}">{{ category.name }}</a>
                 </div>
             </div>
         </div>
     </div>
-
+    {% endif %}
     {% endfor %}
 {% endblock %}
