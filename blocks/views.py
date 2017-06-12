@@ -1,41 +1,12 @@
 from django.shortcuts import render,get_object_or_404
 from django.core.urlresolvers import reverse
 from accounts.models import Institution,College
-from accounts.utils import get_user_institution
-from blocks.models import Year,Exam,Subject,Question,Category,Revision,Source
+from blocks.models import Year,Exam,Subject,Question,Category
 from core import decorators
 from blocks import forms
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 
 from django.contrib.auth.models import User
-# Create your views here.
-
-
-def list_institutions(request):
-    institutions = Institution.objects.all()
-    context = {'institutions': institutions}
-    return render(request, 'index.html', context)
-
-
-def list_colleges(request,pk):
-    institution = get_object_or_404(Institution, pk=pk)
-    colleges = College.objects.filter(institution=institution)
-    context ={'colleges':colleges}
-    return render(request,'blocks/list_colleges.html',context)
-
-
-def list_years(request,pk):
-    college = get_object_or_404(College,pk=pk)
-    years = Year.objects.filter(college=college)
-    context = {'years': years}
-    return render(request,'blocks/list_years.html',context)
-
-
-def list_exams(request,pk):
-    year = get_object_or_404(Year, pk=pk)
-    blocks = Exam.objects.filter(year=year)
-    context = {'blocks': blocks}
-    return render(request,'blocks/list_blocks.html',context)
 
 
 def list_subjects(request,pk):
@@ -109,17 +80,20 @@ def list_meta_categories(request):
     context = {"categories":categories}
     return render(request,'blocks/list-categories.html',context)
 
+def show_category(request, slugs):
+    slug_list = [slug for slug in slugs.split('/') if slug]
+    last_slug = slug_list.pop(-1)
+    kwargs = {'slug': last_slug}
+    level = 'parent_category'
+    for slug in slug_list:
+        kwarg = level + '__slug'
+        kwargs[kwarg] = slug
+        level += '__parent_category'
+    category = get_object_or_404(Category, **kwargs)
+    exams = Exam.objects.filter(category=category)
 
-def list_categories(request,slug):
-
-    category = get_object_or_404(Category, slug=slug)
-    categories = Category.objects.filter(parent_category=category)
-    last_categories = Category.objects.filter(children__isnull=True)
-    context = {'categories': categories,'last_categories':last_categories}
-    for a in last_categories:
-        if Exam.objects.filter(parent_category=a, is_deleted=False).exists():
-            exams = Exam.objects.filter(parent_category=a,is_deleted=False)
-            context['exams'] = exams
+    context = {'category': category,
+               'exams': exams}
 
     return render(request, "blocks/list-categories.html", context)
 

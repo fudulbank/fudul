@@ -29,6 +29,21 @@ class Category(models.Model):
                                         on_delete=models.SET_NULL,
                                         default=None)
 
+    def get_parent_categories(self):
+        parent_categories = []
+        parent_category = self.parent_category
+        while parent_category:
+            parent_categories.append(parent_category)
+            parent_category = parent_category.parent_category
+
+        return parent_categories
+
+    def get_slugs(self):
+        slugs = self.slug + '/'
+        for parent_category in self.get_parent_categories():
+            slugs = parent_category.slug + '/' + slugs
+
+        return slugs
 
     def __str__(self):
         return self.name
@@ -37,7 +52,7 @@ class Category(models.Model):
 class Exam(models.Model):
     submitter = models.ForeignKey(User, null=True, blank=True)
     name = models.CharField(max_length=100)
-    parent_category = models.ForeignKey(Category,related_name='exams')
+    category = models.ForeignKey(Category,related_name='exams')
     submission_date = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
     batches_allowed_to_take = models.ForeignKey(Batch, null=True, blank=True)
