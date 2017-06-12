@@ -2,6 +2,7 @@ from django.conf.urls import url, include
 from blocks import views
 
 urlpatterns =[
+    url(r'^viewexam/(?P<pk>\d+)/$', views.add_question, name='add_question'),
     url(r'^$', views.list_meta_categories, name='list_meta_categories'),
     url(r'(?P<slug>[\d\w\-]+)/$',views.list_categories, name='list_categories'),
     url(r'^colleges/(?P<pk>\d+)/$', views.list_colleges, name='list_colleges'),

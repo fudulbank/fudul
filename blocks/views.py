@@ -1,7 +1,8 @@
 from django.shortcuts import render,get_object_or_404
 from django.core.urlresolvers import reverse
 from accounts.models import Institution,College
-from blocks.models import Year,Exam,Subject,Question,Category
+from accounts.utils import get_user_institution
+from blocks.models import Year,Exam,Subject,Question,Category,Revision,Source
 from core import decorators
 from blocks import forms
 from django.http import HttpResponse, HttpResponseRedirect, Http404
@@ -90,17 +91,17 @@ def list_questions(request, pk):
     context = {'questions':questions}
     return render(request,'blocks/list_questions.html',context)
 
-def add_question(request):
-    context={}
-    if request.method == 'POST':
-        form= forms.QuestionForm(request.POST,request.FILES,submitter=request.user)
-        if form.is_valid() :
-            question = form.save()
-            return HttpResponseRedirect(reverse('blocks:add_question'))
-    elif request.method == 'GET':
-        form= forms.QuestionForm()
-    context['form'] = form
-    return render(request, 'blocks/add_question_form.html', context)
+# def add_question(request):
+#     context={}
+#     if request.method == 'POST':
+#         form= forms.QuestionForm(request.POST,request.FILES,submitter=request.user)
+#         if form.is_valid() :
+#             question = form.save()
+#             return HttpResponseRedirect(reverse('blocks:add_question'))
+#     elif request.method == 'GET':
+#         form= forms.QuestionForm()
+#     context['form'] = form
+#     return render(request, 'blocks/add_question_form.html', context)
 
 
 def list_meta_categories(request):
@@ -108,17 +109,56 @@ def list_meta_categories(request):
     context = {"categories":categories}
     return render(request,'blocks/list-categories.html',context)
 
+
 def list_categories(request,slug):
+
     category = get_object_or_404(Category, slug=slug)
     categories = Category.objects.filter(parent_category=category)
     last_categories = Category.objects.filter(children__isnull=True)
     context = {'categories': categories,'last_categories':last_categories}
-    for a in last_categories :
-        if Exam.objects.filter(parent_category=a,is_deleted=False).exists():
+    for a in last_categories:
+        if Exam.objects.filter(parent_category=a, is_deleted=False).exists():
             exams = Exam.objects.filter(parent_category=a,is_deleted=False)
             context['exams'] = exams
 
     return render(request, "blocks/list-categories.html", context)
+
+
+
+def add_question(request,pk):
+    exam = get_object_or_404(Exam,pk=pk)
+    sources = Source.objects.all()
+    context={'exam':exam,'sources':sources}
+    if request.method == 'POST':
+        instance = Revision(submitter=request.user)
+        questionform = forms.QuestionForm(request.POST,
+                                          request.FILES,
+                                          user=request.user,
+                                          exam=exam)
+        revisionform = forms.RevisionForm(request.POST,
+                                          instance=instance)
+
+        revisionchoiceformset = forms.RevisionChoiceFormset(request.POST)
+        if questionform.is_valid() and revisionform.is_valid() and revisionchoiceformset.is_valid():
+            question = questionform.save()
+            revision = revisionform.save(commit=False)
+            revision.question = question
+            submit_revision = revision.save()
+            revisionchoiceformset.instance = submit_revision
+            revisionchoiceformset.save()
+            return HttpResponseRedirect(reverse('blocks:add_question',
+                                                args=exam.pk))
+    elif request.method == 'GET':
+        questionform = forms.QuestionForm(user=request.user)
+        revisionform = forms.RevisionForm()
+        revisionchoiceformset = forms.RevisionChoiceFormset()
+
+    context['questionform'] = questionform
+    context['revisionform'] = revisionform
+    context['revisionchoiceformset'] = revisionchoiceformset
+
+    return render(request, "blocks/add-question.html", context)
+
 
 
 

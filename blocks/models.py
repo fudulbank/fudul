@@ -78,6 +78,7 @@ class Question(models.Model):
 
 
 class Revision (models.Model):
+    question = models.ForeignKey(Question)
     submitter = models.ForeignKey(User, null=True, blank=True)
     text = models.TextField()
     explanation = models.TextField(null=True, blank=True, verbose_name="answer_explanation")

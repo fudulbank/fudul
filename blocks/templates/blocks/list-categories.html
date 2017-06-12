@@ -18,39 +18,30 @@
     margin-top: auto
 }
 </style>
-{% for category in categories %}
-    {% if category in last_categories %}
-        {% if exams %}
+    {% if exams %}
             {% for exam in exams%}
                     <div class="row">
                         <div class="col-lg-4">
                             <div class="panel bg-teal-400">
                                 <div class="panel-body">
-                                    <a href="#">{{ exam.name }}</a>
+                                    <a href="{% url 'blocks:show_exam' exam.pk %}">{{ exam.name }}</a>
                 </div>
             </div>
         </div>
     </div>
-            {% endfor %}
-
-    {% else %}
-        <div class="col-md-6">
-        <div class="panel panel-flat">
-            <h1 style="text-align: center">There is no subdivisions </h1>
-        </div>
-        </div>
-    {% endif %}
-
-    {% else %}
-    <div class="row">
-        <div class="col-lg-4">
-            <div class="panel bg-teal-400">
-                <div class="panel-body">
-                    <a href="{% url 'blocks:list_categories' category.slug %}">{{ category.name }}</a>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
     {% endfor %}
+    {% else %}
+    {% for category in categories %}
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="panel bg-teal-400">
+                    <div class="panel-body">
+                        <a href="{% url 'blocks:list_categories' category.slug %}">{{ category.name }}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+    {% endif %}
+
 {% endblock %}

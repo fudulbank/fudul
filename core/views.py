@@ -15,9 +15,9 @@ def show_index(request):
         categories = Category.objects.filter(parent_category__isnull=True,college_limit=user_college)
         if categories.exists():
             for institutions in categories:
-                if categories.count() <= 1:
+                if categories.count() == 1:
                     sub_categories = Category.objects.filter(parent_category=categories)
-                    if sub_categories.count() <= 1:
+                    if sub_categories.count() == 1:
                         sub_category = Category.objects.get(parent_category=institutions)
                         HttpResponseRedirect(reverse("blocks:list_categories",args=(sub_category.slug)))
                     else:
