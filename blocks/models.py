@@ -103,10 +103,9 @@ class Question(models.Model):
                                  verbose_name="type", default="")
     is_deleted = models.BooleanField(default=False)
     status = models.CharField(max_length=1, choices=status_choices,default="")
-    #question_Status
 
-    def __unicode__(self):
-        return self.name
+    def __str__(self):
+        return self.status
 
 
 class Revision (models.Model):
@@ -124,14 +123,8 @@ class Revision (models.Model):
             self.approval_date = datetime.now()
         super(Revision, self).save(*args, **kwargs)
 
-    # def __init__(self, *args, **kwargs):
-    #     super(Revision, self).__init__(*args, **kwargs)
-    #     self.old_published = self.approval_date
-    #
-    # def save(self, *args, **kwargs):
-    #     if self.old_published != self.approval_date and self.approval_date:
-    #         self.pub_date = datetime.now()
-    #     super(Revision, self).save(*args, **kwargs)
+    def __str__(self):
+        return self.text
 
 
 class Choice(models.Model):
