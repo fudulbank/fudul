@@ -10,9 +10,9 @@ class QuestionForm(forms.ModelForm):
         fields = ['sources', 'subjects', 'figure', 'exam_type',
                   'status']
         widgets = {
-            'sources': autocomplete.ModelSelect2Multiple(url='blocks:source_autocomplete',
+            'sources': autocomplete.ModelSelect2Multiple(url='exams:source_autocomplete',
                                                         forward=['exam_pk']),
-            'subjects': autocomplete.ModelSelect2Multiple(url='blocks:subject_autocomplete',
+            'subjects': autocomplete.ModelSelect2Multiple(url='exams:subject_autocomplete',
                                                          forward=['exam_pk'])
         }
 
