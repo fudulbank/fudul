@@ -125,6 +125,12 @@ class Question(models.Model):
     def get_latest_revision(self):
         return self.revision_set.filter(is_approved=False,is_deleted=False).order_by('-submission_date').first()
 
+    def get_ultimate_latest_revision(self):
+        if self.get_latest_approved_revision() is not None:
+            return self.get_latest_approved_revision()
+        else:
+            return self.get_latest_revision()
+
 
 class Revision (models.Model):
     question = models.ForeignKey(Question)
