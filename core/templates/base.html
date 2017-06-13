@@ -8,8 +8,8 @@
 
 	<!-- Global stylesheets -->
 	<link href="https://fonts.googleapis.com/css?family=Roboto:400,300,100,500,700,900" rel="stylesheet" type="text/css">
-	<link href="{% static 'limitless/assets/css/icons/icomoon/styles.css' %}" rel="stylesheet" type="text/css">
 	<link href="{% static 'limitless/assets/css/bootstrap.css' %}" rel="stylesheet" type="text/css">
+	<link href="{% static 'limitless/assets/css/icons/icomoon/styles.css' %}" rel="stylesheet" type="text/css">
 	<link href="{% static 'limitless/assets/css/core.css' %}" rel="stylesheet" type="text/css">
 	<link href="{% static 'limitless/assets/css/components.css' %}" rel="stylesheet" type="text/css">
 	<link href="{% static 'limitless/assets/css/colors.css' %}" rel="stylesheet" type="text/css">
@@ -32,7 +32,6 @@
 	<script type="text/javascript" src="{% static 'limitless/assets/js/plugins/pickers/daterangepicker.js' %}"></script>
 
 	<script type="text/javascript" src="{% static 'limitless/assets/js/core/app.js' %}"></script>
-	<script type="text/javascript" src="{% static 'limitless/assets/js/pages/dashboard.js' %}"></script>
 	<!-- /theme JS files -->
 
 </head>
@@ -40,9 +39,9 @@
 <body>
 
 	<!-- Main navbar -->
-	<div class="navbar navbar-inverse">
+	<div class="navbar bg-primary navbar-inverse">
 		<div class="navbar-header">
-			<a class="navbar-brand" href="{% url 'index' %}"><img src="{% static 'limitless/assets/images/logo_light.png' %}" alt=""></a>
+			<a class="navbar-brand" href="{% url 'index' %}"><img alt=""></a>
 
 			<ul class="nav navbar-nav visible-xs-block">
 				<li><a data-toggle="collapse" data-target="#navbar-mobile"><i class="icon-tree5"></i></a></li>
@@ -54,12 +53,13 @@
 			<ul class="nav navbar-nav navbar-right">
 				<li class="dropdown dropdown-user">
 					<a class="dropdown-toggle" data-toggle="dropdown">
-						<img src="{% static 'limitless/assets/images/placeholder.jpg' %}" alt="">
-						<span>{{ user.username }}</span>
+						<img src="{% static "img/Logo.png" %}" alt="">
+						<span>{{ user.profile.first_name|default:user.username }}</span>
 						<i class="caret"></i>
 					</a>
 
 					<ul class="dropdown-menu dropdown-menu-right">
+						<li><a href="{% url 'userena_password_change' user.username %}"><i class="icon-reset"></i> Change password</a></li>
 						<li><a href="{% url 'userena_signout' %}"><i class="icon-switch2"></i> Logout</a></li>
 					</ul>
 				</li>
@@ -76,16 +76,15 @@
 		<div class="page-content">
 
 			<!-- Main sidebar -->
-			<div class="sidebar sidebar-main">
+			<div class="sidebar bg-primary-600 sidebar-main">
 				<div class="sidebar-content">
 
 					<!-- User menu -->
 					<div class="sidebar-user">
 						<div class="category-content">
 							<div class="media">
-								<a href="#" class="media-left"><img src="{% static 'limitless/assets/images/placeholder.jpg' %}" class="img-circle img-sm" alt=""></a>
 								<div class="media-body">
-									<span class="media-heading text-semibold">{{ user.username }}</span>
+									<span class="media-heading text-semibold">Welcome, {{ user.profile.first_name|default:user.username }}!</</span>
 								</div>
 
 							</div>
@@ -101,11 +100,22 @@
 
 								<!-- Main -->
 								<li>
-									<a href="#"><i class="icon-copy"></i> <span>Menu item</span></a>
+									<a href="{% url 'exams:list_meta_categories' %}"><i class="icon-stack-check"></i> <span>Explore exams!</span></a>
+								</li>
+{% if user.is_superuser %}
+								<li>
+									<a href="{% url 'admin:index' %}"><i class="icon-shield2"></i> <span>Superuser Admin</span></a>
+								</li>
+{% endif %}
+								<li>
+									<a href="{% url 'editor_admin:index' %}"><i class="icon-power2"></i> <span>Editor Admin</span></a>
 								</li>
 								<li>
-									<a href="#"><i class="icon-copy"></i> <span>Menu item</span></a>
+									<a href="{% url 'about' %}"><i class="icon-info3"></i> <span>About <em>Fudul</em></span></a>
 								</li>
+{#								<li>#}
+{#									<a href="#"><i class="icon-copy"></i> <span>Menu item</span></a>#}
+{#								</li>#}
 							</ul>
 						</div>
 					</div>
@@ -134,7 +144,7 @@
 
 
 					<!-- Footer -->
-					<div dir="rtl" class="footer text-muted pull-right">
+					<div style="margin-bottom: 10px;" class="text-muted pull-right">
 						 بُني بأيدٍ طلابية. <a href="https://github.com/Zahajamaan/Fudulbank" target="_blank">حقّك في النسخ مكفول</a>
 					</div>
 					<!-- /footer -->
@@ -150,6 +160,8 @@
 
 	</div>
 	<!-- /page container -->
+	{% block customscript %}
+    {% endblock %}
 
 </body>
 </html>

@@ -1,0 +1,114 @@
+{% extends 'base.html' %}{% load staticfiles %}
+{% block title %}Revisions{% endblock %}
+{% block breadcrumb %}
+
+					<div class="breadcrumb-line">
+						<ul class="breadcrumb">
+							<li><a href="{% url 'index' %}"><i class="icon-home2 position-left"></i> Fudul</a></li>
+                                                        <li><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
+                                                        {% for parent_category in exam.category.get_parent_categories %}
+							<li><a href="{% url 'exams:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
+                                                        {% endfor %}
+                                                        <li><a href="{% url 'exams:show_category' exam.category.get_slugs %}">{{ exam.category.name }}</a></li>
+                                                        <li>{{ exam.name }}</li>
+                                                        <li class="active">List revisions</li>
+						</ul>
+					</div>
+{% endblock %}
+{% block content %}
+    <style>
+    .panel-body p{
+        margin-left: 5%;
+    }
+    .panel-body b{
+        margin-left: 3%;
+    }
+    </style>
+    <div class="panel panel-flat">
+    <div class="panel-heading">
+							<h5 style="font-weight: bolder" class="panel-title">Question Revisions<a href="{% url 'exams:submit_revision' question.pk %}"><button style="float: right;margin-right: 3%" type="button" class="btn btn-info btn-rounded btn-xs"><i class=" icon-quill4 position-left"></i> Edit</button></a><a class="heading-elements-toggle"><i class="icon-more"></i></a></h5>
+							<div class="heading-elements">
+								<ul class="icons-list">
+			                		<li><a data-action="collapse"></a></li>
+			                		<li><a data-action="reload"></a></li>
+			                		<li><a data-action="close"></a></li>
+			                	</ul>
+		                	</div>
+						</div>
+        <div class="panel-body">
+        <p class="content-group-lg">
+            <b>Subject:</b>{% for subject in question.subjects.all %}{{ subject.name }}{% endfor %}
+            <b>Source:</b>{% for source in question.source.all %}{{ source.name }}{% endfor %}
+            {% if question.figure %}<a href="{{ question.figure.url }}"><b>illustration</b></a>{% endif %}
+            <b>Exam Type:</b>{{ question.get_exam_type_display }}
+            <b> Status:</b>{{ question.get_status_display }}
+        </p>
+  <table id="revisions" class="display datatable dt-responsive">
+                        <thead>
+                            <tr>
+                                <th>Submitter</th>
+                                <th>Date of Submission</th>
+                                <th>Approval Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for revision in question.revision_set.all %}
+                            <tr id="show" data-url="{% url 'exams:show_question' revision.pk %}" data-revision_pk="{{ revision.pk }}">
+                            <td>{{ revision.submitter }}</td>
+                            <td>{{ revision.submission_date }}</td>
+                            <td>{% if revision.is_approved %} Approved {% else %} Not Approved{% endif %}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+    </table>
+        </div>
+    </div>
+
+
+{% endblock %}
+{% block customscript %}
+	<link rel="stylesheet" href="{% static 'css/jquery.dataTables.min.css' %}">
+	<link rel="stylesheet" href="{% static 'js/datatables/responsive/css/responsive.dataTables.min.css' %}">
+	<script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'js/datatables/responsive/js/dataTables.responsive.min.js' %}"></script>
+<style type="text/css">
+    th, td{
+        text-align: left;
+    }
+</style>
+	<script>
+    $(function(){
+        $("#revisions").dataTable({
+            "order": [[ 2, "asc" ]]
+        });
+
+    });
+</script>
+<script src="{% static 'js/toastr.js' %}"></script>
+
+<script type="text/javascript">
+    $(function () {
+        // initialize project edit modal
+        $('#show-revision-modal').modal({
+          keyboard: false,
+          backdrop: 'static',
+          show    : false,
+        });
+        $("#show").click(function () {
+            revision_pk =  $(this).data("revision_pk");
+            url = $(this).data('url');
+
+            $("#show-revision-modal").modal('show');
+
+            $("#show-revision-modal .modal-title").html("Question Revision");
+            $("#show-revision-modal .modal-body").load(url);
+            $("#show-revision-modal .modal-header").addClass('bg-primary')
+
+        });
+    });
+{% include 'exams/modals/adjust_modal_size.js' %}
+</script>
+{% with modal_id='show-revision-modal' no_footer=True %}
+    {% include "exams/modals/common_edit_modal.html" %}
+{% endwith %}
+{% endblock %}

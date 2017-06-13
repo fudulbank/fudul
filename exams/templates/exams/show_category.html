@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Fudul | {% if category %}{{ category.name }}{% else %}Exlpore exams{% endif %}
+{% endblock %}
+{% block breadcrumb %}
+
+					<div class="breadcrumb-line">
+						<ul class="breadcrumb">
+							<li><a href="{% url 'index' %}"><i class="icon-home2 position-left"></i> Home</a></li>
+                                                        {% if category %}<li><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>{% endif %}
+                                                        {% for parent_category in category.get_parent_categories %}
+							<li><a href="{% url 'exams:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
+                                                        {% endfor %}
+                                                        <li class="active">{% if category %}{{ category.name }}{% else %}Exams{% endif %}</li>
+						</ul>
+					</div>
+{% endblock %}
+{% block content %}
+{% if category %}
+
+<h1>{{ category.name }}</h1>
+{% else %}
+<div class="text-center">
+<h1>Explore exams</h1>
+
+	<div class="icon-object border-primary text-primary"><i class="icon-stack-check"></i></div>
+</div>
+{% endif %}
+<style>
+.panel-body a {
+    color: white;
+    font-size: medium;
+    font-weight: bold;
+    margin-top: auto
+}
+</style>
+{% if exams.exists %}
+            {% for exam in exams %}
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <div class="panel bg-primary-600">
+                                <div class="panel-body">
+                                    <a href="{% url 'exams:add_question' category.get_slugs exam.pk %}">{{ exam.name }}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+            {% endfor %}
+{% elif subcategories.exists %}
+
+{% for subcategory in subcategories %}
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="panel bg-primary-600">
+                <div class="panel-body">
+                    <a href="{% url 'exams:show_category' subcategory.get_slugs %}">{{ subcategory.name }}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+   <p>No subdivisions!</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends 'base.html' %}{% load staticfiles %}{% load bootstrap3 %}
+{% block title %}institutions{% endblock %}
+{% block breadcrumb %}
+
+					<div class="breadcrumb-line">
+						<ul class="breadcrumb">
+							<li><a href="{% url 'index' %}"><i class="icon-home2 position-left"></i> Fudul</a></li>
+							<li class="active">Institutions</li>
+						</ul>
+					</div>
+{% endblock %}
+{% block content %}
+<style>
+.panel-body a {
+    color: white;
+    font-size: medium;
+    font-weight: bold;
+    margin-top: auto
+}
+</style>
+
+
+<form action="{% url 'exams:submit_revision' question.pk %}" method="post" class="form">
+{% csrf_token %}
+
+        {% bootstrap_form_errors revisionform %}
+        <label class="control-label col-lg-2 text-black">Question Text</label>
+
+        <div class="form-group has-feedback has-feedback-left">
+			{% bootstrap_field revisionform.text show_label=False %}
+			<div class="form-control-feedback">
+				<i class="icon-typography text-muted"></i>
+			</div>
+		</div>
+            <label class="control-label col-lg-2 text-black">Answer Exlaination</label>
+        {% bootstrap_form_errors revisionform %}
+        		<div class="form-group has-feedback has-feedback-left">
+			{% bootstrap_field revisionform.explanation show_label=False %}
+			<div class="form-control-feedback">
+				<i class="icon-typography text-muted"></i>
+			</div>
+		</div>
+                      <label class="control-label col-lg-2 text-black">Question Choices (Check The right answer)</label>
+                        {{ revisionchoiceformset.management_form }}
+                        {{ revisionchoiceformset.non_form_errors.as_ul }}
+                        <table id="revisionchoiceformset" class="form" style="width: 100%;">
+
+                        {% for form in revisionchoiceformset.forms %}
+                          {% if forloop.first %}
+                            <colgroup>
+                                <col class="col-xs-8">
+                                <col class="col-xs-4">
+                            </colgroup>
+                          {% endif %}
+                          <tr class="form-container">
+                          {% for field in form.visible_fields %}
+                            <td>
+                            {% if forloop.first %}
+                              {% for hidden in form.hidden_fields %}
+                              {{ hidden }}
+                              {% endfor %}
+                            {% endif %}
+                                <div class="form-group">
+                              {{ field.errors.as_ul }}
+                              {{ field }}
+                                </div>
+                            </td>
+                          {% endfor %}
+                          </tr>
+                        {% endfor %}
+                        </table>
+<input type="hidden" value="{{ exam.pk }}">
+{{ questionform.media }}
+               <button type="submit"  class="btn bg-teal btn-block btn-lg">Edit Question <i class="icon-circle-right2 position-right"></i></button>
+
+        </form>
+
+{% endblock %}
+{% block customscript %}
+    <script src="{% static 'js/jquery.formset.js' %}"></script>
+    <script src="{% static 'js/jquery.autogrowtextarea.min.js' %}"></script>
+    <script type="text/javascript">
+    $(function(){
+
+        $("textarea").autoGrow();
+        // add formset controls
+        $("#revisionchoiceformset .form-container").formset({
+            prefix: '{{ revisionchoiceformset.prefix }}',
+            addText: 'Add a Choice',
+            deleteText: 'Delete',
+            addCssClass: 'add-row btn btn-xs btn-primary',
+            deleteCssClass: 'delete-row btn btn-xs btn-danger',
+        });
+        });
+    </script>
+
+{% endblock %}

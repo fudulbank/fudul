@@ -1,0 +1,151 @@
+{% extends 'base.html' %}{% load staticfiles %}
+{% block title %}Fudul | Question list of {{ exam.name }}{% endblock %}
+{% block breadcrumb %}
+
+					<div class="breadcrumb-line">
+						<ul class="breadcrumb">
+							<li><a href="{% url 'index' %}"><i class="icon-home2 position-left"></i> Fudul</a></li>
+                                                        <li><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
+                                                        {% for parent_category in exam.category.get_parent_categories %}
+							<li><a href="{% url 'exams:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
+                                                        {% endfor %}
+                                                        <li><a href="{% url 'exams:show_category' exam.category.get_slugs %}">{{ exam.category.name }}</a></li>
+                                                        <li>{{ exam.name }}</li>
+                                                        <li class="active">List questions</li>
+						</ul>
+					</div>
+{% endblock %}
+{% block content %}
+<div style="float: right;">
+<a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}" class="btn btn-primary btn-xs"><i class=" icon-file-plus position-left"></i> Add question</a>
+</div>
+<h1>Question list of {{ exam.name }}</h1>
+
+    <div class="panel panel-flat">
+    <div class="panel-heading">
+							<h5 class="panel-title">Approved questions<a class="heading-elements-toggle"><i class="icon-more"></i></a></h5>
+							<div class="heading-elements">
+								<ul class="icons-list">
+			                		<li><a data-action="collapse"></a></li>
+			                		<li><a data-action="close"></a></li>
+			                	</ul>
+		                	</div>
+						</div>
+        <div class="panel-body">
+  <table id="approved" class="display datatable dt-responsive">
+                        <thead>
+                            <tr>
+                                <th>Text</th>
+                                <th>Submitter</th>
+                                <th>Status</th>
+                                <th>Date of last revision</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for question in approved_questions %}
+                            <tr>
+                            <td id="show1" data-url="{% url 'exams:show_question' question.get_latest_approved_revision.pk %}" data-revision_pk="{{ question.get_latest_approved_revision.pk }}"><a>{{ question.get_latest_approved_revision.text|truncatewords:20 }}</a></td>
+{#                                change to nick name #}
+                            <td>{{ question.get_latest_approved_revision.submitter }}</td>
+                            <td>{{ question.get_status_display }}</td>
+                            <td data-order="{{ question.get_latest_approved_revision.submission_date|date:'U' }}">{{ question.get_latest_approved_revision.submission_date }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+</table>
+        </div>
+    </div>
+    <div class="panel panel-flat">
+    <div class="panel-heading">
+							<h5 class="panel-title">Pending questions<a class="heading-elements-toggle"><i class="icon-more"></i></a></h5>
+							<div class="heading-elements">
+								<ul class="icons-list">
+			                		<li><a data-action="collapse"></a></li>
+			                		<li><a data-action="close"></a></li>
+			                	</ul>
+		                	</div>
+						</div>
+        <div class="panel-body">
+  <table id="pending" class="display datatable dt-responsive">
+                        <thead>
+                            <tr>
+                                <th>Text</th>
+                                <th>Submitter</th>
+                                <th>Status</th>
+                                <th>Date of last revision</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for question in pending_questions %}
+                            <tr>
+                            <td id="show2" data-url="{% url 'exams:show_question' question.get_latest_revision.pk %}" data-revision_pk="{{ question.get_latest_revision.pk }}"> <a>{{ question.get_latest_revision.text|truncatewords:20 }}</a> </td>
+{#                                change to nick name #}
+                            <td>{{ question.get_latest_revision.submitter }}</td>
+                            <td>{{ question.get_status_display }}</td>
+                            <td data-order="{{ question.get_latest_approved_revision.submission_date|date:'U' }}">{{ question.get_latest_revision.submission_date }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+</table>
+        </div>
+    </div>
+
+{% endblock %}
+{% block customscript %}
+	<link rel="stylesheet" href="{% static 'css/jquery.dataTables.min.css' %}">
+	<link rel="stylesheet" href="{% static 'js/datatables/responsive/css/responsive.dataTables.min.css' %}">
+	<script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'js/datatables/responsive/js/dataTables.responsive.min.js' %}"></script>
+<style type="text/css">
+    th, td{
+        text-align: left;
+    }
+</style>
+	<script>
+    $(function(){
+        $("#approved").dataTable({
+            "order": [[ 3, "asc" ]]
+        });
+        $("#pending").dataTable({
+            "order": [[ 3, "asc" ]]
+        });
+    });
+</script>
+ <script src="{% static 'js/toastr.js' %}"></script>
+
+<script type="text/javascript">
+    $(function () {
+        // initialize project edit modal
+        $('#show-question-modal').modal({
+          keyboard: false,
+          backdrop: 'static',
+          show    : false,
+        });
+        $("#show1").click(function () {
+            revision_pk =  $(this).data("revision_pk");
+            url = $(this).data('url');
+
+            $("#show-question-modal").modal('show');
+
+            $("#show-question-modal .modal-title").html("Full Question");
+            $("#show-question-modal .modal-body").load(url);
+
+        });
+        $("#show2").click(function () {
+            revision_pk =  $(this).data("revision_pk");
+            url = $(this).data('url');
+
+            $("#show-question-modal").modal('show');
+
+            $("#show-question-modal .modal-title").html("Full Question");
+            $("#show-question-modal .modal-body").load(url);
+            $("#show-question-modal .modal-header").addClass('bg-primary')
+
+        });
+    });
+{% include 'exams/modals/adjust_modal_size.js' %}
+</script>
+{% with modal_id='show-question-modal' no_footer=True %}
+    {% include "exams/modals/common_edit_modal.html" %}
+{% endwith %}
+{% endblock %}
