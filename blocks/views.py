@@ -2,7 +2,7 @@ from django.shortcuts import render,get_object_or_404
 from django.core.urlresolvers import reverse
 from django.core.exceptions import PermissionDenied
 from accounts.models import Institution,College
-from blocks.models import Year,Exam,Subject,Question,Category
+from blocks.models import Year,Exam,Subject,Question,Category,Revision
 from core import decorators
 from blocks import forms
 from django.http import HttpResponse, HttpResponseRedirect, Http404
@@ -118,8 +118,8 @@ def add_question(request,pk):
         instance = Revision(submitter=request.user)
         questionform = forms.QuestionForm(request.POST,
                                           request.FILES,
-                                          user=request.user,
-                                          exam=exam)
+                                          user=request.user
+                                          )
         revisionform = forms.RevisionForm(request.POST,
                                           instance=instance)
 

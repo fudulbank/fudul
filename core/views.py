@@ -7,6 +7,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 
 
+
 def show_index(request):
     if request.user.is_authenticated():
         return render(request, 'index.html')
