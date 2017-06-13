@@ -41,7 +41,7 @@ class CategoryAdmin(admin.ModelAdmin):
     inlines = [SourceInline]
 
 
-editor_site = EditorAdmin("Editor Admin")
+editor_site = EditorAdmin("editor_admin")
 
 admin.site.register(models.Category, CategoryAdmin)
 admin.site.register(models.Exam, ExamAdmin)
