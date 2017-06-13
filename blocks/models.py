@@ -68,7 +68,7 @@ class Exam(models.Model):
     batches_allowed_to_take = models.ForeignKey(Batch, null=True, blank=True)
 
     def get_question_count(self):
-        return Question.objects.filter(subject__exam=self).distinct().count()
+        return Question.objects.filter(subjects__exam=self).distinct().count()
 
     def __str__(self):
         return self.name
@@ -98,8 +98,8 @@ status_choices = (
 
 
 class Question(models.Model):
-    source = models.ManyToManyField(Source, blank=True)
-    subject = models.ManyToManyField(Subject, blank=True)
+    sources = models.ManyToManyField(Source, blank=True)
+    subjects = models.ManyToManyField(Subject, blank=True)
     figure = models.ImageField(upload_to="exams/question"
                                         "_image", blank=True, null=True)
     exam_type = models.CharField(max_length=1, choices=question_type_choices,

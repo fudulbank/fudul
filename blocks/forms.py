@@ -7,11 +7,12 @@ from . import models
 class QuestionForm(forms.ModelForm):
     class Meta:
         model = models.Question
-        fields = ['source','subject','figure','exam_type','status']
+        fields = ['sources', 'subjects', 'figure', 'exam_type',
+                  'status']
         widgets = {
-            'source': autocomplete.ModelSelect2Multiple(url='blocks:source_autocomplete',
+            'sources': autocomplete.ModelSelect2Multiple(url='blocks:source_autocomplete',
                                                         forward=['exam_pk']),
-            'subject': autocomplete.ModelSelect2Multiple(url='blocks:subject_autocomplete',
+            'subjects': autocomplete.ModelSelect2Multiple(url='blocks:subject_autocomplete',
                                                          forward=['exam_pk'])
         }
 
