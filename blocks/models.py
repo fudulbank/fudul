@@ -68,7 +68,7 @@ class Exam(models.Model):
     batches_allowed_to_take = models.ForeignKey(Batch, null=True, blank=True)
 
     def get_question_count(self):
-        return Question.objects.filter(subject__exam=self).count()
+        return Question.objects.filter(subject__exam=self).distinct().count()
 
     def __str__(self):
         return self.name
