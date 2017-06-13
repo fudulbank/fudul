@@ -7,8 +7,7 @@ import accounts.utils
 
 class Source(models.Model):
     name = models.CharField(max_length=100)
-    category = models.ForeignKey('Category',
-                                 limit_choices_to={'parent_category__isnull': True})
+    category = models.ForeignKey('Category')
     submission_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -69,6 +68,14 @@ class Exam(models.Model):
     submission_date = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
     batches_allowed_to_take = models.ForeignKey(Batch, null=True, blank=True)
+
+    def get_sources(self):
+        sources = Source.objects.none()
+        category = self.category
+        while category:
+            sources |= category.source_set.all()
+            category = category.parent_category
+        return sources
 
     def get_question_count(self):
         return Question.objects.filter(subjects__exam=self).distinct().count()

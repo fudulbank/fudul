@@ -93,8 +93,9 @@ class SubjectAutocomplete(autocomplete.Select2QuerySetView):
 
 class SourceAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
-        exam_pk = self.forwarded.get('exam_pk')
-        qs = Source.objects.filter(exam__pk=exam_pk)
+        exam_pk =  self.forwarded.get('exam_pk')
+        exam = Exam.objects.get(pk=exam_pk)
+        qs = exam.get_sources()
         if self.q:
             qs = qs.filter(name=self.q)
         return qs
