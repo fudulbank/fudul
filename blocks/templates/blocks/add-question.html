@@ -36,14 +36,14 @@
 	    {% csrf_token %}
             <label class="control-label col-lg-2">Question Source</label>
             <div class="form-group has-feedback has-feedback-left">
-			{% bootstrap_field questionform.source show_label=False %}
+ {{ questionform.source }}
 			<div class="form-control-feedback">
 				<i class="icon-user-check text-muted"></i>
 			</div>
 		</div>
         <label class="control-label col-lg-2">Question Subject</label>
         <div class="form-group has-feedback has-feedback-left">
-			{% bootstrap_field questionform.subject show_label=False %}
+ {{ questionform.subject }}
 			<div class="form-control-feedback">
 				<i class="icon-user-check text-muted"></i>
 			</div>
@@ -114,7 +114,8 @@
                           </tr>
                         {% endfor %}
                         </table>
-
+<input type="hidden" value="{{ exam.pk }}">
+{{ questionform.media }}
                <button type="submit" class="btn bg-teal btn-block btn-lg">Add Question <i class="icon-circle-right2 position-right"></i></button>
 
         </form>

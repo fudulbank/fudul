@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import Category,Exam,Source
 from django.contrib import admin
 from accounts.admin import editor_site
-from .models import Year,Exam,Subject,Question,Choice,Revision
+from .models import Exam,Subject,Question,Choice,Revision
 
 class SubjectInline(admin.TabularInline):
     model= Subject
@@ -17,7 +17,6 @@ class ChoiceInline(admin.TabularInline):
 #     search_fields = ['text', 'explanation']
 #     list_filter = ['subject','source','subject',]
 
-admin.site.register(Year)
 admin.site.register(Exam)
 admin.site.register(Subject)
 admin.site.register(Question)
