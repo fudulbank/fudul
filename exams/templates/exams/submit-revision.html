@@ -20,7 +20,7 @@
 </style>
 
 
-<form action="{% url 'exams:submit_revision' question.pk %}" method="post" class="form">
+<form action="{% url 'exams:submit_revision' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}" method="post" class="form">
 {% csrf_token %}
 
         {% bootstrap_form_errors revisionform %}
