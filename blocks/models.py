@@ -76,17 +76,25 @@ question_type_choices = (
     ('F', 'Final'),
     ('M', 'Midterm'),
 )
+status_choices = (
+    ('C','complete'),
+    ('S', 'spelling error'),
+    ('A', 'incomplete answers'),
+    ('Q', 'incomplete question'),
+
+)
 
 
 class Question(models.Model):
     source = models.ManyToManyField(Source,default='',blank=True)
-    subject = models.ForeignKey(Subject)
+    subject = models.ManyToManyField(Subject)
     figure = models.FileField(upload_to="exams/question"
                                         "_image", blank=True, null=True)
     exam_type = models.CharField(max_length=1, choices=question_type_choices,
                                  verbose_name="type", default="")
     is_deleted = models.BooleanField(default=False)
-    is_complete = models.BooleanField(default=True)
+    status = models.CharField(max_length=1, choices=status_choices,default="")
+    #question_Status
 
     def __unicode__(self):
         return self.name
@@ -121,7 +129,6 @@ class Choice(models.Model):
     text = models.CharField(max_length=200)
     is_answer = models.BooleanField(default=False)
     revision = models.ForeignKey(Revision, on_delete=models.CASCADE,null=True)
-    is_deleted = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name

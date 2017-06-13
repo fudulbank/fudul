@@ -23,18 +23,18 @@ class QuestionForm(forms.ModelForm):
         self.fields['source'].queryset = Source.objects.filter(college=college)
         # self.source = None
 
-    def save(self, *args, **kwargs):
-        question = super(QuestionForm, self).save(commit=False)
-        if self.source:
-            question.source =self.source
-        if self.subject:
-            question.subject =self.subject
-        question.save()
-        return question
+    # def save(self, *args, **kwargs):
+    #     question = super(QuestionForm, self).save(commit=False)
+    #     if self.source:
+    #         question.source =self.source
+    #     if self.subject:
+    #         question.subject =self.subject
+    #     question.save()
+    #     return question
 
     class Meta:
         model = Question
-        fields = ['source','subject','figure','exam_type']
+        fields = ['source','subject','figure','exam_type','status']
 
 
 class RevisionForm(forms.ModelForm):

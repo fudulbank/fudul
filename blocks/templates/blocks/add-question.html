@@ -1,4 +1,4 @@
-{% extends 'base.html' %}{% load bootstrap3 %}
+{% extends 'base.html' %}{% load staticfiles %}{% load bootstrap3 %}
 {% block title %}{{ exam.name }}{% endblock %}
 {% block breadcrumb %}
 
@@ -30,869 +30,239 @@
 			                	</ul>
 		                	</div>
 						</div>
-           <form method="post" role="form" id="form_register" enctype="multipart/form-data">
-						<div class="panel-body">
-							<form class="form-horizontal" action="#">
-								<fieldset class="content-group">
-									<legend class="text-bold">Question Information</legend>
-									<div class="form-group">
-										<label class="control-label col-lg-2">Question Source</label>
-										<div class="col-lg-10">
-                                            <div class="input-group{% if questionform.source.errors %} validate-has-error {% endif %}">
-				                            <select multiple="multiple" class="form-control"{% if questionform.source.value and not questionform.source.errors %}value="{{ questionform.source.value }}" {% endif %} id="question-source-list" title="{{questionform.source.label }}" multiple="multiple" required="required">
-                                                 <option value="">{{ form.study_field.label }}</option>
-                                                    {% for source in sources %}
-                                                    <option value="{{ source.name }}">{{ source.name }}</option>
-                                                    {% endfor %}
-				                            </select>
-                                            </div>
-										</div>
-									</div>
+        <div class="panel-body">
+        {% bootstrap_form_errors questionform %}
+        <form method="post">
+	    {% csrf_token %}
+            <label class="control-label col-lg-2">Question Source</label>
+            <div class="form-group has-feedback has-feedback-left">
+			{% bootstrap_field questionform.source show_label=False %}
+			<div class="form-control-feedback">
+				<i class="icon-user-check text-muted"></i>
+			</div>
+		</div>
+        <label class="control-label col-lg-2">Question Subject</label>
+        <div class="form-group has-feedback has-feedback-left">
+			{% bootstrap_field questionform.subject show_label=False %}
+			<div class="form-control-feedback">
+				<i class="icon-user-check text-muted"></i>
+			</div>
+		</div>
+            <label class="control-label col-lg-2">Question Figure</label>
+        		<div class="form-group has-feedback has-feedback-left">
+			{% bootstrap_field questionform.figure show_label=False %}
+			<div class="form-control-feedback">
+				<i class="icon-user-check text-muted"></i>
+			</div>
+		</div>
+            <label class="control-label col-lg-2">Question Type</label>
+		<div class="form-group has-feedback has-feedback-left">
+			{% bootstrap_field questionform.exam_type show_label=False %}
+			<div class="form-control-feedback">
+				<i class="icon-user-check text-muted"></i>
+			</div>
+		</div>
+        <label class="control-label col-lg-2">Question Status</label>
+        <div class="form-group has-feedback has-feedback-left">
+			{% bootstrap_field questionform.status show_label=False %}
+			<div class="form-control-feedback">
+				<i class="icon-user-check text-muted"></i>
+			</div>
+		</div>
+            <label class="control-label col-lg-2">Question Text</label>
+        {% bootstrap_form_errors revisionform %}
+        		<div class="form-group has-feedback has-feedback-left">
+			{% bootstrap_field revisionform.text show_label=False %}
+			<div class="form-control-feedback">
+				<i class="icon-user-check text-muted"></i>
+			</div>
+		</div>
+            <label class="control-label col-lg-2">Answer Exlaination</label>
+        {% bootstrap_form_errors revisionform %}
+        		<div class="form-group has-feedback has-feedback-left">
+			{% bootstrap_field revisionform.explanation show_label=False %}
+			<div class="form-control-feedback">
+				<i class="icon-user-check text-muted"></i>
+			</div>
+		</div>
+                      <label class="control-label col-lg-2">Question Choices</label>
+                        {{ revisionchoiceformset.management_form }}
+                        {{ revisionchoiceformset.non_form_errors.as_ul }}
+                        <table id="choice_formset" class="form" style="width: 100%;">
+
+                        {% for form in revisionchoiceformset.forms %}
+                          {% if forloop.first %}
+                            <colgroup>
+                                <col class="col-xs-8">
+                                <col class="col-xs-4">
+                            </colgroup>
+                          {% endif %}
+                          <tr class="form-container">
+                          {% for field in form.visible_fields %}
+                            <td>
+                            {% if forloop.first %}
+                              {% for hidden in form.hidden_fields %}
+                              {{ hidden }}
+                              {% endfor %}
+                            {% endif %}
+                                <div class="form-group">
+                              {{ field.errors.as_ul }}
+                              {{ field }}
+                                </div>
+                            </td>
+                          {% endfor %}
+                          </tr>
+                        {% endfor %}
+                        </table>
+
+               <button type="submit" class="btn bg-teal btn-block btn-lg">Add Question <i class="icon-circle-right2 position-right"></i></button>
+
+        </form>
+        </div>
+
+
+{#           <form method="post" role="form" id="form_register" enctype="multipart/form-data">#}
+{#				{% csrf_token %}#}
+{#               #}
+{#               <div class="panel-body">#}
+{#							<form class="form-horizontal" action="#">#}
+{#								<fieldset class="content-group">#}
+{#									<legend class="text-bold">Question Information</legend>#}
 {#									<div class="form-group">#}
-{#										<label class="control-label col-lg-2">Default text input</label>#}
+{#										<label class="control-label col-lg-2">Question Source</label>#}
 {#										<div class="col-lg-10">#}
-{#											<input class="form-control" type="text">#}
+{#                                            <div class="input-group{% if questionform.source.errors %} validate-has-error {% endif %}">#}
+{#				                            <select multiple="multiple" class="form-control"{% if questionform.source.value and not questionform.source.errors %}value="{{ questionform.source.value }}" {% endif %} id="question-source-list" title="{{questionform.source.label }}" multiple="multiple" required="required">#}
+{#                                                    {% for source in questionform.source %}#}
+{#                                                    <option value="{{ source.name }}">{{ source.name }}</option>#}
+{#                                                    {% endfor %}#}
+{#				                            </select>#}
+{#                                            </div>#}
 {#										</div>#}
 {#									</div>#}
 {##}
-{#									<div class="form-group">#}
-{#										<label class="control-label col-lg-2">Password</label>#}
-{#										<div class="col-lg-10">#}
-{#											<input class="form-control" type="password">#}
-{#										</div>#}
-{#									</div>#}
+{#			                        <div class="form-group">#}
+{#			                        	<label class="control-label col-lg-2">Question Type</label>#}
+{#			                        	<div class="col-lg-10">#}
+{#                                            <div class="input-group{% if questionform.exam_type.errors %} validate-has-error {% endif %}">#}
+{##}
+{#				                            <select name="select" class="form-control" {% if questionform.exam_type.value and not questionform.exam_type.errors %}value="{{ questionform.exam_type.value }}" {% endif %} id="question-exam-type-list" title="{{questionform.exam_type.label }}" required="required">#}
+{#                                                {% for type in questionform.exam_type %}#}
+{#                                                    <option value="{{ type }}">{{ type }}</option>#}
+{#                                                {% endfor %}#}
+{#				                            </select>#}
+{#                                            </div>#}
+{#			                            </div>#}
+{#			                        </div>#}
+{##}
+{#									<legend class="text-bold">Question Details</legend>#}
 {##}
 {#									<div class="form-group">#}
-{#										<label class="control-label col-lg-2">Input with placeholder</label>#}
+{#										<label class="control-label col-lg-2">Quistion Figure</label>#}
 {#										<div class="col-lg-10">#}
-{#											<input class="form-control" placeholder="Enter your username..." type="text">#}
+{#                                         <div class="input-group{% if questionform.figure.errors %} validate-has-error {% endif %}">#}
+{#											<input class="form-control"{% if questionform.exam_type.value and not questionform.exam_type.errors %}value="{{ questionform.exam_type.value }}" {% endif %} id="question-exam-type-list" title="{{questionform.exam_type.label }}" required="required"type="file">#}
+{#                                         </div>#}
 {#										</div>#}
 {#									</div>#}
+{#			                        	<label class="control-label col-lg-2">Question Status</label>#}
+{#			                        	<div class="col-lg-10">#}
+{#                                            <div class="input-group{% if questionform.status.errors %} validate-has-error {% endif %}">#}
 {##}
-{#									<div class="form-group">#}
-{#										<label class="control-label col-lg-2">Read only field</label>#}
-{#										<div class="col-lg-10">#}
-{#											<input class="form-control" readonly="readonly" value="read only" type="text">#}
-{#										</div>#}
-{#									</div>#}
+{#				                            <select name="select" class="form-control" {% if questionform.status.value and not questionform.status.errors %}value="{{ questionform.status.value }}" {% endif %} id="question-status-list" title="{{questionform.status.label }}" required="required">#}
+{#                                                <option value="C">H</option>#}
 {##}
-{#									<div class="form-group">#}
-{#										<label class="control-label col-lg-2">Disabled field</label>#}
-{#										<div class="col-lg-10">#}
-{#											<input class="form-control" disabled="disabled" value="disabled" type="text">#}
-{#										</div>#}
-{#									</div>#}
+{#                                                {% for status in questionform.status %}#}
+{#                                                    <option value="{{ status }}">{{ status.get_disply }}</option>#}
+{#                                                {% endfor %}#}
+{#				                            </select>#}
+{#                                            </div>#}
+{#			                            </div>#}
+{#                                                 revision text #}
+{#                                            <label class="control-label col-lg-2">Question Text</label>#}
+{#                                            <div class="input-group{% if revisionform.text.errors %} validate-has-error{% endif %}">#}
 {##}
-{#									<div class="form-group">#}
-{#										<label class="control-label col-lg-2">Predefined value</label>#}
-{#										<div class="col-lg-10">#}
-{#											<input class="form-control" value="http://" type="text">#}
-{#										</div>#}
-{#									</div>#}
-
-			                        <div class="form-group">
-			                        	<label class="control-label col-lg-2">Question Type</label>
-			                        	<div class="col-lg-10">
-                                            <div class="input-group{% if questionform.exam_type.errors %} validate-has-error {% endif %}">
-
-				                            <select name="select" class="form-control" {% if questionform.exam_type.value and not questionform.exam_type.errors %}value="{{ questionform.exam_type.value }}" {% endif %} id="question-exam-type-list" title="{{questionform.exam_type.label }}" required="required">
-                                                {% for type in questionform.exam_type %}
-                                                    <option value="{{ type }}">{{ type }}</option>
-                                                {% endfor %}
-				                            </select>
-                                            </div>
-			                            </div>
-			                        </div>
-
-									<div class="form-group">
-										<label class="control-label col-lg-2">Disabled autocomplete</label>
-										<div class="col-lg-10">
-											<input class="form-control" placeholder="Autocomplete is off" autocomplete="off" type="text">
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-lg-2">Maximum value</label>
-										<div class="col-lg-10">
-											<input class="form-control" maxlength="4" placeholder="Maximum 4 characters" type="text">
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-lg-2 cursor-pointer" for="clickable-label">Focus on label click</label>
-										<div class="col-lg-10">
-											<input class="form-control" id="clickable-label" placeholder="Field focus on label click" type="text">
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-lg-2">Static text</label>
-										<div class="col-lg-10">
-											<div class="form-control-static">This is a static text</div>
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-lg-2">Textarea</label>
-										<div class="col-lg-10">
-											<textarea rows="5" cols="5" class="form-control" placeholder="Default textarea"></textarea>
-										</div>
-									</div>
-								</fieldset>
-
-								<fieldset class="content-group">
-									<legend class="text-bold">Basic selects</legend>
-
-									<div class="form-group">
-										<label class="control-label col-lg-2">Single select</label>
-										<div class="col-lg-10">
-											<select name="select" class="form-control">
-			                                    <option value="opt1">Default select height</option>
-			                                    <option value="opt2">Option 2</option>
-			                                    <option value="opt3">Option 3</option>
-			                                    <option value="opt4">Option 4</option>
-			                                    <option value="opt5">Option 5</option>
-			                                    <option value="opt6">Option 6</option>
-			                                    <option value="opt7">Option 7</option>
-			                                    <option value="opt8">Option 8</option>
-			                                </select>
-										</div>
-									</div>
-
-
-								</fieldset>
-
-								<fieldset class="content-group">
-									<legend class="text-bold">Basic file inputs</legend>
-
-									<div class="form-group">
-										<label class="control-label col-lg-2">Default file input</label>
-										<div class="col-lg-10">
-											<input class="form-control" type="file">
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-lg-2">Styled file input</label>
-										<div class="col-lg-10">
-											<div class="uploader"><input class="file-styled" type="file"><span class="filename" style="-moz-user-select: none;">No file selected</span><span class="action btn btn-default" style="-moz-user-select: none;">Choose File</span></div>
-										</div>
-									</div>
-								</fieldset>
-
-								<fieldset class="content-group">
-									<legend class="text-bold">Form helpers</legend>
-
-									<div class="form-group">
-										<label class="control-label col-lg-2">Text form helpers</label>
-										<div class="col-lg-10">
-											<div class="row">
-												<div class="col-md-4">
-													<input class="form-control" type="text">
-													<span class="help-block">Left aligned helper</span>
-												</div>
-
-												<div class="col-md-4">
-													<input class="form-control" type="text">
-													<span class="help-block text-center">Centered helper</span>
-												</div>
-
-												<div class="col-md-4">
-													<input class="form-control" type="text">
-													<span class="help-block text-right">Right aligned helper</span>
-												</div>
-											</div>
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-lg-2">Full width label helpers</label>
-										<div class="col-lg-10">
-											<div class="row">
-												<div class="col-md-4">
-													<input class="form-control" type="text">
-													<span class="label label-block label-primary text-left">Left aligned label</span>
-												</div>
-
-												<div class="col-md-4">
-													<input class="form-control" type="text">
-													<span class="label label-block label-danger">Centered label</span>
-												</div>
-
-												<div class="col-md-4">
-													<input class="form-control" type="text">
-													<span class="label label-block label-info text-right">Right aligned label</span>
-												</div>
-											</div>
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-lg-2">Block label helpers</label>
-										<div class="col-lg-10">
-											<div class="row">
-												<div class="col-md-4">
-													<input class="form-control" type="text">
-													<div class="label-block">
-														<span class="label label-primary">Left aligned label</span>
-													</div>
-												</div>
-
-												<div class="col-md-4">
-													<input class="form-control" type="text">
-													<div class="label-block text-center">
-														<span class="label label-danger">Centered label</span>
-													</div>
-												</div>
-
-												<div class="col-md-4">
-													<input class="form-control" type="text">
-													<div class="label-block text-right">
-														<span class="label label-info text-right">Right aligned label</span>
-													</div>
-												</div>
-											</div>
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-lg-2">Inline text helper</label>
-										<div class="col-lg-6">
-											<input class="form-control" type="text">
-										</div>
-										<span class="help-inline">Inline text helper</span>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-lg-2">Inline label helper</label>
-										<div class="col-lg-6">
-											<input class="form-control" type="text">
-										</div>
-										<span class="label bg-teal help-inline">Inline label helper</span>
-									</div>
-								</fieldset>
-
-								<fieldset class="content-group">
-									<legend class="text-bold">Input icons</legend>
-
-									<div class="form-group">
-										<label class="control-label col-lg-2">Input with icons</label>
-										<div class="col-lg-10">
-											<div class="row">
-												<div class="col-md-6">
-													<div class="form-group has-feedback has-feedback-left">
-														<input class="form-control input-xlg" placeholder="Left icon, input xlarge" type="text">
-														<div class="form-control-feedback">
-															<i class="icon-office"></i>
-														</div>
-													</div>
-
-													<div class="form-group has-feedback has-feedback-left">
-														<input class="form-control input-lg" placeholder="Left icon, input large" type="text">
-														<div class="form-control-feedback">
-															<i class="icon-make-group"></i>
-														</div>
-													</div>
-
-													<div class="form-group has-feedback has-feedback-left">
-														<input class="form-control" placeholder="Left icon, input default" type="text">
-														<div class="form-control-feedback">
-															<i class="icon-droplets"></i>
-														</div>
-													</div>
-
-													<div class="form-group has-feedback has-feedback-left">
-														<input class="form-control input-sm" placeholder="Left icon, input small" type="text">
-														<div class="form-control-feedback">
-															<i class="icon-pin-alt"></i>
-														</div>
-													</div>
-
-													<div class="form-group has-feedback has-feedback-left">
-														<input class="form-control input-xs" placeholder="Left icon, input mini" type="text">
-														<div class="form-control-feedback">
-															<i class="icon-help"></i>
-														</div>
-													</div>
-												</div>
-
-												<div class="col-md-6">
-													<div class="form-group has-feedback">
-														<input class="form-control input-xlg" placeholder="Right icon, input xlarge" type="text">
-														<div class="form-control-feedback">
-															<i class="icon-headset"></i>
-														</div>
-													</div>
-
-													<div class="form-group has-feedback">
-														<input class="form-control input-lg" placeholder="Right icon, input large" type="text">
-														<div class="form-control-feedback">
-															<i class="icon-make-group"></i>
-														</div>
-													</div>
-
-													<div class="form-group has-feedback">
-														<input class="form-control" placeholder="Right icon, input default" type="text">
-														<div class="form-control-feedback">
-															<i class="icon-droplets"></i>
-														</div>
-													</div>
-
-													<div class="form-group has-feedback">
-														<input class="form-control input-sm" placeholder="Right icon, input small" type="text">
-														<div class="form-control-feedback">
-															<i class="icon-pin-alt"></i>
-														</div>
-													</div>
-
-													<div class="form-group has-feedback">
-														<input class="form-control input-xs" placeholder="Left icon, input mini" type="text">
-														<div class="form-control-feedback">
-															<i class="icon-help"></i>
-														</div>
-													</div>
-												</div>
-											</div>
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-lg-2">Input with spinners</label>
-										<div class="col-lg-10">
-											<div class="row">
-												<div class="col-md-6">
-													<div class="form-group has-feedback has-feedback-left">
-														<input class="form-control" placeholder="Left spinner" type="text">
-														<div class="form-control-feedback">
-															<i class="icon-spinner2 spinner"></i>
-														</div>
-													</div>
-												</div>
-
-												<div class="col-md-6">
-													<div class="form-group has-feedback">
-														<input class="form-control" placeholder="Right spinner" type="text">
-														<div class="form-control-feedback">
-															<i class="icon-spinner2 spinner"></i>
-														</div>
-													</div>
-												</div>
-											</div>
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-lg-2">Input with smaller icons</label>
-										<div class="col-lg-10">
-											<div class="row">
-												<div class="col-md-6">
-													<div class="form-group has-feedback has-feedback-left">
-														<input class="form-control" placeholder="Left smaller icon" type="text">
-														<div class="form-control-feedback">
-															<i class="icon-search4 text-size-base"></i>
-														</div>
-													</div>
-												</div>
-
-												<div class="col-md-6">
-													<div class="form-group has-feedback">
-														<input class="form-control" placeholder="Right smaller icon" type="text">
-														<div class="form-control-feedback">
-															<i class="icon-search4 text-size-base"></i>
-														</div>
-													</div>
-												</div>
-											</div>
-										</div>
-									</div>
-								</fieldset>
-
-								<fieldset class="content-group">
-									<legend class="text-bold">Validation states</legend>
-
-									<div class="form-group has-warning has-feedback">
-										<label class="control-label col-lg-2 text-semibold">Warning with icon</label>
-										<div class="col-lg-10">
-											<input class="form-control" placeholder=".has-warning" type="text">
-											<div class="form-control-feedback">
-												<i class="icon-notification2"></i>
-											</div>
-											<span class="help-block">Warning input helper</span>
-										</div>
-									</div>
-
-									<div class="form-group has-success has-feedback">
-										<label class="control-label col-lg-2 text-semibold">Success with icon</label>
-										<div class="col-lg-10">
-											<input class="form-control" placeholder=".has-success" type="text">
-											<div class="form-control-feedback">
-												<i class="icon-checkmark-circle"></i>
-											</div>
-											<span class="help-block">Success input helper</span>
-										</div>
-									</div>
-
-									<div class="form-group has-error has-feedback">
-										<label class="control-label col-lg-2 text-semibold">Error with icon</label>
-										<div class="col-lg-10">
-											<input class="form-control" placeholder=".has-error" type="text">
-											<div class="form-control-feedback">
-												<i class="icon-cancel-circle2"></i>
-											</div>
-											<span class="help-block">Error input helper</span>
-										</div>
-									</div>
-								</fieldset>
-
-								<fieldset class="content-group">
-									<legend class="text-bold">Text options</legend>
-
-									<div class="form-group">
-										<label class="control-label col-md-2">Light text</label>
-										<div class="col-md-10">
-											<input class="form-control text-light" placeholder="Input with light text" type="text">
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-md-2">Semibold text</label>
-										<div class="col-md-10">
-											<input class="form-control text-semibold" placeholder="Input with semibold text" type="text">
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-md-2">Bold text</label>
-										<div class="col-md-10">
-											<input class="form-control text-bold" placeholder="Input with bold text" type="text">
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-md-2">Capitalized text</label>
-										<div class="col-md-10">
-											<input class="form-control text-capitalize" placeholder="Input with capitalized text" type="text">
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-md-2">Centered text</label>
-										<div class="col-md-10">
-											<input class="form-control text-center" placeholder="Input with centered text" type="text">
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-md-2">Right aligned text</label>
-										<div class="col-md-10">
-											<input class="form-control text-right" placeholder="Input with right aligned text" type="text">
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-md-2">Uppercase text</label>
-										<div class="col-md-10">
-											<div class="form-group">
-												<input class="form-control text-uppercase" placeholder="Input with uppercase text" type="text">
-											</div>
-
-											<div class="form-group">
-												<input class="form-control text-uppercase text-size-small" placeholder="Input with uppercase text" type="text">
-											</div>
-
-											<div class="form-group">
-												<input class="form-control text-uppercase text-semibold text-size-mini" placeholder="Input with uppercase text" type="text">
-												<span class="help-block">Other text options work as well</span>
-											</div>
-										</div>
-									</div>
-								</fieldset>
-
-								<fieldset class="content-group">
-									<legend class="text-bold">Field options</legend>
-
-									<div class="form-group">
-										<label class="control-label col-lg-2">Tooltip on focus</label>
-										<div class="col-lg-10">
-											<input class="form-control" data-popup="tooltip" data-trigger="focus" title="" placeholder="Click on input" data-original-title="Tooltip on focus" type="text">
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-lg-2">Tooltip on hover</label>
-										<div class="col-lg-10">
-											<input class="form-control" data-popup="tooltip" title="" placeholder="Hover on input" data-original-title="Tooltip on hover" type="text">
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-md-2">Rounded input</label>
-										<div class="col-md-10">
-											<input class="form-control input-rounded" placeholder="Rounded input" type="text">
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-md-2">Roundless input</label>
-										<div class="col-md-10">
-											<input class="form-control input-roundless" placeholder="Roundless input" type="text">
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-lg-2">Fixed input sizing</label>
-										<div class="col-lg-10">
-											<div class="row">
-												<div class="col-xs-3">
-													<input class="form-control" placeholder=".col-xs-3" type="text">
-												</div>
-
-												<div class="col-xs-4">
-													<input class="form-control" placeholder=".col-xs-4" type="text">
-												</div>
-
-												<div class="col-xs-5">
-													<input class="form-control" placeholder=".col-xs-5" type="text">
-												</div>
-											</div>
-											<span class="help-block">Available in 12 columns sizes since it's based on 12 columns grid</span>
-										</div>
-									</div>
-								</fieldset>
-
-								<fieldset class="content-group">
-									<legend class="text-bold">Sizing options</legend>
-
-									<div class="form-group form-group-xlg">
-										<label class="control-label col-lg-2">XLarge form group</label>
-										<div class="col-lg-10">
-											<input class="form-control" placeholder=".form-group-xlg" type="text">
-										</div>
-									</div>
-
-									<div class="form-group form-group-lg">
-										<label class="control-label col-lg-2">Large form group</label>
-										<div class="col-lg-10">
-											<input class="form-control" placeholder=".form-group-lg" type="text">
-										</div>
-									</div>
-
-									<div class="form-group form-group-sm">
-										<label class="control-label col-lg-2">Small form group</label>
-										<div class="col-lg-10">
-											<input class="form-control" placeholder=".form-group-sm" type="text">
-										</div>
-									</div>
-
-									<div class="form-group form-group-xs">
-										<label class="control-label col-lg-2">Mini form group</label>
-										<div class="col-lg-10">
-											<input class="form-control" placeholder=".form-group-xs" type="text">
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-lg-2">Inputs only</label>
-										<div class="col-lg-10">
-											<div class="row">
-												<div class="col-md-6">
-													<div class="form-group">
-														<input class="form-control input-xlg" placeholder="XLarge input height" type="text">
-													</div>
-
-													<div class="form-group">
-														<input class="form-control input-lg" placeholder="Large input height" type="text">
-													</div>
-
-													<div class="form-group">
-														<input class="form-control" placeholder="Default input height" type="text">
-													</div>
-
-													<div class="form-group">
-														<input class="form-control input-sm" placeholder="Small input height" type="text">
-													</div>
-
-													<div class="form-group">
-														<input class="form-control input-xs" placeholder="Mini input height" type="text">
-													</div>
-												</div>
-
-												<div class="col-md-6">
-													<div class="form-group">
-														<select name="select" class="form-control input-xlg">
-						                                    <option value="opt1">XLarge select height</option>
-						                                    <option value="opt2">Option 2</option>
-						                                    <option value="opt3">Option 3</option>
-						                                    <option value="opt4">Option 4</option>
-						                                    <option value="opt5">Option 5</option>
-						                                    <option value="opt6">Option 6</option>
-						                                    <option value="opt7">Option 7</option>
-						                                    <option value="opt8">Option 8</option>
-						                                </select>
-													</div>
-
-													<div class="form-group">
-														<select name="select" class="form-control input-lg">
-						                                    <option value="opt1">Large select height</option>
-						                                    <option value="opt2">Option 2</option>
-						                                    <option value="opt3">Option 3</option>
-						                                    <option value="opt4">Option 4</option>
-						                                    <option value="opt5">Option 5</option>
-						                                    <option value="opt6">Option 6</option>
-						                                    <option value="opt7">Option 7</option>
-						                                    <option value="opt8">Option 8</option>
-						                                </select>
-													</div>
-
-													<div class="form-group">
-														<select name="select" class="form-control">
-						                                    <option value="opt1">Default select height</option>
-						                                    <option value="opt2">Option 2</option>
-						                                    <option value="opt3">Option 3</option>
-						                                    <option value="opt4">Option 4</option>
-						                                    <option value="opt5">Option 5</option>
-						                                    <option value="opt6">Option 6</option>
-						                                    <option value="opt7">Option 7</option>
-						                                    <option value="opt8">Option 8</option>
-						                                </select>
-													</div>
-
-													<div class="form-group">
-														<select name="select" class="form-control input-sm">
-						                                    <option value="opt1">Small select height</option>
-						                                    <option value="opt2">Option 2</option>
-						                                    <option value="opt3">Option 3</option>
-						                                    <option value="opt4">Option 4</option>
-						                                    <option value="opt5">Option 5</option>
-						                                    <option value="opt6">Option 6</option>
-						                                    <option value="opt7">Option 7</option>
-						                                    <option value="opt8">Option 8</option>
-						                                </select>
-													</div>
-
-													<div class="form-group">
-														<select name="select" class="form-control input-xs">
-						                                    <option value="opt1">Mini select height</option>
-						                                    <option value="opt2">Option 2</option>
-						                                    <option value="opt3">Option 3</option>
-						                                    <option value="opt4">Option 4</option>
-						                                    <option value="opt5">Option 5</option>
-						                                    <option value="opt6">Option 6</option>
-						                                    <option value="opt7">Option 7</option>
-						                                    <option value="opt8">Option 8</option>
-						                                </select>
-													</div>
-												</div>
-											</div>
-										</div>
-									</div>
-								</fieldset>
-
-								<fieldset class="content-group">
-									<legend class="text-bold">Color options</legend>
-
-									<div class="form-group">
-										<label class="control-label col-lg-2">Text color</label>
-										<div class="col-lg-10">
-											<input class="form-control text-violet" value="Violet text color" type="text">
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-lg-2">Border color</label>
-										<div class="col-lg-10">
-											<input class="form-control border-teal border-lg text-teal" placeholder="Teal border color" type="text">
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-lg-2">Background color</label>
-										<div class="col-lg-10">
-											<input class="form-control bg-danger" placeholder="Danger background color" type="text">
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-lg-2">Select color</label>
-										<div class="col-lg-10">
-											<select name="select" class="form-control bg-indigo-400">
-			                                    <option value="opt1">Indigo select color</option>
-			                                    <option value="opt2">Option 2</option>
-			                                    <option value="opt3">Option 3</option>
-			                                    <option value="opt4">Option 4</option>
-			                                    <option value="opt5">Option 5</option>
-			                                    <option value="opt6">Option 6</option>
-			                                    <option value="opt7">Option 7</option>
-			                                    <option value="opt8">Option 8</option>
-			                                </select>
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-lg-2">File input color</label>
-										<div class="col-lg-10">
-											<div class="uploader"><input class="file-styled-primary" type="file"><span class="filename" style="-moz-user-select: none;">No file selected</span><span class="action btn bg-blue" style="-moz-user-select: none;">Choose File</span></div>
-										</div>
-									</div>
-								</fieldset>
-
-								<fieldset class="content-group">
-									<legend class="text-bold">Type options</legend>
-
-									<div class="form-group">
-										<label class="control-label col-md-2">Datetime</label>
-										<div class="col-md-10">
-											<input class="form-control" name="datetime" type="datetime">
-											<span class="help-block">Using <code>input type="datetime"</code></span>
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-md-2">Date</label>
-										<div class="col-md-10">
-											<input class="form-control" name="date" type="date">
-											<span class="help-block">Using <code>input type="date"</code></span>
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-md-2">Month</label>
-										<div class="col-md-10">
-											<input class="form-control" name="month" type="month">
-											<span class="help-block">Using <code>input type="month"</code></span>
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-md-2">Time</label>
-										<div class="col-md-10">
-											<input class="form-control" name="time" type="time">
-											<span class="help-block">Using <code>input type="time"</code></span>
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-md-2">Week</label>
-										<div class="col-md-10">
-											<input class="form-control" name="week" type="week">
-											<span class="help-block">Using <code>input type="week"</code></span>
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-md-2">Number</label>
-										<div class="col-md-10">
-											<input class="form-control" name="number" type="number">
-											<span class="help-block">Using <code>input type="number"</code></span>
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-md-2">Email</label>
-										<div class="col-md-10">
-											<input class="form-control" name="email" type="email">
-											<span class="help-block">Using <code>input type="email"</code></span>
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-md-2">URL</label>
-										<div class="col-md-10">
-											<input class="form-control" name="url" type="url">
-											<span class="help-block">Using <code>input type="url"</code></span>
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-md-2">Search</label>
-										<div class="col-md-10">
-											<input class="form-control" name="search" type="search">
-											<span class="help-block">Using <code>input type="search"</code></span>
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-md-2">Tel</label>
-										<div class="col-md-10">
-											<input class="form-control" name="tel" type="tel">
-											<span class="help-block">Using <code>input type="tel"</code></span>
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-md-2">Color</label>
-										<div class="col-md-10">
-											<input class="form-control" name="color" type="color">
-											<span class="help-block">Using <code>input type="color"</code></span>
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="control-label col-md-2">Range</label>
-										<div class="col-md-10">
-											<input class="form-control" name="range" min="0" max="10" type="range">
-											<span class="help-block">Using <code>input type="range"</code></span>
-										</div>
-									</div>
-								</fieldset>
-
-								<div class="text-right">
-									<button type="submit" class="btn btn-primary">Submit <i class="icon-arrow-right14 position-right"></i></button>
-								</div>
-							</form>
-						</div>
-					</div>
-    </form>
-
-{#<form method="post" role="form" id="question_form" enctype="multipart/form-data">#}
-{#{% csrf_token %}#}
-{#  <div class="content">#}
-{#    <div class='panel panel-flat'>#}
-{#        <div class="heading">#}
-{#            <h5 class="panel-title"> Adding Question Form</h5>#}
-{#            <a class="heading-elements-toggle">#}
-{#                <i class="icon-more">#}
+{#                                                <textarea {% if revisionform.text.value and not revisionform.text.errors %}value="{{ revisionform.text.value }}" {% endif %}type="text" class="form-control english-field" name="revision-text" id="revision-text" placeholder="Question text" required="required"></textarea>#}
+{#                                                {% if revisionform.text.errors %}#}
+{#                                                    {% for error in revisionform.text.errors %}#}
+{#                                                        <label class='error' for='text' style='display: inline-block'>{{ error|escape }}</label>#}
+{#                                                    {% endfor %}#}
+{#                                                {% endif %}#}
+{#                                                 revision explaination #}
+{#                                            <label class="control-label col-lg-2">Question Explnaition</label>#}
+{#                                            <div class="input-group{% if revisionform.explanation.errors %} validate-has-error{% endif %}">#}
 {##}
-{#                </i>#}
-{#            </a>#}
-{#            <div class="heading-elements">#}
+{#                                                <textarea {% if revisionform.explanation.value and not revisionform.explanation.errors %}value="{{ revisionform.explanation.value }}" {% endif %}type="text" class="form-control english-field" name="revision-explanation" id="revision-explanation" placeholder="Question explanation" required="required"></textarea>#}
+{#                                                {% if revisionform.explanation.errors %}#}
+{#                                                    {% for error in revisionform.explanation.errors %}#}
+{#                                                        <label class='error' for='text' style='display: inline-block'>{{ error|escape }}</label>#}
+{#                                                    {% endfor %}#}
+{#                                                {% endif %}                                        <div class="form-group">#}
 {##}
-{#								<ul class="icons-list">#}
-{#			                		<li><a data-action="collapse"></a></li>#}
-{#			                		<li><a data-action="reload"></a></li>#}
-{#			                		<li><a data-action="close"></a></li>#}
-{#			                	</ul>#}
-{#             </div>#}
+ {# -------- #}
+                        {# Following snippet (slightly modified) from #}
+{#                      <label class="control-label col-lg-2">Question Choices</label>#}
+{#                         {{ revisionchoiceformset.management_form }}#}
+{#                        {{ revisionchoiceformset.non_form_errors.as_ul }}#}
 {##}
-{#        </div>#}
-{#     <div style="margin: 5%" class="panel-body">#}
+{#                        <table id="choice_formset" class="form" style="width: 100%;">#}
 {##}
-{##}
-{#                <label class="control-label col-lg-2">Question Source</label>#}
-{#                <div class="col-lg-10">#}
-{#                <div class="input-group{% if questionform.source.errors %} validate-has-error {% endif %}">#}
-{#                    <select class="form-control" {% if questionform.source.value and not questionform.source.errors %}value="{{ questionform.source.value }}" {% endif %} id="question-source-list" title="{{questionform.source.label }}" multiple="multiple" required="required">#}
-{#                        <option value="">{{ form.study_field.label }}</option>#}
-{#                    {% for source in sources %}#}
-{#                        <option value="{{ source.name }}">{{ source.name }}</option>#}
-{#                    {% endfor %}#}
-{#                    </select>#}
-{#                </div>#}
-{#     </div>#}
-{##}
-        {# revision text #}
-{#                <label class="control-label col-lg-2">Question Text</label>#}
-{#				<div class="input-group{% if revisionform.text.errors %} validate-has-error{% endif %}">#}
-{##}
-{#					<textarea {% if revisionform.text.value and not revisionform.text.errors %}value="{{ revisionform.text.value }}" {% endif %}type="text" class="form-control english-field" name="revision-text" id="revision-text" placeholder="Question text" required="required"></textarea>#}
-{#					{% if revisionform.text.errors %}#}
-{#					    {% for error in revisionform.text.errors %}#}
-{#					        <label class='error' for='text' style='display: inline-block'>{{ error|escape }}</label>#}
-{#					    {% endfor %}#}
-{#					{% endif %}#}
-{#				</div>#}
+{#                        {% for form in revisionchoiceformset.forms %}#}
+{#                          {% if forloop.first %}#}
+{#                            <colgroup>#}
+{#                                <col class="col-xs-8">#}
+{#                                <col class="col-xs-4">#}
+{#                            </colgroup>#}
+{#                          {% endif %}#}
+{#                          <tr class="form-container">#}
+{#                          {% for field in form.visible_fields %}#}
+{#                            <td>#}
+                            {# Include the hidden fields in the form #}
+{#                            {% if forloop.first %}#}
+{#                              {% for hidden in form.hidden_fields %}#}
+{#                              {{ hidden }}#}
+{#                              {% endfor %}#}
+{#                            {% endif %}#}
+{#                                <div class="form-group">#}
+{#                              {{ field.errors.as_ul }}#}
+{#                              {{ field }}#}
+{#                                </div>#}
+{#                            </td>#}
+{#                          {% endfor %}#}
+{#                          </tr>#}
+{#                        {% endfor %}#}
+{#                        </table>#}
+{#                                            		<div class="form-group">#}
+{#				<button  type="submit" class="btn btn-success btn-block btn-login">#}
+{#					<i class="entypo-right-open-mini"></i>#}
+{#					Submit#}
+{#				</button>#}
 {#</div>#}
-{#</div>#}
-{#</div>#}
-{#</form>#}
+{#                                            </div>#}
+{#                                            </div>#}
+{#                                            </form>#}
+{##}
+{#                        </div>#}
+{#           </form>#}
+    </div>
+
+{% endblock %}
+{% block customscript %}
+    <script src="{% static 'js/jquery.formset.js' %}"></script>
+    <script src="{% static 'js/jquery.autogrowtextarea.min.js' %}"></script>
+    <script type="text/javascript">
+    $(function(){
+
+        $("textarea").autoGrow();
+        // add formset controls
+        $("#choice_formset .form-container").formset({
+            prefix: '{{ choice_formset.prefix }}',
+            addText: 'Add a Choice',
+            deleteText: 'Delete',
+            addCssClass: 'add-row btn btn-xs btn-primary',
+            deleteCssClass: 'delete-row btn btn-xs btn-danger',
+        });
+        });
+    </script>
+
 {% endblock %}
