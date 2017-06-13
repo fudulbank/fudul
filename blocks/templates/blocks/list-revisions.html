@@ -20,7 +20,7 @@
     </style>
     <div class="panel panel-flat">
     <div class="panel-heading">
-							<h5 style="font-weight: bolder" class="panel-title">Question Revisions<a class="heading-elements-toggle"><i class="icon-more"></i></a></h5>
+							<h5 style="font-weight: bolder" class="panel-title">Question Revisions<a href="{% url 'blocks:submit_revision' question.pk %}"><button style="float: right;margin-right: 3%" type="button" class="btn btn-info btn-rounded btn-xs"><i class=" icon-quill4 position-left"></i> Edit</button></a><a class="heading-elements-toggle"><i class="icon-more"></i></a></h5>
 							<div class="heading-elements">
 								<ul class="icons-list">
 			                		<li><a data-action="collapse"></a></li>

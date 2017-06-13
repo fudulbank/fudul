@@ -119,11 +119,40 @@ def show_question(request, revision_pk):
 
 
 def list_revisions(request, pk):
-
     question = get_object_or_404(Question,pk=pk)
     context = {'question': question}
+
     return render(request,'blocks/list-revisions.html',context)
 
+
+def submit_revision(request,pk):
+    question = get_object_or_404(Question, pk=pk)
+
+    context ={'question':question}
+
+    if question.get_latest_approved_revision() is not None:
+        revision = question.get_latest_approved_revision()
+    else:
+        revision = question.get_latest_revision()
+
+    context['revision']=revision
+
+    if request.method == 'POST':
+        instance = Revision(submitter=request.user,question=question)
+        revisionform = forms.RevisionForm(request.POST,request.FILES,instance=instance)
+        revisionchoiceformset = forms.RevisionChoiceFormset(request.POST,request.FILES)
+        if revisionform.is_valid() and revisionchoiceformset.is_valid():
+            revision = revisionform.save()
+            revisionchoiceformset.instance = revision
+            revisionchoiceformset.save()
+
+    elif request.method == 'GET':
+        revisionform =forms.RevisionForm(instance=revision)
+        revisionchoiceformset = forms.RevisionChoiceFormset(instance=revision)
+    context['revisionform'] = revisionform
+    context['revisionchoiceformset'] = revisionchoiceformset
+
+    return render(request,'blocks/submit-revision.html',context)
 
 
 
