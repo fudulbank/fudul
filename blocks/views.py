@@ -1,14 +1,14 @@
-from django.shortcuts import render,get_object_or_404
-from django.core.urlresolvers import reverse
-from django.core.exceptions import PermissionDenied
-from accounts.models import Institution,College
-from blocks.models import Year,Exam,Subject,Question,Category,Revision
-from core import decorators
-from blocks import forms
-from django.http import HttpResponse, HttpResponseRedirect, Http404
-
+from dal import autocomplete
 from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
+from django.core.urlresolvers import reverse
+from django.http import HttpResponse, HttpResponseRedirect, Http404
+from django.shortcuts import render,get_object_or_404
 
+from accounts.models import Institution,College
+from core import decorators
+from .models import Exam,Subject,Question,Category,Revision
+from . import forms
 
 def list_subjects(request,pk):
     block = get_object_or_404(Block, pk=pk)
@@ -16,24 +16,6 @@ def list_subjects(request,pk):
     context ={'subjects':subjects}
     return render(request,'blocks/list_subjects.html',context)
 
-
-@decorators.ajax_only
-def handle_block(request, year_pk):
-    year = get_object_or_404(Year,pk=year_pk)
-
-    context = {'year': year}
-
-    if request.method == 'POST':
-        instance =Block(year=year,submitter=request.user)
-        form = forms.ExamForm(request.POST,instance=instance)
-        if form.is_valid():
-            form.save()
-            show_url= reverse('blocks:list_exams')
-            return {"message": "success", "show_url": show_url}
-    elif request.method == 'GET':
-        form = forms.ExamForm()
-    context['form'] = form
-    return render(request, 'blocks/partials/add_block.html', context)
 
 @decorators.ajax_only
 
@@ -117,9 +99,7 @@ def add_question(request,pk):
     if request.method == 'POST':
         instance = Revision(submitter=request.user)
         questionform = forms.QuestionForm(request.POST,
-                                          request.FILES,
-                                          user=request.user
-                                          )
+                                          request.FILES)
         revisionform = forms.RevisionForm(request.POST,
                                           instance=instance)
 
@@ -134,7 +114,7 @@ def add_question(request,pk):
             # return HttpResponseRedirect(reverse('blocks:add_question',
             #                                     args=pk))
     elif request.method == 'GET':
-        questionform = forms.QuestionForm(user=request.user)
+        questionform = forms.QuestionForm()
         revisionform = forms.RevisionForm()
         revisionchoiceformset = forms.RevisionChoiceFormset()
 
@@ -144,8 +124,18 @@ def add_question(request,pk):
 
     return render(request, "blocks/add-question.html", context)
 
+class SubjectAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        exam_pk =  self.forwarded.get('exam_pk')
+        qs = Subject.objects.filter(exam__pk=exam_pk)
+        if self.q:
+            qs = qs.filter(name=self.q)
+        return qs
 
-
-
-
-
+class SourceAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        exam_pk =  self.forwarded.get('exam_pk')
+        qs = Source.objects.filter(exam__pk=exam_pk)
+        if self.q:
+            qs = qs.filter(name=self.q)
+        return qs

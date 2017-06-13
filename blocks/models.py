@@ -8,7 +8,7 @@ import accounts.utils
 class Source(models.Model):
     name = models.CharField(max_length=100)
     exam = models.ForeignKey('Exam', null=True)
-    submission_date = models.DateTimeField(auto_now_add=True)
+    submission_date = models.DateTimeField(auto_now_add=True, null=True)
 
     def __str__(self):
         return self.name
@@ -95,8 +95,8 @@ status_choices = (
 
 
 class Question(models.Model):
-    source = models.ManyToManyField(Source,default='',blank=True)
-    subject = models.ManyToManyField(Subject)
+    source = models.ManyToManyField(Source, blank=True)
+    subject = models.ManyToManyField(Subject, blank=True)
     figure = models.ImageField(upload_to="exams/question"
                                         "_image", blank=True, null=True)
     exam_type = models.CharField(max_length=1, choices=question_type_choices,
@@ -112,7 +112,7 @@ class Revision (models.Model):
     question = models.ForeignKey(Question)
     submitter = models.ForeignKey(User, null=True, blank=True)
     text = models.TextField()
-    explanation = models.TextField(blank=True)
+    explanation = models.TextField(default="", blank=True)
     is_approved = models.BooleanField(default=False)
     submission_date = models.DateTimeField(auto_now_add=True)
     approval_date = models.DateField(blank=True, null=True)
