@@ -1,5 +1,6 @@
 from django.shortcuts import render,get_object_or_404
 from django.core.urlresolvers import reverse
+from django.core.exceptions import PermissionDenied
 from accounts.models import Institution,College
 from blocks.models import Year,Exam,Subject,Question,Category,Revision
 from core import decorators
@@ -75,8 +76,8 @@ def list_questions(request, pk):
 #     return render(request, 'blocks/add_question_form.html', context)
 
 
-def list_meta_categories(request):
-    subcategories = Category.objects.filter(parent_category__isnull=True)
+def list_meta_categories(request):        
+    subcategories = Category.objects.filter(parent_category__isnull=True).user_accessible(request.user)
     context = {"subcategories": subcategories}
     return render(request, 'blocks/show_category.html', context)
 
@@ -90,8 +91,20 @@ def show_category(request, slugs):
         kwargs[kwarg] = slug
         level += '__parent_category'
     category = get_object_or_404(Category, **kwargs)
+
+    # PERMISSION CHECK
+    if not category.can_user_access(request.user):
+        raise PermissionDenied
+    subcategories = category.children.user_accessible(request.user)
+
+    # If this category has one child, just go to it!
+    if subcategories.count() == 1:
+        subcategory = subcategories.first()
+        return HttpResponseRedirect(reverse("blocks:show_category",
+                                            args=(subcategory.get_slugs(),)))
+
     exams = Exam.objects.filter(category=category)
-    subcategories = category.children.all()
+    
     context = {'category': category,
                'subcategories': subcategories,
                'exams': exams}

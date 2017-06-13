@@ -1,8 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
 from accounts.models import College, Batch, Institution
+from .managers import CategoryQuerySet
 from datetime import datetime
-
+import accounts.utils
 
 class Year(models.Model):
     name = models.CharField(max_length=100)
@@ -28,6 +29,7 @@ class Category(models.Model):
                                         related_name="children",
                                         on_delete=models.SET_NULL,
                                         default=None)
+    objects = CategoryQuerySet.as_manager()
 
     def get_parent_categories(self):
         parent_categories = []
@@ -37,6 +39,23 @@ class Category(models.Model):
             parent_category = parent_category.parent_category
 
         return parent_categories
+
+    def can_user_access(self, user):
+        if user.is_superuser:
+            return True
+
+        user_college = accounts.utils.get_user_college(user)
+        if not user_college:
+            return False
+
+        category = self
+        while category:
+            if category.college_limist.exists() and \
+               not category.college_limit.filter(pk=user_college.pk).exists():
+                return False
+            category = category.parent_category
+
+        return True
 
     def get_slugs(self):
         slugs = self.slug + '/'
