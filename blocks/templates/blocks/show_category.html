@@ -35,7 +35,7 @@
                         <div class="col-lg-4">
                             <div class="panel bg-primary-600">
                                 <div class="panel-body">
-                                    <a href="#">{{ exam.name }}</a>
+                                    <a href="{% url 'blocks:add_question' category.get_slugs exam.pk %}">{{ exam.name }}</a>
                 </div>
             </div>
         </div>

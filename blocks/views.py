@@ -10,51 +10,15 @@ from core import decorators
 from .models import Exam, Subject, Question, Category, Revision
 from . import forms
 
-def list_subjects(request,pk):
-    block = get_object_or_404(Block, pk=pk)
-    subjects = Subject.objects.filter(block=block)
-    context ={'subjects':subjects}
-    return render(request,'blocks/list_subjects.html',context)
-
-
-@decorators.ajax_only
-
-def handle_question(request, subject_pk):
-    subject = get_object_or_404(Subject, pk=subject_pk)
-    context = {'subject': subject}
-
-    if request.method == 'POST':
-        instance = Question(subject=subject,submitter=request.user)
-        form = forms.QuestionForm(request.POST, request.FILES, instance=instance)
-        if form.is_valid():
-            form.save()
-            show_url = reverse('blocks:list_subjects')
-            full_url = request.build_absolute_uri(show_url)
-            context['form'] = form
-            return {"message": "success", "show_url": show_url}
-    elif request.method == 'GET':
-        form = forms.QuestionForm()
-    context['form'] = form
-
-
-    return render(request,'blocks/partials/submit_question.html',context)
-
-
 def list_meta_categories(request):        
     subcategories = Category.objects.filter(parent_category__isnull=True).user_accessible(request.user)
     context = {"subcategories": subcategories}
     return render(request, 'blocks/show_category.html', context)
 
 def show_category(request, slugs):
-    slug_list = [slug for slug in slugs.split('/') if slug]
-    last_slug = slug_list.pop(-1)
-    kwargs = {'slug': last_slug}
-    level = 'parent_category'
-    for slug in slug_list:
-        kwarg = level + '__slug'
-        kwargs[kwarg] = slug
-        level += '__parent_category'
-    category = get_object_or_404(Category, **kwargs)
+    category = Category.objects.get_from_slugs(slugs)
+    if not category:
+        raise Http404
 
     # PERMISSION CHECK
     if not category.can_user_access(request.user):
@@ -75,8 +39,12 @@ def show_category(request, slugs):
 
     return render(request, "blocks/show_category.html", context)
 
-def add_question(request,pk):
-    exam = get_object_or_404(Exam,pk=pk)
+def add_question(request, slugs, pk):
+    category = Category.objects.get_from_slugs(slugs)
+    if not category:
+        raise Http404
+
+    exam = get_object_or_404(Exam, pk=pk, category=category)
     context={'exam':exam}
     if request.method == 'POST':
         instance = Revision(submitter=request.user)
@@ -131,16 +99,19 @@ class SourceAutocomplete(autocomplete.Select2QuerySetView):
             qs = qs.filter(name=self.q)
         return qs
 
+def list_questions(request, slugs, pk):
+    category = Category.objects.get_from_slugs(slugs)
+    if not category:
+        raise Http404
 
-def list_questions(request, pk):
-    exam = get_object_or_404(Exam, pk=pk)
+    exam = get_object_or_404(Exam, pk=pk, category=category)
     approved_questions = Question.objects.filter(subject__exam=exam,is_deleted=False,status='C')
     pending_questions = Question.objects.filter(subject__exam=exam,is_deleted=False,status__in=['S','A','Q'])
     context={'approved_questions':approved_questions,'pending_questions':pending_questions}
     return render(request,'blocks/list_questions.html',context)
 
 @decorators.ajax_only
-def show_question(request,revision_pk):
-    revision= get_object_or_404(Revision,pk=revision_pk)
-    context = {'revision':revision}
+def show_question(request, revision_pk):
+    revision = get_object_or_404(Revision,pk=revision_pk)
+    context = {'revision': revision}
     return render(request,'blocks/partials/show_question.html',context)
