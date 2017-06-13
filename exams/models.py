@@ -166,7 +166,7 @@ class Revision (models.Model):
 
 class Choice(models.Model):
     text = models.CharField(max_length=200)
-    is_answer = models.BooleanField(default=False)
+    is_answer = models.BooleanField("Right answer?", default=False)
     revision = models.ForeignKey(Revision, on_delete=models.CASCADE,null=True)
 
     def __str__(self):
