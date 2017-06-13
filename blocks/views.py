@@ -120,10 +120,14 @@ def show_question(request, revision_pk):
     return render(request,'blocks/partials/show_question.html',context)
 
 
-def list_revisions(request, pk):
-
+def list_revisions(request, slugs, exam_pk, pk):
+    category = Category.objects.get_from_slugs(slugs)
+    if not category:
+        raise Http404
+    exam = get_object_or_404(Exam,pk=exam_pk)
     question = get_object_or_404(Question,pk=pk)
-    context = {'question': question}
+    context = {'question': question,
+               'exam': exam}
     return render(request,'blocks/list-revisions.html',context)
 
 
