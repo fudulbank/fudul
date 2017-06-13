@@ -71,7 +71,7 @@
 		</div>
             <label class="control-label col-lg-2">Question Text</label>
         {% bootstrap_form_errors revisionform %}
-        		<div class="form-group has-feedback has-feedback-left">
+        <div class="form-group has-feedback has-feedback-left">
 			{% bootstrap_field revisionform.text show_label=False %}
 			<div class="form-control-feedback">
 				<i class="icon-user-check text-muted"></i>
@@ -262,6 +262,7 @@
             addCssClass: 'add-row btn btn-xs btn-primary',
             deleteCssClass: 'delete-row btn btn-xs btn-danger',
         });
+        $(':input').not(':button, :submit, :reset, :hidden').removeAttr('checked').removeAttr('selected').not('‌​:checkbox, :radio, select').val('');
         });
     </script>
 

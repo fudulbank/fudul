@@ -115,11 +115,11 @@ def add_question(request,pk):
             question = questionform.save()
             revision = revisionform.save(commit=False)
             revision.question = question
-            submit_revision = revision.save()
-            revisionchoiceformset.instance = submit_revision
+            revision.save()
+            revisionchoiceformset.instance = revision
             revisionchoiceformset.save()
-            return HttpResponseRedirect(reverse('blocks:add_question',
-                                                args=exam.pk))
+            # return HttpResponseRedirect(reverse('blocks:add_question',
+            #                                     args=pk))
     elif request.method == 'GET':
         questionform = forms.QuestionForm(user=request.user)
         revisionform = forms.RevisionForm()
