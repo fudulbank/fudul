@@ -158,9 +158,15 @@ def list_questions(request, pk):
 
 @decorators.ajax_only
 def show_question(request,revision_pk):
-    revision= get_object_or_404(Revision,pk=revision_pk)
+    revision = get_object_or_404(Revision,pk=revision_pk)
     context = {'revision':revision}
     return render(request,'blocks/partials/show_question.html',context)
+
+
+def list_revisions(request,pk):
+    question = get_object_or_404(Question,pk=pk)
+    context = {'question': question}
+    return render(request,'blocks/list-revisions.html',context)
 
 
 
