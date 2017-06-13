@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class BlocksConfig(AppConfig):
-    name = 'blocks'
+    name = 'exams'

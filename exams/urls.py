@@ -1,5 +1,5 @@
 from django.conf.urls import url, include
-from blocks import views
+from exams import views
 
 urlpatterns =[
     url(r'^$', views.list_meta_categories, name='list_meta_categories'),

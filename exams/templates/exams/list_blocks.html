@@ -16,12 +16,12 @@
         <div class="col-lg-4">
             <div class="panel bg-teal-400">
                        <div class="panel-body">
-                     <a style="color: white; font-size: medium; font-weight: bold; margin-top: auto" href={% url "blocks:list_subjects" block.pk %}>{{ block.name }}</a>
+                     <a style="color: white; font-size: medium; font-weight: bold; margin-top: auto" href={% url "exams:list_subjects" block.pk %}>{{ block.name }}</a>
                        </div>
             </div>
         </div>
     </div>
-                        <button id='Add' style="float:right;" data-year_pk="{{ block.year.pk }}" data-url="{% url 'blocks:handle_block' block.year.pk %}" class="block btn btn-icon btn-success">
+                        <button id='Add' style="float:right;" data-year_pk="{{ block.year.pk }}" data-url="{% url 'exams:handle_block' block.year.pk %}" class="block btn btn-icon btn-success">
                    Add Block
                         </button>
     {% endfor %}
@@ -52,9 +52,9 @@
             });
         });
     });
-{% include 'blocks/modals/adjust_modal_size.js' %}
+{% include 'exams/modals/adjust_modal_size.js' %}
 </script>
 {% with modal_id='edit-survey-modal' %}
-    {% include "blocks/modals/common_edit_modal.html" %}
+    {% include "exams/modals/common_edit_modal.html" %}
 {% endwith %}
 {% endblock %}

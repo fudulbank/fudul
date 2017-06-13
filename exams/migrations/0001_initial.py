@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=100)),
                 ('image', models.ImageField(blank=True, upload_to='category_images')),
                 ('college_limit', models.ManyToManyField(blank=True, to='accounts.College')),
-                ('parent_category', models.ForeignKey(blank=True, default=None, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='children', to='blocks.Category')),
+                ('parent_category', models.ForeignKey(blank=True, default=None, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='children', to='exams.Category')),
             ],
         ),
         migrations.CreateModel(
@@ -44,7 +44,7 @@ class Migration(migrations.Migration):
                 ('submission_date', models.DateTimeField(auto_now_add=True)),
                 ('is_deleted', models.BooleanField(default=False)),
                 ('batches_allowed_to_take', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='accounts.Batch')),
-                ('category', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='exams', to='blocks.Category')),
+                ('category', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='exams', to='exams.Category')),
             ],
         ),
         migrations.CreateModel(
@@ -67,7 +67,7 @@ class Migration(migrations.Migration):
                 ('submission_date', models.DateTimeField(auto_now_add=True)),
                 ('approval_date', models.DateField(blank=True, null=True)),
                 ('is_deleted', models.BooleanField(default=False)),
-                ('question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='blocks.Question')),
+                ('question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='exams.Question')),
                 ('submitter', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),
@@ -77,7 +77,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=100)),
                 ('submission_date', models.DateTimeField(auto_now_add=True)),
-                ('category', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='blocks.Category')),
+                ('category', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='exams.Category')),
             ],
         ),
         migrations.CreateModel(
@@ -87,22 +87,22 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=100)),
                 ('submission_date', models.DateTimeField(auto_now_add=True)),
                 ('is_deleted', models.BooleanField(default=False)),
-                ('exam', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='blocks.Exam')),
+                ('exam', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='exams.Exam')),
             ],
         ),
         migrations.AddField(
             model_name='question',
             name='sources',
-            field=models.ManyToManyField(blank=True, to='blocks.Source'),
+            field=models.ManyToManyField(blank=True, to='exams.Source'),
         ),
         migrations.AddField(
             model_name='question',
             name='subjects',
-            field=models.ManyToManyField(blank=True, to='blocks.Subject'),
+            field=models.ManyToManyField(blank=True, to='exams.Subject'),
         ),
         migrations.AddField(
             model_name='choice',
             name='revision',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='blocks.Revision'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='exams.Revision'),
         ),
     ]

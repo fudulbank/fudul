@@ -5,11 +5,11 @@
 					<div class="breadcrumb-line">
 						<ul class="breadcrumb">
 							<li><a href="index.html"><i class="icon-home2 position-left"></i> Fudul</a></li>
-                                                        <li><a href="{% url 'blocks:list_meta_categories' %}">Exams</a></li>
+                                                        <li><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
                                                         {% for parent_category in exam.category.get_parent_categories %}
-							<li><a href="{% url 'blocks:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
+							<li><a href="{% url 'exams:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
                                                         {% endfor %}
-                                                        <li><a href="{% url 'blocks:show_category' exam.category.get_slugs %}">{{ exam.category.name }}</a></li>
+                                                        <li><a href="{% url 'exams:show_category' exam.category.get_slugs %}">{{ exam.category.name }}</a></li>
                                                         <li>{{ exam.name }}</li>
                                                         <li class="active">Adding question</li>
 						</ul>
@@ -166,7 +166,7 @@
                <li>{{ exam.get_question_count }} questions in total.</li>
            </ul>
            <div class="text-right">
-               <a href="{% url 'blocks:list_questions' exam.category.get_slugs exam.pk %}" class="btn btn-primary">List questions <i class="icon-arrow-right14 position-right"></i></a>
+               <a href="{% url 'exams:list_questions' exam.category.get_slugs exam.pk %}" class="btn btn-primary">List questions <i class="icon-arrow-right14 position-right"></i></a>
            </div>
        </div>
     </div>

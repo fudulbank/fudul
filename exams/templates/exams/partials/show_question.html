@@ -32,7 +32,7 @@
                            {% endfor %}
                        </div>
             </div>
-    <a href="{% url 'blocks:list_revisions' revision.question.subject.first.exam.category.get_slugs revision.question.subject.first.exam.pk revision.question.pk %}"><button style="margin-bottom: 10px; float: right" class="btn btn-primary btn-rounded" type="button">
+    <a href="{% url 'exams:list_revisions' revision.question.subject.first.exam.category.get_slugs revision.question.subject.first.exam.pk revision.question.pk %}"><button style="margin-bottom: 10px; float: right" class="btn btn-primary btn-rounded" type="button">
         <i class=" icon-archive position-left"></i>
         History
     </button></a>

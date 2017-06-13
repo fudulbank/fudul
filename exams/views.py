@@ -13,7 +13,7 @@ from . import forms
 def list_meta_categories(request):        
     subcategories = Category.objects.filter(parent_category__isnull=True).user_accessible(request.user)
     context = {"subcategories": subcategories}
-    return render(request, 'blocks/show_category.html', context)
+    return render(request, 'exams/show_category.html', context)
 
 def show_category(request, slugs):
     category = Category.objects.get_from_slugs(slugs)
@@ -28,7 +28,7 @@ def show_category(request, slugs):
     # If this category has one child, just go to it!
     if subcategories.count() == 1:
         subcategory = subcategories.first()
-        return HttpResponseRedirect(reverse("blocks:show_category",
+        return HttpResponseRedirect(reverse("exams:show_category",
                                             args=(subcategory.get_slugs(),)))
 
     exams = Exam.objects.filter(category=category)
@@ -37,7 +37,7 @@ def show_category(request, slugs):
                'subcategories': subcategories,
                'exams': exams}
 
-    return render(request, "blocks/show_category.html", context)
+    return render(request, "exams/show_category.html", context)
 
 def add_question(request, slugs, pk):
     category = Category.objects.get_from_slugs(slugs)
@@ -80,7 +80,7 @@ def add_question(request, slugs, pk):
     context['revisionform'] = revisionform
     context['revisionchoiceformset'] = revisionchoiceformset
 
-    return render(request, "blocks/add-question.html", context)
+    return render(request, "exams/add-question.html", context)
 
 
 class SubjectAutocomplete(autocomplete.Select2QuerySetView):
@@ -112,13 +112,13 @@ def list_questions(request, slugs, pk):
     context={'exam': exam,
              'approved_questions': approved_questions,
              'pending_questions':pending_questions}
-    return render(request,'blocks/list_questions.html',context)
+    return render(request, 'exams/list_questions.html', context)
 
 @decorators.ajax_only
 def show_question(request, revision_pk):
     revision = get_object_or_404(Revision,pk=revision_pk)
     context = {'revision': revision}
-    return render(request,'blocks/partials/show_question.html',context)
+    return render(request, 'exams/partials/show_question.html', context)
 
 
 def list_revisions(request, slugs, exam_pk, pk):
@@ -129,7 +129,7 @@ def list_revisions(request, slugs, exam_pk, pk):
     question = get_object_or_404(Question,pk=pk)
     context = {'question': question,
                'exam': exam}
-    return render(request,'blocks/list-revisions.html',context)
+    return render(request, 'exams/list-revisions.html', context)
 
 
 def submit_revision(request,pk):
@@ -159,7 +159,7 @@ def submit_revision(request,pk):
     context['revisionform'] = revisionform
     context['revisionchoiceformset'] = revisionchoiceformset
 
-    return render(request,'blocks/submit-revision.html',context)
+    return render(request, 'exams/submit-revision.html', context)
 
 
 

@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from accounts.models import Institution
-from blocks.models import Category
+from exams.models import Category
 from accounts import utils
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse

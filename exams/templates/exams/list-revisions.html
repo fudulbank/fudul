@@ -5,11 +5,11 @@
 					<div class="breadcrumb-line">
 						<ul class="breadcrumb">
 							<li><a href="index.html"><i class="icon-home2 position-left"></i> Fudul</a></li>
-                                                        <li><a href="{% url 'blocks:list_meta_categories' %}">Exams</a></li>
+                                                        <li><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
                                                         {% for parent_category in exam.category.get_parent_categories %}
-							<li><a href="{% url 'blocks:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
+							<li><a href="{% url 'exams:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
                                                         {% endfor %}
-                                                        <li><a href="{% url 'blocks:show_category' exam.category.get_slugs %}">{{ exam.category.name }}</a></li>
+                                                        <li><a href="{% url 'exams:show_category' exam.category.get_slugs %}">{{ exam.category.name }}</a></li>
                                                         <li>{{ exam.name }}</li>
                                                         <li class="active">List revisions</li>
 						</ul>
@@ -26,7 +26,7 @@
     </style>
     <div class="panel panel-flat">
     <div class="panel-heading">
-							<h5 style="font-weight: bolder" class="panel-title">Question Revisions<a href="{% url 'blocks:submit_revision' question.pk %}"><button style="float: right;margin-right: 3%" type="button" class="btn btn-info btn-rounded btn-xs"><i class=" icon-quill4 position-left"></i> Edit</button></a><a class="heading-elements-toggle"><i class="icon-more"></i></a></h5>
+							<h5 style="font-weight: bolder" class="panel-title">Question Revisions<a href="{% url 'exams:submit_revision' question.pk %}"><button style="float: right;margin-right: 3%" type="button" class="btn btn-info btn-rounded btn-xs"><i class=" icon-quill4 position-left"></i> Edit</button></a><a class="heading-elements-toggle"><i class="icon-more"></i></a></h5>
 							<div class="heading-elements">
 								<ul class="icons-list">
 			                		<li><a data-action="collapse"></a></li>
@@ -53,7 +53,7 @@
                         </thead>
                         <tbody>
                         {% for revision in question.revision_set.all %}
-                            <tr id="show" data-url="{% url 'blocks:show_question' revision.pk %}" data-revision_pk="{{ revision.pk }}">
+                            <tr id="show" data-url="{% url 'exams:show_question' revision.pk %}" data-revision_pk="{{ revision.pk }}">
                             <td>{{ revision.submitter }}</td>
                             <td>{{ revision.submission_date }}</td>
                             <td>{% if revision.is_approved %} Approved {% else %} Not Approved{% endif %}</td>
@@ -106,9 +106,9 @@
 
         });
     });
-{% include 'blocks/modals/adjust_modal_size.js' %}
+{% include 'exams/modals/adjust_modal_size.js' %}
 </script>
 {% with modal_id='show-revision-modal' no_footer=True %}
-    {% include "blocks/modals/common_edit_modal.html" %}
+    {% include "exams/modals/common_edit_modal.html" %}
 {% endwith %}
 {% endblock %}
