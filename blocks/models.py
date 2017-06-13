@@ -50,7 +50,7 @@ class Category(models.Model):
         return True
 
     def get_slugs(self):
-        slugs = self.slug + '/'
+        slugs = self.slug
         for parent_category in self.get_parent_categories():
             slugs = parent_category.slug + '/' + slugs
 

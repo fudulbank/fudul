@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Fudul | {{ category.name }}
+{% block title %}Fudul | {% if category %}{{ category.name }}{% else %}Exlpore exams{% endif %}
 {% endblock %}
 {% block breadcrumb %}
 
@@ -16,10 +16,14 @@
 {% endblock %}
 {% block content %}
 {% if category %}
+
 <h1>{{ category.name }}</h1>
 {% else %}
+<div class="text-center">
 <h1>Explore exams</h1>
-	<div class="icon-object border-warning text-warning"><i class="icon-pencil"></i></div>
+
+	<div class="icon-object border-primary text-primary"><i class="icon-stack-check"></i></div>
+</div>
 {% endif %}
 <style>
 .panel-body a {
