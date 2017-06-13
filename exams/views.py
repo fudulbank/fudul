@@ -69,7 +69,7 @@ def add_question(request, slugs, pk):
                     revision.is_approved == False
 
 
-            # return HttpResponseRedirect(reverse('blocks:add_question',
+            # return HttpResponseRedirect(reverse('exams:add_question',
             #                                     args=pk))
     elif request.method == 'GET':
         questionform = forms.QuestionForm()
