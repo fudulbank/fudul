@@ -1,20 +1,24 @@
 from dal import autocomplete
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render,get_object_or_404
 
+
 from accounts.models import Institution, College
 from core import decorators
 from .models import Exam, Subject, Question, Category, Revision,Source
 from . import forms
 
+@login_required
 def list_meta_categories(request):        
     subcategories = Category.objects.filter(parent_category__isnull=True).user_accessible(request.user)
     context = {"subcategories": subcategories}
     return render(request, 'exams/show_category.html', context)
 
+@login_required
 def show_category(request, slugs):
     category = Category.objects.get_from_slugs(slugs)
     if not category:
@@ -39,13 +43,19 @@ def show_category(request, slugs):
 
     return render(request, "exams/show_category.html", context)
 
+@login_required
 def add_question(request, slugs, pk):
     category = Category.objects.get_from_slugs(slugs)
     if not category:
         raise Http404
 
+    # PERMISSION CHECK
     exam = get_object_or_404(Exam, pk=pk, category=category)
-    context={'exam':exam}
+    if not exam.can_user_edit(request.user):
+        raise PermissionDenied
+
+    context={'exam': exam}
+
     if request.method == 'POST':
         instance = Revision(submitter=request.user)
         questionform = forms.QuestionForm(request.POST,
@@ -100,13 +110,18 @@ class SourceAutocomplete(autocomplete.Select2QuerySetView):
             qs = qs.filter(name=self.q)
         return qs
 
-
+@login_required
 def list_questions(request, slugs, pk):
     category = Category.objects.get_from_slugs(slugs)
     if not category:
         raise Http404
 
     exam = get_object_or_404(Exam, pk=pk, category=category)
+
+    # PERMISSION CHECK
+    if not exam.can_user_edit(request.user):
+        raise PermissionDenied
+
     approved_questions = Question.objects.filter(subjects__exam=exam,is_deleted=False,status='COMPLETE')
     pending_questions = Question.objects.filter(subjects__exam=exam,is_deleted=False,status__in=['SPELLING','INCOMPLETE_ANSWERS','INCOMPLETE_QUESTION'])
     context={'exam': exam,
@@ -114,28 +129,45 @@ def list_questions(request, slugs, pk):
              'pending_questions':pending_questions}
     return render(request, 'exams/list_questions.html', context)
 
+@login_required
 @decorators.ajax_only
 def show_question(request, revision_pk):
     revision = get_object_or_404(Revision,pk=revision_pk)
+    exam = revision.question.get_exam()
+
+    # PERMISSION CHECK
+    if not exam.can_user_edit(request.user):
+        raise PermissionDenied
+
     context = {'revision': revision}
     return render(request, 'exams/partials/show_question.html', context)
 
-
+@login_required
 def list_revisions(request, slugs, exam_pk, pk):
     category = Category.objects.get_from_slugs(slugs)
     if not category:
         raise Http404
-    exam = get_object_or_404(Exam,pk=exam_pk)
+    exam = get_object_or_404(Exam, pk=exam_pk)
+
+    # PERMISSION CHECK
+    if not exam.can_user_edit(request.user):
+        raise PermissionDenied
+
     question = get_object_or_404(Question,pk=pk)
     context = {'question': question,
                'exam': exam}
     return render(request, 'exams/list-revisions.html', context)
 
-
+@login_required
 def submit_revision(request,pk):
     question = get_object_or_404(Question, pk=pk)
 
-    context ={'question':question}
+    context = {'question':question}
+    exam = question.get_exam()
+
+    # PERMISSION CHECK
+    if not exam.can_user_edit(request.user):
+        raise PermissionDenied
 
     if question.get_latest_approved_revision() is not None:
         revision = question.get_latest_approved_revision()
@@ -160,8 +192,3 @@ def submit_revision(request,pk):
     context['revisionchoiceformset'] = revisionchoiceformset
 
     return render(request, 'exams/submit-revision.html', context)
-
-
-
-
-

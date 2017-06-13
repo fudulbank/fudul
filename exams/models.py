@@ -33,7 +33,7 @@ class Category(models.Model):
             parent_category = parent_category.parent_category
 
         parent_categories.reverse()
-        return parent_categories
+        return parent_categories        
 
     def can_user_access(self, user):
         if user.is_superuser:
@@ -80,6 +80,18 @@ class Exam(models.Model):
             category = category.parent_category
         return sources
 
+    def can_user_edit(self, user):
+        if user.is_superuser:
+            return True
+
+        category = self.category
+        while category:
+            if category.privileged_teams.filter(members__pk=user.pk).exists():
+                return True
+            category = category.parent_category
+
+        return False
+
     def get_question_count(self):
         return Question.objects.filter(subjects__exam=self).distinct().count()
 
@@ -121,6 +133,10 @@ class Question(models.Model):
 
     def __str__(self):
         return self.status
+
+    def get_exam(self):
+        if self.subjects.exists():
+            return self.subjects.first().exam
 
     def get_latest_approved_revision(self):
         return self.revision_set.filter(is_approved=True,is_deleted=False).order_by('-approval_date').first()

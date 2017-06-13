@@ -4,7 +4,6 @@ from exams.models import Category
 from accounts import utils
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
-from django.contrib.auth.decorators import login_required
 
 
 def show_index(request):
