@@ -44,7 +44,7 @@
                         <tbody>
                         {% for question in approved_questions %}
                             <tr>
-                            <td id="show1" data-url="{% url 'blocks:show_question' question.get_latest_approved_revision.pk %}" data-revision_pk="{{ question.get_latest_approved_revision.pk }}"><a>{{ question.get_latest_approved_revision.text|truncatewords:20 }}</a></td>
+                            <td id="show1" data-url="{% url 'blocks:show_question' exam.category.get_slugs exam.pk question.get_latest_approved_revision.pk %}" data-revision_pk="{{ question.get_latest_approved_revision.pk }}"><a>{{ question.get_latest_approved_revision.text|truncatewords:20 }}</a></td>
 {#                                change to nick name #}
                             <td>{{ question.get_latest_approved_revision.submitter }}</td>
                             <td>{{ question.get_status_display }}</td>

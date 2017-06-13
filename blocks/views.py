@@ -93,7 +93,7 @@ class SubjectAutocomplete(autocomplete.Select2QuerySetView):
 
 class SourceAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
-        exam_pk =  self.forwarded.get('exam_pk')
+        exam_pk = self.forwarded.get('exam_pk')
         qs = Source.objects.filter(exam__pk=exam_pk)
         if self.q:
             qs = qs.filter(name=self.q)
@@ -106,8 +106,8 @@ def list_questions(request, slugs, pk):
         raise Http404
 
     exam = get_object_or_404(Exam, pk=pk, category=category)
-    approved_questions = Question.objects.filter(subjects__exam=exam,is_deleted=False,status='C')
-    pending_questions = Question.objects.filter(subjects__exam=exam,is_deleted=False,status__in=['S','A','Q'])
+    approved_questions = Question.objects.filter(subjects__exam=exam,is_deleted=False,status='COMPLETE')
+    pending_questions = Question.objects.filter(subjects__exam=exam,is_deleted=False,status__in=['SPELLING','INCOMPLETE_ANSWERS','INCOMPLETE_QUESTION'])
     context={'exam': exam,
              'approved_questions': approved_questions,
              'pending_questions':pending_questions}
