@@ -39,7 +39,7 @@
 <body>
 
 	<!-- Main navbar -->
-	<div class="navbar navbar-inverse">
+	<div class="navbar bg-primary navbar-inverse">
 		<div class="navbar-header">
 			<a class="navbar-brand" href="{% url 'index' %}"><img alt=""></a>
 
@@ -59,6 +59,7 @@
 					</a>
 
 					<ul class="dropdown-menu dropdown-menu-right">
+						<li><a href="{% url 'userena_password_change' user.username %}"><i class="icon-reset"></i> Change password</a></li>
 						<li><a href="{% url 'userena_signout' %}"><i class="icon-switch2"></i> Logout</a></li>
 					</ul>
 				</li>
@@ -75,7 +76,7 @@
 		<div class="page-content">
 
 			<!-- Main sidebar -->
-			<div class="sidebar sidebar-main">
+			<div class="sidebar bg-primary-600 sidebar-main">
 				<div class="sidebar-content">
 
 					<!-- User menu -->
@@ -99,9 +100,9 @@
 							<ul class="navigation navigation-main navigation-accordion">
 
 								<!-- Main -->
-{#								<li>#}
-{#									<a href="#"><i class="icon-copy"></i> <span>Menu item</span></a>#}
-{#								</li>#}
+								<li>
+									<a href="{% url 'blocks:list_meta_categories' %}"><i class="icon-pencil3"></i> <span>Exams</span></a>
+								</li>
 {#								<li>#}
 {#									<a href="#"><i class="icon-copy"></i> <span>Menu item</span></a>#}
 {#								</li>#}
