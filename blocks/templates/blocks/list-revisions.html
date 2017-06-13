@@ -37,7 +37,7 @@
 						</div>
         <div class="panel-body">
         <p class="content-group-lg">
-            <b>Subject:</b>{% for subject in question.subject.all %}{{ subject.name }}{% endfor %}
+            <b>Subject:</b>{% for subject in question.subjects.all %}{{ subject.name }}{% endfor %}
             <b>Source:</b>{% for source in question.source.all %}{{ source.name }}{% endfor %}
             {% if question.figure %}<a href="{{ question.figure.url }}"><b>illustration</b></a>{% endif %}
             <b>Exam Type:</b>{{ question.get_exam_type_display }}

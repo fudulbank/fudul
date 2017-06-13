@@ -1,30 +1,25 @@
 from django.contrib import admin
-from .models import Category,Exam,Source
-from django.contrib import admin
 from accounts.admin import editor_site
-from .models import Exam,Subject,Question,Choice,Revision
+from . import models
 
 class SubjectInline(admin.TabularInline):
-    model= Subject
-    extra = 1
-
-class ChoiceInline(admin.TabularInline):
-    model= Choice
+    model= models.Subject
     extra = 0
 
-# class QuestionAdmin(admin.ModelAdmin):
-#     list_display = [ 'figure']
-#     search_fields = ['text', 'explanation']
-#     list_filter = ['subject','source','subject',]
+class SourceInline(admin.TabularInline):
+    model= models.Source
+    extra = 0
 
-admin.site.register(Exam)
-admin.site.register(Subject)
-admin.site.register(Question)
-admin.site.register(Choice)
-admin.site.register(Revision)
+class ExamAdmin(admin.ModelAdmin):
+    search_fields = ['name', 'category__name']
+    inlines = [SubjectInline]
 
-editor_site.register(Subject)
-# editor_site.register(Question, QuestionAdmin)
+class CategoryAdmin(admin.ModelAdmin):
+    search_fields = ['name']
+    inlines = [SourceInline]
 
-admin.site.register(Category)
-admin.site.register(Source)
+admin.site.register(models.Category, CategoryAdmin)
+admin.site.register(models.Exam, ExamAdmin)
+
+editor_site.register(models.Category, CategoryAdmin)
+editor_site.register(models.Exam, ExamAdmin)

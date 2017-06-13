@@ -106,8 +106,8 @@ def list_questions(request, slugs, pk):
         raise Http404
 
     exam = get_object_or_404(Exam, pk=pk, category=category)
-    approved_questions = Question.objects.filter(subject__exam=exam,is_deleted=False,status='C')
-    pending_questions = Question.objects.filter(subject__exam=exam,is_deleted=False,status__in=['S','A','Q'])
+    approved_questions = Question.objects.filter(subjects__exam=exam,is_deleted=False,status='C')
+    pending_questions = Question.objects.filter(subjects__exam=exam,is_deleted=False,status__in=['S','A','Q'])
     context={'exam': exam,
              'approved_questions': approved_questions,
              'pending_questions':pending_questions}

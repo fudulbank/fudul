@@ -1,21 +1,24 @@
-from django.db import models
 from django.contrib.auth.models import User
-from accounts.models import College, Batch, Institution
+from django.db import models
+from django.utils import timezone
+from accounts.models import College, Batch
 from .managers import CategoryQuerySet
-from datetime import datetime
 import accounts.utils
 
 class Source(models.Model):
     name = models.CharField(max_length=100)
-    exam = models.ForeignKey('Exam', null=True)
-    submission_date = models.DateTimeField(auto_now_add=True, null=True)
+    category = models.ForeignKey('Category',
+                                 limit_choices_to={'parent_category__isnull': True})
+    submission_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
 
 class Category(models.Model):
-    slug = models.SlugField(max_length=50, verbose_name="url")
+    slug = models.SlugField(max_length=50)
     name = models.CharField(max_length=100)
+    image = models.ImageField(upload_to="category_images",
+                              blank=True)
     college_limit = models.ManyToManyField(College, blank=True)
     parent_category = models.ForeignKey('self', null=True, blank=True,
                                         related_name="children",
@@ -68,7 +71,7 @@ class Exam(models.Model):
     batches_allowed_to_take = models.ForeignKey(Batch, null=True, blank=True)
 
     def get_question_count(self):
-        return Question.objects.filter(subject__exam=self).distinct().count()
+        return Question.objects.filter(subjects__exam=self).distinct().count()
 
     def __str__(self):
         return self.name
@@ -76,7 +79,7 @@ class Exam(models.Model):
 
 class Subject(models.Model):
     name = models.CharField(max_length=100)
-    exam = models.ForeignKey(Exam, null=True)
+    exam = models.ForeignKey(Exam)
     submission_date = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
 
@@ -84,28 +87,27 @@ class Subject(models.Model):
         return self.name
 
 
-question_type_choices = (
-    ('F', 'Final'),
-    ('M', 'Midterm'),
+exam_type_choices = (
+    ('FINAL', 'Final'),
+    ('MIDTERM', 'Midterm'),
 )
+
 status_choices = (
-    ('C','complete'),
-    ('S', 'spelling error'),
-    ('A', 'incomplete answers'),
-    ('Q', 'incomplete question'),
-
+    ('COMPLETE','Complete'),
+    ('SPELLING', 'Improper spelling'),
+    ('INCOMPLETE_ANSWERS', 'Incomplete answers'),
+    ('INCOMPLETE_QUESTION', 'Incomplete question'),
 )
-
 
 class Question(models.Model):
-    source = models.ManyToManyField(Source, blank=True)
-    subject = models.ManyToManyField(Subject, blank=True)
-    figure = models.ImageField(upload_to="exams/question"
-                                        "_image", blank=True, null=True)
-    exam_type = models.CharField(max_length=1, choices=question_type_choices,
-                                 verbose_name="type", default="")
+    sources = models.ManyToManyField(Source, blank=True)
+    subjects = models.ManyToManyField(Subject, blank=True)
+    figure = models.ImageField(upload_to="question_images",
+                               blank=True)
+    exam_type = models.CharField(max_length=15,
+                                 choices=exam_type_choices)
     is_deleted = models.BooleanField(default=False)
-    status = models.CharField(max_length=1, choices=status_choices,default="")
+    status = models.CharField(max_length=30, choices=status_choices, default="")
 
     def __str__(self):
         return self.status
@@ -129,7 +131,7 @@ class Revision (models.Model):
 
     def save(self, *args, **kwargs):
         if self.is_approved:
-            self.approval_date = datetime.now()
+            self.approval_date = timezone.now()
         super(Revision, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -143,4 +145,3 @@ class Choice(models.Model):
 
     def __str__(self):
         return self.text
-
