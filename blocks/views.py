@@ -7,7 +7,7 @@ from django.shortcuts import render,get_object_or_404
 
 from accounts.models import Institution, College
 from core import decorators
-from .models import Exam, Subject, Question, Category, Revision
+from .models import Exam, Subject, Question, Category, Revision,Source
 from . import forms
 
 def list_meta_categories(request):        
@@ -85,7 +85,7 @@ def add_question(request, slugs, pk):
 
 class SubjectAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
-        exam_pk =  self.forwarded.get('exam_pk')
+        exam_pk = self.forwarded.get('exam_pk')
         qs = Subject.objects.filter(exam__pk=exam_pk)
         if self.q:
             qs = qs.filter(name=self.q)
@@ -98,6 +98,7 @@ class SourceAutocomplete(autocomplete.Select2QuerySetView):
         if self.q:
             qs = qs.filter(name=self.q)
         return qs
+
 
 def list_questions(request, slugs, pk):
     category = Category.objects.get_from_slugs(slugs)
@@ -115,3 +116,16 @@ def show_question(request, revision_pk):
     revision = get_object_or_404(Revision,pk=revision_pk)
     context = {'revision': revision}
     return render(request,'blocks/partials/show_question.html',context)
+
+
+def list_revisions(request, pk):
+
+    question = get_object_or_404(Question,pk=pk)
+    context = {'question': question}
+    return render(request,'blocks/list-revisions.html',context)
+
+
+
+
+
+
