@@ -1,6 +1,8 @@
 from .models import Team
 
-def is_team_member(user):
+def is_editors_team_member(user):
     if not user.is_authenticated():
         return False
-    return Team.members.filter(pk=user.pk)
+    if Team.members.filter(team_memberships__access='editors',pk=user.pk) or user.is_superuser():
+        return True
+

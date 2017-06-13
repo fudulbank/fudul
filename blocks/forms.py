@@ -21,7 +21,7 @@ class QuestionForm(forms.ModelForm):
         self.subject = None
         college = get_user_college(self.user)
         self.fields['source'].queryset = Source.objects.filter(college=college)
-        # self.source = None
+        self.source = None
 
     # def save(self, *args, **kwargs):
     #     question = super(QuestionForm, self).save(commit=False)
