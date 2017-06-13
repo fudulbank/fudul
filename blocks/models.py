@@ -50,7 +50,7 @@ class Category(models.Model):
         return True
 
     def get_slugs(self):
-        slugs = self.slug + '/'
+        slugs = self.slug
         for parent_category in self.get_parent_categories():
             slugs = parent_category.slug + '/' + slugs
 
@@ -66,6 +66,9 @@ class Exam(models.Model):
     submission_date = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
     batches_allowed_to_take = models.ForeignKey(Batch, null=True, blank=True)
+
+    def get_question_count(self):
+        return Question.objects.filter(subject__exam=self).distinct().count()
 
     def __str__(self):
         return self.name

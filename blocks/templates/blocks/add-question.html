@@ -5,7 +5,13 @@
 					<div class="breadcrumb-line">
 						<ul class="breadcrumb">
 							<li><a href="index.html"><i class="icon-home2 position-left"></i> Fudul</a></li>
-							<li class="active">Institutions</li>
+                                                        <li><a href="{% url 'blocks:list_meta_categories' %}">Exams</a></li>
+                                                        {% for parent_category in exam.category.get_parent_categories %}
+							<li><a href="{% url 'blocks:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
+                                                        {% endfor %}
+                                                        <li><a href="{% url 'blocks:show_category' exam.category.get_slugs %}">{{ exam.category.name }}</a></li>
+                                                        <li>{{ exam.name }}</li>
+                                                        <li class="active">Adding question</li>
 						</ul>
 					</div>
 {% endblock %}
@@ -14,78 +20,67 @@
 <style>
 .panel-body a {
     color: white;
-    font-size: medium;
     font-weight: bold;
     margin-top: auto
 }
 </style>
+<div class="row">
+   <div class="col-md-8">
     <div class="panel panel-flat">
 						<div class="panel-heading">
-							<h5 class="panel-title">Adding Question Form<a class="heading-elements-toggle"><i class="icon-more"></i></a></h5>
-							<div class="heading-elements">
-								<ul class="icons-list">
-			                		<li><a data-action="collapse"></a></li>
-			                		<li><a data-action="reload"></a></li>
-			                		<li><a data-action="close"></a></li>
-			                	</ul>
-		                	</div>
+							<h1 class="panel-title">Adding Question to {{ exam.name }}</h1>
 						</div>
         <div class="panel-body">
         {% bootstrap_form_errors questionform %}
         <form method="post">
 	    {% csrf_token %}
-            <label class="control-label col-lg-2">Question Source</label>
-            <div class="form-group has-feedback has-feedback-left">
- {{ questionform.source }}
-			<div class="form-control-feedback">
-				<i class="icon-user-check text-muted"></i>
-			</div>
-		</div>
-        <label class="control-label col-lg-2">Question Subject</label>
-        <div class="form-group has-feedback has-feedback-left">
- {{ questionform.subject }}
-			<div class="form-control-feedback">
-				<i class="icon-user-check text-muted"></i>
-			</div>
-		</div>
-            <label class="control-label col-lg-2">Question Figure</label>
-        		<div class="form-group has-feedback has-feedback-left">
-			{% bootstrap_field questionform.figure show_label=False %}
-			<div class="form-control-feedback">
-				<i class="icon-user-check text-muted"></i>
-			</div>
-		</div>
-            <label class="control-label col-lg-2">Question Type</label>
-		<div class="form-group has-feedback has-feedback-left">
+
+<div class="row">
+	<div class="col-md-6">
+		<div class="form-group">
+                        <label class="control-label"><i class="icon-filter3 text-muted"></i> Exam type</label>
 			{% bootstrap_field questionform.exam_type show_label=False %}
-			<div class="form-control-feedback">
-				<i class="icon-user-check text-muted"></i>
-			</div>
 		</div>
-        <label class="control-label col-lg-2">Question Status</label>
-        <div class="form-group has-feedback has-feedback-left">
+	</div>
+	<div class="col-md-6">
+		<div class="form-group">
+                        <label class="control-label"><i class="icon-stack-check text-muted"></i> Status</label>
 			{% bootstrap_field questionform.status show_label=False %}
-			<div class="form-control-feedback">
-				<i class="icon-user-check text-muted"></i>
-			</div>
 		</div>
-            <label class="control-label col-lg-2">Question Text</label>
+	</div>
+	<div class="col-md-6">
+		<div class="form-group">
+                        <label class="control-label"><i class="icon-git-branch text-muted"></i> Source</label>
+			{{ questionform.source }}
+		</div>
+	</div>
+	<div class="col-md-6">
+		<div class="form-group">
+                        <label class="control-label"><i class="icon-list-unordered text-muted"></i> Subject</label>
+			{{ questionform.subject }}
+
+		</div>
+	</div>
+
+	<div class="col-md-6">
+		<div class="form-group">
+                        <label class="control-label"><i class="icon-image2 text-muted"></i> Corresponding figure</label>
+			{% bootstrap_field questionform.figure show_label=False %}
+
+		</div>
+	</div>
+</div>
+
         {% bootstrap_form_errors revisionform %}
         <div class="form-group has-feedback has-feedback-left">
+            <label class="control-label">Question Text</label>
 			{% bootstrap_field revisionform.text show_label=False %}
 			<div class="form-control-feedback">
-				<i class="icon-user-check text-muted"></i>
+				<i class="icon-pencil text-muted"></i>
 			</div>
 		</div>
-            <label class="control-label col-lg-2">Answer Exlaination</label>
-        {% bootstrap_form_errors revisionform %}
-        		<div class="form-group has-feedback has-feedback-left">
-			{% bootstrap_field revisionform.explanation show_label=False %}
-			<div class="form-control-feedback">
-				<i class="icon-user-check text-muted"></i>
-			</div>
-		</div>
-                      <label class="control-label col-lg-2">Question Choices</label>
+
+                      <h3>Question Choices</h3>
                         {{ revisionchoiceformset.management_form }}
                         {{ revisionchoiceformset.non_form_errors.as_ul }}
                         <table id="choice_formset" class="form" style="width: 100%;">
@@ -94,8 +89,14 @@
                           {% if forloop.first %}
                             <colgroup>
                                 <col class="col-xs-8">
-                                <col class="col-xs-4">
+                                <col class="col-xs-2">
+                                <col class="col-xs-2">
                             </colgroup>
+                            <thead><tr>
+                              <th>Text</th>
+                              <th></th>
+                              <th></th>
+                            </tr></thead>
                           {% endif %}
                           <tr class="form-container">
                           {% for field in form.visible_fields %}
@@ -107,22 +108,70 @@
                             {% endif %}
                                 <div class="form-group">
                               {{ field.errors.as_ul }}
-                              {{ field }}
+                              {% bootstrap_field field show_label=False %}
                                 </div>
                             </td>
                           {% endfor %}
                           </tr>
                         {% endfor %}
                         </table>
-<input type="hidden" value="{{ exam.pk }}">
+
+        		<div class="form-group has-feedback has-feedback-left">
+            <label class="control-label">Answer explanation</label>
+			{% bootstrap_field revisionform.explanation show_label=False %}
+			<div class="form-control-feedback">
+				<i class=" icon-info22 text-muted"></i>
+			</div>
+		</div>
+<input name="exam_pk" type="hidden" value="{{ exam.pk }}">
 {{ questionform.media }}
-               <button type="submit" class="btn bg-teal btn-block btn-lg">Add Question <i class="icon-circle-right2 position-right"></i></button>
+               <button type="submit" class="btn bg-teal btn-block btn-lg">Submit Question <i class="icon-circle-right2 position-right"></i></button>
 
         </form>
         </div>
 
+    </div> <!--panel-->
+</div> <!--col-->
+<div class="col-md-4">
+    <div class="panel panel-flat">
+       <div class="panel-heading">
+           <h1 class="panel-title">{{ exam.name }} stats</h1>
+       </div>
+       <div class="panel-body">
+           <ul>
+               <li>
+                 {% if exam.subject_set.exists %}
+                  <strong>Available subjects:</strong>
+                  <ul>
+                  {% for subject in exam.subject_set.all %}
+                     <li>{{ subject.name }} ({{ subject.question_set.count }} questions)</li>
+                  {% endfor %%}
+                  </ul>
+                 {% else %}
+                  No subjects available.
+                 {% endif %}
+               </li>
+               <li>
+                 {% if exam.source_set.exists %}
+                  <strong>Available sources:</strong>
+                  <ul>
+                  {% for source in exam.source_set.all %}
+                     <li>{{ source.name }} ({{ source.question_set.count }} questions)</li>
+                  {% endfor %%}
+                  </ul>
+                 {% else %}
+                  No sources available.
+                 {% endif %}
+               </li>
+               <li>{{ exam.get_question_count }} questions in total.</li>
+           </ul>
+           <div class="text-right">
+               <a href="{% url 'blocks:list_questions' exam.category.get_slugs exam.pk %}" class="btn btn-primary">List questions <i class="icon-arrow-right14 position-right"></i></a>
+           </div>
+       </div>
     </div>
-
+</div> <!--col-->
+</div> <!--row-->
 {% endblock %}
 {% block customscript %}
     <script src="{% static 'js/jquery.formset.js' %}"></script>
@@ -130,6 +179,12 @@
     <script type="text/javascript">
     $(function(){
 
+        $('#choice_formset input[type=checkbox]').change(function(){
+            $('#choice_formset input[type=checkbox]').not(this).prop('checked', false);  
+        });
+        $('#choice_formset div.checkbox label').ready(function(){
+             $(this).html($(this).children('input'));
+        });
         $("textarea").autoGrow();
         // add formset controls
         $("#choice_formset .form-container").formset({

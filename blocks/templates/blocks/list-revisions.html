@@ -5,7 +5,13 @@
 					<div class="breadcrumb-line">
 						<ul class="breadcrumb">
 							<li><a href="index.html"><i class="icon-home2 position-left"></i> Fudul</a></li>
-							<li class="active">Institutions</li>
+                                                        <li><a href="{% url 'blocks:list_meta_categories' %}">Exams</a></li>
+                                                        {% for parent_category in exam.category.get_parent_categories %}
+							<li><a href="{% url 'blocks:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
+                                                        {% endfor %}
+                                                        <li><a href="{% url 'blocks:show_category' exam.category.get_slugs %}">{{ exam.category.name }}</a></li>
+                                                        <li>{{ exam.name }}</li>
+                                                        <li class="active">List revisions</li>
 						</ul>
 					</div>
 {% endblock %}
@@ -47,9 +53,9 @@
                         </thead>
                         <tbody>
                         {% for revision in question.revision_set.all %}
-                            <tr>
+                            <tr id="show" data-url="{% url 'blocks:show_question' revision.pk %}" data-revision_pk="{{ revision.pk }}">
                             <td>{{ revision.submitter }}</td>
-                            <td id="show" data-url="{% url 'blocks:show_question' revision.pk %}" data-revision_pk="{{ revision.pk }}">{{ revision.submission_date }}</td>
+                            <td>{{ revision.submission_date }}</td>
                             <td>{% if revision.is_approved %} Approved {% else %} Not Approved{% endif %}</td>
                             </tr>
                         {% endfor %}

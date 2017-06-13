@@ -108,7 +108,9 @@ def list_questions(request, slugs, pk):
     exam = get_object_or_404(Exam, pk=pk, category=category)
     approved_questions = Question.objects.filter(subject__exam=exam,is_deleted=False,status='C')
     pending_questions = Question.objects.filter(subject__exam=exam,is_deleted=False,status__in=['S','A','Q'])
-    context={'approved_questions':approved_questions,'pending_questions':pending_questions}
+    context={'exam': exam,
+             'approved_questions': approved_questions,
+             'pending_questions':pending_questions}
     return render(request,'blocks/list_questions.html',context)
 
 @decorators.ajax_only
@@ -118,10 +120,14 @@ def show_question(request, revision_pk):
     return render(request,'blocks/partials/show_question.html',context)
 
 
-def list_revisions(request, pk):
+def list_revisions(request, slugs, exam_pk, pk):
+    category = Category.objects.get_from_slugs(slugs)
+    if not category:
+        raise Http404
+    exam = get_object_or_404(Exam,pk=exam_pk)
     question = get_object_or_404(Question,pk=pk)
-    context = {'question': question}
-
+    context = {'question': question,
+               'exam': exam}
     return render(request,'blocks/list-revisions.html',context)
 
 

@@ -31,5 +31,4 @@ class CategoryQuerySet(models.QuerySet):
         universally_accessible_categories = self.filter(college_limit__isnull=True)
 
         return universally_accessible_categories | self.filter(pk__in=pks)
-        
 
