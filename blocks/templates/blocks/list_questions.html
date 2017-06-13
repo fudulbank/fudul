@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base.html' %}{% load staticfiles %}
 {% block title %}Questions{% endblock %}
 {% block breadcrumb %}
 
@@ -10,42 +10,133 @@
 					</div>
 {% endblock %}
 {% block content %}
-<style>
-.panel-body a {
-    color: white;
-    font-size: medium;
-    font-weight: bold;
-    margin-top: auto
-}
-        .img-responsive {
-            padding: 0;
-            max-width: 100%;
-            max-height: 100%;
-            width: 100%;
-            height: 100%;
-            margin-right: 20%;
-        }
-</style>
-
-    {% for question in questions %}
-    <div class="row">
-        <div class="col-lg-4">
-            <div class="panel bg-teal-400">
-                       <div class="panel-body">
-                       {% if question.figure %}
-                           <img class="img-responsive center-block"  src="{{ question.figure.url }}">
-                       {% endif %}
-       <br> <a >{{ question.text }}</a>
-                           {% for choice in question.choice_set.all %}
-
-                               <div class="text-muted text-size-small">
-                               <li>{{ choice.text }}</li>
-                               </div>
-                           {% endfor %}
-                          </div>
-            </div>
+    <div class="panel panel-flat">
+    <div class="panel-heading">
+							<h5 class="panel-title">Approved Questions<a class="heading-elements-toggle"><i class="icon-more"></i></a></h5>
+							<div class="heading-elements">
+								<ul class="icons-list">
+			                		<li><a data-action="collapse"></a></li>
+			                		<li><a data-action="reload"></a></li>
+			                		<li><a data-action="close"></a></li>
+			                	</ul>
+		                	</div>
+						</div>
+        <div class="panel-body">
+  <table id="approved" class="display datatable dt-responsive">
+                        <thead>
+                            <tr>
+                                <th>Text</th>
+                                <th>Submitter</th>
+                                <th>Status</th>
+                                <th>Date of last Revision</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for question in approved_questions %}
+                            <tr>
+                            <td id="show1" data-url="{% url 'blocks:show_question' question.get_latest_approved_revision.pk %}" data-revision_pk="{{ question.get_latest_approved_revision.pk }}"><a>{{ question.get_latest_approved_revision.text|truncatewords:20 }}</a></td>
+{#                                change to nick name #}
+                            <td>{{ question.get_latest_approved_revision.submitter }}</td>
+                            <td>{{ question.get_status_display }}</td>
+                            <td>{{ question.get_latest_approved_revision.submission_date }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+</table>
+        </div>
+    </div>
+    <div class="panel panel-flat">
+    <div class="panel-heading">
+							<h5 class="panel-title">Pending Questions<a class="heading-elements-toggle"><i class="icon-more"></i></a></h5>
+							<div class="heading-elements">
+								<ul class="icons-list">
+			                		<li><a data-action="collapse"></a></li>
+			                		<li><a data-action="reload"></a></li>
+			                		<li><a data-action="close"></a></li>
+			                	</ul>
+		                	</div>
+						</div>
+        <div class="panel-body">
+  <table id="pending" class="display datatable dt-responsive">
+                        <thead>
+                            <tr>
+                                <th>Text</th>
+                                <th>Submitter</th>
+                                <th>Status</th>
+                                <th>Date of last Revision</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for question in pending_questions %}
+                            <tr>
+                            <td id="show2" data-url="{% url 'blocks:show_question' question.get_latest_revision.pk %}" data-revision_pk="{{ question.get_latest_revision.pk }}"> <a>{{ question.get_latest_revision.text|truncatewords:20 }}</a> </td>
+{#                                change to nick name #}
+                            <td>{{ question.get_latest_revision.submitter }}</td>
+                            <td>{{ question.get_status_display }}</td>
+                            <td>{{ question.get_latest_revision.submission_date }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+</table>
         </div>
     </div>
 
-    {% endfor %}
+{% endblock %}
+{% block customscript %}
+	<link rel="stylesheet" href="{% static 'css/jquery.dataTables.min.css' %}">
+	<link rel="stylesheet" href="{% static 'js/datatables/responsive/css/responsive.dataTables.min.css' %}">
+	<script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'js/datatables/responsive/js/dataTables.responsive.min.js' %}"></script>
+<style type="text/css">
+    th, td{
+        text-align: left;
+    }
+</style>
+	<script>
+    $(function(){
+        $("#approved").dataTable({
+            "order": [[ 3, "asc" ]]
+        });
+        $("#pending").dataTable({
+            "order": [[ 3, "asc" ]]
+        });
+    });
+</script>
+ <script src="{% static 'js/toastr.js' %}"></script>
+
+<script type="text/javascript">
+    $(function () {
+        // initialize project edit modal
+        $('#show-question-modal').modal({
+          keyboard: false,
+          backdrop: 'static',
+          show    : false,
+        });
+        $("#show1").click(function () {
+            revision_pk =  $(this).data("revision_pk");
+            url = $(this).data('url');
+
+            $("#show-question-modal").modal('show');
+
+            $("#show-question-modal .modal-title").html("Full Question");
+            $("#show-question-modal .modal-body").load(url);
+
+        });
+        $("#show2").click(function () {
+            revision_pk =  $(this).data("revision_pk");
+            url = $(this).data('url');
+
+            $("#show-question-modal").modal('show');
+
+            $("#show-question-modal .modal-title").html("Full Question");
+            $("#show-question-modal .modal-body").load(url);
+            $("#show-question-modal .modal-header").addClass('bg-primary')
+
+        });
+    });
+{% include 'blocks/modals/adjust_modal_size.js' %}
+</script>
+{% with modal_id='show-question-modal' no_footer=True %}
+    {% include "blocks/modals/common_edit_modal.html" %}
+{% endwith %}
 {% endblock %}

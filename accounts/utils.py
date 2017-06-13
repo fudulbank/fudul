@@ -17,3 +17,5 @@ def get_user_college(user):
     except (ObjectDoesNotExist, AttributeError):
         college =''
     return college
+
+

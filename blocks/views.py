@@ -5,9 +5,9 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render,get_object_or_404
 
-from accounts.models import Institution,College
+from accounts.models import Institution, College
 from core import decorators
-from .models import Exam,Subject,Question,Category,Revision
+from .models import Exam, Subject, Question, Category, Revision
 from . import forms
 
 def list_subjects(request,pk):
@@ -38,24 +38,6 @@ def handle_question(request, subject_pk):
 
 
     return render(request,'blocks/partials/submit_question.html',context)
-
-def list_questions(request, pk):
-    subject = get_object_or_404(Subject, pk=pk)
-    questions = Question.objects.filter(subject=subject)
-    context = {'questions':questions}
-    return render(request,'blocks/list_questions.html',context)
-
-# def add_question(request):
-#     context={}
-#     if request.method == 'POST':
-#         form= forms.QuestionForm(request.POST,request.FILES,submitter=request.user)
-#         if form.is_valid() :
-#             question = form.save()
-#             return HttpResponseRedirect(reverse('blocks:add_question'))
-#     elif request.method == 'GET':
-#         form= forms.QuestionForm()
-#     context['form'] = form
-#     return render(request, 'blocks/add_question_form.html', context)
 
 
 def list_meta_categories(request):        
@@ -111,6 +93,14 @@ def add_question(request,pk):
             revision.save()
             revisionchoiceformset.instance = revision
             revisionchoiceformset.save()
+
+            if request.user.is_superuser:
+                if question.status == 'C':
+                    revision.is_approved == True
+                if question.status != 'C':
+                    revision.is_approved == False
+
+
             # return HttpResponseRedirect(reverse('blocks:add_question',
             #                                     args=pk))
     elif request.method == 'GET':
@@ -123,6 +113,7 @@ def add_question(request,pk):
     context['revisionchoiceformset'] = revisionchoiceformset
 
     return render(request, "blocks/add-question.html", context)
+
 
 class SubjectAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
@@ -139,3 +130,17 @@ class SourceAutocomplete(autocomplete.Select2QuerySetView):
         if self.q:
             qs = qs.filter(name=self.q)
         return qs
+
+
+def list_questions(request, pk):
+    exam = get_object_or_404(Exam, pk=pk)
+    approved_questions = Question.objects.filter(subject__exam=exam,is_deleted=False,status='C')
+    pending_questions = Question.objects.filter(subject__exam=exam,is_deleted=False,status__in=['S','A','Q'])
+    context={'approved_questions':approved_questions,'pending_questions':pending_questions}
+    return render(request,'blocks/list_questions.html',context)
+
+@decorators.ajax_only
+def show_question(request,revision_pk):
+    revision= get_object_or_404(Revision,pk=revision_pk)
+    context = {'revision':revision}
+    return render(request,'blocks/partials/show_question.html',context)

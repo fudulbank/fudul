@@ -107,6 +107,12 @@ class Question(models.Model):
     def __str__(self):
         return self.status
 
+    def get_latest_approved_revision(self):
+        return self.revision_set.filter(is_approved=True,is_deleted=False).order_by('-approval_date').first()
+
+    def get_latest_revision(self):
+        return self.revision_set.filter(is_approved=False,is_deleted=False).order_by('-submission_date').first()
+
 
 class Revision (models.Model):
     question = models.ForeignKey(Question)
@@ -133,5 +139,5 @@ class Choice(models.Model):
     revision = models.ForeignKey(Revision, on_delete=models.CASCADE,null=True)
 
     def __str__(self):
-        return self.name
+        return self.text
 
