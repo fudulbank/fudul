@@ -95,12 +95,7 @@ class SourceAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         exam_pk =  self.forwarded.get('exam_pk')
         exam = Exam.objects.get(pk=exam_pk)
-        parent_categories = exam.category.get_parent_categories()
-        if parent_categories:
-            meta_category = parent_categories[-1]
-        else:
-            meta_category = exam.category
-        qs = Source.objects.filter(category=meta_category)
+        qs = exam.get_sources()
         if self.q:
             qs = qs.filter(name=self.q)
         return qs
