@@ -1,20 +1,20 @@
-from django.db import models
 from django.contrib.auth.models import User
+from django.db import models
+from django.utils import timezone
 from accounts.models import College, Batch, Institution
 from .managers import CategoryQuerySet
-from datetime import datetime
 import accounts.utils
 
 class Source(models.Model):
     name = models.CharField(max_length=100)
-    exam = models.ForeignKey('Exam', null=True)
-    submission_date = models.DateTimeField(auto_now_add=True, null=True)
+    exam = models.ForeignKey('Exam')
+    submission_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
 
 class Category(models.Model):
-    slug = models.SlugField(max_length=50, verbose_name="url")
+    slug = models.SlugField(max_length=50)
     name = models.CharField(max_length=100)
     college_limit = models.ManyToManyField(College, blank=True)
     parent_category = models.ForeignKey('self', null=True, blank=True,
@@ -76,7 +76,7 @@ class Exam(models.Model):
 
 class Subject(models.Model):
     name = models.CharField(max_length=100)
-    exam = models.ForeignKey(Exam, null=True)
+    exam = models.ForeignKey(Exam)
     submission_date = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
 
@@ -105,7 +105,7 @@ class Question(models.Model):
     exam_type = models.CharField(max_length=1, choices=question_type_choices,
                                  verbose_name="type", default="")
     is_deleted = models.BooleanField(default=False)
-    status = models.CharField(max_length=1, choices=status_choices,default="")
+    status = models.CharField(max_length=1, choices=status_choices, default="")
 
     def __str__(self):
         return self.status
@@ -129,7 +129,7 @@ class Revision (models.Model):
 
     def save(self, *args, **kwargs):
         if self.is_approved:
-            self.approval_date = datetime.now()
+            self.approval_date = timezone.now()
         super(Revision, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -143,4 +143,3 @@ class Choice(models.Model):
 
     def __str__(self):
         return self.text
-

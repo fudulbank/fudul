@@ -8,6 +8,7 @@ class CustomSignupForm(SignupFormOnlyEmail):
     first_name = forms.CharField(max_length=30)
     middle_name = forms.CharField(max_length=30)
     last_name = forms.CharField(max_length=30)
+    nickname = forms.CharField(max_length=30)
     alternative_email = forms.EmailField()
     institution = forms.CharField(max_length=100)
     college = forms.ModelChoiceField(queryset=College.objects.all(),
@@ -51,6 +52,7 @@ class CustomSignupForm(SignupFormOnlyEmail):
         user_profile.first_name = self.cleaned_data['first_name']
         user_profile.middle_name = self.cleaned_data['middle_name']
         user_profile.last_name = self.cleaned_data['last_name']
+        user_profile.nickname = self.cleaned_data['nickname']
         user_profile.mobile_number = self.cleaned_data['mobile_number']
         user_profile.institution = self.cleaned_data['institution']
         user_profile.college = self.cleaned_data.get('college', None)
@@ -67,4 +69,4 @@ class CustomEditProfileForm(EditProfileForm):
     class Meta:
         model = Profile
         fields = ['first_name', 'middle_name', 'last_name',
-                  'alternative_email', 'mobile_number']
+                  'nickname', 'alternative_email', 'mobile_number']
