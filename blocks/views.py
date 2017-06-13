@@ -108,7 +108,9 @@ def list_questions(request, slugs, pk):
     exam = get_object_or_404(Exam, pk=pk, category=category)
     approved_questions = Question.objects.filter(subject__exam=exam,is_deleted=False,status='C')
     pending_questions = Question.objects.filter(subject__exam=exam,is_deleted=False,status__in=['S','A','Q'])
-    context={'approved_questions':approved_questions,'pending_questions':pending_questions}
+    context={'exam': exam,
+             'approved_questions': approved_questions,
+             'pending_questions':pending_questions}
     return render(request,'blocks/list_questions.html',context)
 
 @decorators.ajax_only

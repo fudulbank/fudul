@@ -10,6 +10,7 @@
 							<li><a href="{% url 'blocks:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
                                                         {% endfor %}
                                                         <li><a href="{% url 'blocks:show_category' exam.category.get_slugs %}">{{ exam.category.name }}</a></li>
+                                                        <li>{{ exam.name }}</li>
                                                         <li class="active">Adding question</li>
 						</ul>
 					</div>
@@ -23,16 +24,11 @@
     margin-top: auto
 }
 </style>
+<div class="row">
+   <div class="col-md-8">
     <div class="panel panel-flat">
 						<div class="panel-heading">
-							<h1 class="panel-title">Adding Question<a class="heading-elements-toggle"><i class="icon-more"></i></a></h1>
-							<div class="heading-elements">
-								<ul class="icons-list">
-			                		<li><a data-action="collapse"></a></li>
-			                		<li><a data-action="reload"></a></li>
-			                		<li><a data-action="close"></a></li>
-			                	</ul>
-		                	</div>
+							<h1 class="panel-title">Adding Question to {{ exam.name }}</h1>
 						</div>
         <div class="panel-body">
         {% bootstrap_form_errors questionform %}
@@ -77,7 +73,7 @@
 
         {% bootstrap_form_errors revisionform %}
         <div class="form-group has-feedback has-feedback-left">
-            <label class="control-label col-lg-2">Question Text</label>
+            <label class="control-label">Question Text</label>
 			{% bootstrap_field revisionform.text show_label=False %}
 			<div class="form-control-feedback">
 				<i class="icon-pencil text-muted"></i>
@@ -121,7 +117,7 @@
                         </table>
 
         		<div class="form-group has-feedback has-feedback-left">
-            <label class="control-label col-lg-2">Answer explanation</label>
+            <label class="control-label">Answer explanation</label>
 			{% bootstrap_field revisionform.explanation show_label=False %}
 			<div class="form-control-feedback">
 				<i class=" icon-info22 text-muted"></i>
@@ -134,8 +130,48 @@
         </form>
         </div>
 
+    </div> <!--panel-->
+</div> <!--col-->
+<div class="col-md-4">
+    <div class="panel panel-flat">
+       <div class="panel-heading">
+           <h1 class="panel-title">{{ exam.name }} stats</h1>
+       </div>
+       <div class="panel-body">
+           <ul>
+               <li>
+                 {% if exam.subject_set.exists %}
+                  <strong>Available subjects:</strong>
+                  <ul>
+                  {% for subject in exam.subject_set.all %}
+                     <li>{{ subject.name }} ({{ subject.question_set.count }} questions)</li>
+                  {% endfor %%}
+                  </ul>
+                 {% else %}
+                  No subjects available.
+                 {% endif %}
+               </li>
+               <li>
+                 {% if exam.source_set.exists %}
+                  <strong>Available sources:</strong>
+                  <ul>
+                  {% for source in exam.source_set.all %}
+                     <li>{{ source.name }} ({{ source.question_set.count }} questions)</li>
+                  {% endfor %%}
+                  </ul>
+                 {% else %}
+                  No sources available.
+                 {% endif %}
+               </li>
+               <li>{{ exam.get_question_count }} questions in total.</li>
+           </ul>
+           <div class="text-right">
+               <a href="{% url 'blocks:list_questions' exam.category.get_slugs exam.pk %}" class="btn btn-primary">List questions <i class="icon-arrow-right14 position-right"></i></a>
+           </div>
+       </div>
     </div>
-
+</div> <!--col-->
+</div> <!--row-->
 {% endblock %}
 {% block customscript %}
     <script src="{% static 'js/jquery.formset.js' %}"></script>

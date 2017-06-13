@@ -67,6 +67,9 @@ class Exam(models.Model):
     is_deleted = models.BooleanField(default=False)
     batches_allowed_to_take = models.ForeignKey(Batch, null=True, blank=True)
 
+    def get_question_count(self):
+        return Question.objects.filter(subject__exam=self).count()
+
     def __str__(self):
         return self.name
 
