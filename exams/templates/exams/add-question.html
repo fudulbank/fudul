@@ -32,7 +32,7 @@
 						</div>
         <div class="panel-body">
         {% bootstrap_form_errors questionform %}
-        <form method="post">
+        <form method="post" data-exam_pk='{{ exam.pk }}' enctype="multipart/form-data" id="add-question-form" action="post">
 	    {% csrf_token %}
 
 <div class="row">
@@ -125,7 +125,7 @@
 		</div>
 <input name="exam_pk" type="hidden" value="{{ exam.pk }}">
 {{ questionform.media }}
-               <button type="submit" class="btn bg-teal btn-block btn-lg">Submit Question <i class="icon-circle-right2 position-right"></i></button>
+               <button type="submit" action ='submit'class="btn bg-teal btn-block btn-lg">Submit Question <i class="icon-circle-right2 position-right"></i></button>
 
         </form>
         </div>
@@ -192,6 +192,8 @@
 </style>
     <script src="{% static 'js/jquery.formset.js' %}"></script>
     <script src="{% static 'js/jquery.autogrowtextarea.min.js' %}"></script>
+    <script src="{% static 'js/toastr.js' %}"></script>
+
     <script type="text/javascript">
     $(function(){
 
@@ -203,6 +205,7 @@
              $(this).html($(this).children('input'));
         });
         $("textarea").autoGrow();
+
         // add formset controls
         $("#choice_formset .form-container").formset({
             prefix: '{{ choice_formset.prefix }}',
@@ -211,8 +214,40 @@
             addCssClass: 'add-row btn btn-xs btn-primary',
             deleteCssClass: 'delete-row btn btn-xs btn-danger',
         });
-        $(':input').not(':button, :submit, :reset, :hidden').removeAttr('checked').removeAttr('selected').not('‌​:checkbox, :radio, select').val('');
+
+        $("form#add-question-form").submit(function (event) {
+        /* stop form from submitting normally */
+            event.preventDefault();
+            /* get some values from elements on the page: */
+            var exam_pk =  $(this).data("exam_pk");
+            var formData = new FormData($(this)[0]);
+            var url = "{% url 'exams:handel_question' exam.pk %}";
+            /* Send the data */
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: formData,
+                cache: false,
+                contentType: false,
+                enctype: 'multipart/form-data',
+                processData: false,
+                success: function (data) {
+                    if (data.message == "success") {
+                        $(':input').not(':button, :submit, :reset, :hidden').removeAttr('checked').removeAttr('selected').not('‌​:checkbox, :radio, select').val('');
+
+                        // show success message (using toastr)
+                        toastr.options.positionClass = "toast-top-left";
+                        toastr.success("The Question has been successfully added.");
+
+                        // hide modal
+                        $("#add-question-modal").modal('hide');
+                         window.location.href= data.show_url;
+                    } else {
+                        $("#add-question-modal .modal-body").html(data);
+                    }}
+            });
         });
+    });
     </script>
 
 {% endblock %}

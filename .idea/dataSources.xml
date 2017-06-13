@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
+    <data-source source="LOCAL" name="zaha.sqlite3" uuid="f79e010c-00c0-4fd5-8ba5-00f5b028ca07">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/zaha.sqlite3</jdbc-url>
+    </data-source>
+    <data-source source="LOCAL" name="" uuid="9a9fa6e5-d443-4fa0-bc14-3460df9d5f93">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/</jdbc-url>
+    </data-source>
+  </component>
+</project>
