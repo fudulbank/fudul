@@ -32,6 +32,7 @@ class Category(models.Model):
             parent_categories.append(parent_category)
             parent_category = parent_category.parent_category
 
+        parent_categories.reverse()
         return parent_categories
 
     def can_user_access(self, user):
@@ -52,9 +53,11 @@ class Category(models.Model):
         return True
 
     def get_slugs(self):
-        slugs = self.slug
+        slugs = ""
         for parent_category in self.get_parent_categories():
-            slugs = parent_category.slug + '/' + slugs
+            slugs =  slugs + parent_category.slug + '/'
+
+        slugs += self.slug 
 
         return slugs
 
@@ -100,7 +103,7 @@ exam_type_choices = (
 )
 
 status_choices = (
-    ('COMPLETE','Complete'),
+    ('COMPLETE','Complete and valid question'),
     ('SPELLING', 'Improper spelling'),
     ('INCOMPLETE_ANSWERS', 'Incomplete answers'),
     ('INCOMPLETE_QUESTION', 'Incomplete question'),

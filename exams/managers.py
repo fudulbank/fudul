@@ -5,13 +5,13 @@ class CategoryQuerySet(models.QuerySet):
     def get_from_slugs(self, slugs):
         slug_list = [slug for slug in slugs.split('/') if slug]
         last_slug = slug_list.pop(-1)
+        slug_list.reverse()
         kwargs = {'slug': last_slug}
         level = 'parent_category'
         for slug in slug_list:
             kwarg = level + '__slug'
             kwargs[kwarg] = slug
             level += '__parent_category'
-
         category = self.filter(**kwargs).first()
         return category
 
