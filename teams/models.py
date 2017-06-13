@@ -7,6 +7,8 @@ class Team(models.Model):
     members = models.ManyToManyField(User,
                                      blank=True,
                                      related_name="team_memberships")
+    categories = models.ManyToManyField('exams.Category',
+                                        related_name="privileged_teams")
     access_choices = (
         ('editors', 'Editors'),
         ('collectors', 'Collectors')

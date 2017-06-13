@@ -1,9 +1,11 @@
 from dal import autocomplete
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render,get_object_or_404
+
 
 from accounts.models import Institution, College
 from core import decorators
@@ -11,11 +13,13 @@ from .models import Exam, Subject, Question, Category, Revision,Source
 from . import forms
 from teams import utils
 
-def list_meta_categories(request):        
+@login_required
+def list_meta_categories(request):
     subcategories = Category.objects.filter(parent_category__isnull=True).user_accessible(request.user)
     context = {"subcategories": subcategories}
     return render(request, 'exams/show_category.html', context)
 
+@login_required
 def show_category(request, slugs):
     category = Category.objects.get_from_slugs(slugs)
     if not category:
@@ -40,12 +44,16 @@ def show_category(request, slugs):
 
     return render(request, "exams/show_category.html", context)
 
+@login_required
 def add_question(request, slugs, pk):
     category = Category.objects.get_from_slugs(slugs)
     if not category:
         raise Http404
 
+    # PERMISSION CHECK
     exam = get_object_or_404(Exam, pk=pk, category=category)
+    if not exam.can_user_edit(request.user):
+        raise PermissionDenied
     context={'exam': exam,}
     if request.method == 'GET':
         questionform = forms.QuestionForm()
@@ -117,38 +125,59 @@ class SourceAutocomplete(autocomplete.Select2QuerySetView):
             qs = qs.filter(name=self.q)
         return qs
 
-
+@login_required
 def list_questions(request, slugs, pk):
     category = Category.objects.get_from_slugs(slugs)
     if not category:
         raise Http404
 
     exam = get_object_or_404(Exam, pk=pk, category=category)
-    approved_questions = Question.objects.filter(subjects__exam=exam,is_deleted=False,status='COMPLETE',revision__is_approved=True)
-    pending_questions = Question.objects.filter(subjects__exam=exam,is_deleted=False,status__in=['COMPLETE','SPELLING','INCOMPLETE_ANSWERS','INCOMPLETE_QUESTION'])
 
+    # PERMISSION CHECK
+    if not exam.can_user_edit(request.user):
+        raise PermissionDenied
+
+    approved_questions = Question.objects.filter(subjects__exam=exam, is_deleted=False, status='COMPLETE',
+                                                 revision__is_approved=True)
+    pending_questions = Question.objects.filter(subjects__exam=exam, is_deleted=False,
+                                                status__in=['COMPLETE', 'SPELLING', 'INCOMPLETE_ANSWERS',
+                                                            'INCOMPLETE_QUESTION'])
     context={'exam': exam,
              'approved_questions': approved_questions,
              'pending_questions':pending_questions}
     return render(request, 'exams/list_questions.html', context)
 
+@login_required
 @decorators.ajax_only
 def show_question(request, revision_pk):
     revision = get_object_or_404(Revision,pk=revision_pk)
+    exam = revision.question.get_exam()
+
+    # PERMISSION CHECK
+    if not exam.can_user_edit(request.user):
+        raise PermissionDenied
+
     context = {'revision': revision}
     return render(request, 'exams/partials/show_question.html', context)
 
-
+@login_required
 def list_revisions(request, slugs, exam_pk, pk):
     category = Category.objects.get_from_slugs(slugs)
     if not category:
         raise Http404
-    exam = get_object_or_404(Exam,pk=exam_pk)
+    exam = get_object_or_404(Exam, pk=exam_pk)
+
+    # PERMISSION CHECK
+    if not exam.can_user_edit(request.user):
+        raise PermissionDenied
+
     question = get_object_or_404(Question,pk=pk)
     context = {'question': question,
                'exam': exam}
     return render(request, 'exams/list-revisions.html', context)
 
+@login_required
+def submit_revision(request,pk):
 
 def submit_revision(request,slugs,exam_pk, pk):
 
@@ -160,6 +189,12 @@ def submit_revision(request,slugs,exam_pk, pk):
 
     question = get_object_or_404(Question, pk=pk)
 
+    context = {'question':question}
+    exam = question.get_exam()
+
+    # PERMISSION CHECK
+    if not exam.can_user_edit(request.user):
+        raise PermissionDenied
     revision = question.get_ultimate_latest_revision()
 
     context ={'question':question,'revision':revision}
@@ -194,80 +229,6 @@ def submit_revision(request,slugs,exam_pk, pk):
     context['revisionchoiceformset'] = revisionchoiceformset
 
     return render(request, 'exams/submit-revision.html', context)
-
-
-
-# def add_question(request, slugs, pk):
-#     category = Category.objects.get_from_slugs(slugs)
-#     if not category:
-#         raise Http404
-#
-#     exam = get_object_or_404(Exam, pk=pk, category=category)
-#     context={'exam':exam}
-#     if request.method == 'POST':
-#         instance = Revision(submitter=request.user)
-#         questionform = forms.QuestionForm(request.POST,
-#                                           request.FILES)
-#         revisionform = forms.RevisionForm(request.POST,
-#                                           instance=instance)
-#
-#         revisionchoiceformset = forms.RevisionChoiceFormset(request.POST)
-#         if questionform.is_valid() and revisionform.is_valid() and revisionchoiceformset.is_valid():
-#             question = questionform.save()
-#             revision = revisionform.save(commit=False)
-#             revision.question = question
-#             revision.save()
-#             revisionchoiceformset.instance = revision
-#             revisionchoiceformset.save()
-#
-#             if request.user.is_superuser:
-#                 if question.status == 'C':
-#                     revision.is_approved == True
-#                 if question.status != 'C':
-#                     revision.is_approved == False
-
-
-
-
-
-
-
-
-
-
-
-
-
-# def submit_revision(request,slugs,exam_pk, pk):
-#     category = Category.objects.get_from_slugs(slugs)
-#     if not category:
-#         raise Http404
-#
-#     exam = get_object_or_404(Exam,pk=exam_pk)
-#
-#     question = get_object_or_404(Question, pk=pk)
-#
-#     revision = question.get_ultimate_latest_revision()
-#
-#     context ={'question':question,'revision':revision}
-#
-#     if request.method == 'POST':
-#         instance = Revision(submitter=request.user,question=question)
-#         revisionform = forms.RevisionForm(request.POST,request.FILES,instance=instance)
-#         revisionchoiceformset = forms.RevisionChoiceFormset(request.POST,request.FILES)
-#         if revisionform.is_valid() and revisionchoiceformset.is_valid():
-#             revision = revisionform.save()
-#             revisionchoiceformset.instance = revision
-#             revisionchoiceformset.save()
-#         return HttpResponseRedirect(reverse("exams:list_revisions", args=(exam.category.get_slugs(),exam.pk,question.pk)))
-#
-#     elif request.method == 'GET':
-#         revisionform =forms.RevisionForm(instance=revision)
-#         revisionchoiceformset = forms.RevisionChoiceFormset(instance=revision)
-#     context['revisionform'] = revisionform
-#     context['revisionchoiceformset'] = revisionchoiceformset
-#
-#     return render(request, 'exams/submit-revision.html', context)
 
 
 

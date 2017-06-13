@@ -4,7 +4,7 @@
 
 					<div class="breadcrumb-line">
 						<ul class="breadcrumb">
-							<li><a href="index.html"><i class="icon-home2 position-left"></i> Fudul</a></li>
+							<li><a href="{% url 'index' %}"><i class="icon-home2 position-left"></i> Fudul</a></li>
                                                         <li><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
                                                         {% for parent_category in exam.category.get_parent_categories %}
 							<li><a href="{% url 'exams:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>

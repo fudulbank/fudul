@@ -54,7 +54,7 @@
 				<li class="dropdown dropdown-user">
 					<a class="dropdown-toggle" data-toggle="dropdown">
 						<img src="{% static "img/Logo.png" %}" alt="">
-						<span>{{ user.username }}</span>
+						<span>{{ user.profile.first_name|default:user.username }}</span>
 						<i class="caret"></i>
 					</a>
 
@@ -83,9 +83,8 @@
 					<div class="sidebar-user">
 						<div class="category-content">
 							<div class="media">
-								<a href="#" class="media-left"><img class="img-circle img-sm" alt=""></a>
 								<div class="media-body">
-									<span class="media-heading text-semibold">{{ user.username }}</span>
+									<span class="media-heading text-semibold">Welcome, {{ user.profile.first_name|default:user.username }}!</</span>
 								</div>
 
 							</div>
@@ -102,6 +101,17 @@
 								<!-- Main -->
 								<li>
 									<a href="{% url 'exams:list_meta_categories' %}"><i class="icon-stack-check"></i> <span>Explore exams!</span></a>
+								</li>
+{% if user.is_superuser %}
+								<li>
+									<a href="{% url 'admin:index' %}"><i class="icon-shield2"></i> <span>Superuser Admin</span></a>
+								</li>
+{% endif %}
+								<li>
+									<a href="{% url 'editor_admin:index' %}"><i class="icon-power2"></i> <span>Editor Admin</span></a>
+								</li>
+								<li>
+									<a href="{% url 'about' %}"><i class="icon-info3"></i> <span>About <em>Fudul</em></span></a>
 								</li>
 {#								<li>#}
 {#									<a href="#"><i class="icon-copy"></i> <span>Menu item</span></a>#}
@@ -134,7 +144,7 @@
 
 
 					<!-- Footer -->
-					<div dir="rtl" class="footer text-muted pull-right">
+					<div style="margin-bottom: 10px;" class="text-muted pull-right">
 						 بُني بأيدٍ طلابية. <a href="https://github.com/Zahajamaan/Fudulbank" target="_blank">حقّك في النسخ مكفول</a>
 					</div>
 					<!-- /footer -->
