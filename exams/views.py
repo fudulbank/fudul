@@ -177,8 +177,6 @@ def list_revisions(request, slugs, exam_pk, pk):
     return render(request, 'exams/list-revisions.html', context)
 
 @login_required
-def submit_revision(request,pk):
-
 def submit_revision(request,slugs,exam_pk, pk):
 
     category = Category.objects.get_from_slugs(slugs)
