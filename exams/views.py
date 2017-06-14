@@ -82,7 +82,7 @@ def handle_question(request, exam_pk):
     if questionform.is_valid() and revisionform.is_valid() and revisionchoiceformset.is_valid():
         question = questionform.save()
         revision = revisionform.save(commit=False)
-        if utils.is_editor(request.user):
+        if teams.utils.is_editor(request.user):
             revision.is_approved = True
         revision.question = question
         revision.save()
@@ -191,7 +191,7 @@ def submit_revision(request,slugs,exam_pk, pk):
         if revisionform.is_valid() and revisionchoiceformset.is_valid():
             new_revision = revisionform.save(commit=False)
             new_revision.question = question
-            if utils.is_editor(request.user):
+            if teams.utils.is_editor(request.user):
                 new_revision.is_approved = True
             # Setting primary key to None creates a new object, rather
             # than modifying the pre-existing one
