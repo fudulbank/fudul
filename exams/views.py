@@ -176,14 +176,13 @@ def list_revisions(request, slugs, exam_pk, pk):
 
 @login_required
 def submit_revision(request,slugs,exam_pk, pk):
-
     category = Category.objects.get_from_slugs(slugs)
     if not category:
         raise Http404
 
     exam = get_object_or_404(Exam, pk=exam_pk)
     question = get_object_or_404(Question, pk=pk)
-    latest_revision = question.get_ultimate_latest_revision()
+    latest_revision = question.get_latest_revision()
 
     # PERMISSION CHECK
     if not exam.can_user_edit(request.user):
