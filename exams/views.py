@@ -82,6 +82,8 @@ def handle_question(request, exam_pk):
     if questionform.is_valid() and revisionform.is_valid() and revisionchoiceformset.is_valid():
         question = questionform.save()
         revision = revisionform.save(commit=False)
+        if utils.is_editor(request.user):
+            revision.is_approved = True
         revision.question = question
         revision.save()
         revisionchoiceformset.instance = revision
@@ -189,23 +191,27 @@ def submit_revision(request,slugs,exam_pk, pk):
         if revisionform.is_valid() and revisionchoiceformset.is_valid():
             new_revision = revisionform.save(commit=False)
             new_revision.question = question
-            if teams.utils.is_editor(request.user):
-                if question.status == 'COMPLETE':
-                    new_revision.is_approved == True
-                if question.status != 'COMPLETE':
-                    new_revision.is_approved == False
+            if utils.is_editor(request.user):
+                new_revision.is_approved = True
             # Setting primary key to None creates a new object, rather
             # than modifying the pre-existing one
             new_revision.pk = None
+            new_revision.submitter = request.user
             new_revision.save()
-            revisionchoiceformset.instance = new_revision
-            choices = revisionchoiceformset.save(commit=False)
+
+            # Let's clone choices!
+            modified_choices = revisionchoiceformset.save(commit=False)
+            unmodified_choices = []
+            for choice in revisionchoiceformset.queryset:
+                if not choice in revisionchoiceformset.deleted_objects and \
+                   not choice in modified_choices:
+                    unmodified_choices.append(choice)
+            choices = modified_choices + unmodified_choices
             for choice in choices:
-                print(revisionchoiceformset.queryset)
-                print(choice)
                 choice.pk = None
+                choice.revision = new_revision
                 choice.save()
-            
+
             return HttpResponseRedirect(reverse("exams:list_revisions", args=(exam.category.get_slugs(),exam.pk,question.pk)))
 
     elif request.method == 'GET':
