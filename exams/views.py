@@ -127,9 +127,9 @@ def list_questions(request, slugs, pk):
         raise PermissionDenied
     approved_questions =[]
     pending_questions =[]
-    complete_questions = Question.objects.filter(subjects__exam=exam, is_deleted=False, status='COMPLETE')
-    incomplete_questions = Question.objects.filter(subjects__exam=exam, is_deleted=False,
-                                                status__in=['SPELLING', 'INCOMPLETE_ANSWERS',
+    question_pool = Question.objects.filter(subjects__exam=exam, is_deleted=False).distinct()
+    complete_questions = question_pool.filter(status='COMPLETE')
+    incomplete_questions = question_pool.filter(status__in=['SPELLING', 'INCOMPLETE_ANSWERS',
                                                             'INCOMPLETE_QUESTION'])
     for question in complete_questions:
         if question.revision_set.filter(is_approved=True).count()>=1:
