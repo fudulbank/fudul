@@ -32,31 +32,32 @@
 		                	</div>
 						</div>
         <div class="panel-body">
-  <table id="approved" class="display datatable dt-responsive">
+        <table id="approved" class="display datatable dt-responsive">
                         <thead>
                             <tr>
                                 <th>Text</th>
                                 <th>Submitter</th>
                                 <th>Status</th>
                                 <th>Date of last revision</th>
+                                <th>Show History</th>
                             </tr>
                         </thead>
                         <tbody>
                         {% for question in approved_questions %}
                             <tr>
-                            <td id="show1" data-url="{% url 'exams:show_question' question.get_latest_approved_revision.pk %}" data-revision_pk="{{ question.get_latest_approved_revision.pk }}"><a>{{ question.get_latest_approved_revision.text|linebreaks|truncatewords:20 }}</a></td>
-{#                                change to nick name #}
+                            <td class="show" data-url="{% url 'exams:show_question' question.get_latest_approved_revision.pk %}" data-revision_pk="{{ question.get_latest_approved_revision.pk }}">{{ question.get_latest_approved_revision.text|linebreaks|truncatewords:20 }}</td>
                             <td>{{ question.get_latest_approved_revision.submitter }}</td>
                             <td>{{ question.get_status_display }}</td>
                             <td data-order="{{ question.get_latest_approved_revision.submission_date|date:'U' }}">{{ question.get_latest_approved_revision.submission_date }}</td>
+                            <td> <a href="{% url 'exams:list_revisions' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}"><button type="button" class="btn btn-primary btn-icon btn-rounded"><i class="icon-menu7"></i></button></a> </td>
                             </tr>
                         {% endfor %}
                         </tbody>
-</table>
+            </table>
         </div>
     </div>
     <div class="panel panel-flat">
-    <div class="panel-heading">
+        <div class="panel-heading">
 							<h5 class="panel-title">Pending questions<a class="heading-elements-toggle"><i class="icon-more"></i></a></h5>
 							<div class="heading-elements">
 								<ul class="icons-list">
@@ -64,31 +65,34 @@
 			                		<li><a data-action="close"></a></li>
 			                	</ul>
 		                	</div>
-						</div>
+        </div>
         <div class="panel-body">
-  <table id="pending" class="display datatable dt-responsive">
+            <table id="pending" class="display datatable dt-responsive">
                         <thead>
                             <tr>
                                 <th>Text</th>
                                 <th>Submitter</th>
                                 <th>Status</th>
                                 <th>Date of last revision</th>
+                                <th>Show History</th>
+
                             </tr>
                         </thead>
                         <tbody>
                         {% for question in pending_questions %}
                             {% if question.get_latest_revision %}
                             <tr>
-                            <td id="show2" data-url="{% url 'exams:show_question' question.get_latest_revision.pk %}" data-revision_pk="{{ question.get_latest_revision.pk }}"> <a>{{ question.get_latest_revision.text|linebreaks|truncatewords:20 }}</a> </td>
-{#                                change to nick name #}
+                            <td class="show" data-url="{% url 'exams:show_question' question.get_latest_revision.pk %}" data-revision_pk="{{ question.get_latest_revision.pk }}"> {{ question.get_latest_revision.text|linebreaks|truncatewords:20 }}</td>
                             <td>{{ question.get_latest_revision.submitter }}</td>
                             <td>{{ question.get_status_display }}</td>
                             <td data-order="{{ question.get_latest_approved_revision.submission_date|date:'U' }}">{{ question.get_latest_revision.submission_date }}</td>
+                            <td> <a href="{% url 'exams:list_revisions' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}"><button type="button" class="btn btn-primary btn-icon btn-rounded"><i class="icon-menu7"></i></button></a> </td>
+
                             </tr>
                             {% endif %}
                         {% endfor %}
                         </tbody>
-</table>
+            </table>
         </div>
     </div>
 
@@ -106,10 +110,10 @@
 	<script>
     $(function(){
         $("#approved").dataTable({
-            "order": [[ 3, "asc" ]]
+            "order": [[ 4, "asc" ]]
         });
         $("#pending").dataTable({
-            "order": [[ 3, "asc" ]]
+            "order": [[ 4, "asc" ]]
         });
     });
 </script>
@@ -123,7 +127,7 @@
           backdrop: 'static',
           show    : false,
         });
-        $("#show1").click(function () {
+        $(".show").click(function () {
             revision_pk =  $(this).data("revision_pk");
             url = $(this).data('url');
 
@@ -133,17 +137,7 @@
             $("#show-question-modal .modal-body").load(url);
 
         });
-        $("#show2").click(function () {
-            revision_pk =  $(this).data("revision_pk");
-            url = $(this).data('url');
 
-            $("#show-question-modal").modal('show');
-
-            $("#show-question-modal .modal-title").html("Full Question");
-            $("#show-question-modal .modal-body").load(url);
-            $("#show-question-modal .modal-header").addClass('bg-primary')
-
-        });
     });
 {% include 'exams/modals/adjust_modal_size.js' %}
 </script>

@@ -3,6 +3,7 @@ from dal import autocomplete
 from django.forms.models import inlineformset_factory
 from accounts.utils import get_user_college
 from . import models
+from teams import utils
 
 class QuestionForm(forms.ModelForm):
     class Meta:
@@ -17,9 +18,10 @@ class QuestionForm(forms.ModelForm):
         }
 
 class RevisionForm(forms.ModelForm):
+
     class Meta:
         model = models.Revision
-        fields = ['text', 'explanation']
+        fields = ['text', 'explanation','is_approved']
 
 class ChoiceForms(forms.ModelForm):
     class Meta:
