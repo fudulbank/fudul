@@ -129,7 +129,7 @@ def list_questions(request, slugs, pk):
     pending_questions =[]
     question_pool = Question.objects.filter(subjects__exam=exam, is_deleted=False).distinct()
     complete_questions = question_pool.filter(status='COMPLETE')
-    incomplete_questions = question_pool.filter(status__in=['SPELLING', 'INCOMPLETE_ANSWERS',
+    incomplete_questions = question_pool.filter(status__in=['WRITING_ERROR','UNSOLVED', 'INCOMPLETE_ANSWERS',
                                                             'INCOMPLETE_QUESTION'])
     for question in complete_questions:
         if question.revision_set.filter(is_approved=True).count()>=1:

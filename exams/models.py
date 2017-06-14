@@ -116,9 +116,11 @@ exam_type_choices = (
 
 status_choices = (
     ('COMPLETE','Complete and valid question'),
-    ('SPELLING', 'Improper spelling'),
+    ('WRITING_ERROR', 'Writing errors'),
     ('INCOMPLETE_ANSWERS', 'Incomplete answers'),
     ('INCOMPLETE_QUESTION', 'Incomplete question'),
+    ('UNSOLVED', 'Unsolved question'),
+
 )
 
 class Question(models.Model):
