@@ -6,12 +6,12 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render,get_object_or_404
 
-
 from accounts.models import Institution, College
 from core import decorators
 from .models import Exam, Subject, Question, Category, Revision,Source
 from . import forms
-from teams import utils
+import teams.utils
+
 
 @login_required
 def list_meta_categories(request):
@@ -170,46 +170,48 @@ def submit_revision(request,slugs,exam_pk, pk):
     if not category:
         raise Http404
 
-    exam = get_object_or_404(Exam,pk=exam_pk)
-
+    exam = get_object_or_404(Exam, pk=exam_pk)
     question = get_object_or_404(Question, pk=pk)
-
-    context = {'question':question}
-    exam = question.get_exam()
+    latest_revision = question.get_ultimate_latest_revision()
 
     # PERMISSION CHECK
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
-    revision = question.get_ultimate_latest_revision()
 
-    context ={'question':question,'revision':revision}
+    context ={'exam':exam, 'revision': latest_revision}
 
     if request.method == 'POST':
-
-        instance = Revision(submitter=request.user,question=question)
-
         revisionform = forms.RevisionForm(request.POST,
-                                          instance=instance)
+                                          instance=latest_revision)
 
-        revisionchoiceformset = forms.RevisionChoiceFormset(request.POST)
+        revisionchoiceformset = forms.RevisionChoiceFormset(request.POST,
+                                                            instance=latest_revision)
         if revisionform.is_valid() and revisionchoiceformset.is_valid():
-            revision = revisionform.save(commit=False)
-            revision.question = question
-            if utils.is_editor(request.user):
+            new_revision = revisionform.save(commit=False)
+            new_revision.question = question
+            if teams.utils.is_editor(request.user):
                 if question.status == 'COMPLETE':
-                    revision.is_approved == True
+                    new_revision.is_approved == True
                 if question.status != 'COMPLETE':
-                    revision.is_approved == False
-            revision.save()
-            revisionchoiceformset.instance = revision
-            revisionchoiceformset.save()
-
-
-        return HttpResponseRedirect(reverse("exams:list_revisions", args=(exam.category.get_slugs(),exam.pk,question.pk)))
+                    new_revision.is_approved == False
+            # Setting primary key to None creates a new object, rather
+            # than modifying the pre-existing one
+            new_revision.pk = None
+            new_revision.save()
+            revisionchoiceformset.instance = new_revision
+            choices = revisionchoiceformset.save(commit=False)
+            for choice in choices:
+                print(revisionchoiceformset.queryset)
+                print(choice)
+                choice.pk = None
+                choice.save()
+            
+            return HttpResponseRedirect(reverse("exams:list_revisions", args=(exam.category.get_slugs(),exam.pk,question.pk)))
 
     elif request.method == 'GET':
-        revisionform = forms.RevisionForm()
-        revisionchoiceformset = forms.RevisionChoiceFormset()
+        revisionform = forms.RevisionForm(instance=latest_revision)
+        revisionchoiceformset = forms.RevisionChoiceFormset(instance=latest_revision)
+
     context['revisionform'] = revisionform
     context['revisionchoiceformset'] = revisionchoiceformset
 
