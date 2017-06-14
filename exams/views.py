@@ -195,26 +195,23 @@ def submit_revision(request,slugs,exam_pk, pk):
     # PERMISSION CHECK
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
-    revision = question.get_ultimate_latest_revision()
 
-    context ={'question':question,'revision':revision}
+    context ={'question':question}
 
     if request.method == 'POST':
+        last_revision = question.get_ultimate_latest_revision()
 
-        instance = Revision(submitter=request.user,question=question)
+        instance = Revision(submitter=request.user,question=question,)
 
         revisionform = forms.RevisionForm(request.POST,
-                                          instance=instance)
+                                          instance=instance,
+                                          user=request.user)
 
         revisionchoiceformset = forms.RevisionChoiceFormset(request.POST)
+
         if revisionform.is_valid() and revisionchoiceformset.is_valid():
             revision = revisionform.save(commit=False)
             revision.question = question
-            if utils.is_editor(request.user):
-                if question.status == 'COMPLETE':
-                    revision.is_approved == True
-                if question.status != 'COMPLETE':
-                    revision.is_approved == False
             revision.save()
             revisionchoiceformset.instance = revision
             revisionchoiceformset.save()
@@ -223,7 +220,7 @@ def submit_revision(request,slugs,exam_pk, pk):
         return HttpResponseRedirect(reverse("exams:list_revisions", args=(exam.category.get_slugs(),exam.pk,question.pk)))
 
     elif request.method == 'GET':
-        revisionform = forms.RevisionForm()
+        revisionform = forms.RevisionForm(user=request.user)
         revisionchoiceformset = forms.RevisionChoiceFormset()
     context['revisionform'] = revisionform
     context['revisionchoiceformset'] = revisionchoiceformset
