@@ -41,7 +41,7 @@
 	<!-- Main navbar -->
 	<div class="navbar bg-primary navbar-inverse">
 		<div class="navbar-header">
-			<a class="navbar-brand" href="{% url 'index' %}"><img alt=""></a>
+			<a class="navbar-brand" href="{% url 'index' %}"></a>
 
 			<ul class="nav navbar-nav visible-xs-block">
 				<li><a data-toggle="collapse" data-target="#navbar-mobile"><i class="icon-tree5"></i></a></li>
@@ -53,7 +53,6 @@
 			<ul class="nav navbar-nav navbar-right">
 				<li class="dropdown dropdown-user">
 					<a class="dropdown-toggle" data-toggle="dropdown">
-						<img src="{% static "img/Logo.png" %}" alt="">
 						<span>{{ user.profile.first_name|default:user.username }}</span>
 						<i class="caret"></i>
 					</a>
@@ -78,12 +77,14 @@
 			<!-- Main sidebar -->
 			<div class="sidebar bg-primary-600 sidebar-main">
 				<div class="sidebar-content">
-
+                                        <div class="text-center">
+                                        <a href="{% url 'index' %}"><img style="width: 150px; max-width: 70%;" src="{% static "img/logo.png" %}" alt=""></a>
+                                        </div>
 					<!-- User menu -->
 					<div class="sidebar-user">
 						<div class="category-content">
 							<div class="media">
-								<div class="media-body">
+								<div class="media-body text-center">
 									<span class="media-heading text-semibold">Welcome, {{ user.profile.first_name|default:user.username }}!</</span>
 								</div>
 

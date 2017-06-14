@@ -127,9 +127,9 @@ def list_questions(request, slugs, pk):
         raise PermissionDenied
     approved_questions =[]
     pending_questions =[]
-    complete_questions = Question.objects.filter(subjects__exam=exam, is_deleted=False, status='COMPLETE')
-    incomplete_questions = Question.objects.filter(subjects__exam=exam, is_deleted=False,
-                                                status__in=['SPELLING', 'INCOMPLETE_ANSWERS',
+    question_pool = Question.objects.filter(subjects__exam=exam, is_deleted=False).distinct()
+    complete_questions = question_pool.filter(status='COMPLETE')
+    incomplete_questions = question_pool.filter(status__in=['SPELLING', 'INCOMPLETE_ANSWERS',
                                                             'INCOMPLETE_QUESTION'])
     for question in complete_questions:
         if question.revision_set.filter(is_approved=True).count()>=1:
@@ -176,14 +176,13 @@ def list_revisions(request, slugs, exam_pk, pk):
 
 @login_required
 def submit_revision(request,slugs,exam_pk, pk):
-
     category = Category.objects.get_from_slugs(slugs)
     if not category:
         raise Http404
 
     exam = get_object_or_404(Exam, pk=exam_pk)
     question = get_object_or_404(Question, pk=pk)
-    latest_revision = question.get_ultimate_latest_revision()
+    latest_revision = question.get_latest_revision()
 
     # PERMISSION CHECK
     if not exam.can_user_edit(request.user):
