@@ -1,5 +1,5 @@
 {% extends 'base.html' %}{% load staticfiles %}{% load bootstrap3 %}
-{% block title %}{{ exam.name }}{% endblock %}
+{% block title %}Fudul | Add questions to {{ exam.name }}{% endblock %}
 {% block breadcrumb %}
 
 					<div class="breadcrumb-line">
@@ -28,7 +28,7 @@
    <div class="col-md-8">
     <div class="panel panel-flat">
 						<div class="panel-heading">
-							<h1 class="panel-title">Adding Question to {{ exam.name }}</h1>
+							<h1 class="panel-title">Add questions to {{ exam.name }}</h1>
 						</div>
         <div id="form-panel" class="panel-body">
 {% include 'exams/partials/question-form.html' %}
