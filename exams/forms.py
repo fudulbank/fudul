@@ -19,22 +19,9 @@ class QuestionForm(forms.ModelForm):
 
 class RevisionForm(forms.ModelForm):
 
-    def __init__(self, *args, **kwargs):
-        # Remove is_publicly_owned field from ordinary users.
-        assert 'user' in kwargs, "Kwarg 'user' is required."
-        super(RevisionForm, self).__init__(*args, **kwargs)
-        if self.question.get_ultimate_latest_revision() is not None:
-            self.fields['text'] = self.question.get_ultimate_latest_revision().text
-
-
-    def save(self, *args, **kwargs):
-        if utils.is_editor(self.user):
-            self.is_approved = True
-            return super(RevisionForm, self).save(*args, **kwargs)
-
     class Meta:
         model = models.Revision
-        fields = ['text', 'explanation']
+        fields = ['text', 'explanation','is_approved']
 
 class ChoiceForms(forms.ModelForm):
     class Meta:

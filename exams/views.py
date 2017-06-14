@@ -87,6 +87,8 @@ def handle_question(request, exam_pk):
         if questionform.is_valid() and revisionform.is_valid() and revisionchoiceformset.is_valid():
             question = questionform.save()
             revision = revisionform.save(commit=False)
+            if utils.is_editor(request.user):
+                revision.is_approved = True
             revision.question = question
             revision.save()
             revisionchoiceformset.instance = revision
@@ -195,12 +197,14 @@ def submit_revision(request,slugs,exam_pk, pk):
 
         revisionform = forms.RevisionForm(request.POST,
                                           instance=instance,
-                                          user=request.user)
+                                          )
 
         revisionchoiceformset = forms.RevisionChoiceFormset(request.POST)
 
         if revisionform.is_valid() and revisionchoiceformset.is_valid():
             revision = revisionform.save(commit=False)
+            if utils.is_editor(request.user):
+                revision.is_approved = True
             revision.question = question
             revision.save()
             revisionchoiceformset.instance = revision
@@ -210,7 +214,7 @@ def submit_revision(request,slugs,exam_pk, pk):
         return HttpResponseRedirect(reverse("exams:list_revisions", args=(exam.category.get_slugs(),exam.pk,question.pk)))
 
     elif request.method == 'GET':
-        revisionform = forms.RevisionForm(user=request.user)
+        revisionform = forms.RevisionForm()
         revisionchoiceformset = forms.RevisionChoiceFormset()
     context['revisionform'] = revisionform
     context['revisionchoiceformset'] = revisionchoiceformset
