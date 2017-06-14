@@ -44,6 +44,7 @@ def show_category(request, slugs):
 
     return render(request, "exams/show_category.html", context)
 
+@decorators.get_only
 @login_required
 def add_question(request, slugs, pk):
     category = Category.objects.get_from_slugs(slugs)
@@ -54,18 +55,15 @@ def add_question(request, slugs, pk):
     exam = get_object_or_404(Exam, pk=pk, category=category)
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
-    context={'exam': exam,}
-    if request.method == 'GET':
-        questionform = forms.QuestionForm()
-        revisionform = forms.RevisionForm()
-        revisionchoiceformset = forms.RevisionChoiceFormset()
 
-    context['questionform'] = questionform
-    context['revisionform'] = revisionform
-    context['revisionchoiceformset'] = revisionchoiceformset
-    return render(request, "exams/add-question.html", context)
+    context = {'exam': exam,
+               'questionform': forms.QuestionForm(),
+               'revisionform': forms.RevisionForm(),
+               'revisionchoiceformset': forms.RevisionChoiceFormset()}
 
+    return render(request, "exams/add_question.html", context)
 
+@decorators.post_only
 @decorators.ajax_only
 def handle_question(request, exam_pk):
     exam = get_object_or_404(Exam, pk=exam_pk)
@@ -74,31 +72,28 @@ def handle_question(request, exam_pk):
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
 
-    context={'exam': exam}
+    instance = Revision(submitter=request.user)
+    questionform = forms.QuestionForm(request.POST,
+                                      request.FILES)
+    revisionform = forms.RevisionForm(request.POST,
+                                      instance=instance)
+    revisionchoiceformset = forms.RevisionChoiceFormset(request.POST)
 
-    if request.method == 'POST':
-        instance = Revision(submitter=request.user)
-        questionform = forms.QuestionForm(request.POST,
-                                          request.FILES)
-        revisionform = forms.RevisionForm(request.POST,
-                                          instance=instance)
+    if questionform.is_valid() and revisionform.is_valid() and revisionchoiceformset.is_valid():
+        question = questionform.save()
+        revision = revisionform.save(commit=False)
+        revision.question = question
+        revision.save()
+        revisionchoiceformset.instance = revision
+        revisionchoiceformset.save()
+        return {"message": "success"}
 
-        revisionchoiceformset = forms.RevisionChoiceFormset(request.POST)
-        if questionform.is_valid() and revisionform.is_valid() and revisionchoiceformset.is_valid():
-            question = questionform.save()
-            revision = revisionform.save(commit=False)
-            revision.question = question
-            revision.save()
-            revisionchoiceformset.instance = revision
-            revisionchoiceformset.save()
-            return {"message": "success"}
+    context = {'exam': exam,
+               'questionform': questionform,
+               'revisionform': revisionform,
+               'revisionchoiceformset': revisionchoiceformset}
 
-    context['questionform'] = questionform
-    context['revisionform'] = revisionform
-    context['revisionchoiceformset'] = revisionchoiceformset
-
-    return render(request, "exams/partials/question-form.html", context)
-
+    return render(request, "exams/partials/question_form.html", context)
 
 class SubjectAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
@@ -166,7 +161,7 @@ def list_revisions(request, slugs, exam_pk, pk):
     question = get_object_or_404(Question,pk=pk)
     context = {'question': question,
                'exam': exam}
-    return render(request, 'exams/list-revisions.html', context)
+    return render(request, 'exams/list_revisions.html', context)
 
 @login_required
 def submit_revision(request,slugs,exam_pk, pk):
@@ -218,9 +213,4 @@ def submit_revision(request,slugs,exam_pk, pk):
     context['revisionform'] = revisionform
     context['revisionchoiceformset'] = revisionchoiceformset
 
-    return render(request, 'exams/submit-revision.html', context)
-
-
-
-
-
+    return render(request, 'exams/submit_revision.html', context)
