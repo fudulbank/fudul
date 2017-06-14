@@ -130,12 +130,21 @@ def list_questions(request, slugs, pk):
     # PERMISSION CHECK
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
-
-    approved_questions = Question.objects.filter(subjects__exam=exam, is_deleted=False, status='COMPLETE',
-                                                 revision__is_approved=True)
-    pending_questions = Question.objects.filter(subjects__exam=exam, is_deleted=False,
-                                                status__in=['COMPLETE', 'SPELLING', 'INCOMPLETE_ANSWERS',
+    approved_questions =[]
+    pending_questions =[]
+    complete_questions = Question.objects.filter(subjects__exam=exam, is_deleted=False, status='COMPLETE')
+    incomplete_questions = Question.objects.filter(subjects__exam=exam, is_deleted=False,
+                                                status__in=['SPELLING', 'INCOMPLETE_ANSWERS',
                                                             'INCOMPLETE_QUESTION'])
+    for question in complete_questions:
+        if question.revision_set.filter(is_approved=True).count()>=1:
+            approved_questions.append(question)
+        else:
+            pending_questions.append(question)
+
+    for question in incomplete_questions:
+        pending_questions.append(question)
+
     context={'exam': exam,
              'approved_questions': approved_questions,
              'pending_questions':pending_questions}
