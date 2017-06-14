@@ -26,14 +26,8 @@
     </style>
     <div class="panel panel-flat">
     <div class="panel-heading">
-							<h5 style="font-weight: bolder" class="panel-title">Question Revisions<a href="{% url 'exams:submit_revision' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}"><button style="float: right;margin-right: 3%" type="button" class="btn btn-info btn-rounded btn-xs"><i class=" icon-quill4 position-left"></i> Edit</button></a><a class="heading-elements-toggle"><i class="icon-more"></i></a></h5>
-							<div class="heading-elements">
-								<ul class="icons-list">
-			                		<li><a data-action="collapse"></a></li>
-			                		<li><a data-action="reload"></a></li>
-			                		<li><a data-action="close"></a></li>
-			                	</ul>
-		                	</div>
+							<h5 style="font-weight: bolder" class="panel-title">Question Revisions</h5>
+<a href="{% url 'exams:submit_revision' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}"><button style="float: right;margin-right: 3%" type="button" class="btn btn-info btn-rounded btn-xs"><i class=" icon-quill4 position-left"></i> Edit</button></a><a class="heading-elements-toggle"><i class="icon-more"></i></a>
 						</div>
         <div class="panel-body">
         <p class="content-group-lg">
@@ -53,7 +47,7 @@
                         </thead>
                         <tbody>
                         {% for revision in question.revision_set.all %}
-                            <tr id="show" data-url="{% url 'exams:show_question' revision.pk %}" data-revision_pk="{{ revision.pk }}">
+                            <tr class="show-revision" data-url="{% url 'exams:show_question' revision.pk %}" data-revision_pk="{{ revision.pk }}">
                             <td>{{ revision.submitter }}</td>
                             <td>{{ revision.submission_date }}</td>
                             <td>{% if revision.is_approved %} Approved {% else %} Not Approved{% endif %}</td>
@@ -94,7 +88,7 @@
           backdrop: 'static',
           show    : false,
         });
-        $("#show").click(function () {
+        $(".show-revision").click(function () {
             revision_pk =  $(this).data("revision_pk");
             url = $(this).data('url');
 

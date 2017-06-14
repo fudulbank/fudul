@@ -5,7 +5,13 @@
 					<div class="breadcrumb-line">
 						<ul class="breadcrumb">
 							<li><a href="{% url 'index' %}"><i class="icon-home2 position-left"></i> Fudul</a></li>
-							<li class="active">Institutions</li>
+                                                        <li><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
+                                                        {% for parent_category in exam.category.get_parent_categories %}
+							<li><a href="{% url 'exams:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
+                                                        {% endfor %}
+                                                        <li><a href="{% url 'exams:show_category' exam.category.get_slugs %}">{{ exam.category.name }}</a></li>
+                                                        <li>{{ exam.name }}</li>
+                                                        <li class="active">List revisions</li>
 						</ul>
 					</div>
 {% endblock %}
@@ -20,7 +26,7 @@
 </style>
 
 
-<form action="{% url 'exams:submit_revision' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}" method="post" class="form">
+<form action="{% url 'exams:submit_revision' exam.category.get_slugs exam.pk revision.question.pk %}" method="post" class="form">
 {% csrf_token %}
 
         {% bootstrap_form_errors revisionform %}
