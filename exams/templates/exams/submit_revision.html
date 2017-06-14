@@ -25,31 +25,29 @@
 }
 </style>
 
-
 <form action="{% url 'exams:submit_revision' exam.category.get_slugs exam.pk revision.question.pk %}" method="post" class="form">
 {% csrf_token %}
 
         {% bootstrap_form_errors revisionform %}
-        <label class="control-label col-lg-2 text-black">Question Text</label>
+        <label class="control-label text-black">Question Text</label>
 
         <div class="form-group has-feedback has-feedback-left">
 			{% bootstrap_field revisionform.text show_label=False %}
 			<div class="form-control-feedback">
-				<i class="icon-typography text-muted"></i>
+				<i class="icon-pencil text-muted"></i>
 			</div>
 		</div>
-            <label class="control-label col-lg-2 text-black">Answer Exlaination</label>
-        {% bootstrap_form_errors revisionform %}
+            <label class="control-label text-black">Answer Exlaination</label>
         		<div class="form-group has-feedback has-feedback-left">
 			{% bootstrap_field revisionform.explanation show_label=False %}
 			<div class="form-control-feedback">
-				<i class="icon-typography text-muted"></i>
+				<i class="icon-pencil text-muted"></i>
 			</div>
 		</div>
                       <label class="control-label col-lg-2 text-black">Question Choices (Check The right answer)</label>
                         {{ revisionchoiceformset.management_form }}
                         {{ revisionchoiceformset.non_form_errors.as_ul }}
-                        <table id="revisionchoiceformset" class="form" style="width: 100%;">
+                        <table id="choice_formset" class="form" style="width: 100%;">
 
                         {% for form in revisionchoiceformset.forms %}
                           {% if forloop.first %}
@@ -87,10 +85,12 @@
     <script src="{% static 'js/jquery.autogrowtextarea.min.js' %}"></script>
     <script type="text/javascript">
     $(function(){
-
+        $('#choice_formset input[type=checkbox]').change(function(){
+            $('#choice_formset input[type=checkbox]').not(this).prop('checked', false);  
+        });
         $("textarea").autoGrow();
         // add formset controls
-        $("#revisionchoiceformset .form-container").formset({
+        $("#choice_formset .form-container").formset({
             prefix: '{{ revisionchoiceformset.prefix }}',
             addText: 'Add a Choice',
             deleteText: 'Delete',

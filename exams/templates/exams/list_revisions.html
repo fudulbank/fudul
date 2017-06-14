@@ -49,7 +49,7 @@
                         {% for revision in question.revision_set.all %}
                             <tr class="show-revision" data-url="{% url 'exams:show_question' revision.pk %}" data-revision_pk="{{ revision.pk }}">
                             <td>{{ revision.submitter }}</td>
-                            <td>{{ revision.submission_date }}</td>
+                            <td data-order="{{ revision.submission_date|date:'U' }}">{{ revision.submission_date }}</td>
                             <td>{% if revision.is_approved %} Approved {% else %} Not Approved{% endif %}</td>
                             </tr>
                         {% endfor %}
@@ -73,7 +73,7 @@
 	<script>
     $(function(){
         $("#revisions").dataTable({
-            "order": [[ 2, "asc" ]]
+            order: [[ 1, "desc" ]]
         });
 
     });
