@@ -142,7 +142,7 @@ class Question(models.Model):
         return self.revision_set.filter(is_approved=True,is_deleted=False).order_by('-approval_date').first()
 
     def get_latest_revision(self):
-        return self.revision_set.filter(is_approved=False,is_deleted=False).order_by('-submission_date').first()
+        return self.revision_set.filter(is_deleted=False).order_by('-submission_date').first()
 
     def get_ultimate_latest_revision(self):
         if self.get_latest_approved_revision() is not None:
