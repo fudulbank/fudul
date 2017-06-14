@@ -1,5 +1,5 @@
 {% extends 'base.html' %}{% load staticfiles %}{% load bootstrap3 %}
-{% block title %}institutions{% endblock %}
+{% block title %}Editing question{% endblock %}
 {% block breadcrumb %}
 
 					<div class="breadcrumb-line">
@@ -10,8 +10,8 @@
 							<li><a href="{% url 'exams:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
                                                         {% endfor %}
                                                         <li><a href="{% url 'exams:show_category' exam.category.get_slugs %}">{{ exam.category.name }}</a></li>
-                                                        <li>{{ exam.name }}</li>
-                                                        <li class="active">List revisions</li>
+                                                        <li><a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}">{{ exam.name }}</a></li>
+                                                        <li class="active">Editing question</li>
 						</ul>
 					</div>
 {% endblock %}
@@ -24,7 +24,7 @@
     margin-top: auto
 }
 </style>
-
+<h1>Editing question</h1>
 <form action="{% url 'exams:submit_revision' exam.category.get_slugs exam.pk revision.question.pk %}" method="post" class="form">
 {% csrf_token %}
 
@@ -44,7 +44,7 @@
 				<i class="icon-pencil text-muted"></i>
 			</div>
 		</div>
-                      <label class="control-label col-lg-2 text-black">Question Choices (Check The right answer)</label>
+                      <h2>Question choices</h2>
                         {{ revisionchoiceformset.management_form }}
                         {{ revisionchoiceformset.non_form_errors.as_ul }}
                         <table id="choice_formset" class="form" style="width: 100%;">
@@ -53,7 +53,8 @@
                           {% if forloop.first %}
                             <colgroup>
                                 <col class="col-xs-8">
-                                <col class="col-xs-4">
+                                <col class="col-xs-2">
+                                <col class="col-xs-2">
                             </colgroup>
                           {% endif %}
                           <tr class="form-container">
@@ -66,7 +67,7 @@
                             {% endif %}
                                 <div class="form-group">
                               {{ field.errors.as_ul }}
-                              {{ field }}
+                              {% bootstrap_field field show_label=False %}
                                 </div>
                             </td>
                           {% endfor %}
@@ -75,7 +76,7 @@
                         </table>
 <input type="hidden" value="{{ exam.pk }}">
 {{ questionform.media }}
-               <button type="submit"  class="btn bg-teal btn-block btn-lg">Edit Question <i class="icon-circle-right2 position-right"></i></button>
+               <button type="submit"  class="btn bg-primary btn-block btn-lg">Edit Question <i class="icon-circle-right2 position-right"></i></button>
 
         </form>
 

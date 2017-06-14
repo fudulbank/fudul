@@ -197,6 +197,7 @@ def submit_revision(request,slugs,exam_pk, pk):
             # Setting primary key to None creates a new object, rather
             # than modifying the pre-existing one
             new_revision.pk = None
+            new_revision.submitter = request.user
             new_revision.save()
 
             # Let's clone choices!
