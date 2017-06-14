@@ -24,11 +24,11 @@
                        {% if revision.question.figure %}
                            <img class="img-responsive center-block"  src="{{ revision.question.figure.url }}">
                        {% endif %}
-       <br> <strong style="font-size: medium">{{ revision.text }}</strong>
+       <br> <strong style="font-size: medium">{{ revision.text|linebreaksbr }}</strong>
                            {% for choice in revision.choice_set.all %}
 
                                <div style="margin-right: 6%">
-                               <li >{{ choice.text }}</li>
+                               <li>{{ choice.text|linebreaksbr }}</li>
                                </div>
                            {% endfor %}
                        </div>

@@ -10,7 +10,7 @@
 							<li><a href="{% url 'exams:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
                                                         {% endfor %}
                                                         <li><a href="{% url 'exams:show_category' exam.category.get_slugs %}">{{ exam.category.name }}</a></li>
-                                                        <li>{{ exam.name }}</li>
+                                                        <li><a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}">{{ exam.name }}</a></li>
                                                         <li class="active">List questions</li>
 						</ul>
 					</div>
