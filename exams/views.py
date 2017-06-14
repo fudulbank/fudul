@@ -67,9 +67,13 @@ def add_question(request, slugs, pk):
 
 
 @decorators.ajax_only
-def handel_question(request,exam_pk):
-
+def handle_question(request, exam_pk):
     exam = get_object_or_404(Exam, pk=exam_pk)
+
+    # PERMISSION CHECK
+    if not exam.can_user_edit(request.user):
+        raise PermissionDenied
+
     context={'exam': exam}
 
     if request.method == 'POST':
@@ -87,25 +91,13 @@ def handel_question(request,exam_pk):
             revision.save()
             revisionchoiceformset.instance = revision
             revisionchoiceformset.save()
-            url = reverse ('exams:add-question', args=(exam.category.get_slugs(),exam.pk))
-            full_url = request.build_absolute_uri(url)
-
-            return {"message": "success", "show_url": full_url}
-
-
-
-            # return HttpResponseRedirect(reverse('exams:add_question',
-            #                                     args=pk))
-    elif request.method == 'GET':
-        questionform = forms.QuestionForm()
-        revisionform = forms.RevisionForm()
-        revisionchoiceformset = forms.RevisionChoiceFormset()
+            return {"message": "success"}
 
     context['questionform'] = questionform
     context['revisionform'] = revisionform
     context['revisionchoiceformset'] = revisionchoiceformset
 
-    return render(request, "exams/add-question.html", context)
+    return render(request, "exams/partials/question-form.html", context)
 
 
 class SubjectAutocomplete(autocomplete.Select2QuerySetView):
@@ -177,8 +169,6 @@ def list_revisions(request, slugs, exam_pk, pk):
     return render(request, 'exams/list-revisions.html', context)
 
 @login_required
-def submit_revision(request,pk):
-
 def submit_revision(request,slugs,exam_pk, pk):
 
     category = Category.objects.get_from_slugs(slugs)
