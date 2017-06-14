@@ -28,6 +28,5 @@ class ChoiceForms(forms.ModelForm):
 
 RevisionChoiceFormset = inlineformset_factory(models.Revision,
                                               models.Choice,
+                                              extra=4,
                                               fields=['text','is_answer'])
-
-

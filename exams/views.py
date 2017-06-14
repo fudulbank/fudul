@@ -11,9 +11,10 @@ from accounts.models import Institution, College
 from core import decorators
 from .models import Exam, Subject, Question, Category, Revision,Source
 from . import forms
+from teams import utils
 
 @login_required
-def list_meta_categories(request):        
+def list_meta_categories(request):
     subcategories = Category.objects.filter(parent_category__isnull=True).user_accessible(request.user)
     context = {"subcategories": subcategories}
     return render(request, 'exams/show_category.html', context)
@@ -53,6 +54,25 @@ def add_question(request, slugs, pk):
     exam = get_object_or_404(Exam, pk=pk, category=category)
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
+    context={'exam': exam,}
+    if request.method == 'GET':
+        questionform = forms.QuestionForm()
+        revisionform = forms.RevisionForm()
+        revisionchoiceformset = forms.RevisionChoiceFormset()
+
+    context['questionform'] = questionform
+    context['revisionform'] = revisionform
+    context['revisionchoiceformset'] = revisionchoiceformset
+    return render(request, "exams/add-question.html", context)
+
+
+@decorators.ajax_only
+def handle_question(request, exam_pk):
+    exam = get_object_or_404(Exam, pk=exam_pk)
+
+    # PERMISSION CHECK
+    if not exam.can_user_edit(request.user):
+        raise PermissionDenied
 
     context={'exam': exam}
 
@@ -71,26 +91,13 @@ def add_question(request, slugs, pk):
             revision.save()
             revisionchoiceformset.instance = revision
             revisionchoiceformset.save()
-
-            if request.user.is_superuser:
-                if question.status == 'C':
-                    revision.is_approved == True
-                if question.status != 'C':
-                    revision.is_approved == False
-
-
-            # return HttpResponseRedirect(reverse('exams:add_question',
-            #                                     args=pk))
-    elif request.method == 'GET':
-        questionform = forms.QuestionForm()
-        revisionform = forms.RevisionForm()
-        revisionchoiceformset = forms.RevisionChoiceFormset()
+            return {"message": "success"}
 
     context['questionform'] = questionform
     context['revisionform'] = revisionform
     context['revisionchoiceformset'] = revisionchoiceformset
 
-    return render(request, "exams/add-question.html", context)
+    return render(request, "exams/partials/question-form.html", context)
 
 
 class SubjectAutocomplete(autocomplete.Select2QuerySetView):
@@ -122,8 +129,11 @@ def list_questions(request, slugs, pk):
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
 
-    approved_questions = Question.objects.filter(subjects__exam=exam,is_deleted=False,status='COMPLETE')
-    pending_questions = Question.objects.filter(subjects__exam=exam,is_deleted=False,status__in=['SPELLING','INCOMPLETE_ANSWERS','INCOMPLETE_QUESTION'])
+    approved_questions = Question.objects.filter(subjects__exam=exam, is_deleted=False, status='COMPLETE',
+                                                 revision__is_approved=True)
+    pending_questions = Question.objects.filter(subjects__exam=exam, is_deleted=False,
+                                                status__in=['COMPLETE', 'SPELLING', 'INCOMPLETE_ANSWERS',
+                                                            'INCOMPLETE_QUESTION'])
     context={'exam': exam,
              'approved_questions': approved_questions,
              'pending_questions':pending_questions}
@@ -159,7 +169,14 @@ def list_revisions(request, slugs, exam_pk, pk):
     return render(request, 'exams/list-revisions.html', context)
 
 @login_required
-def submit_revision(request,pk):
+def submit_revision(request,slugs,exam_pk, pk):
+
+    category = Category.objects.get_from_slugs(slugs)
+    if not category:
+        raise Http404
+
+    exam = get_object_or_404(Exam,pk=exam_pk)
+
     question = get_object_or_404(Question, pk=pk)
 
     context = {'question':question}
@@ -168,27 +185,42 @@ def submit_revision(request,pk):
     # PERMISSION CHECK
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
+    revision = question.get_ultimate_latest_revision()
 
-    if question.get_latest_approved_revision() is not None:
-        revision = question.get_latest_approved_revision()
-    else:
-        revision = question.get_latest_revision()
-
-    context['revision']=revision
+    context ={'question':question,'revision':revision}
 
     if request.method == 'POST':
+
         instance = Revision(submitter=request.user,question=question)
-        revisionform = forms.RevisionForm(request.POST,request.FILES,instance=instance)
-        revisionchoiceformset = forms.RevisionChoiceFormset(request.POST,request.FILES)
+
+        revisionform = forms.RevisionForm(request.POST,
+                                          instance=instance)
+
+        revisionchoiceformset = forms.RevisionChoiceFormset(request.POST)
         if revisionform.is_valid() and revisionchoiceformset.is_valid():
-            revision = revisionform.save()
+            revision = revisionform.save(commit=False)
+            revision.question = question
+            if utils.is_editor(request.user):
+                if question.status == 'COMPLETE':
+                    revision.is_approved == True
+                if question.status != 'COMPLETE':
+                    revision.is_approved == False
+            revision.save()
             revisionchoiceformset.instance = revision
             revisionchoiceformset.save()
 
+
+        return HttpResponseRedirect(reverse("exams:list_revisions", args=(exam.category.get_slugs(),exam.pk,question.pk)))
+
     elif request.method == 'GET':
-        revisionform =forms.RevisionForm(instance=revision)
-        revisionchoiceformset = forms.RevisionChoiceFormset(instance=revision)
+        revisionform = forms.RevisionForm()
+        revisionchoiceformset = forms.RevisionChoiceFormset()
     context['revisionform'] = revisionform
     context['revisionchoiceformset'] = revisionchoiceformset
 
     return render(request, 'exams/submit-revision.html', context)
+
+
+
+
+

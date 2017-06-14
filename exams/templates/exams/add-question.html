@@ -1,5 +1,5 @@
 {% extends 'base.html' %}{% load staticfiles %}{% load bootstrap3 %}
-{% block title %}{{ exam.name }}{% endblock %}
+{% block title %}Fudul | Add questions to {{ exam.name }}{% endblock %}
 {% block breadcrumb %}
 
 					<div class="breadcrumb-line">
@@ -28,106 +28,10 @@
    <div class="col-md-8">
     <div class="panel panel-flat">
 						<div class="panel-heading">
-							<h1 class="panel-title">Adding Question to {{ exam.name }}</h1>
+							<h1 class="panel-title">Add questions to {{ exam.name }}</h1>
 						</div>
-        <div class="panel-body">
-        {% bootstrap_form_errors questionform %}
-        <form method="post">
-	    {% csrf_token %}
-
-<div class="row">
-	<div class="col-md-6">
-		<div class="form-group">
-                        <label class="control-label"><i class="icon-filter3 text-muted"></i> Exam type</label>
-			{% bootstrap_field questionform.exam_type show_label=False %}
-		</div>
-	</div>
-	<div class="col-md-6">
-		<div class="form-group">
-                        <label class="control-label"><i class="icon-stack-check text-muted"></i> Status</label>
-			{% bootstrap_field questionform.status show_label=False %}
-		</div>
-	</div>
-	<div class="col-md-6">
-		<div class="form-group">
-                        <label class="control-label"><i class="icon-git-branch text-muted"></i> Source</label>
-			{{ questionform.sources }}
-		</div>
-	</div>
-	<div class="col-md-6">
-		<div class="form-group">
-                        <label class="control-label"><i class="icon-list-unordered text-muted"></i> Subject</label>
-			{{ questionform.subjects }}
-
-		</div>
-	</div>
-
-	<div class="col-md-6">
-		<div class="form-group">
-                        <label class="control-label"><i class="icon-image2 text-muted"></i> Corresponding figure</label>
-			{% bootstrap_field questionform.figure show_label=False %}
-
-		</div>
-	</div>
-</div>
-
-        {% bootstrap_form_errors revisionform %}
-        <div class="form-group has-feedback has-feedback-left">
-            <label class="control-label">Question Text</label>
-			{% bootstrap_field revisionform.text show_label=False %}
-			<div class="form-control-feedback">
-				<i class="icon-pencil text-muted"></i>
-			</div>
-		</div>
-
-                      <h3>Question Choices</h3>
-                        {{ revisionchoiceformset.management_form }}
-                        {{ revisionchoiceformset.non_form_errors.as_ul }}
-                        <table id="choice_formset" class="form" style="width: 100%;">
-
-                        {% for form in revisionchoiceformset.forms %}
-                          {% if forloop.first %}
-                            <colgroup>
-                                <col class="col-xs-8">
-                                <col class="col-xs-2">
-                                <col class="col-xs-2">
-                            </colgroup>
-                            <thead><tr>
-                              <th>Text</th>
-                              <th></th>
-                              <th></th>
-                            </tr></thead>
-                          {% endif %}
-                          <tr class="form-container">
-                          {% for field in form.visible_fields %}
-                            <td>
-                            {% if forloop.first %}
-                              {% for hidden in form.hidden_fields %}
-                              {{ hidden }}
-                              {% endfor %}
-                            {% endif %}
-                                <div class="form-group">
-                              {{ field.errors.as_ul }}
-                              {% bootstrap_field field show_label=False %}
-                                </div>
-                            </td>
-                          {% endfor %}
-                          </tr>
-                        {% endfor %}
-                        </table>
-
-        		<div class="form-group has-feedback has-feedback-left">
-            <label class="control-label">Answer explanation</label>
-			{% bootstrap_field revisionform.explanation show_label=False %}
-			<div class="form-control-feedback">
-				<i class=" icon-info22 text-muted"></i>
-			</div>
-		</div>
-<input name="exam_pk" type="hidden" value="{{ exam.pk }}">
-{{ questionform.media }}
-               <button type="submit" class="btn bg-teal btn-block btn-lg">Submit Question <i class="icon-circle-right2 position-right"></i></button>
-
-        </form>
+        <div id="form-panel" class="panel-body">
+{% include 'exams/partials/question-form.html' %}
         </div>
 
     </div> <!--panel-->
@@ -190,8 +94,10 @@
     color: white;
 }
 </style>
+    <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
     <script src="{% static 'js/jquery.formset.js' %}"></script>
     <script src="{% static 'js/jquery.autogrowtextarea.min.js' %}"></script>
+    <script src="{% static 'js/toastr.js' %}"></script>
     <script type="text/javascript">
     $(function(){
 
@@ -203,6 +109,7 @@
              $(this).html($(this).children('input'));
         });
         $("textarea").autoGrow();
+
         // add formset controls
         $("#choice_formset .form-container").formset({
             prefix: '{{ choice_formset.prefix }}',
@@ -211,8 +118,36 @@
             addCssClass: 'add-row btn btn-xs btn-primary',
             deleteCssClass: 'delete-row btn btn-xs btn-danger',
         });
-        $(':input').not(':button, :submit, :reset, :hidden').removeAttr('checked').removeAttr('selected').not('‌​:checkbox, :radio, select').val('');
+
+        $("form#add-question-form").submit(function (event) {
+        /* stop form from submitting normally */
+            event.preventDefault();
+            /* get some values from elements on the page: */
+            var formData = new FormData($(this)[0]);
+            var url = "{% url 'exams:handle_question' exam.pk %}";
+            /* Send the data */
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: formData,
+                cache: false,
+                contentType: false,
+                enctype: 'multipart/form-data',
+                processData: false,
+                success: function (data) {
+                    if (data.message == "success") {
+                        $(':input').not(':button, :submit, :reset, :hidden').removeAttr('checked').removeAttr('selected').not('‌​:checkbox, :radio, select').val('');
+
+                        // show success message (using toastr)
+                        toastr.options.positionClass = "toast-top-left";
+                        toastr.success("The question has been successfully added. Fill another!");
+                    } else {
+                        toastr.warning("There was an issue!");
+                        $("#form-panel").html(data);
+                    }}
+            });
         });
+    });
     </script>
 
 {% endblock %}
