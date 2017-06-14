@@ -24,18 +24,15 @@
                        {% if revision.question.figure %}
                            <img class="img-responsive center-block"  src="{{ revision.question.figure.url }}">
                        {% endif %}
-       <br> {{ revision.text }}
+       <br> <strong style="font-size: medium">{{ revision.text }}</strong>
                            {% for choice in revision.choice_set.all %}
 
-                               <div class="text-muted text-size-small">
-                               <li>{{ choice.text }}</li>
+                               <div style="margin-right: 6%">
+                               <li >{{ choice.text }}</li>
                                </div>
                            {% endfor %}
                        </div>
             </div>
-    <a href="{% url 'exams:list_revisions'  revision.question.subjects.first.exam.category.get_slugs revision.question.subjects.first.exam.pk revision.question.pk %}"><button style="margin-bottom: 10px; float: right" class="btn btn-primary btn-rounded" type="button">
-        <i class=" icon-archive position-left"></i>
-        History
-    </button></a>
+
 
 </body>

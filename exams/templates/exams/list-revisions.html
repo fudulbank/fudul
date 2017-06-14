@@ -53,7 +53,7 @@
                         </thead>
                         <tbody>
                         {% for revision in question.revision_set.all %}
-                            <tr id="show" data-url="{% url 'exams:show_question' revision.pk %}" data-revision_pk="{{ revision.pk }}">
+                            <tr class="show" data-url="{% url 'exams:show_question' revision.pk %}" data-revision_pk="{{ revision.pk }}">
                             <td>{{ revision.submitter }}</td>
                             <td>{{ revision.submission_date }}</td>
                             <td>{% if revision.is_approved %} Approved {% else %} Not Approved{% endif %}</td>
@@ -94,7 +94,7 @@
           backdrop: 'static',
           show    : false,
         });
-        $("#show").click(function () {
+        $(".show").click(function () {
             revision_pk =  $(this).data("revision_pk");
             url = $(this).data('url');
 
