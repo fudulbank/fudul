@@ -16,6 +16,7 @@
 					</div>
 {% endblock %}
 {% block content %}
+
 <div style="float: right;">
 <a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}" class="btn btn-primary btn-xs"><i class=" icon-file-plus position-left"></i> Add question</a>
 </div>
@@ -69,7 +70,7 @@
 		                	</div>
         </div>
         <div class="panel-body">
-            <table id="pending" class="display datatable dt-responsive">
+            <table id="pending" class="display datatable dt-responsive" >
                         <thead>
                             <tr>
                                 <th>Text</th>
@@ -129,7 +130,7 @@
           backdrop: 'static',
           show    : false,
         });
-        $('tbody tr').click(function () {
+        $('tbody').on('click','tr',function () {
             revision_pk =  $(this).data("revision_pk");
             url = $(this).data('url');
 
