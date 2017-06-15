@@ -137,6 +137,7 @@
                 success: function (data) {
                     if (data.message == "success") {
                         $(':input').not(':button, :submit, :reset, :hidden').removeAttr('checked').removeAttr('selected').not('‌​:checkbox, :radio, select').val('');
+                        $('#id_subjects, #id_status').val('').trigger('change');
 
                         // show success message (using toastr)
                         toastr.options.positionClass = "toast-top-left";

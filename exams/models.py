@@ -131,7 +131,7 @@ class Question(models.Model):
     exam_type = models.CharField(max_length=15,
                                  choices=exam_type_choices)
     is_deleted = models.BooleanField(default=False)
-    status = models.CharField(max_length=30, choices=status_choices, default="")
+    status = models.CharField(max_length=30, choices=status_choices)
 
     def __str__(self):
         return self.status
