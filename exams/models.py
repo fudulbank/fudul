@@ -125,6 +125,7 @@ class Subject(models.Model):
 exam_type_choices = (
     ('FINAL', 'Final'),
     ('MIDTERM', 'Midterm'),
+    ('OSPE','OSPE'),
 )
 
 status_choices = (
