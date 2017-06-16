@@ -33,7 +33,7 @@
         <p class="content-group-lg">
             <b>Subject:</b>{% for subject in question.subjects.all %}{{ subject.name }}{% endfor %}
             <b>Source:</b>{% for source in question.source.all %}{{ source.name }}{% endfor %}
-            {% if question.figure %}<a href="{{ question.figure.url }}"><b>illustration</b></a>{% endif %}
+            {% if question.get_ultimate_latest_revision.figure %}<a href="{{ question.get_ultimate_latest_revision.figure.url }}"><b>illustration</b></a>{% endif %}
             <b>Exam Type:</b>{{ question.get_exam_type_display }}
             <b> Status:</b>{{ question.get_status_display }}
         </p>

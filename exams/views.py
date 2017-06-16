@@ -200,12 +200,16 @@ def submit_revision(request,slugs,exam_pk, pk):
     context ={'exam':exam, 'revision': latest_revision}
 
     if request.method == 'POST':
+        questionform = forms.QuestionForm(request.POST,
+                                          request.FILES,
+                                          instance=question)
         revisionform = forms.RevisionForm(request.POST,
                                           instance=latest_revision)
 
         revisionchoiceformset = forms.RevisionChoiceFormset(request.POST,
                                                             instance=latest_revision)
-        if revisionform.is_valid() and revisionchoiceformset.is_valid():
+        if questionform.is_valid() and revisionform.is_valid() and revisionchoiceformset.is_valid():
+            question = questionform.save()
             new_revision = revisionform.save(commit=False)
             new_revision.question = question
             if teams.utils.is_editor(request.user):
@@ -232,9 +236,10 @@ def submit_revision(request,slugs,exam_pk, pk):
             return HttpResponseRedirect(reverse("exams:list_revisions", args=(exam.category.get_slugs(),exam.pk,question.pk)))
 
     elif request.method == 'GET':
+        questionform = forms.QuestionForm(instance=question)
         revisionform = forms.RevisionForm(instance=latest_revision)
         revisionchoiceformset = forms.RevisionChoiceFormset(instance=latest_revision)
-
+    context['questionform'] = questionform
     context['revisionform'] = revisionform
     context['revisionchoiceformset'] = revisionchoiceformset
 

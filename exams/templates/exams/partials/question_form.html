@@ -31,17 +31,17 @@
 
 		</div>
 	</div>
+        {% bootstrap_form_errors revisionform %}
 
 	<div class="col-md-6">
 		<div class="form-group" id="figure" style="display: none">
                         <label class="control-label"><i class="icon-image2 text-muted"></i> Corresponding figure</label>
-			{% bootstrap_field questionform.figure show_label=False %}
+			{% bootstrap_field revisionform.figure show_label=False %}
 
 		</div>
 	</div>
 </div>
 
-        {% bootstrap_form_errors revisionform %}
         <div class="form-group has-feedback has-feedback-left">
             <label class="control-label">Question Text</label>
 			{% bootstrap_field revisionform.text show_label=False %}

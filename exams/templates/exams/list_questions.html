@@ -136,7 +136,7 @@
         });
         $('tbody').on('click','tr td:not(:last-child)',function () {
             revision_pk =  $(this).data("revision_pk");
-            url = $(this).data('url');
+            url = $('tbody tr').data('url');
 
             $("#show-question-modal").modal('show');
 
@@ -144,7 +144,6 @@
             $("#show-question-modal .modal-body").load(url);
 
         });
-
     });
 {% include 'exams/modals/adjust_modal_size.js' %}
 </script>
