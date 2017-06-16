@@ -7,13 +7,15 @@
 	<div class="col-md-6">
 		<div class="form-group">
                         <label class="control-label"><i class="icon-filter3 text-muted"></i> Exam type</label>
+            <div  id='exam-type'>
 			{% bootstrap_field questionform.exam_type show_label=False %}
+            </div>
 		</div>
 	</div>
 	<div class="col-md-6">
 		<div class="form-group">
                         <label class="control-label"><i class="icon-stack-check text-muted"></i> Status</label>
-			{% bootstrap_field questionform.status show_label=False %}
+			{% bootstrap_field questionform.status show_label=False  %}
 		</div>
 	</div>
 	<div class="col-md-6">
@@ -31,7 +33,7 @@
 	</div>
 
 	<div class="col-md-6">
-		<div class="form-group">
+		<div class="form-group" id="figure" style="display: none">
                         <label class="control-label"><i class="icon-image2 text-muted"></i> Corresponding figure</label>
 			{% bootstrap_field questionform.figure show_label=False %}
 

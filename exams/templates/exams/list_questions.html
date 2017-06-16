@@ -40,6 +40,7 @@
                                 <th>Submitter</th>
                                 <th>Status</th>
                                 <th>Date of last revision</th>
+                                <th>ID</th>
                                 <th>Show History</th>
                             </tr>
                         </thead>
@@ -51,6 +52,7 @@
                             <td>{{ question.get_latest_approved_revision.submitter }}</td>
                             <td>{{ question.get_status_display }}</td>
                             <td data-order="{{ question.get_latest_approved_revision.submission_date|date:'U' }}">{{ question.get_latest_approved_revision.submission_date }}</td>
+                            <td>{{ question.pk }}</td>
                             <td> <a href="{% url 'exams:list_revisions' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}"><button type="button" class="btn btn-primary btn-icon btn-rounded"><i class="icon-menu7"></i></button></a> </td>
                             </tr>
                             {% endif %}
@@ -77,6 +79,7 @@
                                 <th>Submitter</th>
                                 <th>Status</th>
                                 <th>Date of last revision</th>
+                                <th>ID</th>
                                 <th>Show History</th>
 
                             </tr>
@@ -89,6 +92,7 @@
                             <td>{{ question.get_ultimate_latest_revision.submitter }}</td>
                             <td>{{ question.get_status_display }}</td>
                             <td data-order="{{ question.get_ultimate_latest_revision.submission_date|date:'U' }}">{{ question.get_ultimate_latest_revision.submission_date }}</td>
+                            <td>{{ question.pk }}</td>
                             <td> <a href="{% url 'exams:list_revisions' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}"><button type="button" class="btn btn-primary btn-icon btn-rounded"><i class="icon-menu7"></i></button></a> </td>
 
                             </tr>
@@ -130,7 +134,7 @@
           backdrop: 'static',
           show    : false,
         });
-        $('tbody').on('click','tr',function () {
+        $('tbody').on('click','tr td:not(:last-child)',function () {
             revision_pk =  $(this).data("revision_pk");
             url = $(this).data('url');
 
