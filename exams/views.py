@@ -55,11 +55,20 @@ def add_question(request, slugs, pk):
     exam = get_object_or_404(Exam, pk=pk, category=category)
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
+    incomplete_questions = Question.objects.filter(subjects__exam=exam, is_deleted=False,status__in=['WRITING_ERROR', 'UNSOLVED', 'INCOMPLETE_ANSWERS',
+                                                            'INCOMPLETE_QUESTION'])
+    unapproved_questions = []
+
+    for question in Question.objects.filter(subjects__exam=exam,is_deleted=False):
+        if question.revision_set.filter(is_approved=True).count() == 0:
+            unapproved_questions.append(question)
 
     context = {'exam': exam,
                'questionform': forms.QuestionForm(),
                'revisionform': forms.RevisionForm(),
-               'revisionchoiceformset': forms.RevisionChoiceFormset()}
+               'revisionchoiceformset': forms.RevisionChoiceFormset(),
+               'unapproved_questions':unapproved_questions,
+               'incomplete_questions':incomplete_questions}
 
     return render(request, "exams/add_question.html", context)
 
@@ -230,3 +239,20 @@ def submit_revision(request,slugs,exam_pk, pk):
     context['revisionchoiceformset'] = revisionchoiceformset
 
     return render(request, 'exams/submit_revision.html', context)
+
+@login_required
+def list_question_per_status (request, slugs, exam_pk):
+    category = Category.objects.get_from_slugs(slugs)
+    if not category:
+        raise Http404
+
+    exam = get_object_or_404(Exam, pk=exam_pk)
+    question_pool = Question.objects.filter(subjects__exam=exam, is_deleted=False).distinct()
+    writing_error = question_pool.filter(status='WRITING_ERROR')
+    unsloved = question_pool.filter(status='UNSOLVED')
+    incomplete_answer = question_pool.filter(status='INCOMPLETE_ANSWERS')
+    incomplete_question = question_pool.filter(status='INCOMPLETE_QUESTION')
+    context ={'writing_error':writing_error, 'unsloved':unsloved, 'incomplete_answer':incomplete_answer,
+              'incomplete_question':incomplete_question,'exam':exam}
+    return render(request, 'exams/list_question_per_status.html', context)
+
