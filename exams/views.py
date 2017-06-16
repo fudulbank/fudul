@@ -5,6 +5,7 @@ from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render,get_object_or_404
+from django.views.decorators import csrf
 
 from accounts.models import Institution, College
 from core import decorators
@@ -63,6 +64,27 @@ def add_question(request, slugs, pk):
 
     return render(request, "exams/add_question.html", context)
 
+@csrf.csrf_exempt
+@decorators.post_only
+@decorators.ajax_only
+def delete_question(request, pk):
+    question = get_object_or_404(Question, pk=pk)
+    exam = question.get_exam()
+
+    # PERMISSION CHECK
+    if not request.user.is_superuser and \
+       not exam.category.is_user_editor(request.user) and \
+       not question.is_user_creator(user):
+        raise Exception("You cannot delete that question!")
+
+    question.is_deleted = True
+    question.save()
+
+    slugs = exam.category.get_slugs()
+    relative_url = reverse('exams:list_questions', args=(slugs, exam.pk))
+
+    return {'redirect_url': relative_url}
+
 @decorators.post_only
 @decorators.ajax_only
 def handle_question(request, exam_pk):
@@ -72,7 +94,7 @@ def handle_question(request, exam_pk):
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
 
-    instance = Revision(submitter=request.user)
+    instance = Revision(submitter=request.user, is_first=True)
     questionform = forms.QuestionForm(request.POST,
                                       request.FILES)
     revisionform = forms.RevisionForm(request.POST,
@@ -82,7 +104,7 @@ def handle_question(request, exam_pk):
     if questionform.is_valid() and revisionform.is_valid() and revisionchoiceformset.is_valid():
         question = questionform.save()
         revision = revisionform.save(commit=False)
-        if utils.is_editor(request.user):
+        if teams.utils.is_editor(request.user):
             revision.is_approved = True
         revision.question = question
         revision.save()
@@ -127,9 +149,9 @@ def list_questions(request, slugs, pk):
         raise PermissionDenied
     approved_questions =[]
     pending_questions =[]
-    complete_questions = Question.objects.filter(subjects__exam=exam, is_deleted=False, status='COMPLETE')
-    incomplete_questions = Question.objects.filter(subjects__exam=exam, is_deleted=False,
-                                                status__in=['SPELLING', 'INCOMPLETE_ANSWERS',
+    question_pool = Question.objects.filter(subjects__exam=exam, is_deleted=False).distinct()
+    complete_questions = question_pool.filter(status='COMPLETE')
+    incomplete_questions = question_pool.filter(status__in=['WRITING_ERROR','UNSOLVED', 'INCOMPLETE_ANSWERS',
                                                             'INCOMPLETE_QUESTION'])
     for question in complete_questions:
         if question.revision_set.filter(is_approved=True).count()>=1:
@@ -176,14 +198,13 @@ def list_revisions(request, slugs, exam_pk, pk):
 
 @login_required
 def submit_revision(request,slugs,exam_pk, pk):
-
     category = Category.objects.get_from_slugs(slugs)
     if not category:
         raise Http404
 
     exam = get_object_or_404(Exam, pk=exam_pk)
     question = get_object_or_404(Question, pk=pk)
-    latest_revision = question.get_ultimate_latest_revision()
+    latest_revision = question.get_latest_revision()
 
     # PERMISSION CHECK
     if not exam.can_user_edit(request.user):
@@ -200,7 +221,7 @@ def submit_revision(request,slugs,exam_pk, pk):
         if revisionform.is_valid() and revisionchoiceformset.is_valid():
             new_revision = revisionform.save(commit=False)
             new_revision.question = question
-            if utils.is_editor(request.user):
+            if teams.utils.is_editor(request.user):
                 new_revision.is_approved = True
             # Setting primary key to None creates a new object, rather
             # than modifying the pre-existing one

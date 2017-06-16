@@ -16,6 +16,7 @@
 					</div>
 {% endblock %}
 {% block content %}
+
 <div style="float: right;">
 <a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}" class="btn btn-primary btn-xs"><i class=" icon-file-plus position-left"></i> Add question</a>
 </div>
@@ -45,8 +46,8 @@
                         <tbody>
                         {% for question in approved_questions %}
                             {% if question.get_latest_approved_revision %}
-                            <tr>
-                            <td class="show" data-url="{% url 'exams:show_question' question.get_latest_approved_revision.pk %}" data-revision_pk="{{ question.get_latest_approved_revision.pk }}">{{ question.get_latest_approved_revision.text|linebreaks|truncatewords:20 }}</td>
+                            <tr data-url="{% url 'exams:show_question' question.get_latest_approved_revision.pk %}" data-revision_pk="{{ question.get_latest_approved_revision.pk }}">
+                            <td>{{ question.get_latest_approved_revision.text|linebreaks|truncatewords:20 }}</td>
                             <td>{{ question.get_latest_approved_revision.submitter }}</td>
                             <td>{{ question.get_status_display }}</td>
                             <td data-order="{{ question.get_latest_approved_revision.submission_date|date:'U' }}">{{ question.get_latest_approved_revision.submission_date }}</td>
@@ -69,7 +70,7 @@
 		                	</div>
         </div>
         <div class="panel-body">
-            <table id="pending" class="display datatable dt-responsive">
+            <table id="pending" class="display datatable dt-responsive" >
                         <thead>
                             <tr>
                                 <th>Text</th>
@@ -83,8 +84,8 @@
                         <tbody>
                         {% for question in pending_questions %}
                             {% if question.get_ultimate_latest_revision %}
-                            <tr>
-                            <td class="show" data-url="{% url 'exams:show_question' question.get_ultimate_latest_revision.pk %}" data-revision_pk="{{ question.get_ultimate_latest_revision.pk }}"> {{ question.get_ultimate_latest_revision.text|linebreaks|truncatewords:20 }}</td>
+                            <tr data-url="{% url 'exams:show_question' question.get_ultimate_latest_revision.pk %}" data-revision_pk="{{ question.get_ultimate_latest_revision.pk }}">
+                            <td> {{ question.get_ultimate_latest_revision.text|linebreaks|truncatewords:20 }}</td>
                             <td>{{ question.get_ultimate_latest_revision.submitter }}</td>
                             <td>{{ question.get_status_display }}</td>
                             <td data-order="{{ question.get_ultimate_latest_revision.submission_date|date:'U' }}">{{ question.get_ultimate_latest_revision.submission_date }}</td>
@@ -129,7 +130,7 @@
           backdrop: 'static',
           show    : false,
         });
-        $(".show").click(function () {
+        $('tbody').on('click','tr',function () {
             revision_pk =  $(this).data("revision_pk");
             url = $(this).data('url');
 

@@ -52,6 +52,19 @@ class Category(models.Model):
 
         return True
 
+    def is_user_editor(self, user):
+        if user.is_superuser:
+            return True
+
+        category = self
+        while category:
+            if category.privileged_teams.filter(access='editors',
+                                                members__pk=user.pk).exists():
+                return True
+            category = category.parent_category
+
+        return False
+
     def get_slugs(self):
         slugs = ""
         for parent_category in self.get_parent_categories():
@@ -116,9 +129,11 @@ exam_type_choices = (
 
 status_choices = (
     ('COMPLETE','Complete and valid question'),
-    ('SPELLING', 'Improper spelling'),
+    ('WRITING_ERROR', 'Writing errors'),
     ('INCOMPLETE_ANSWERS', 'Incomplete answers'),
     ('INCOMPLETE_QUESTION', 'Incomplete question'),
+    ('UNSOLVED', 'Unsolved question'),
+
 )
 
 class Question(models.Model):
@@ -129,10 +144,14 @@ class Question(models.Model):
     exam_type = models.CharField(max_length=15,
                                  choices=exam_type_choices)
     is_deleted = models.BooleanField(default=False)
-    status = models.CharField(max_length=30, choices=status_choices, default="")
+    status = models.CharField(max_length=30, choices=status_choices)
 
     def __str__(self):
         return self.status
+
+    def is_user_creator(self, user):
+        first_revision = self.revision_set.order_by("submission_date").first()
+        return first_revision.submitter == user
 
     def get_exam(self):
         if self.subjects.exists():
@@ -142,7 +161,7 @@ class Question(models.Model):
         return self.revision_set.filter(is_approved=True,is_deleted=False).order_by('-approval_date').first()
 
     def get_latest_revision(self):
-        return self.revision_set.filter(is_approved=False,is_deleted=False).order_by('-submission_date').first()
+        return self.revision_set.filter(is_deleted=False).order_by('-submission_date').first()
 
     def get_ultimate_latest_revision(self):
         if self.get_latest_approved_revision() is not None:
@@ -157,6 +176,7 @@ class Revision (models.Model):
     text = models.TextField()
     explanation = models.TextField(default="", blank=True)
     is_approved = models.BooleanField(default=False)
+    is_first = models.BooleanField(default=False)
     submission_date = models.DateTimeField(auto_now_add=True)
     approval_date = models.DateField(blank=True, null=True)
     is_deleted = models.BooleanField(default=False)
