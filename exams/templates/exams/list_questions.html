@@ -40,7 +40,7 @@
                                 <th>Submitter</th>
                                 <th>Status</th>
                                 <th>Date of last revision</th>
-                                <th>Show History</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -51,7 +51,7 @@
                             <td>{{ question.get_latest_approved_revision.submitter }}</td>
                             <td>{{ question.get_status_display }}</td>
                             <td data-order="{{ question.get_latest_approved_revision.submission_date|date:'U' }}">{{ question.get_latest_approved_revision.submission_date }}</td>
-                            <td> <a href="{% url 'exams:list_revisions' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}"><button type="button" class="btn btn-primary btn-icon btn-rounded"><i class="icon-menu7"></i></button></a> </td>
+                            <td><a href="{% url 'exams:list_revisions' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}" class="btn btn-primary btn-icon btn-rounded"><i class="icon-menu7"></i></a> <button data-url="{% url 'exams:delete_question' question.pk %}" class="confirm-delete-book btn btn-danger btn-icon btn-rounded"><i class="icon-cross2"></i></button></td>
                             </tr>
                             {% endif %}
                         {% endfor %}
@@ -77,8 +77,7 @@
                                 <th>Submitter</th>
                                 <th>Status</th>
                                 <th>Date of last revision</th>
-                                <th>Show History</th>
-
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -89,8 +88,7 @@
                             <td>{{ question.get_ultimate_latest_revision.submitter }}</td>
                             <td>{{ question.get_status_display }}</td>
                             <td data-order="{{ question.get_ultimate_latest_revision.submission_date|date:'U' }}">{{ question.get_ultimate_latest_revision.submission_date }}</td>
-                            <td> <a href="{% url 'exams:list_revisions' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}"><button type="button" class="btn btn-primary btn-icon btn-rounded"><i class="icon-menu7"></i></button></a> </td>
-
+                            <td><a href="{% url 'exams:list_revisions' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}" class="btn btn-primary btn-icon btn-rounded"><i class="icon-menu7"></i></a> <button data-url="{% url 'exams:delete_question' question.pk %}" class="confirm-delete-book btn btn-danger btn-icon btn-rounded"><i class="icon-cross2"></i></button></td>
                             </tr>
                             {% endif %}
                         {% endfor %}
@@ -101,6 +99,25 @@
 
 {% endblock %}
 {% block customscript %}
+
+<div class="modal fade" id="confirm-delete-book-modal">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Delete question</h4>
+      </div>
+      <div class="modal-body">
+          Are you sure you want to delete this question?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button id="delete-book" type="button" class="btn btn-danger confirm">Confirm</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
 	<link rel="stylesheet" href="{% static 'css/jquery.dataTables.min.css' %}">
 	<link rel="stylesheet" href="{% static 'js/datatables/responsive/css/responsive.dataTables.min.css' %}">
 	<script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
@@ -130,7 +147,7 @@
           backdrop: 'static',
           show    : false,
         });
-        $('tbody').on('click','tr',function () {
+        $('tbody').on('click','td:not(:last)',function () {
             revision_pk =  $(this).data("revision_pk");
             url = $(this).data('url');
 
@@ -140,7 +157,29 @@
             $("#show-question-modal .modal-body").load(url);
 
         });
+				$("button.confirm-delete-book").click(function(){
+						var url = $(this).data('url');
+						$("#delete-book").data('url', url);
+						$("#confirm-delete-book-modal").modal('show');
+				});
+				$("#delete-book").click(function () {
+		        /* get some values from elements on the page: */
+		        var url = $(this).data('url');
+		        /* Send the data using post */
+		        var posting = $.post(url);
+		        posting.done(function (data) {
+		            if (data.success == 1) {
+		                // show success message (using toastr)
+		                toastr.options.positionClass = "toast-top-left";
+		                toastr.info("Question was successfuly deleted");
 
+		                // return to the book list page.
+		                window.location.href = data.redirect_url;
+		            } else {
+		                toastr.error(data.message);
+		            }
+		        });
+		    });
     });
 {% include 'exams/modals/adjust_modal_size.js' %}
 </script>
