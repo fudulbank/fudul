@@ -23,6 +23,11 @@
     font-weight: bold;
     margin-top: auto
 }
+.panel-body li a {
+    color: blue !important;
+    font-weight: bold;
+    margin-top: auto
+}
 </style>
 <div class="row">
    <div class="col-md-8">
@@ -79,6 +84,8 @@
            {# incomplete questions #}
                    {% if incomplete_questions.count == 0 %}
                        <li>There is no incomplete questions. </li>
+                   {% elif incomplete_questions.count == 1 %}
+                       <li><a href="{% url 'exams:list_question_per_status' exam.category.get_slugs exam.pk %}">{{  incomplete_questions.count }} incomplete question.</a> </li>
                    {% else %}
                        <li><a href="{% url 'exams:list_question_per_status' exam.category.get_slugs exam.pk %}">{{  incomplete_questions.count }} incomplete questions.</a> </li>
                    {% endif %}
