@@ -52,6 +52,19 @@ class Category(models.Model):
 
         return True
 
+    def is_user_editor(self, user):
+        if user.is_superuser:
+            return True
+
+        category = self
+        while category:
+            if category.privileged_teams.filter(access='editors',
+                                                members__pk=user.pk).exists():
+                return True
+            category = category.parent_category
+
+        return False
+
     def get_slugs(self):
         slugs = ""
         for parent_category in self.get_parent_categories():
@@ -135,6 +148,10 @@ class Question(models.Model):
     def __str__(self):
         return self.status
 
+    def is_user_creator(self, user):
+        first_revision = self.revision_set.order_by("submission_date").first()
+        return first_revision.submitter == user
+
     def get_exam(self):
         if self.subjects.exists():
             return self.subjects.first().exam
@@ -160,6 +177,7 @@ class Revision (models.Model):
                                blank=True)
     explanation = models.TextField(default="", blank=True)
     is_approved = models.BooleanField(default=False)
+    is_first = models.BooleanField(default=False)
     submission_date = models.DateTimeField(auto_now_add=True)
     approval_date = models.DateField(blank=True, null=True)
     is_deleted = models.BooleanField(default=False)
