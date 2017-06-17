@@ -1,6 +1,18 @@
 from django.db import models
 import accounts.utils
 
+class QuestionQuerySet(models.QuerySet):
+    def get_incomplete_count(self):
+        return self.undeleted().exclude(status='COMPLETE')\
+                   .distinct().count()
+
+    def get_unapproved_count(self):
+        return self.undeleted().exclude(revision__is_approved=True)\
+                   .distinct().count()
+
+    def undeleted(self):
+        return self.filter(is_deleted=False)
+
 class CategoryQuerySet(models.QuerySet):
     def get_from_slugs(self, slugs):
         slug_list = [slug for slug in slugs.split('/') if slug]

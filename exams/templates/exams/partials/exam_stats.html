@@ -1,0 +1,41 @@
+<ul>
+    <li>
+      {% if exam.subject_set.exists %}
+       <strong>Available subjects:</strong>
+       <ul>
+       {% for subject in exam.subject_set.all %}
+          <li>{{ subject.name }} ({{ subject.question_set.count }} questions)</li>
+       {% endfor %%}
+       </ul>
+      {% else %}
+       No subjects available.
+      {% endif %}
+    </li>
+    <li>
+      {% if exam.source_set.exists %}
+       <strong>Available sources:</strong>
+       <ul>
+       {% for source in exam.source_set.all %}
+          <li>{{ source.name }} ({{ source.question_set.count }} questions)</li>
+       {% endfor %%}
+       </ul>
+      {% else %}
+       No sources available.
+      {% endif %}
+    </li>
+    <li>{{ exam.get_question_count }} questions in total.</li>
+{# unapproved questions  #}
+        {% if unapproved_question_count %}
+            <li>{{  unapproved_question_count|length }} unapproved question{% if unapproved_question_conut > 1 %}s{% endif %}.</li>
+        {% else %}
+            <li>There are no unapproved questions.</li>
+        {% endif %}
+{# incomplete questions #}
+        {% if incomplete_question_count == 0 %}
+            <li>There are no incomplete questions.</li>
+        {% else %}
+            <li>{{  incomplete_question_count }} incomplete question{% if  incomplete_question_count > 1 %}s{% endif %}.</li>
+        {% endif %}
+<div class="text-right">
+    <a href="{% url 'exams:list_questions' exam.category.get_slugs exam.pk %}" class="btn btn-primary">List questions <i class="icon-arrow-right14 position-right"></i></a>
+</div>

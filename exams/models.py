@@ -2,8 +2,8 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
 from accounts.models import College, Batch
-from .managers import CategoryQuerySet
 import accounts.utils
+from . import managers
 
 class Source(models.Model):
     name = models.CharField(max_length=100)
@@ -23,7 +23,7 @@ class Category(models.Model):
                                         related_name="children",
                                         on_delete=models.SET_NULL,
                                         default=None)
-    objects = CategoryQuerySet.as_manager()
+    objects = managers.CategoryQuerySet.as_manager()
 
     def get_parent_categories(self):
         parent_categories = []
@@ -145,6 +145,7 @@ class Question(models.Model):
                                  choices=exam_type_choices)
     is_deleted = models.BooleanField(default=False)
     status = models.CharField(max_length=30, choices=status_choices)
+    objects = managers.QuestionQuerySet.as_manager()
 
     def __str__(self):
         return self.status

@@ -47,13 +47,13 @@
                         <tbody>
                         {% for question in approved_questions %}
                             {% if question.get_latest_approved_revision %}
-                            <tr data-url="{% url 'exams:show_question' question.get_latest_approved_revision.pk %}">
+                            <tr data-url="{% url 'exams:show_question' question.get_latest_approved_revision.pk %}" data-pk="{{ question.pk }}">
 													  <td>{{ question.pk }}</td>
                             <td>{{ question.get_latest_approved_revision.text|linebreaks|truncatewords:20 }}</td>
                             <td>{{ question.get_latest_approved_revision.submitter }}</td>
                             <td>{{ question.get_status_display }}</td>
                             <td data-order="{{ question.get_latest_approved_revision.submission_date|date:'U' }}">{{ question.get_latest_approved_revision.submission_date }}</td>
-                            <td><a href="{% url 'exams:list_revisions' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}" class="btn btn-primary btn-icon btn-rounded"><i class="icon-menu7"></i></a> <button data-url="{% url 'exams:delete_question' question.pk %}" class="confirm-delete-book btn btn-danger btn-icon btn-rounded"><i class="icon-cross2"></i></button></td>
+                            <td><a href="{% url 'exams:list_revisions' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}" class="btn btn-primary btn-icon btn-rounded"><i class="icon-menu7"></i></a> <button data-pk="{{ question.pk }}" data-url="{% url 'exams:delete_question' question.pk %}" class="confirm-delete-question btn btn-danger btn-icon btn-rounded"><i class="icon-cross2"></i></button></td>
                             </tr>
                             {% endif %}
                         {% endfor %}
@@ -86,13 +86,13 @@
                         <tbody>
                         {% for question in pending_questions %}
                             {% if question.get_ultimate_latest_revision %}
-                            <tr data-url="{% url 'exams:show_question' question.get_ultimate_latest_revision.pk %}">
+                            <tr data-pk="{{ question.pk }}" data-url="{% url 'exams:show_question' question.get_ultimate_latest_revision.pk %}">
 														<td>{{ question.pk }}</td>
                             <td> {{ question.get_ultimate_latest_revision.text|linebreaks|truncatewords:20 }}</td>
                             <td>{{ question.get_ultimate_latest_revision.submitter }}</td>
                             <td>{{ question.get_status_display }}</td>
                             <td data-order="{{ question.get_ultimate_latest_revision.submission_date|date:'U' }}">{{ question.get_ultimate_latest_revision.submission_date }}</td>
-                            <td><a href="{% url 'exams:list_revisions' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}" class="btn btn-primary btn-icon btn-rounded"><i class="icon-menu7"></i></a> <button data-url="{% url 'exams:delete_question' question.pk %}" class="confirm-delete-book btn btn-danger btn-icon btn-rounded"><i class="icon-cross2"></i></button></td>
+                            <td><a href="{% url 'exams:list_revisions' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}" class="btn btn-primary btn-icon btn-rounded"><i class="icon-menu7"></i></a> <button data-pk="{{ question.pk }}" data-url="{% url 'exams:delete_question' question.pk %}" class="confirm-delete-question btn btn-danger btn-icon btn-rounded"><i class="icon-cross2"></i></button></td>
                             </tr>
                             {% endif %}
                         {% endfor %}
@@ -104,7 +104,7 @@
 {% endblock %}
 {% block customscript %}
 
-<div class="modal fade" id="confirm-delete-book-modal">
+<div class="modal fade" id="confirm-delete-question-modal">
   <div class="modal-dialog modal-sm">
     <div class="modal-content">
       <div class="modal-header">
@@ -116,7 +116,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-        <button id="delete-book" type="button" class="btn btn-danger confirm">Confirm</button>
+        <button id="delete-question" type="button" class="btn btn-danger confirm">Confirm</button>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
@@ -131,20 +131,13 @@
         text-align: left;
     }
 </style>
-	<script>
-    $(function(){
-        $("#approved").dataTable({
-            "order": [[ 4, "asc" ]]
-        });
-        $("#pending").dataTable({
-            "order": [[ 4, "asc" ]]
-        });
-    });
-</script>
- <script src="{% static 'js/toastr.js' %}"></script>
-
-<script type="text/javascript">
+<script src="{% static 'js/toastr.js' %}"></script>
+<script>
     $(function () {
+        tables = $("#approved, #pending").DataTable({
+            "order": [[ 4, "asc" ]]
+        });
+
         // initialize project edit modal
         $('#show-question-modal').modal({
           keyboard: false,
@@ -160,14 +153,16 @@
             $("#show-question-modal .modal-body").load(url);
 
         });
-				$("button.confirm-delete-book").click(function(){
+				$("button.confirm-delete-question").click(function(){
 						var url = $(this).data('url');
-						$("#delete-book").data('url', url);
-						$("#confirm-delete-book-modal").modal('show');
+						var pk = $(this).data('pk');
+						$("#delete-question").data('url', url).data('pk', pk);
+						$("#confirm-delete-question-modal").modal('show');
 				});
-				$("#delete-book").click(function () {
+				$("#delete-question").click(function () {
 		        /* get some values from elements on the page: */
 		        var url = $(this).data('url');
+						var pk = $(this).data('pk');
 		        /* Send the data using post */
 		        var posting = $.post(url);
 		        posting.done(function (data) {
@@ -175,9 +170,12 @@
 		                // show success message (using toastr)
 		                toastr.options.positionClass = "toast-top-left";
 		                toastr.info("Question was successfuly deleted");
+										console.log("tr[data-pk=" +  pk + "]")
+										row = tables.row("tr[data-pk=" +  pk + "]");
+										row.remove().draw(false);
 
-		                // return to the book list page.
-		                window.location.href = data.redirect_url;
+										$("#confirm-delete-question-modal").modal('hide');
+
 		            } else {
 		                toastr.error(data.message);
 		            }

@@ -4,7 +4,8 @@ from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect, Http404
-from django.shortcuts import render,get_object_or_404
+from django.shortcuts import get_object_or_404, render
+from django.template.loader import get_template
 from django.views.decorators import csrf
 
 from accounts.models import Institution, College
@@ -57,13 +58,9 @@ def add_question(request, slugs, pk):
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
 
-    incomplete_question_count = Question.objects.filter(subjects__exam=exam, is_deleted=False)\
-                                                .exclude(status='COMPLETE')\
-                                                .distinct().count()
-    unapproved_question_count = Question.objects.filter(subjects__exam=exam,
-                                                        is_deleted=False)\
-                                                .exclude(revision__is_approved=True)\
-                                                .distinct().count()
+    exam_questions = Question.objects.filter(subjects__exam=exam).distinct()
+    incomplete_question_count = exam_questions.get_incomplete_count()
+    unapproved_question_count = exam_questions.get_unapproved_count()
 
     context = {'exam': exam,
                'questionform': forms.QuestionForm(),
@@ -90,10 +87,7 @@ def delete_question(request, pk):
     question.is_deleted = True
     question.save()
 
-    slugs = exam.category.get_slugs()
-    relative_url = reverse('exams:list_questions', args=(slugs, exam.pk))
-
-    return {'redirect_url': relative_url}
+    return {}
 
 @decorators.post_only
 @decorators.ajax_only
@@ -122,7 +116,18 @@ def handle_question(request, exam_pk):
         revision.save()
         revisionchoiceformset.instance = revision
         revisionchoiceformset.save()
-        return {"message": "success"}
+
+        template = get_template('exams/partials/exam_stats.html')
+        exam_questions = Question.objects.filter(subjects__exam=exam).distinct()
+        incomplete_question_count = exam_questions.get_incomplete_count()
+        unapproved_question_count = exam_questions.get_unapproved_count()
+        context = {'exam': exam,
+                   'unapproved_question_count':unapproved_question_count,
+                   'incomplete_question_count':incomplete_question_count}
+        stat_html = template.render(context)
+
+        return {"message": "success",
+                'stat_html': stat_html}
 
     context = {'exam': exam,
                'questionform': questionform,
@@ -276,7 +281,7 @@ def list_question_per_status (request, slugs, exam_pk):
         raise Http404
 
     exam = get_object_or_404(Exam, pk=exam_pk)
-    question_pool = Question.objects.filter(subjects__exam=exam, is_deleted=False).distinct()
+    question_pool = Question.objects.undeleted().filter(subjects__exam=exam).distinct()
     writing_error = question_pool.filter(status='WRITING_ERROR')
     unsloved = question_pool.filter(status='UNSOLVED')
     incomplete_answer = question_pool.filter(status='INCOMPLETE_ANSWERS')
