@@ -12,10 +12,10 @@
       {% endif %}
     </li>
     <li>
-      {% if exam.source_set.exists %}
+      {% if exam.get_sources.exists %}
        <strong>Available sources:</strong>
        <ul>
-       {% for source in exam.source_set.all %}
+       {% for source in exam.get_sources %}
           <li>{{ source.name }} ({{ source.question_set.count }} questions)</li>
        {% endfor %%}
        </ul>
