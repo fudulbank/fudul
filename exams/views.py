@@ -56,20 +56,21 @@ def add_question(request, slugs, pk):
     exam = get_object_or_404(Exam, pk=pk, category=category)
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
-    incomplete_questions = Question.objects.filter(subjects__exam=exam, is_deleted=False,status__in=['WRITING_ERROR', 'UNSOLVED', 'INCOMPLETE_ANSWERS',
-                                                            'INCOMPLETE_QUESTION'])
-    unapproved_questions = []
 
-    for question in Question.objects.filter(subjects__exam=exam,is_deleted=False):
-        if question.revision_set.filter(is_approved=True).count() == 0:
-            unapproved_questions.append(question)
+    incomplete_question_count = Question.objects.filter(subjects__exam=exam, is_deleted=False)\
+                                                .exclude(status='COMPLETE')\
+                                                .distinct().count()
+    unapproved_question_count = Question.objects.filter(subjects__exam=exam,
+                                                        is_deleted=False)\
+                                                .exclude(revision__is_approved=True)\
+                                                .distinct().count()
 
     context = {'exam': exam,
                'questionform': forms.QuestionForm(),
                'revisionform': forms.RevisionForm(),
                'revisionchoiceformset': forms.RevisionChoiceFormset(),
-               'unapproved_questions':unapproved_questions,
-               'incomplete_questions':incomplete_questions}
+               'unapproved_question_count':unapproved_question_count,
+               'incomplete_question_count':incomplete_question_count}
 
     return render(request, "exams/add_question.html", context)
 
@@ -103,7 +104,8 @@ def handle_question(request, exam_pk):
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
 
-    instance = Revision(submitter=request.user, is_first=True)
+    instance = Revision(submitter=request.user, is_first=True,
+                        is_last=True)
     questionform = forms.QuestionForm(request.POST,
                                       request.FILES)
     revisionform = forms.RevisionForm(request.POST,
@@ -113,7 +115,8 @@ def handle_question(request, exam_pk):
     if questionform.is_valid() and revisionform.is_valid() and revisionchoiceformset.is_valid():
         question = questionform.save()
         revision = revisionform.save(commit=False)
-        if teams.utils.is_editor(request.user):
+        if teams.utils.is_editor(request.user) and \
+           question.status == 'COMPLETE':
             revision.is_approved = True
         revision.question = question
         revision.save()
@@ -156,20 +159,16 @@ def list_questions(request, slugs, pk):
     # PERMISSION CHECK
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
-    approved_questions =[]
-    pending_questions =[]
-    question_pool = Question.objects.filter(subjects__exam=exam, is_deleted=False).distinct()
-    complete_questions = question_pool.filter(status='COMPLETE')
-    incomplete_questions = question_pool.filter(status__in=['WRITING_ERROR','UNSOLVED', 'INCOMPLETE_ANSWERS',
-                                                            'INCOMPLETE_QUESTION'])
-    for question in complete_questions:
-        if question.revision_set.filter(is_approved=True).count()>=1:
-            approved_questions.append(question)
-        else:
-            pending_questions.append(question)
 
-    for question in incomplete_questions:
-        pending_questions.append(question)
+    revision_pool = Revision.objects.filter(question__subjects__exam=exam,
+                                            question__is_deleted=False,
+                                            is_last=True).distinct()
+    approved_pks = revision_pool.filter(is_approved=True)\
+                                .values_list('question__pk', flat=True)
+    approved_questions = Question.objects.filter(pk__in=approved_pks)
+    pending_pks = revision_pool.filter(is_approved=False)\
+                               .values_list('question__pk', flat=True)
+    pending_questions = Question.objects.filter(pk__in=pending_pks)
 
     context={'exam': exam,
              'approved_questions': approved_questions,
@@ -241,6 +240,9 @@ def submit_revision(request,slugs,exam_pk, pk):
             new_revision.pk = None
             new_revision.submitter = request.user
             new_revision.save()
+
+            latest_revision.is_last = False
+            latest_revision.save()
 
             # Let's clone choices!
             modified_choices = revisionchoiceformset.save(commit=False)

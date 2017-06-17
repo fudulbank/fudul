@@ -125,6 +125,7 @@ class Subject(models.Model):
 exam_type_choices = (
     ('FINAL', 'Final'),
     ('MIDTERM', 'Midterm'),
+    ('FORMATIVE', 'Formative'),
     ('OSPE','OSPE'),
 )
 
@@ -178,6 +179,7 @@ class Revision (models.Model):
     explanation = models.TextField(default="", blank=True)
     is_approved = models.BooleanField(default=False)
     is_first = models.BooleanField(default=False)
+    is_last = models.BooleanField(default=False)
     submission_date = models.DateTimeField(auto_now_add=True)
     approval_date = models.DateField(blank=True, null=True)
     is_deleted = models.BooleanField(default=False)

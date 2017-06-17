@@ -74,20 +74,16 @@
                </li>
                <li>{{ exam.get_question_count }} questions in total.</li>
            {# unapproved questions  #}
-                   {% if unapproved_questions|length == 0 %}
-                       <li>There is no unapproved questions. </li>
-                   {% elif unapproved_questions|length == 1 %}
-                       <li>{{  unapproved_questions|length }} unapproved question. </li>
-                   {% else %}
-                   <li>{{  unapproved_questions|length }} unapproved questions. </li>
+                   {% if unapproved_question_count %}
+											 <li>{{  unapproved_question_count|length }} unapproved question{% if unapproved_question_conut > 1 %}s{% endif %}.</li>
+									 {% else %}
+                       <li>There are no unapproved questions.</li>
                    {% endif %}
            {# incomplete questions #}
-                   {% if incomplete_questions.count == 0 %}
-                       <li>There is no incomplete questions. </li>
-                   {% elif incomplete_questions.count == 1 %}
-                       <li><a href="{% url 'exams:list_question_per_status' exam.category.get_slugs exam.pk %}">{{  incomplete_questions.count }} incomplete question.</a> </li>
+                   {% if incomplete_question_count == 0 %}
+                       <li>There are no incomplete questions.</li>
                    {% else %}
-                       <li><a href="{% url 'exams:list_question_per_status' exam.category.get_slugs exam.pk %}">{{  incomplete_questions.count }} incomplete questions.</a> </li>
+                       <li>{{  incomplete_question_count }} incomplete question{% if  incomplete_question_count > 1 %}s{% endif %}.</li>
                    {% endif %}
            <div class="text-right">
                <a href="{% url 'exams:list_questions' exam.category.get_slugs exam.pk %}" class="btn btn-primary">List questions <i class="icon-arrow-right14 position-right"></i></a>
@@ -130,7 +126,7 @@
 
         //$('#id_status, #id_exam_type').select2();
         $('#choice_formset input[type=checkbox]').change(function(){
-            $('#choice_formset input[type=checkbox]').not(this).prop('checked', false);  
+            $('#choice_formset input[type=checkbox]').not(this).prop('checked', false);
         });
         $('#choice_formset div.checkbox label').ready(function(){
              $(this).html($(this).children('input'));
