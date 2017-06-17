@@ -34,30 +34,9 @@
 						</div>
         <div class="panel-body">
         <table id="approved" class="display datatable dt-responsive">
-                        <thead>
-                            <tr>
-																<th>ID</th>
-                                <th>Text</th>
-                                <th>Submitter</th>
-                                <th>Status</th>
-                                <th>Date of last revision</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        {% for question in approved_questions %}
-                            {% if question.get_latest_approved_revision %}
-                            <tr data-url="{% url 'exams:show_question' question.get_latest_approved_revision.pk %}" data-pk="{{ question.pk }}">
-													  <td>{{ question.pk }}</td>
-                            <td>{{ question.get_latest_approved_revision.text|linebreaks|truncatewords:20 }}</td>
-                            <td>{{ question.get_latest_approved_revision.submitter }}</td>
-                            <td>{{ question.get_status_display }}</td>
-                            <td data-order="{{ question.get_latest_approved_revision.submission_date|date:'U' }}">{{ question.get_latest_approved_revision.submission_date }}</td>
-                            <td><a href="{% url 'exams:list_revisions' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}" class="btn btn-primary btn-icon btn-rounded"><i class="icon-menu7"></i></a> <button data-pk="{{ question.pk }}" data-url="{% url 'exams:delete_question' question.pk %}" class="confirm-delete-question btn btn-danger btn-icon btn-rounded"><i class="icon-cross2"></i></button></td>
-                            </tr>
-                            {% endif %}
-                        {% endfor %}
-                        </tbody>
+{% with questions=approved_questions %}
+{% include 'exams/partials/question_table_content.html' %}
+{% endwith %}
             </table>
         </div>
     </div>
@@ -72,31 +51,10 @@
 		                	</div>
         </div>
         <div class="panel-body">
-            <table id="pending" class="display datatable dt-responsive" >
-                        <thead>
-                            <tr>
-															  <th>ID</th>
-                                <th>Text</th>
-                                <th>Submitter</th>
-                                <th>Status</th>
-                                <th>Date of last revision</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        {% for question in pending_questions %}
-                            {% if question.get_ultimate_latest_revision %}
-                            <tr data-pk="{{ question.pk }}" data-url="{% url 'exams:show_question' question.get_ultimate_latest_revision.pk %}">
-														<td>{{ question.pk }}</td>
-                            <td> {{ question.get_ultimate_latest_revision.text|linebreaks|truncatewords:20 }}</td>
-                            <td>{{ question.get_ultimate_latest_revision.submitter }}</td>
-                            <td>{{ question.get_status_display }}</td>
-                            <td data-order="{{ question.get_ultimate_latest_revision.submission_date|date:'U' }}">{{ question.get_ultimate_latest_revision.submission_date }}</td>
-                            <td><a href="{% url 'exams:list_revisions' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}" class="btn btn-primary btn-icon btn-rounded"><i class="icon-menu7"></i></a> <button data-pk="{{ question.pk }}" data-url="{% url 'exams:delete_question' question.pk %}" class="confirm-delete-question btn btn-danger btn-icon btn-rounded"><i class="icon-cross2"></i></button></td>
-                            </tr>
-                            {% endif %}
-                        {% endfor %}
-                        </tbody>
+            <table id="pending" class="display datatable dt-responsive">
+{% with questions=pending_questions %}
+{% include 'exams/partials/question_table_content.html' %}
+{% endwith %}
             </table>
         </div>
     </div>
