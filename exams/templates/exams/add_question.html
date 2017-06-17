@@ -1,4 +1,4 @@
-{% extends 'base.html' %}{% load staticfiles %}{% load bootstrap3 %}
+{% extends 'base.html' %}{% load staticfiles %}{% load bootstrap3 %}{% load teams_utlis %}
 {% block title %}Fudul | Add questions to {{ exam.name }}{% endblock %}
 {% block breadcrumb %}
 
@@ -68,7 +68,20 @@
                  {% endif %}
                </li>
                <li>{{ exam.get_question_count }} questions in total.</li>
-           </ul>
+           {# unapproved questions  #}
+                   {% if unapproved_questions|length == 0 %}
+                       <li>There is no unapproved questions. </li>
+                   {% elif unapproved_questions|length == 1 %}
+                       <li>{{  unapproved_questions|length }} unapproved question. </li>
+                   {% else %}
+                   <li>{{  unapproved_questions|length }} unapproved questions. </li>
+                   {% endif %}
+           {# incomplete questions #}
+                   {% if incomplete_questions.count == 0 %}
+                       <li>There is no incomplete questions. </li>
+                   {% else %}
+                       <li><a href="{% url 'exams:list_question_per_status' exam.category.get_slugs exam.pk %}">{{  incomplete_questions.count }} incomplete questions.</a> </li>
+                   {% endif %}
            <div class="text-right">
                <a href="{% url 'exams:list_questions' exam.category.get_slugs exam.pk %}" class="btn btn-primary">List questions <i class="icon-arrow-right14 position-right"></i></a>
            </div>
@@ -100,6 +113,13 @@
     <script src="{% static 'js/toastr.js' %}"></script>
     <script type="text/javascript">
     $(function(){
+        $('#exam-type select').change(function() {
+        if ($('#exam-type select option[value=OSPE]:checked').length) {
+            $('#figure').show();
+        } else {
+            $('#figure').hide();
+        }
+        });
 
         //$('#id_status, #id_exam_type').select2();
         $('#choice_formset input[type=checkbox]').change(function(){

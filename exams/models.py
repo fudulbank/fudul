@@ -112,6 +112,7 @@ class Subject(models.Model):
 exam_type_choices = (
     ('FINAL', 'Final'),
     ('MIDTERM', 'Midterm'),
+    ('OSPE','OSPE'),
 )
 
 status_choices = (
@@ -126,8 +127,6 @@ status_choices = (
 class Question(models.Model):
     sources = models.ManyToManyField(Source, blank=True)
     subjects = models.ManyToManyField(Subject, blank=True)
-    figure = models.ImageField(upload_to="question_images",
-                               blank=True)
     exam_type = models.CharField(max_length=15,
                                  choices=exam_type_choices)
     is_deleted = models.BooleanField(default=False)
@@ -157,6 +156,8 @@ class Revision (models.Model):
     question = models.ForeignKey(Question)
     submitter = models.ForeignKey(User, null=True, blank=True)
     text = models.TextField()
+    figure = models.ImageField(upload_to="revision_images",
+                               blank=True)
     explanation = models.TextField(default="", blank=True)
     is_approved = models.BooleanField(default=False)
     submission_date = models.DateTimeField(auto_now_add=True)

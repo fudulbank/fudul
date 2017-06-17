@@ -1,0 +1,250 @@
+{% extends 'base.html' %}{% load staticfiles %}
+{% block title %}Fudul | Incomplete Question list of {{ exam.name }}{% endblock %}
+{% block breadcrumb %}
+
+					<div class="breadcrumb-line">
+						<ul class="breadcrumb">
+							<li><a href="{% url 'index' %}"><i class="icon-home2 position-left"></i> Fudul</a></li>
+                                                        <li><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
+                                                        {% for parent_category in exam.category.get_parent_categories %}
+							<li><a href="{% url 'exams:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
+                                                        {% endfor %}
+                                                        <li><a href="{% url 'exams:show_category' exam.category.get_slugs %}">{{ exam.category.name }}</a></li>
+                                                        <li><a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}">{{ exam.name }}</a></li>
+                                                        <li class="active">List questions</li>
+						</ul>
+					</div>
+{% endblock %}
+
+{% block content %}
+
+
+<div class="form-group" style="float: right;">
+														<select id='status' name="select" class="form-control input-xs">
+                                                            <option value="">-----------</option>
+						                                    <option value="incomplete-q">Incomplete Questions</option>
+						                                    <option value="writing">Writing Error</option>
+						                                    <option value="unsolved">Unsloved Question</option>
+						                                    <option value="incomplete-a">Incomplete Answer</option>
+
+						                                </select>
+													</div>
+
+<h1>Questions Per Status list of {{ exam.name }}</h1>
+{# incomplete questions #}
+    <div class="panel panel-flat" style="display: none;" id="incomplete-questions">
+    <div class="panel-heading">
+							<h5 class="panel-title">Incomplete Questions<a class="heading-elements-toggle"><i class="icon-more"></i></a></h5>
+							<div class="heading-elements">
+								<ul class="icons-list">
+			                		<li><a data-action="collapse"></a></li>
+			                		<li><a data-action="close"></a></li>
+			                	</ul>
+		                	</div>
+						</div>
+        <div class="panel-body">
+        <table class="datatable display datatable dt-responsive">
+                        <thead>
+                            <tr>
+                                <th>Text</th>
+                                <th>Submitter</th>
+                                <th>Date of last revision</th>
+                                <th>ID</th>
+                                <th>number of choices</th>
+                                <th>Show History</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for question in incomplete_question %}
+                            {% if question.get_ultimate_latest_revision %}
+                            <tr data-url="{% url 'exams:show_question' question.get_ultimate_latest_revision.pk %}" data-revision_pk="{{ question.get_ultimate_latest_revision.pk }}">
+                            <td>{{ question.get_ultimate_latest_revision.text|linebreaks|truncatewords:20 }}</td>
+                            <td>{{ question.get_ultimate_latest_revision.submitter }}</td>
+                            <td data-order="{{ question.get_ultimate_latest_revision.submission_date|date:'U' }}">{{ question.get_ultimate_latest_revision.submission_date }}</td>
+                            <td>{{ question.pk }}</td>
+                            <td>{{ question.get_ultimate_latest_revision.choice_set.count }}</td>
+                            <td> <a href="{% url 'exams:list_revisions' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}"><button type="button" class="btn btn-primary btn-icon btn-rounded"><i class="icon-menu7"></i></button></a> </td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                        </tbody>
+            </table>
+        </div>
+    </div>
+
+
+{# writing error  #}
+
+    <div class="panel panel-flat"  style="display: none;" id="writing-error">
+    <div class="panel-heading">
+							<h5 class="panel-title">Writing Error<a class="heading-elements-toggle"><i class="icon-more"></i></a></h5>
+							<div class="heading-elements">
+								<ul class="icons-list">
+			                		<li><a data-action="collapse"></a></li>
+			                		<li><a data-action="close"></a></li>
+			                	</ul>
+		                	</div>
+						</div>
+        <div class="panel-body">
+        <table class="datatable display datatable dt-responsive">
+                        <thead>
+                            <tr>
+                                <th>Text</th>
+                                <th>Submitter</th>
+                                <th>Date of last revision</th>
+                                <th>ID</th>
+                                <th>number of choices</th>
+                                <th>Show History</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for question in writing_error %}
+                            {% if question.get_ultimate_latest_revision %}
+                            <tr data-url="{% url 'exams:show_question' question.get_ultimate_latest_revision.pk %}" data-revision_pk="{{ question.get_ultimate_latest_revision.pk }}">
+                            <td>{{ question.get_ultimate_latest_revision.text|linebreaks|truncatewords:20 }}</td>
+                            <td>{{ question.get_ultimate_latest_revision.submitter }}</td>
+                            <td data-order="{{ question.get_ultimate_latest_revision.submission_date|date:'U' }}">{{ question.get_ultimate_latest_revision.submission_date }}</td>
+                            <td>{{ question.pk }}</td>
+                            <td>{{ question.get_ultimate_latest_revision.choice_set.count }}</td>
+                            <td> <a href="{% url 'exams:list_revisions' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}"><button type="button" class="btn btn-primary btn-icon btn-rounded"><i class="icon-menu7"></i></button></a> </td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                        </tbody>
+            </table>
+        </div>
+    </div>
+
+{# incomplete answer #}
+
+    <div class="panel panel-flat"  style="display: none;" id="incomplete-answer">
+    <div class="panel-heading">
+							<h5 class="panel-title">Incomplete Answer<a class="heading-elements-toggle"><i class="icon-more"></i></a></h5>
+							<div class="heading-elements">
+								<ul class="icons-list">
+			                		<li><a data-action="collapse"></a></li>
+			                		<li><a data-action="close"></a></li>
+			                	</ul>
+		                	</div>
+						</div>
+        <div class="panel-body">
+        <table class="datatable display datatable dt-responsive">
+                        <thead>
+                            <tr>
+                                <th>Text</th>
+                                <th>Submitter</th>
+                                <th>Date of last revision</th>
+                                <th>ID</th>
+                                <th>number of choices</th>
+                                <th>Show History</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for question in incomplete_answer %}
+                            {% if question.get_ultimate_latest_revision %}
+                            <tr data-url="{% url 'exams:show_question' question.get_ultimate_latest_revision.pk %}" data-revision_pk="{{ question.get_ultimate_latest_revision.pk }}">
+                            <td>{{ question.get_ultimate_latest_revision.text|linebreaks|truncatewords:20 }}</td>
+                            <td>{{ question.get_ultimate_latest_revision.submitter }}</td>
+                            <td data-order="{{ question.get_ultimate_latest_revision.submission_date|date:'U' }}">{{ question.get_ultimate_latest_revision.submission_date }}</td>
+                            <td>{{ question.pk }}</td>
+                            <td>{{ question.get_ultimate_latest_revision.choice_set.count }}</td>
+                            <td> <a href="{% url 'exams:list_revisions' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}"><button type="button" class="btn btn-primary btn-icon btn-rounded"><i class="icon-menu7"></i></button></a> </td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                        </tbody>
+            </table>
+        </div>
+    </div>
+
+
+{# Unsloved question  #}
+
+    <div class="panel panel-flat"  style="display: none;" id="unsloved-question">
+    <div class="panel-heading">
+							<h5 class="panel-title">Unsloved Question<a class="heading-elements-toggle"><i class="icon-more"></i></a></h5>
+							<div class="heading-elements">
+								<ul class="icons-list">
+			                		<li><a data-action="collapse"></a></li>
+			                		<li><a data-action="close"></a></li>
+			                	</ul>
+		                	</div>
+						</div>
+        <div class="panel-body">
+        <table class="datatable display datatable dt-responsive">
+                        <thead>
+                            <tr>
+                                <th>Text</th>
+                                <th>Submitter</th>
+                                <th>Date of last revision</th>
+                                <th>ID</th>
+                                <th>number of choices</th>
+                                <th>Show History</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for question in unsloved %}
+                            {% if question.get_ultimate_latest_revision %}
+                            <tr data-url="{% url 'exams:show_question' question.get_ultimate_latest_revision.pk %}" data-revision_pk="{{ question.get_ultimate_latest_revision.pk }}">
+                            <td>{{ question.get_ultimate_latest_revision.text|linebreaks|truncatewords:20 }}</td>
+                            <td>{{ question.get_ultimate_latest_revision.submitter }}</td>
+                            <td data-order="{{ question.get_ultimate_latest_revision.submission_date|date:'U' }}">{{ question.get_ultimate_latest_revision.submission_date }}</td>
+                            <td>{{ question.pk }}</td>
+                            <td>{{ question.get_ultimate_latest_revision.choice_set.count }}</td>
+                            <td> <a href="{% url 'exams:list_revisions' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}"><button type="button" class="btn btn-primary btn-icon btn-rounded"><i class="icon-menu7"></i></button></a> </td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                        </tbody>
+            </table>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block customscript %}
+	<link rel="stylesheet" href="{% static 'css/jquery.dataTables.min.css' %}">
+	<link rel="stylesheet" href="{% static 'js/datatables/responsive/css/responsive.dataTables.min.css' %}">
+	<script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'js/datatables/responsive/js/dataTables.responsive.min.js' %}"></script>
+<style type="text/css">
+    th, td{
+        text-align: left;
+    }
+</style>
+	<script>
+    $(function() {
+        $(".datatable").dataTable({
+            "order": [[4, "asc"]]
+        });
+        $('#status').change(function () {
+            if ($('#status option[value=incomplete-q]:checked').length) {
+                $('#incomplete-questions').show();
+                $('#writing-error').hide();
+                $('#incomplete-answer').hide();
+                $('#unsloved-question').hide();
+            }else if ($('#status option[value=incomplete-a]:checked').length) {
+                $('#incomplete-questions').hide();
+                $('#writing-error').hide();
+                $('#incomplete-answer').show();
+                $('#unsloved-question').hide();
+            }else if ($('#status option[value=unsolved]:checked').length) {
+                $('#incomplete-questions').hide();
+                $('#writing-error').hide();
+                $('#incomplete-answer').hide();
+                $('#unsloved-question').show();
+            }else if ($('#status option[value=writing]:checked').length) {
+                $('#incomplete-questions').hide();
+                $('#writing-error').show();
+                $('#incomplete-answer').hide();
+                $('#unsloved-question').hide();
+            }else{
+                $('#incomplete-questions').hide();
+                $('#writing-error').hide();
+                $('#incomplete-answer').hide();
+                $('#unsloved-question').hide();
+            }
+        });
+    });
+</script>
+{% endblock %}

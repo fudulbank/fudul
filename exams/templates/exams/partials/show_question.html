@@ -21,8 +21,8 @@
 
     <div class="panel panel-flat">
                        <div class="panel-body">
-                       {% if revision.question.figure %}
-                           <img class="img-responsive center-block"  src="{{ revision.question.figure.url }}">
+                       {% if revision.figure %}
+                           <img class="img-responsive center-block"  src="{{ revision.figure.url }}">
                        {% endif %}
        <br> <strong style="font-size: medium">{{ revision.text|linebreaksbr }}</strong>
                            {% for choice in revision.choice_set.all %}

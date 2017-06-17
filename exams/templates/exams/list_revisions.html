@@ -33,13 +33,14 @@
         <p class="content-group-lg">
             <b>Subject:</b>{% for subject in question.subjects.all %}{{ subject.name }}{% endfor %}
             <b>Source:</b>{% for source in question.source.all %}{{ source.name }}{% endfor %}
-            {% if question.figure %}<a href="{{ question.figure.url }}"><b>illustration</b></a>{% endif %}
+            {% if question.get_ultimate_latest_revision.figure %}<a href="{{ question.get_ultimate_latest_revision.figure.url }}"><b>illustration</b></a>{% endif %}
             <b>Exam Type:</b>{{ question.get_exam_type_display }}
             <b> Status:</b>{{ question.get_status_display }}
         </p>
   <table id="revisions" class="display datatable dt-responsive">
                         <thead>
                             <tr>
+                                <th>ID</th>
                                 <th>Submitter</th>
                                 <th>Date of Submission</th>
                                 <th>Approval Status</th>
@@ -48,6 +49,7 @@
                         <tbody>
                         {% for revision in question.revision_set.all %}
                             <tr class="show-revision" data-url="{% url 'exams:show_question' revision.pk %}" data-revision_pk="{{ revision.pk }}">
+                            <td>{{ revision.pk }}</td>
                             <td>{{ revision.submitter }}</td>
                             <td data-order="{{ revision.submission_date|date:'U' }}">{{ revision.submission_date }}</td>
                             <td>{% if revision.is_approved %} Approved {% else %} Not Approved{% endif %}</td>

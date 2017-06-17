@@ -27,58 +27,7 @@
 <h1>Editing question</h1>
 <form action="{% url 'exams:submit_revision' exam.category.get_slugs exam.pk revision.question.pk %}" method="post" class="form">
 {% csrf_token %}
-
-        {% bootstrap_form_errors revisionform %}
-        <label class="control-label text-black">Question Text</label>
-
-        <div class="form-group has-feedback has-feedback-left">
-			{% bootstrap_field revisionform.text show_label=False %}
-			<div class="form-control-feedback">
-				<i class="icon-pencil text-muted"></i>
-			</div>
-		</div>
-            <label class="control-label text-black">Answer Exlaination</label>
-        		<div class="form-group has-feedback has-feedback-left">
-			{% bootstrap_field revisionform.explanation show_label=False %}
-			<div class="form-control-feedback">
-				<i class="icon-pencil text-muted"></i>
-			</div>
-		</div>
-                      <h2>Question choices</h2>
-                        {{ revisionchoiceformset.management_form }}
-                        {{ revisionchoiceformset.non_form_errors.as_ul }}
-                        <table id="choice_formset" class="form" style="width: 100%;">
-
-                        {% for form in revisionchoiceformset.forms %}
-                          {% if forloop.first %}
-                            <colgroup>
-                                <col class="col-xs-8">
-                                <col class="col-xs-2">
-                                <col class="col-xs-2">
-                            </colgroup>
-                          {% endif %}
-                          <tr class="form-container">
-                          {% for field in form.visible_fields %}
-                            <td>
-                            {% if forloop.first %}
-                              {% for hidden in form.hidden_fields %}
-                              {{ hidden }}
-                              {% endfor %}
-                            {% endif %}
-                                <div class="form-group">
-                              {{ field.errors.as_ul }}
-                              {% bootstrap_field field show_label=False %}
-                                </div>
-                            </td>
-                          {% endfor %}
-                          </tr>
-                        {% endfor %}
-                        </table>
-<input type="hidden" value="{{ exam.pk }}">
-{{ questionform.media }}
-               <button type="submit"  class="btn bg-primary btn-block btn-lg">Edit Question <i class="icon-circle-right2 position-right"></i></button>
-
-        </form>
+{% include 'exams/partials/question_form.html' %}
 
 {% endblock %}
 {% block customscript %}
@@ -86,6 +35,14 @@
     <script src="{% static 'js/jquery.autogrowtextarea.min.js' %}"></script>
     <script type="text/javascript">
     $(function(){
+        $('#exam-type select').change(function() {
+        if ($('#exam-type select option[value=OSPE]:checked').length) {
+            $('#figure').show();
+        } else {
+            $('#figure').hide();
+        }
+        });
+
         $('#choice_formset input[type=checkbox]').change(function(){
             $('#choice_formset input[type=checkbox]').not(this).prop('checked', false);  
         });

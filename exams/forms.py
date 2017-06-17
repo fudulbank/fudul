@@ -8,7 +8,7 @@ from teams import utils
 class QuestionForm(forms.ModelForm):
     class Meta:
         model = models.Question
-        fields = ['sources', 'subjects', 'figure', 'exam_type',
+        fields = ['sources', 'subjects','exam_type',
                   'status']
         widgets = {
             'sources': autocomplete.ModelSelect2Multiple(url='exams:source_autocomplete',
@@ -21,7 +21,7 @@ class RevisionForm(forms.ModelForm):
 
     class Meta:
         model = models.Revision
-        fields = ['text', 'explanation','is_approved']
+        fields = ['text', 'explanation', 'figure', 'is_approved']
 
 class ChoiceForms(forms.ModelForm):
     class Meta:
