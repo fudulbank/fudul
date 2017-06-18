@@ -159,15 +159,16 @@ def list_questions(request, slugs, pk):
 
 @login_required
 @decorators.ajax_only
-def show_question(request, revision_pk):
-    revision = get_object_or_404(Revision,pk=revision_pk)
+def show_question(request, pk):
+    question = get_object_or_404(Question, pk=pk)
+    latest_revision = question.get_latest_revision()
     exam = revision.question.get_exam()
 
     # PERMISSION CHECK
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
 
-    context = {'revision': revision}
+    context = {'revision': latest_revision}
     return render(request, 'exams/partials/show_question.html', context)
 
 @login_required
@@ -215,8 +216,13 @@ def submit_revision(request,slugs,exam_pk, pk):
             question = questionform.save()
             new_revision = revisionform.save(commit=False)
             new_revision.question = question
-            if teams.utils.is_editor(request.user):
+
+            if teams.utils.is_editor(request.user) and \
+               question.status == 'COMPLETE':
                 new_revision.is_approved = True
+            else:
+                new_revision.is_approved = False
+
             # Setting primary key to None creates a new object, rather
             # than modifying the pre-existing one
             new_revision.pk = None
