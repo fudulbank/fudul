@@ -58,16 +58,10 @@ def add_question(request, slugs, pk):
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
 
-    exam_questions = Question.objects.filter(subjects__exam=exam).distinct()
-    incomplete_question_count = exam_questions.get_incomplete_count()
-    unapproved_question_count = exam_questions.get_unapproved_count()
-
     context = {'exam': exam,
                'questionform': forms.QuestionForm(),
                'revisionform': forms.RevisionForm(),
-               'revisionchoiceformset': forms.RevisionChoiceFormset(),
-               'unapproved_question_count':unapproved_question_count,
-               'incomplete_question_count':incomplete_question_count}
+               'revisionchoiceformset': forms.RevisionChoiceFormset()}
 
     return render(request, "exams/add_question.html", context)
 
@@ -118,12 +112,7 @@ def handle_question(request, exam_pk):
         revisionchoiceformset.save()
 
         template = get_template('exams/partials/exam_stats.html')
-        exam_questions = Question.objects.filter(subjects__exam=exam).distinct()
-        incomplete_question_count = exam_questions.get_incomplete_count()
-        unapproved_question_count = exam_questions.get_unapproved_count()
-        context = {'exam': exam,
-                   'unapproved_question_count':unapproved_question_count,
-                   'incomplete_question_count':incomplete_question_count}
+        context = {'exam': exam}
         stat_html = template.render(context)
 
         return {"message": "success",
@@ -165,19 +154,7 @@ def list_questions(request, slugs, pk):
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
 
-    revision_pool = Revision.objects.filter(question__subjects__exam=exam,
-                                            question__is_deleted=False,
-                                            is_last=True).distinct()
-    approved_pks = revision_pool.filter(is_approved=True)\
-                                .values_list('question__pk', flat=True)
-    approved_questions = Question.objects.filter(pk__in=approved_pks)
-    pending_pks = revision_pool.filter(is_approved=False)\
-                               .values_list('question__pk', flat=True)
-    pending_questions = Question.objects.filter(pk__in=pending_pks)
-
-    context={'exam': exam,
-             'approved_questions': approved_questions,
-             'pending_questions':pending_questions}
+    context={'exam': exam}
     return render(request, 'exams/list_questions.html', context)
 
 @login_required

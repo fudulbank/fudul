@@ -105,8 +105,23 @@ class Exam(models.Model):
 
         return False
 
-    def get_question_count(self):
-        return Question.objects.filter(subjects__exam=self).distinct().count()
+    def get_questions(self):
+        return Question.objects.undeleted()\
+                               .filter(subjects__exam=self).distinct()
+
+    def get_approved_questions(self):
+        pks = Revision.objects.filter(question__subjects__exam=self,
+                                      is_last=True, is_approved=True).distinct()\
+                              .values_list('question__pk',flat=True)
+        questions = Question.objects.undeleted().filter(pk__in=pks)
+        return questions
+
+    def get_pending_questions(self):
+        pks = Revision.objects.filter(question__subjects__exam=self,
+                                      is_last=True, is_approved=False).distinct()\
+                              .values_list('question__pk',flat=True)
+        questions = Question.objects.undeleted().filter(pk__in=pks)
+        return questions
 
     def __str__(self):
         return self.name

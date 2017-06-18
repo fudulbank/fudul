@@ -23,19 +23,15 @@
        No sources available.
       {% endif %}
     </li>
-    <li>{{ exam.get_question_count }} questions in total.</li>
-{# unapproved questions  #}
-        {% if unapproved_question_count %}
-            <li>{{  unapproved_question_count|length }} unapproved question{% if unapproved_question_conut > 1 %}s{% endif %}.</li>
-        {% else %}
-            <li>There are no unapproved questions.</li>
-        {% endif %}
-{# incomplete questions #}
-        {% if incomplete_question_count == 0 %}
-            <li>There are no incomplete questions.</li>
-        {% else %}
-            <li>{{  incomplete_question_count }} incomplete question{% if  incomplete_question_count > 1 %}s{% endif %}.</li>
-        {% endif %}
+    <li><strong>{{ exam.get_questions.count }} questions in total:</strong>
+       <ul>
+         <li>{{ exam.get_questions.complete.count }} complete questions.</li>
+         <li>{{ exam.get_approved_questions.count }} unapproved questions.</li>
+         <li>{{ exam.get_questions.unapproved.count }} unapproved questions.</li>
+         <li>{{ exam.get_questions.incomplete.count }} incomplete questions.</li>
+       </ul>
+    </li>
+</ul>
 <div class="text-right">
     <a href="{% url 'exams:list_questions' exam.category.get_slugs exam.pk %}" class="btn btn-primary">List questions <i class="icon-arrow-right14 position-right"></i></a>
 </div>

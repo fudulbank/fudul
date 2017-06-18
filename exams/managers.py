@@ -2,13 +2,17 @@ from django.db import models
 import accounts.utils
 
 class QuestionQuerySet(models.QuerySet):
-    def get_incomplete_count(self):
-        return self.undeleted().exclude(status='COMPLETE')\
-                   .distinct().count()
+    def complete(self):
+        return self.undeleted().filter(status='COMPLETE')\
+                   .distinct()
 
-    def get_unapproved_count(self):
+    def incomplete(self):
+        return self.undeleted().exclude(status='COMPLETE')\
+                   .distinct()
+
+    def unapproved(self):
         return self.undeleted().exclude(revision__is_approved=True)\
-                   .distinct().count()
+                   .distinct()
 
     def undeleted(self):
         return self.filter(is_deleted=False)
