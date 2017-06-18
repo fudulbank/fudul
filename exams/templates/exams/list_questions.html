@@ -11,7 +11,7 @@
                                                         {% endfor %}
                                                         <li><a href="{% url 'exams:show_category' exam.category.get_slugs %}">{{ exam.category.name }}</a></li>
                                                         <li><a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}">{{ exam.name }}</a></li>
-                                                        <li class="active">List questions</li>
+                                                        <li class="active">Question list</li>
 						</ul>
 					</div>
 {% endblock %}
@@ -106,17 +106,16 @@
             url = $(this).closest('tr').data('url');
 
             $("#show-question-modal").modal('show');
-
             $("#show-question-modal .modal-title").html("Full Question");
             $("#show-question-modal .modal-body").load(url);
 
         });
-				$("button.confirm-delete-question").click(function(){
-						var url = $(this).data('url');
-						var pk = $(this).data('pk');
-						$("#delete-question").data('url', url).data('pk', pk);
-						$("#confirm-delete-question-modal").modal('show');
-				});
+        $('tbody').on('click','button.confirm-delete-question',function () {
+            var url = $(this).data('url');
+            var pk = $(this).data('pk');
+            $("#delete-question").data('url', url).data('pk', pk);
+            $("#confirm-delete-question-modal").modal('show');
+        });
 				$("#delete-question").click(function () {
 		        /* get some values from elements on the page: */
 		        var url = $(this).data('url');
@@ -128,12 +127,10 @@
 		                // show success message (using toastr)
 		                toastr.options.positionClass = "toast-top-left";
 		                toastr.info("Question was successfuly deleted");
-										console.log("tr[data-pk=" +  pk + "]")
+
 										row = tables.row("tr[data-pk=" +  pk + "]");
 										row.remove().draw(false);
-
 										$("#confirm-delete-question-modal").modal('hide');
-
 		            } else {
 		                toastr.error(data.message);
 		            }
