@@ -93,6 +93,9 @@
 <script>
     $(function () {
         tables = $("#approved, #pending").DataTable({
+					  "columnDefs": [
+				    { "orderable": false, "targets": 5 }
+					],
             "order": [[ 4, "desc" ]]
         });
 
