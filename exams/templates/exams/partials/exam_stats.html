@@ -25,10 +25,10 @@
     </li>
     <li><strong>{{ exam.get_questions.count }} questions in total:</strong>
        <ul>
-         <li>{{ exam.get_questions.complete.count }} complete questions.</li>
-         <li>{{ exam.get_approved_questions.count }} unapproved questions.</li>
-         <li>{{ exam.get_questions.unapproved.count }} unapproved questions.</li>
-         <li>{{ exam.get_questions.incomplete.count }} incomplete questions.</li>
+         <li>{{ exam.get_questions.complete.count }} complete.</li>
+         <li>{{ exam.get_questions.incomplete.count }} incomplete.</li>
+         <li>{{ exam.get_approved_questions.count }} with latest revision approved.</li>
+         <li>{{ exam.get_pending_questions.count }} with latest revision pending.</li>
        </ul>
     </li>
 </ul>
