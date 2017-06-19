@@ -6,7 +6,7 @@ urlpatterns =[
 
     url(r'^ajax/subjects$', views.SubjectAutocomplete.as_view(), name='subject_autocomplete'),
     url(r'^ajax/sources$', views.SourceAutocomplete.as_view(), name='source_autocomplete'),
-    url(r'^ajax/show_question/(?P<pk>\d+)$', views.show_question, name='show_question'),
+    url(r'^ajax/show_question/(?P<pk>\d+)(?:/(?P<revision_pk>\d+))$', views.show_question, name='show_question'),
     url(r'^ajax/handle_question/(?P<exam_pk>\d+)$', views.handle_question, name='handle_question'),
     url(r'^ajax/delete_question/(?P<pk>\d+)$', views.delete_question, name='delete_question'),
 
