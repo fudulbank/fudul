@@ -30,7 +30,7 @@
 <a href="{% url 'exams:submit_revision' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}"><button style="float: right;margin-right: 3%" type="button" class="btn btn-info btn-rounded btn-xs"><i class=" icon-quill4 position-left"></i> Edit</button></a><a class="heading-elements-toggle"><i class="icon-more"></i></a>
 						</div>
         <div class="panel-body">
-        <p class="content-group-lg">
+        <p class="content-group-lg"><b>ID:</b>{{ question.pk }}
             <b>Subject:</b>{% for subject in question.subjects.all %}{{ subject.name }}{% endfor %}
             <b>Source:</b>{% for source in question.source.all %}{{ source.name }}{% endfor %}
             {% if question.get_ultimate_latest_revision.figure %}<a href="{{ question.get_ultimate_latest_revision.figure.url }}"><b>illustration</b></a>{% endif %}
