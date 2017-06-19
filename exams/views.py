@@ -159,16 +159,20 @@ def list_questions(request, slugs, pk):
 
 @login_required
 @decorators.ajax_only
-def show_question(request, pk):
+def show_question(request, pk, revision_pk=None):
     question = get_object_or_404(Question, pk=pk)
-    latest_revision = question.get_latest_revision()
-    exam = revision.question.get_exam()
+    if revision_pk:
+        revision = get_object_or_404(Revision, pk=revision_pk)
+    else:
+        revision = question.get_latest_revision()
+
+    exam = question.get_exam()
 
     # PERMISSION CHECK
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
 
-    context = {'revision': latest_revision}
+    context = {'revision': revision}
     return render(request, 'exams/partials/show_question.html', context)
 
 @login_required

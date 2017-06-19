@@ -10,7 +10,7 @@
 </thead>
 <tbody>
 {% for question in questions %}
-    <tr data-pk="{{ question.pk }}" data-url="{% url 'exams:show_question' question.get_latest_revision.pk %}">
+    <tr data-pk="{{ question.pk }}" data-url="{% url 'exams:show_question' question.pk %}">
     <td>{{ question.pk }}</td>
     <td> {{ question.get_latest_revision.text|linebreaks|truncatewords:20 }}</td>
     <td>{{ question.get_latest_revision.submitter }}</td>
