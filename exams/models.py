@@ -15,6 +15,8 @@ class Source(models.Model):
 
 class Status(models.Model):
     name = models.CharField(max_length=100)
+    # code_name is something more table than 'name'
+    code_name = models.CharField(max_length=50)
 
     def __str__(self):
         return self.name

@@ -17,7 +17,7 @@ def add_statuses(apps, schema_editor):
     Question = apps.get_model('exams', 'Question')
 
     for code_name, human_name in status_choices:
-        status = Status.objects.create(name=human_name)
+        status = Status.objects.create(name=human_name, code_name=code_name)
         status.question_set.add(*Question.objects.filter(status=code_name))
 
 def remove_statuses(apps, schema_editor):
@@ -25,7 +25,7 @@ def remove_statuses(apps, schema_editor):
     Question = apps.get_model('exams', 'Question')
 
     for code_name, human_name in status_choices:
-        status = Status.objects.get(name=human_name)
+        status = Status.objects.get(code_name=code_name)
         Question.objects.filter(statuses=status).update(status=code_name)
 
 class Migration(migrations.Migration):

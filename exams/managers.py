@@ -3,11 +3,11 @@ import accounts.utils
 
 class QuestionQuerySet(models.QuerySet):
     def complete(self):
-        return self.undeleted().filter(status='COMPLETE')\
+        return self.undeleted().filter(statuses__code_name='COMPLETE')\
                    .distinct()
 
     def incomplete(self):
-        return self.undeleted().exclude(status='COMPLETE')\
+        return self.undeleted().exclude(statuses__code_name='COMPLETE')\
                    .distinct()
 
     def unapproved(self):

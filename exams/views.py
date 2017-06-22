@@ -8,10 +8,9 @@ from django.shortcuts import get_object_or_404, render
 from django.template.loader import get_template
 from django.views.decorators import csrf
 
-from accounts.models import Institution, College
 from core import decorators
 from .models import Exam, Question, Category, Revision
-from . import forms
+from . import forms, utils
 import teams.utils
 
 
@@ -104,7 +103,7 @@ def handle_question(request, exam_pk):
         question = questionform.save()
         revision = revisionform.save(commit=False)
         if teams.utils.is_editor(request.user) and \
-           question.status == 'COMPLETE':
+           utils.is_question_complete(question):
             revision.is_approved = True
         revision.question = question
         revision.save()
@@ -205,7 +204,7 @@ def submit_revision(request,slugs,exam_pk, pk):
             new_revision.question = question
 
             if teams.utils.is_editor(request.user) and \
-               question.status == 'COMPLETE':
+               utils.is_question_complete(question):
                 new_revision.is_approved = True
             else:
                 new_revision.is_approved = False
@@ -245,17 +244,17 @@ def submit_revision(request,slugs,exam_pk, pk):
     return render(request, 'exams/submit_revision.html', context)
 
 @login_required
-def list_question_per_status (request, slugs, exam_pk):
+def list_question_per_status(request, slugs, exam_pk):
     category = Category.objects.get_from_slugs(slugs)
     if not category:
         raise Http404
 
     exam = get_object_or_404(Exam, pk=exam_pk)
     question_pool = Question.objects.undeleted().filter(subjects__exam=exam).distinct()
-    writing_error = question_pool.filter(status='WRITING_ERROR')
-    unsloved = question_pool.filter(status='UNSOLVED')
-    incomplete_answer = question_pool.filter(status='INCOMPLETE_ANSWERS')
-    incomplete_question = question_pool.filter(status='INCOMPLETE_QUESTION')
+    writing_error = question_pool.filter(statuses__code_name='WRITING_ERROR')
+    unsloved = question_pool.filter(statuses__code_name='UNSOLVED')
+    incomplete_answer = question_pool.filter(statuses__code_name='INCOMPLETE_ANSWERS')
+    incomplete_question = question_pool.filter(statuses__code_name='INCOMPLETE_QUESTION')
     context ={'writing_error':writing_error, 'unsloved':unsloved, 'incomplete_answer':incomplete_answer,
               'incomplete_question':incomplete_question,'exam':exam}
     return render(request, 'exams/list_question_per_status.html', context)
