@@ -58,7 +58,7 @@ def add_question(request, slugs, pk):
         raise PermissionDenied
 
     context = {'exam': exam,
-               'questionform': forms.QuestionForm(),
+               'questionform': forms.QuestionForm(exam=exam),
                'revisionform': forms.RevisionForm(),
                'revisionchoiceformset': forms.RevisionChoiceFormset()}
 
@@ -193,7 +193,8 @@ def submit_revision(request,slugs,exam_pk, pk):
     if request.method == 'POST':
         questionform = forms.QuestionForm(request.POST,
                                           request.FILES,
-                                          instance=question)
+                                          instance=question,
+                                          exam=exam)
         revisionform = forms.RevisionForm(request.POST,
                                           instance=latest_revision)
 
@@ -235,7 +236,7 @@ def submit_revision(request,slugs,exam_pk, pk):
             return HttpResponseRedirect(reverse("exams:list_revisions", args=(exam.category.get_slugs(),exam.pk,question.pk)))
 
     elif request.method == 'GET':
-        questionform = forms.QuestionForm(instance=question)
+        questionform = forms.QuestionForm(instance=question, exam=exam)
         revisionform = forms.RevisionForm(instance=latest_revision)
         revisionchoiceformset = forms.RevisionChoiceFormset(instance=latest_revision)
     context['questionform'] = questionform

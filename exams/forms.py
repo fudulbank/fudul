@@ -7,7 +7,7 @@ from teams import utils
 
 class QuestionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-        exam = kwargs.pop('exams')
+        exam = kwargs.pop('exam')
         super(QuestionForm, self).__init__(*args, **kwargs)
         self.fields['subjects'] = models.Subject.objects.filter(exam=exam)
         self.fields['sources'] = exam.get_sources()
