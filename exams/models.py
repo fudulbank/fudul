@@ -184,7 +184,6 @@ class Question(models.Model):
                                  choices=exam_type_choices)
     is_deleted = models.BooleanField(default=False)
     statuses = models.ManyToManyField(Status)
-    status = models.CharField(max_length=30, choices=status_choices)
     objects = managers.QuestionQuerySet.as_manager()
     parent_question = models.ForeignKey('self', null=True, blank=True,
                                         related_name="children",
@@ -229,7 +228,6 @@ class Revision (models.Model):
     submission_date = models.DateTimeField(auto_now_add=True)
     approval_date = models.DateField(blank=True, null=True)
     is_deleted = models.BooleanField(default=False)
-    status = models.CharField(max_length=30, choices=status_choices)
 
     def save(self, *args, **kwargs):
         if self.is_approved:
