@@ -35,5 +35,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(add_statuses, reverse_code=remove_statuses)
+        migrations.RunPython(add_statuses,
+                             reverse_code=remove_statuses)
     ]

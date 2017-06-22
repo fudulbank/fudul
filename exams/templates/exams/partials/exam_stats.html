@@ -25,8 +25,8 @@
     </li>
     <li><strong>{{ exam.get_questions.count }} questions in total:</strong>
        <ul>
-         <li>{{ exam.get_questions.complete.count }} complete.</li>
-         <li>{{ exam.get_questions.incomplete.count }} incomplete.</li>
+         <li>{{ exam.get_complete_questions.count }} complete.</li>
+         <li>{{ exam.get_incomplete_questions.count }} incomplete.</li>
          <li>{{ exam.get_approved_questions.count }} with latest revision approved.</li>
          <li>{{ exam.get_pending_questions.count }} with latest revision pending.</li>
        </ul>

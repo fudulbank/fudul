@@ -16,14 +16,6 @@
 					</div>
 {% endblock %}
 {% block content %}
-    <style>
-    .panel-body p{
-        margin-left: 5%;
-    }
-    .panel-body b{
-        margin-left: 3%;
-    }
-    </style>
     <div class="panel panel-flat">
     <div class="panel-heading">
 							<h5 style="font-weight: bolder" class="panel-title">Question Revisions</h5>
@@ -35,7 +27,7 @@
             <b>Source:</b>{% for source in question.source.all %}{{ source.name }}{% endfor %}
             {% if question.get_ultimate_latest_revision.figure %}<a href="{{ question.get_ultimate_latest_revision.figure.url }}"><b>illustration</b></a>{% endif %}
             <b>Exam Type:</b>{{ question.get_exam_type_display }}
-            <b> Status:</b> <ul>{% for status in question.statuses.all %}<li>{{ status.name }}</li>{% endfor %}</ul>
+            <b> Status:</b> {% for status in question.get_latest_revision.statuses.all %}{{ status.name }} {% endfor %}
         </p>
   <table id="revisions" class="display datatable dt-responsive">
                         <thead>
@@ -67,15 +59,21 @@
 	<link rel="stylesheet" href="{% static 'js/datatables/responsive/css/responsive.dataTables.min.css' %}">
 	<script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
     <script src="{% static 'js/datatables/responsive/js/dataTables.responsive.min.js' %}"></script>
-<style type="text/css">
-    th, td{
-        text-align: left;
-    }
+<style>
+.panel-body p{
+    margin-left: 5%;
+}
+.panel-body b{
+    margin-left: 3%;
+}
+th, td{
+    text-align: left;
+}
 </style>
 	<script>
     $(function(){
         $("#revisions").dataTable({
-            order: [[ 1, "desc" ]]
+            order: [[ 0, "desc" ]]
         });
 
     });

@@ -103,11 +103,17 @@ def handle_question(request, exam_pk):
     if questionform.is_valid() and revisionform.is_valid() and revisionchoiceformset.is_valid():
         question = questionform.save()
         revision = revisionform.save(commit=False)
-        if teams.utils.is_editor(request.user) and \
-           utils.is_question_complete(question):
-            revision.is_approved = True
         revision.question = question
         revision.save()
+        revisionform.save_m2m()
+
+        if teams.utils.is_editor(request.user) and \
+           revision.statuses.filter(code_name='COMPLETE').exists():
+            revision.is_approved = True
+        else:
+            revision.is_approved = False
+        revision.save()
+
         revisionchoiceformset.instance = revision
         revisionchoiceformset.save()
 
@@ -203,22 +209,25 @@ def submit_revision(request,slugs,exam_pk, pk):
         if questionform.is_valid() and revisionform.is_valid() and revisionchoiceformset.is_valid():
             question = questionform.save()
             new_revision = revisionform.save(commit=False)
-            new_revision.question = question
-
-            if teams.utils.is_editor(request.user) and \
-               utils.is_question_complete(question):
-                new_revision.is_approved = True
-            else:
-                new_revision.is_approved = False
-
             # Setting primary key to None creates a new object, rather
             # than modifying the pre-existing one
             new_revision.pk = None
             new_revision.submitter = request.user
             new_revision.save()
+            revisionform.save_m2m()
 
-            latest_revision.is_last = False
-            latest_revision.save()
+            # Make sure that all previous revisions are set to
+            # is_last=False
+            question.revision_set.exclude(pk=new_revision.pk)\
+                                 .update(is_last=False)
+
+            if teams.utils.is_editor(request.user) and \
+               new_revision.statuses.filter(code_name='COMPLETE').exists():
+                new_revision.is_approved = True
+            else:
+                new_revision.is_approved = False
+
+            new_revision.save()
 
             # Let's clone choices!
             modified_choices = revisionchoiceformset.save(commit=False)

@@ -117,17 +117,33 @@ class Exam(models.Model):
         return Question.objects.undeleted()\
                                .filter(subjects__exam=self).distinct()
 
+    def get_complete_questions(self):
+        pks = Revision.objects.filter(question__subjects__exam=self,
+                                      statuses__code_name='COMPLETE',
+                                      is_last=True).distinct()\
+                              .values_list('question__pk', flat=True)
+        questions = Question.objects.undeleted().filter(pk__in=pks)
+        return questions
+
+    def get_incomplete_questions(self):
+        pks = Revision.objects.filter(question__subjects__exam=self,
+                                      is_last=True).distinct()\
+                              .exclude(statuses__code_name='COMPLETE')\
+                              .values_list('question__pk', flat=True)
+        questions = Question.objects.undeleted().filter(pk__in=pks)
+        return questions
+
     def get_approved_questions(self):
         pks = Revision.objects.filter(question__subjects__exam=self,
                                       is_last=True, is_approved=True).distinct()\
-                              .values_list('question__pk',flat=True)
+                              .values_list('question__pk', flat=True)
         questions = Question.objects.undeleted().filter(pk__in=pks)
         return questions
 
     def get_pending_questions(self):
         pks = Revision.objects.filter(question__subjects__exam=self,
                                       is_last=True, is_approved=False).distinct()\
-                              .values_list('question__pk',flat=True)
+                              .values_list('question__pk', flat=True)
         questions = Question.objects.undeleted().filter(pk__in=pks)
         return questions
 
@@ -203,6 +219,7 @@ class Revision (models.Model):
     question = models.ForeignKey(Question)
     submitter = models.ForeignKey(User, null=True, blank=True)
     text = models.TextField()
+    statuses = models.ManyToManyField(Status)
     figure = models.ImageField(upload_to="revision_images",
                                blank=True)
     explanation = models.TextField(default="", blank=True)

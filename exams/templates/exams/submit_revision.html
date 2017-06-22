@@ -16,6 +16,13 @@
 					</div>
 {% endblock %}
 {% block content %}
+<h1>Editing question</h1>
+<form action="{% url 'exams:submit_revision' exam.category.get_slugs exam.pk revision.question.pk %}" method="post" class="form">
+{% csrf_token %}
+{% include 'exams/partials/question_form.html' %}
+
+{% endblock %}
+{% block customscript %}
 <style>
 .panel-body a {
     color: white;
@@ -24,13 +31,6 @@
     margin-top: auto
 }
 </style>
-<h1>Editing question</h1>
-<form action="{% url 'exams:submit_revision' exam.category.get_slugs exam.pk revision.question.pk %}" method="post" class="form">
-{% csrf_token %}
-{% include 'exams/partials/question_form.html' %}
-
-{% endblock %}
-{% block customscript %}
     <script src="{% static 'js/jquery.formset.js' %}"></script>
     <script src="{% static 'js/jquery.autogrowtextarea.min.js' %}"></script>
     <script type="text/javascript">

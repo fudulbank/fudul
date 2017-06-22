@@ -14,20 +14,21 @@ class QuestionForm(forms.ModelForm):
 
     class Meta:
         model = models.Question
-        fields = ['sources', 'subjects','exam_type',
-                  'statuses']
+        fields = ['sources', 'subjects','exam_type']
         widgets = {
             'exam_type': autocomplete.ListSelect2(),
-            'statuses': autocomplete.ModelSelect2Multiple(),
-            'sources': autocomplete.ModelSelect2Multiple(forward=['exam_pk']),
-            'subjects': autocomplete.ModelSelect2Multiple(forward=['exam_pk'])
+            'sources': autocomplete.ModelSelect2Multiple(),
+            'subjects': autocomplete.ModelSelect2Multiple()
         }
 
 class RevisionForm(forms.ModelForm):
-
     class Meta:
         model = models.Revision
-        fields = ['text', 'explanation', 'figure', 'is_approved']
+        fields = ['text', 'explanation', 'figure', 'is_approved',
+                  'statuses']
+        widgets = {
+            'statuses': autocomplete.ModelSelect2Multiple(),
+        }
 
 class ChoiceForms(forms.ModelForm):
     class Meta:

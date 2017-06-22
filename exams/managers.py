@@ -2,14 +2,6 @@ from django.db import models
 import accounts.utils
 
 class QuestionQuerySet(models.QuerySet):
-    def complete(self):
-        return self.undeleted().filter(statuses__code_name='COMPLETE')\
-                   .distinct()
-
-    def incomplete(self):
-        return self.undeleted().exclude(statuses__code_name='COMPLETE')\
-                   .distinct()
-
     def unapproved(self):
         return self.undeleted().exclude(revision__is_approved=True)\
                    .distinct()
