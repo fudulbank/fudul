@@ -104,7 +104,7 @@ def handle_question(request, exam_pk):
         question = questionform.save()
         revision = revisionform.save(commit=False)
         if teams.utils.is_editor(request.user) and \
-           question.status == 'COMPLETE':
+           revision.status == 'COMPLETE':
             revision.is_approved = True
         revision.question = question
         revision.save()
@@ -222,7 +222,7 @@ def submit_revision(request,slugs,exam_pk, pk):
             new_revision.question = question
 
             if teams.utils.is_editor(request.user) and \
-               question.status == 'COMPLETE':
+                new_revision.status == 'COMPLETE':
                 new_revision.is_approved = True
             else:
                 new_revision.is_approved = False
@@ -266,14 +266,7 @@ def list_question_per_status (request, slugs, exam_pk):
     category = Category.objects.get_from_slugs(slugs)
     if not category:
         raise Http404
-
     exam = get_object_or_404(Exam, pk=exam_pk)
-    question_pool = Question.objects.undeleted().filter(subjects__exam=exam).distinct()
-    writing_error = question_pool.filter(status='WRITING_ERROR')
-    unsloved = question_pool.filter(status='UNSOLVED')
-    incomplete_answer = question_pool.filter(status='INCOMPLETE_ANSWERS')
-    incomplete_question = question_pool.filter(status='INCOMPLETE_QUESTION')
-    context ={'writing_error':writing_error, 'unsloved':unsloved, 'incomplete_answer':incomplete_answer,
-              'incomplete_question':incomplete_question,'exam':exam}
+    context ={'exam':exam}
     return render(request, 'exams/list_question_per_status.html', context)
 

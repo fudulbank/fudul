@@ -1,5 +1,6 @@
 {% load bootstrap3 %}
         {% bootstrap_form_errors questionform %}
+        {% bootstrap_form_errors revisionform %}
         <form method="post" data-exam_pk='{{ exam.pk }}' enctype="multipart/form-data" id="add-question-form" action="post">
 	    {% csrf_token %}
 
@@ -15,7 +16,7 @@
 	<div class="col-md-6">
 		<div class="form-group">
                         <label class="control-label"><i class="icon-stack-check text-muted"></i> Status</label>
-			{% bootstrap_field questionform.status show_label=False  %}
+			{% bootstrap_field revisionform.status show_label=False  %}
 		</div>
 	</div>
 	<div class="col-md-6">
@@ -31,7 +32,7 @@
 
 		</div>
 	</div>
-        {% bootstrap_form_errors revisionform %}
+
 
 	<div class="col-md-6">
 		<div class="form-group" id="figure" style="display: none">

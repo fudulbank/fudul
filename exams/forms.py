@@ -21,7 +21,7 @@ class RevisionForm(forms.ModelForm):
 
     class Meta:
         model = models.Revision
-        fields = ['text', 'explanation', 'figure', 'is_approved']
+        fields = ['text', 'explanation', 'figure', 'is_approved','status']
 
 class ChoiceForms(forms.ModelForm):
     class Meta:

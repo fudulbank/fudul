@@ -123,6 +123,34 @@ class Exam(models.Model):
         questions = Question.objects.undeleted().filter(pk__in=pks)
         return questions
 
+    def get_questions_with_writing_error(self):
+        pks = Revision.objects.filter(question__subjects__exam=self,
+                                      is_last=True,status='WRITING_ERROR').distinct()\
+                              .values_list('question__pk',flat=True)
+        questions = Question.objects.undeleted().filter(pk__in=pks)
+        return questions
+
+    def get_questions_with_incomplete_question(self):
+        pks = Revision.objects.filter(question__subjects__exam=self,
+                                      is_last=True,status='INCOMPLETE_QUESTION').distinct()\
+                              .values_list('question__pk',flat=True)
+        questions = Question.objects.undeleted().filter(pk__in=pks)
+        return questions
+
+    def get_questions_with_incomplete_answers(self):
+        pks = Revision.objects.filter(question__subjects__exam=self,
+                                      is_last=True,status='INCOMPLETE_ANSWERS').distinct()\
+                              .values_list('question__pk',flat=True)
+        questions = Question.objects.undeleted().filter(pk__in=pks)
+        return questions
+
+    def get_unsolved_questions(self):
+        pks = Revision.objects.filter(question__subjects__exam=self,
+                                      is_last=True, status='UNSOLVED').distinct()\
+                              .values_list('question__pk',flat=True)
+        questions = Question.objects.undeleted().filter(pk__in=pks)
+        return questions
+
     def __str__(self):
         return self.name
 
@@ -183,11 +211,6 @@ class Question(models.Model):
     def get_latest_revision(self):
         return self.revision_set.filter(is_deleted=False).order_by('-submission_date').first()
 
-    def get_ultimate_latest_revision(self):
-        if self.get_latest_approved_revision() is not None:
-            return self.get_latest_approved_revision()
-        else:
-            return self.get_latest_revision()
 
 
 class Revision (models.Model):

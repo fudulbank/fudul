@@ -33,7 +33,7 @@
         <p class="content-group-lg"><b>ID:</b>{{ question.pk }}
             <b>Subject:</b>{% for subject in question.subjects.all %}{{ subject.name }}{% endfor %}
             <b>Source:</b>{% for source in question.source.all %}{{ source.name }}{% endfor %}
-            {% if question.get_ultimate_latest_revision.figure %}<a href="{{ question.get_ultimate_latest_revision.figure.url }}"><b>illustration</b></a>{% endif %}
+            {% if question.get_latest_revision.figure %}<a href="{{ question.get_latest_revision.figure.url }}"><b>illustration</b></a>{% endif %}
             <b>Exam Type:</b>{{ question.get_exam_type_display }}
             <b> Status:</b>{{ question.get_status_display }}
         </p>
@@ -43,6 +43,7 @@
                                 <th>ID</th>
                                 <th>Submitter</th>
                                 <th>Date of Submission</th>
+                                <th>Revision Status</th>
                                 <th>Approval Status</th>
                             </tr>
                         </thead>
@@ -52,6 +53,7 @@
                             <td>{{ revision.pk }}</td>
                             <td>{{ revision.submitter }}</td>
                             <td data-order="{{ revision.submission_date|date:'U' }}">{{ revision.submission_date }}</td>
+                            <td>{{ revision.get_status_display }}</td>
                             <td>{% if revision.is_approved %} Approved {% else %} Not Approved{% endif %}</td>
                             </tr>
                         {% endfor %}
