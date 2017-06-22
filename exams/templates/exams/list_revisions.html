@@ -35,7 +35,7 @@
             <b>Source:</b>{% for source in question.source.all %}{{ source.name }}{% endfor %}
             {% if question.get_ultimate_latest_revision.figure %}<a href="{{ question.get_ultimate_latest_revision.figure.url }}"><b>illustration</b></a>{% endif %}
             <b>Exam Type:</b>{{ question.get_exam_type_display }}
-            <b> Status:</b>{{ question.get_status_display }}
+            <b> Status:</b> <ul>{% for status in question.statuses.all %}<li>{{ status.human_name }}</li>{% endfor %}</ul>
         </p>
   <table id="revisions" class="display datatable dt-responsive">
                         <thead>
