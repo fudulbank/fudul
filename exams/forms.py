@@ -9,8 +9,8 @@ class QuestionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         exam = kwargs.pop('exam')
         super(QuestionForm, self).__init__(*args, **kwargs)
-        self.fields['subjects'] = models.Subject.objects.filter(exam=exam)
-        self.fields['sources'] = exam.get_sources()
+        self.fields['subjects'].queryset = models.Subject.objects.filter(exam=exam)
+        self.fields['sources'].queryset = exam.get_sources()
 
     class Meta:
         model = models.Question
