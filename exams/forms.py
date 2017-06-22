@@ -6,6 +6,12 @@ from . import models
 from teams import utils
 
 class QuestionForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        exam = kwargs.pop('exams')
+        super(QuestionForm, self).__init__(*args, **kwargs)
+        self.fields['subjects'] = models.Subject.objects.filter(exam=exam)
+        self.fields['sources'] = exam.get_sources()
+
     class Meta:
         model = models.Question
         fields = ['sources', 'subjects','exam_type',

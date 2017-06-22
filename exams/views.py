@@ -94,7 +94,8 @@ def handle_question(request, exam_pk):
     instance = Revision(submitter=request.user, is_first=True,
                         is_last=True)
     questionform = forms.QuestionForm(request.POST,
-                                      request.FILES)
+                                      request.FILES,
+                                      exam=exam)
     revisionform = forms.RevisionForm(request.POST,
                                       instance=instance)
     revisionchoiceformset = forms.RevisionChoiceFormset(request.POST)

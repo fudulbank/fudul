@@ -163,11 +163,11 @@ status_choices = (
 
 class Question(models.Model):
     sources = models.ManyToManyField(Source, blank=True)
-    subjects = models.ManyToManyField(Subject, blank=True)
-    exam_type = models.CharField(max_length=15,
+    subjects = models.ManyToManyField(Subject)
+    exam_type = models.CharField(max_length=15, blank=True,
                                  choices=exam_type_choices)
     is_deleted = models.BooleanField(default=False)
-    statuses = models.ManyToManyField(Status, blank=True)
+    statuses = models.ManyToManyField(Status)
     status = models.CharField(max_length=30, choices=status_choices)
     objects = managers.QuestionQuerySet.as_manager()
     parent_question = models.ForeignKey('self', null=True, blank=True,
