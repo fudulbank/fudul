@@ -9,11 +9,6 @@ class Team(models.Model):
                                      related_name="team_memberships")
     categories = models.ManyToManyField('exams.Category',
                                         related_name="privileged_teams")
-    access_choices = (
-        ('editors', 'Editors'),
-        ('collectors', 'Collectors')
-        )
-    access = models.CharField(max_length=10, choices=access_choices,default='')
 
     def get_member_count(self):
         return self.members.count()

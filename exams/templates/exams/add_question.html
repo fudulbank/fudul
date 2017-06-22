@@ -28,6 +28,10 @@
     font-weight: bold;
     margin-top: auto
 }
+
+.select2-selection--single{
+    padding: 0;
+}
 </style>
 <div class="row">
    <div class="col-md-8">
@@ -84,7 +88,6 @@
         }
         });
 
-        //$('#id_status, #id_exam_type').select2();
         $('#choice_formset input[type=checkbox]').change(function(){
             $('#choice_formset input[type=checkbox]').not(this).prop('checked', false);
         });
@@ -120,7 +123,7 @@
                 success: function (data) {
                     if (data.message == "success") {
                         $(':input').not(':button, :submit, :reset, :hidden').removeAttr('checked').removeAttr('selected').not('‌​:checkbox, :radio, select').val('');
-                        $('#id_subjects, #id_status').val('').trigger('change');
+                        $('#id_subjects, #id_statuses').val('').trigger('change');
 
                         // show success message (using toastr)
                         toastr.options.positionClass = "toast-top-left";

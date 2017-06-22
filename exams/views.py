@@ -10,7 +10,7 @@ from django.views.decorators import csrf
 
 from accounts.models import Institution, College
 from core import decorators
-from .models import Exam, Subject, Question, Category, Revision,Source
+from .models import Exam, Question, Category, Revision
 from . import forms
 import teams.utils
 
@@ -124,23 +124,6 @@ def handle_question(request, exam_pk):
                'revisionchoiceformset': revisionchoiceformset}
 
     return render(request, "exams/partials/question_form.html", context)
-
-class SubjectAutocomplete(autocomplete.Select2QuerySetView):
-    def get_queryset(self):
-        exam_pk = self.forwarded.get('exam_pk')
-        qs = Subject.objects.filter(exam__pk=exam_pk)
-        if self.q:
-            qs = qs.filter(name=self.q)
-        return qs
-
-class SourceAutocomplete(autocomplete.Select2QuerySetView):
-    def get_queryset(self):
-        exam_pk =  self.forwarded.get('exam_pk')
-        exam = Exam.objects.get(pk=exam_pk)
-        qs = exam.get_sources()
-        if self.q:
-            qs = qs.filter(name=self.q)
-        return qs
 
 @login_required
 def list_questions(request, slugs, pk):

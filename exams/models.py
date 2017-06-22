@@ -13,6 +13,12 @@ class Source(models.Model):
     def __str__(self):
         return self.name
 
+class Status(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+    
 class Category(models.Model):
     slug = models.SlugField(max_length=50)
     name = models.CharField(max_length=100)
@@ -159,6 +165,7 @@ class Question(models.Model):
     exam_type = models.CharField(max_length=15,
                                  choices=exam_type_choices)
     is_deleted = models.BooleanField(default=False)
+    statuses = models.ManyToManyField(Status, blank=True)
     status = models.CharField(max_length=30, choices=status_choices)
     objects = managers.QuestionQuerySet.as_manager()
     parent_question = models.ForeignKey('self', null=True, blank=True,

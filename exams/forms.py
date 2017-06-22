@@ -9,12 +9,12 @@ class QuestionForm(forms.ModelForm):
     class Meta:
         model = models.Question
         fields = ['sources', 'subjects','exam_type',
-                  'status']
+                  'statuses']
         widgets = {
-            'sources': autocomplete.ModelSelect2Multiple(url='exams:source_autocomplete',
-                                                        forward=['exam_pk']),
-            'subjects': autocomplete.ModelSelect2Multiple(url='exams:subject_autocomplete',
-                                                         forward=['exam_pk'])
+            'exam_type': autocomplete.ListSelect2(),
+            'statuses': autocomplete.ModelSelect2Multiple(),
+            'sources': autocomplete.ModelSelect2Multiple(forward=['exam_pk']),
+            'subjects': autocomplete.ModelSelect2Multiple(forward=['exam_pk'])
         }
 
 class RevisionForm(forms.ModelForm):
