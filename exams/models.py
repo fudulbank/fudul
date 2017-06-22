@@ -161,6 +161,10 @@ class Question(models.Model):
     is_deleted = models.BooleanField(default=False)
     status = models.CharField(max_length=30, choices=status_choices)
     objects = managers.QuestionQuerySet.as_manager()
+    parent_question = models.ForeignKey('self', null=True, blank=True,
+                                        related_name="children",
+                                        on_delete=models.SET_NULL,
+                                        default=None)
 
     def __str__(self):
         return self.status
@@ -199,6 +203,7 @@ class Revision (models.Model):
     submission_date = models.DateTimeField(auto_now_add=True)
     approval_date = models.DateField(blank=True, null=True)
     is_deleted = models.BooleanField(default=False)
+    status = models.CharField(max_length=30, choices=status_choices)
 
     def save(self, *args, **kwargs):
         if self.is_approved:
