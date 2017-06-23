@@ -3,6 +3,7 @@ from exams import views
 
 urlpatterns =[
     url(r'^$', views.list_meta_categories, name='list_meta_categories'),
+    url(r'^ajax/questions$', views.QuestionAutocomplete.as_view(), name='autocomplete_questions'),
     url(r'^ajax/show_question/(?P<pk>\d+)(?:/(?P<revision_pk>\d+))?$', views.show_question, name='show_question'),
     url(r'^ajax/handle_question/(?P<exam_pk>\d+)$', views.handle_question, name='handle_question'),
     url(r'^ajax/delete_question/(?P<pk>\d+)$', views.delete_question, name='delete_question'),

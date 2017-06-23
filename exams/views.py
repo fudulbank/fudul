@@ -64,6 +64,19 @@ def add_question(request, slugs, pk):
 
     return render(request, "exams/add_question.html", context)
 
+class QuestionAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        exam_pk = self.forwarded.get('exam_pk')
+        exam = Exam.objects.get(pk=exam_pk)
+        qs = exam.get_questions()
+        if self.q:
+            qs = qs.filter(pk=self.q)
+        return qs
+
+    def get_result_label(self, item):
+        text_preview = str(item)
+        return "<strong>{}</strong>: {}".format(item.pk, text_preview)
+
 @csrf.csrf_exempt
 @decorators.post_only
 @decorators.ajax_only
@@ -122,7 +135,8 @@ def handle_question(request, exam_pk):
         stat_html = template.render(context)
 
         return {"message": "success",
-                'stat_html': stat_html}
+                "question_pk": question.pk,
+                "stat_html": stat_html}
 
     context = {'exam': exam,
                'questionform': questionform,

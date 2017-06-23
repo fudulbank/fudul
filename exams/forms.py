@@ -14,9 +14,12 @@ class QuestionForm(forms.ModelForm):
 
     class Meta:
         model = models.Question
-        fields = ['sources', 'subjects','exam_type']
+        fields = ['sources', 'subjects','exam_type', 'parent_question']
         widgets = {
             'exam_type': autocomplete.ListSelect2(),
+            'parent_question': autocomplete.ModelSelect2(url='exams:autocomplete_questions',
+                                                         forward=['exam_pk'],
+                                                         attrs={'data-html': True}),
             'sources': autocomplete.ModelSelect2Multiple(),
             'subjects': autocomplete.ModelSelect2Multiple()
         }

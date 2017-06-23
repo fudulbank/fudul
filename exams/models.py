@@ -2,8 +2,10 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
 from accounts.models import College, Batch
-import accounts.utils
 from . import managers
+import accounts.utils
+import textwrap
+
 
 class Source(models.Model):
     name = models.CharField(max_length=100)
@@ -191,7 +193,9 @@ class Question(models.Model):
                                         default=None)
 
     def __str__(self):
-        return self.status
+        latest_revision = self.get_latest_revision()
+        return textwrap.shorten(latest_revision.text, 70,
+                                placeholder='...')
 
     def is_user_creator(self, user):
         first_revision = self.revision_set.order_by("submission_date").first()
