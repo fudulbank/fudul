@@ -6,6 +6,16 @@ class QuestionQuerySet(models.QuerySet):
         return self.undeleted().exclude(revision__is_approved=True)\
                    .distinct()
 
+    def order_by_submission(self):
+        return self.order_by('-pk')
+
+    def undeleted(self):
+        return self.filter(is_deleted=False)
+
+class RevisionQuerySet(models.QuerySet):
+    def order_by_submission(self):
+        return self.order_by('-pk')
+
     def undeleted(self):
         return self.filter(is_deleted=False)
 

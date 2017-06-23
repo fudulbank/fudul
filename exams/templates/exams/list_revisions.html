@@ -39,7 +39,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                        {% for revision in question.revision_set.all %}
+                        {% for revision in question.revision_set.order_by_submission %}
                             <tr class="show-revision" data-url="{% url 'exams:show_question' revision.question.pk revision.pk %}" data-revision_pk="{{ revision.pk }}">
                             <td>{{ revision.pk }}</td>
                             <td>{{ revision.submitter }}</td>

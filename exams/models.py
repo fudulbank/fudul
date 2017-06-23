@@ -232,6 +232,7 @@ class Revision (models.Model):
     submission_date = models.DateTimeField(auto_now_add=True)
     approval_date = models.DateField(blank=True, null=True)
     is_deleted = models.BooleanField(default=False)
+    objects = managers.RevisionQuerySet.as_manager()
 
     def save(self, *args, **kwargs):
         if self.is_approved:
