@@ -2,17 +2,28 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
 from accounts.models import College, Batch
-import accounts.utils
 from . import managers
+import accounts.utils
+import textwrap
+
 
 class Source(models.Model):
     name = models.CharField(max_length=100)
     category = models.ForeignKey('Category')
     submission_date = models.DateTimeField(auto_now_add=True)
+    objects = managers.SourceQuerySet.as_manager()
 
     def __str__(self):
         return self.name
 
+class Status(models.Model):
+    name = models.CharField(max_length=100)
+    # code_name is something more table than 'name'
+    code_name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
+    
 class Category(models.Model):
     slug = models.SlugField(max_length=50)
     name = models.CharField(max_length=100)
@@ -109,17 +120,33 @@ class Exam(models.Model):
         return Question.objects.undeleted()\
                                .filter(subjects__exam=self).distinct()
 
+    def get_complete_questions(self):
+        pks = Revision.objects.filter(question__subjects__exam=self,
+                                      statuses__code_name='COMPLETE',
+                                      is_last=True).distinct()\
+                              .values_list('question__pk', flat=True)
+        questions = Question.objects.undeleted().filter(pk__in=pks)
+        return questions
+
+    def get_incomplete_questions(self):
+        pks = Revision.objects.filter(question__subjects__exam=self,
+                                      is_last=True).distinct()\
+                              .exclude(statuses__code_name='COMPLETE')\
+                              .values_list('question__pk', flat=True)
+        questions = Question.objects.undeleted().filter(pk__in=pks)
+        return questions
+
     def get_approved_questions(self):
         pks = Revision.objects.filter(question__subjects__exam=self,
                                       is_last=True, is_approved=True).distinct()\
-                              .values_list('question__pk',flat=True)
+                              .values_list('question__pk', flat=True)
         questions = Question.objects.undeleted().filter(pk__in=pks)
         return questions
 
     def get_pending_questions(self):
         pks = Revision.objects.filter(question__subjects__exam=self,
                                       is_last=True, is_approved=False).distinct()\
-                              .values_list('question__pk',flat=True)
+                              .values_list('question__pk', flat=True)
         questions = Question.objects.undeleted().filter(pk__in=pks)
         return questions
 
@@ -160,7 +187,7 @@ class Subject(models.Model):
     exam = models.ForeignKey(Exam)
     submission_date = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
-
+    objects = managers.SubjectQuerySet.as_manager()
     def __str__(self):
         return self.name
 
@@ -183,11 +210,11 @@ status_choices = (
 
 class Question(models.Model):
     sources = models.ManyToManyField(Source, blank=True)
-    subjects = models.ManyToManyField(Subject, blank=True)
-    exam_type = models.CharField(max_length=15,
+    subjects = models.ManyToManyField(Subject)
+    exam_type = models.CharField(max_length=15, blank=True,
                                  choices=exam_type_choices)
     is_deleted = models.BooleanField(default=False)
-    status = models.CharField(max_length=30, choices=status_choices)
+    statuses = models.ManyToManyField(Status)
     objects = managers.QuestionQuerySet.as_manager()
     parent_question = models.ForeignKey('self', null=True, blank=True,
                                         related_name="children",
@@ -195,7 +222,9 @@ class Question(models.Model):
                                         default=None)
 
     def __str__(self):
-        return self.status
+        latest_revision = self.get_latest_revision()
+        return textwrap.shorten(latest_revision.text, 70,
+                                placeholder='...')
 
     def is_user_creator(self, user):
         first_revision = self.revision_set.order_by("submission_date").first()
@@ -213,10 +242,11 @@ class Question(models.Model):
 
 
 
-class Revision (models.Model):
+class Revision(models.Model):
     question = models.ForeignKey(Question)
     submitter = models.ForeignKey(User, null=True, blank=True)
     text = models.TextField()
+    statuses = models.ManyToManyField(Status)
     figure = models.ImageField(upload_to="revision_images",
                                blank=True)
     explanation = models.TextField(default="", blank=True)
@@ -226,7 +256,10 @@ class Revision (models.Model):
     submission_date = models.DateTimeField(auto_now_add=True)
     approval_date = models.DateField(blank=True, null=True)
     is_deleted = models.BooleanField(default=False)
-    status = models.CharField(max_length=30, choices=status_choices)
+    objects = managers.RevisionQuerySet.as_manager()
+
+    def has_right_answer(self):
+        return self.choice_set.filter(is_answer=True).exists()
 
     def save(self, *args, **kwargs):
         if self.is_approved:
@@ -241,6 +274,7 @@ class Choice(models.Model):
     text = models.CharField(max_length=200)
     is_answer = models.BooleanField("Right answer?", default=False)
     revision = models.ForeignKey(Revision, on_delete=models.CASCADE,null=True)
+    objects = managers.ChoiceQuerySet.as_manager()
 
     def __str__(self):
         return self.text

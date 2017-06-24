@@ -6,22 +6,32 @@ from . import models
 from teams import utils
 
 class QuestionForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        exam = kwargs.pop('exam')
+        super(QuestionForm, self).__init__(*args, **kwargs)
+        self.fields['subjects'].queryset = models.Subject.objects.filter(exam=exam)
+        self.fields['sources'].queryset = exam.get_sources()
+
     class Meta:
         model = models.Question
-        fields = ['sources', 'subjects','exam_type',
-                  'status']
+        fields = ['sources', 'subjects','exam_type', 'parent_question']
         widgets = {
-            'sources': autocomplete.ModelSelect2Multiple(url='exams:source_autocomplete',
-                                                        forward=['exam_pk']),
-            'subjects': autocomplete.ModelSelect2Multiple(url='exams:subject_autocomplete',
-                                                         forward=['exam_pk'])
+            'exam_type': autocomplete.ListSelect2(),
+            'parent_question': autocomplete.ModelSelect2(url='exams:autocomplete_questions',
+                                                         forward=['exam_pk'],
+                                                         attrs={'data-html': True}),
+            'sources': autocomplete.ModelSelect2Multiple(),
+            'subjects': autocomplete.ModelSelect2Multiple()
         }
 
 class RevisionForm(forms.ModelForm):
-
     class Meta:
         model = models.Revision
-        fields = ['text', 'explanation', 'figure', 'is_approved','status']
+        fields = ['text', 'explanation', 'figure', 'is_approved',
+                  'statuses']
+        widgets = {
+            'statuses': autocomplete.ModelSelect2Multiple(),
+        }
 
 class ChoiceForms(forms.ModelForm):
     class Meta:

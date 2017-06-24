@@ -2,21 +2,34 @@ from django.db import models
 import accounts.utils
 
 class QuestionQuerySet(models.QuerySet):
-    def complete(self):
-        return self.undeleted().filter(status='COMPLETE')\
-                   .distinct()
-
-    def incomplete(self):
-        return self.undeleted().exclude(status='COMPLETE')\
-                   .distinct()
-
     def unapproved(self):
         return self.undeleted().exclude(revision__is_approved=True)\
                    .distinct()
 
+    def order_by_submission(self):
+        return self.order_by('-pk')
+
     def undeleted(self):
         return self.filter(is_deleted=False)
 
+class RevisionQuerySet(models.QuerySet):
+    def order_by_submission(self):
+        return self.order_by('-pk')
+
+    def undeleted(self):
+        return self.filter(is_deleted=False)
+
+class ChoiceQuerySet(models.QuerySet):
+    def order_by_alphabet(self):
+        return self.order_by('text')
+
+class SubjectQuerySet(models.QuerySet):
+    def order_by_total_questions(self):
+        return self.annotate(total_questions=models.Count('question')).order_by('-total_questions')
+
+class SourceQuerySet(models.QuerySet):
+    def order_by_total_questions(self):
+        return self.annotate(total_questions=models.Count('question')).order_by('-total_questions')
 
 class CategoryQuerySet(models.QuerySet):
     def get_from_slugs(self, slugs):

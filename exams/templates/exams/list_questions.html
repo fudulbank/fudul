@@ -34,7 +34,7 @@
 						</div>
         <div class="panel-body">
         <table id="approved" class="display datatable dt-responsive">
-{% with questions=exam.get_approved_questions %}
+{% with questions=exam.get_approved_questions.order_by_submission %}
 {% include 'exams/partials/question_table_content.html' %}
 {% endwith %}
             </table>
@@ -52,7 +52,7 @@
         </div>
         <div class="panel-body">
             <table id="pending" class="display datatable dt-responsive">
-{% with questions=exam.get_pending_questions %}
+{% with questions=exam.get_pending_questions.order_by_submission %}
 {% include 'exams/partials/question_table_content.html' %}
 {% endwith %}
             </table>
@@ -85,9 +85,16 @@
 	<script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
     <script src="{% static 'js/datatables/responsive/js/dataTables.responsive.min.js' %}"></script>
 <style type="text/css">
-    th, td{
-        text-align: left;
-    }
+th, td{
+    text-align: left;
+}
+tbody tr td{
+    cursor:pointer;
+}
+tbody tr td:last-child{
+    cursor:initial;
+}
+
 </style>
 <script src="{% static 'js/toastr.js' %}"></script>
 <script>
@@ -107,9 +114,9 @@
         });
         $('tbody').on('click','tr td:not(:last-child)',function () {
             url = $(this).closest('tr').data('url');
-
+            title_part = $(this).closest('tr').children('td:nth-child(1)').html();
             $("#show-question-modal").modal('show');
-            $("#show-question-modal .modal-title").html("Full Question");
+            $("#show-question-modal .modal-title").html("Question #" + title_part);
             $("#show-question-modal .modal-body").load(url);
 
         });

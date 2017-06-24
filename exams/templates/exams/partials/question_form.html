@@ -1,6 +1,5 @@
 {% load bootstrap3 %}
         {% bootstrap_form_errors questionform %}
-        {% bootstrap_form_errors revisionform %}
         <form method="post" data-exam_pk='{{ exam.pk }}' enctype="multipart/form-data" id="add-question-form" action="post">
 	    {% csrf_token %}
 
@@ -16,7 +15,7 @@
 	<div class="col-md-6">
 		<div class="form-group">
                         <label class="control-label"><i class="icon-stack-check text-muted"></i> Status</label>
-			{% bootstrap_field revisionform.status show_label=False  %}
+			{% bootstrap_field revisionform.statuses show_label=False  %}
 		</div>
 	</div>
 	<div class="col-md-6">
@@ -32,7 +31,14 @@
 
 		</div>
 	</div>
+	<div class="col-md-6">
+		<div class="form-group">
+                        <label class="control-label"><i class="icon-list-unordered text-muted"></i> Parent question</label>
+			{{ questionform.parent_question }}
 
+		</div>
+	</div>
+        {% bootstrap_form_errors revisionform %}
 
 	<div class="col-md-6">
 		<div class="form-group" id="figure" style="display: none">
@@ -100,3 +106,23 @@
 
         </form>
 
+<style>
+.select2-selection--single{
+    padding: 0;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: #0072d6;
+    color: #fff;
+    border-radius: 3px;
+    cursor: default;
+    float: left;
+    margin-right: 2px;
+    margin-top: 2px;
+    padding: 7px 12px;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove{
+    color: white;
+}
+</style>

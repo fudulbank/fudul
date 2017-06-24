@@ -8,10 +8,9 @@ from django.shortcuts import get_object_or_404, render
 from django.template.loader import get_template
 from django.views.decorators import csrf
 
-from accounts.models import Institution, College
 from core import decorators
-from .models import Exam, Subject, Question, Category, Revision,Source
-from . import forms
+from .models import Exam, Question, Category, Revision
+from . import forms, utils
 import teams.utils
 
 
@@ -59,11 +58,24 @@ def add_question(request, slugs, pk):
         raise PermissionDenied
 
     context = {'exam': exam,
-               'questionform': forms.QuestionForm(),
+               'questionform': forms.QuestionForm(exam=exam),
                'revisionform': forms.RevisionForm(),
                'revisionchoiceformset': forms.RevisionChoiceFormset()}
 
     return render(request, "exams/add_question.html", context)
+
+class QuestionAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        exam_pk = self.forwarded.get('exam_pk')
+        exam = Exam.objects.get(pk=exam_pk)
+        qs = exam.get_questions().order_by_submission()
+        if self.q:
+            qs = qs.filter(pk=self.q)
+        return qs
+
+    def get_result_label(self, item):
+        text_preview = str(item)
+        return "<strong>{}</strong>: {}".format(item.pk, text_preview)
 
 @csrf.csrf_exempt
 @decorators.post_only
@@ -95,7 +107,8 @@ def handle_question(request, exam_pk):
     instance = Revision(submitter=request.user, is_first=True,
                         is_last=True)
     questionform = forms.QuestionForm(request.POST,
-                                      request.FILES)
+                                      request.FILES,
+                                      exam=exam)
     revisionform = forms.RevisionForm(request.POST,
                                       instance=instance)
     revisionchoiceformset = forms.RevisionChoiceFormset(request.POST)
@@ -103,11 +116,17 @@ def handle_question(request, exam_pk):
     if questionform.is_valid() and revisionform.is_valid() and revisionchoiceformset.is_valid():
         question = questionform.save()
         revision = revisionform.save(commit=False)
-        if teams.utils.is_editor(request.user) and \
-           revision.status == 'COMPLETE':
-            revision.is_approved = True
         revision.question = question
         revision.save()
+        revisionform.save_m2m()
+
+        if teams.utils.is_editor(request.user) and \
+           revision.statuses.filter(code_name='COMPLETE').exists():
+            revision.is_approved = True
+        else:
+            revision.is_approved = False
+        revision.save()
+
         revisionchoiceformset.instance = revision
         revisionchoiceformset.save()
 
@@ -116,7 +135,8 @@ def handle_question(request, exam_pk):
         stat_html = template.render(context)
 
         return {"message": "success",
-                'stat_html': stat_html}
+                "question_pk": question.pk,
+                "stat_html": stat_html}
 
     context = {'exam': exam,
                'questionform': questionform,
@@ -124,23 +144,6 @@ def handle_question(request, exam_pk):
                'revisionchoiceformset': revisionchoiceformset}
 
     return render(request, "exams/partials/question_form.html", context)
-
-class SubjectAutocomplete(autocomplete.Select2QuerySetView):
-    def get_queryset(self):
-        exam_pk = self.forwarded.get('exam_pk')
-        qs = Subject.objects.filter(exam__pk=exam_pk)
-        if self.q:
-            qs = qs.filter(name=self.q)
-        return qs
-
-class SourceAutocomplete(autocomplete.Select2QuerySetView):
-    def get_queryset(self):
-        exam_pk =  self.forwarded.get('exam_pk')
-        exam = Exam.objects.get(pk=exam_pk)
-        qs = exam.get_sources()
-        if self.q:
-            qs = qs.filter(name=self.q)
-        return qs
 
 @login_required
 def list_questions(request, slugs, pk):
@@ -210,7 +213,8 @@ def submit_revision(request,slugs,exam_pk, pk):
     if request.method == 'POST':
         questionform = forms.QuestionForm(request.POST,
                                           request.FILES,
-                                          instance=question)
+                                          instance=question,
+                                          exam=exam)
         revisionform = forms.RevisionForm(request.POST,
                                           instance=latest_revision)
 
@@ -219,22 +223,25 @@ def submit_revision(request,slugs,exam_pk, pk):
         if questionform.is_valid() and revisionform.is_valid() and revisionchoiceformset.is_valid():
             question = questionform.save()
             new_revision = revisionform.save(commit=False)
-            new_revision.question = question
-
-            if teams.utils.is_editor(request.user) and \
-                new_revision.status == 'COMPLETE':
-                new_revision.is_approved = True
-            else:
-                new_revision.is_approved = False
-
             # Setting primary key to None creates a new object, rather
             # than modifying the pre-existing one
             new_revision.pk = None
             new_revision.submitter = request.user
             new_revision.save()
+            revisionform.save_m2m()
 
-            latest_revision.is_last = False
-            latest_revision.save()
+            # Make sure that all previous revisions are set to
+            # is_last=False
+            question.revision_set.exclude(pk=new_revision.pk)\
+                                 .update(is_last=False)
+
+            if teams.utils.is_editor(request.user) and \
+               new_revision.statuses.filter(code_name='COMPLETE').exists():
+                new_revision.is_approved = True
+            else:
+                new_revision.is_approved = False
+
+            new_revision.save()
 
             # Let's clone choices!
             modified_choices = revisionchoiceformset.save(commit=False)
@@ -252,7 +259,7 @@ def submit_revision(request,slugs,exam_pk, pk):
             return HttpResponseRedirect(reverse("exams:list_revisions", args=(exam.category.get_slugs(),exam.pk,question.pk)))
 
     elif request.method == 'GET':
-        questionform = forms.QuestionForm(instance=question)
+        questionform = forms.QuestionForm(instance=question, exam=exam)
         revisionform = forms.RevisionForm(instance=latest_revision)
         revisionchoiceformset = forms.RevisionChoiceFormset(instance=latest_revision)
     context['questionform'] = questionform
@@ -262,11 +269,18 @@ def submit_revision(request,slugs,exam_pk, pk):
     return render(request, 'exams/submit_revision.html', context)
 
 @login_required
-def list_question_per_status (request, slugs, exam_pk):
+def list_question_per_status(request, slugs, exam_pk):
     category = Category.objects.get_from_slugs(slugs)
     if not category:
         raise Http404
+
     exam = get_object_or_404(Exam, pk=exam_pk)
-    context ={'exam':exam}
+    question_pool = Question.objects.undeleted().filter(subjects__exam=exam).distinct()
+    writing_error = question_pool.filter(statuses__code_name='WRITING_ERROR')
+    unsloved = question_pool.filter(statuses__code_name='UNSOLVED')
+    incomplete_answer = question_pool.filter(statuses__code_name='INCOMPLETE_ANSWERS')
+    incomplete_question = question_pool.filter(statuses__code_name='INCOMPLETE_QUESTION')
+    context ={'writing_error':writing_error, 'unsloved':unsloved, 'incomplete_answer':incomplete_answer,
+              'incomplete_question':incomplete_question,'exam':exam}
     return render(request, 'exams/list_question_per_status.html', context)
 

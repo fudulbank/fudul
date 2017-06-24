@@ -5,18 +5,26 @@
         <th>Submitter</th>
         <th>Status</th>
         <th>Date of last revision</th>
+        <th>Has right answer?</th>
         <th>Actions</th>
     </tr>
 </thead>
 <tbody>
 {% for question in questions %}
-    <tr data-pk="{{ question.pk }}" data-url="{% url 'exams:show_question' question.pk %}">
+  <tr data-pk="{{ question.pk }}" data-url="{% url 'exams:show_question' question.pk %}">
     <td>{{ question.pk }}</td>
     <td> {{ question.get_latest_revision.text|linebreaks|truncatewords:20 }}</td>
     <td>{{ question.get_latest_revision.submitter }}</td>
-    <td>{{ question.get_latest_revision.get_status_display }}</td>
+    <td>
+       <ul>{% for status in question.get_latest_revision.statuses.all %}<li>{{ status.name }}</li>{% endfor %}</ul>
+    </td>
     <td data-order="{{ question.get_latest_revision.submission_date|date:'U' }}">{{ question.get_latest_revision.submission_date }}</td>
-    <td><a href="{% url 'exams:list_revisions' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}" class="btn btn-primary btn-icon btn-rounded"><i class="icon-menu7"></i></a> <button data-pk="{{ question.pk }}" data-url="{% url 'exams:delete_question' question.pk %}" class="confirm-delete-question btn btn-danger btn-icon btn-rounded"><i class="icon-cross2"></i></button></td>
-    </tr>
+    <td>{% if question.get_latest_revision.has_right_answer %}Yes{% else %}No{% endif %}</td>
+    <td>
+       <a href="{% url 'exams:list_revisions' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}"><button class="btn btn-primary btn-icon btn-rounded"><i class="icon-menu7"></i></button></a>
+       <a href="{% url 'exams:submit_revision' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}"><button class="btn btn-warning btn-icon btn-rounded"><i class="icon-pencil"></i></button></a>
+       <button data-pk="{{ question.pk }}" data-url="{% url 'exams:delete_question' question.pk %}" class="confirm-delete-question btn btn-danger btn-icon btn-rounded"><i class="icon-cross2"></i></button>
+    </td>
+  </tr>
 {% endfor %}
 </tbody>

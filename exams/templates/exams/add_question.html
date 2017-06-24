@@ -54,22 +54,6 @@
 </div> <!--row-->
 {% endblock %}
 {% block customscript %}
-<style>
-.select2-container--default .select2-selection--multiple .select2-selection__choice {
-    background-color: #0072d6;
-    color: #fff;
-    border-radius: 3px;
-    cursor: default;
-    float: left;
-    margin-right: 2px;
-    margin-top: 2px;
-    padding: 7px 12px;
-}
-
-.select2-container--default .select2-selection--multiple .select2-selection__choice__remove{
-    color: white;
-}
-</style>
     <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
     <script src="{% static 'js/jquery.formset.js' %}"></script>
     <script src="{% static 'js/jquery.autogrowtextarea.min.js' %}"></script>
@@ -84,7 +68,6 @@
         }
         });
 
-        //$('#id_status, #id_exam_type').select2();
         $('#choice_formset input[type=checkbox]').change(function(){
             $('#choice_formset input[type=checkbox]').not(this).prop('checked', false);
         });
@@ -119,12 +102,13 @@
                 processData: false,
                 success: function (data) {
                     if (data.message == "success") {
-                        $(':input').not(':button, :submit, :reset, :hidden').removeAttr('checked').removeAttr('selected').not('‌​:checkbox, :radio, select').val('');
-                        $('#id_subjects, #id_status').val('').trigger('change');
-
+                        $(':input').not(':button, :submit, :reset, :hidden, :checkbox').removeAttr('checked').removeAttr('selected').not('‌​:checkbox, :radio, select').val('');
+                        $('#id_subjects, #id_statuses, #id_parent_question').val('').trigger('change');
+                        // For some reason, doing checkbox clean-up in a second steps works!
+                        $('input:checkbox').removeAttr('checked');
                         // show success message (using toastr)
                         toastr.options.positionClass = "toast-top-left";
-                        toastr.success("The question has been successfully added. Fill another!");
+                        toastr.success("Question #" + data.question_pk + " has been successfully added. Fill another!");
 												$("#exam-stats .panel-body").html(data.stat_html);
                     } else {
                         toastr.warning("There was an issue! " + data.message);

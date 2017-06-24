@@ -1,5 +1,5 @@
 {% extends 'base.html' %}{% load staticfiles %}
-{% block title %}Revisions{% endblock %}
+{% block title %}Question #{{ question.pk }} revisions{% endblock %}
 {% block breadcrumb %}
 
 					<div class="breadcrumb-line">
@@ -11,23 +11,16 @@
                                                         {% endfor %}
                                                         <li><a href="{% url 'exams:show_category' exam.category.get_slugs %}">{{ exam.category.name }}</a></li>
                                                         <li><a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}">{{ exam.name }}</a></li>
-                                                        <li class="active">List revisions</li>
+                                                        <li><a href="{% url 'exams:list_questions' exam.category.get_slugs exam.pk %}">Question list</a></li>
+                                                        <li class="active">Question #{{ question.pk }} revisions</li>
 						</ul>
 					</div>
 {% endblock %}
 {% block content %}
-    <style>
-    .panel-body p{
-        margin-left: 5%;
-    }
-    .panel-body b{
-        margin-left: 3%;
-    }
-    </style>
     <div class="panel panel-flat">
     <div class="panel-heading">
-							<h5 style="font-weight: bolder" class="panel-title">Question Revisions</h5>
-<a href="{% url 'exams:submit_revision' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}"><button style="float: right;margin-right: 3%" type="button" class="btn btn-info btn-rounded btn-xs"><i class=" icon-quill4 position-left"></i> Edit</button></a><a class="heading-elements-toggle"><i class="icon-more"></i></a>
+							<h1 class="panel-title">Question #{{ question.pk }} revisions</h1>
+<a href="{% url 'exams:submit_revision' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}"><button style="float: right;margin-right: 3%" class="btn btn-warning btn-rounded btn-xs"><i class="icon-pencil position-left"></i> Edit</button></a><a class="heading-elements-toggle"><i class="icon-more"></i></a>
 						</div>
         <div class="panel-body">
         <p class="content-group-lg"><b>ID:</b>{{ question.pk }}
@@ -35,12 +28,11 @@
             <b>Source:</b>{% for source in question.source.all %}{{ source.name }}{% endfor %}
             {% if question.get_latest_revision.figure %}<a href="{{ question.get_latest_revision.figure.url }}"><b>illustration</b></a>{% endif %}
             <b>Exam Type:</b>{{ question.get_exam_type_display }}
-            <b> Status:</b>{{ question.get_status_display }}
+            <b> Status:</b> {% for status in question.get_latest_revision.statuses.all %}{{ status.name }} {% endfor %}
         </p>
   <table id="revisions" class="display datatable dt-responsive">
                         <thead>
                             <tr>
-                                <th>ID</th>
                                 <th>Submitter</th>
                                 <th>Date of Submission</th>
                                 <th>Revision Status</th>
@@ -48,9 +40,8 @@
                             </tr>
                         </thead>
                         <tbody>
-                        {% for revision in question.revision_set.all %}
-                            <tr class="show-revision" data-url="{% url 'exams:show_question' revision.question.pk revision.pk %}" data-revision_pk="{{ revision.pk }}">
-                            <td>{{ revision.pk }}</td>
+                        {% for revision in question.revision_set.order_by_submission %}
+                            <tr data-url="{% url 'exams:show_question' revision.question.pk revision.pk %}" data-revision_pk="{{ revision.pk }}">
                             <td>{{ revision.submitter }}</td>
                             <td data-order="{{ revision.submission_date|date:'U' }}">{{ revision.submission_date }}</td>
                             <td>{{ revision.get_status_display }}</td>
@@ -69,15 +60,26 @@
 	<link rel="stylesheet" href="{% static 'js/datatables/responsive/css/responsive.dataTables.min.css' %}">
 	<script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
     <script src="{% static 'js/datatables/responsive/js/dataTables.responsive.min.js' %}"></script>
-<style type="text/css">
-    th, td{
-        text-align: left;
-    }
+<style>
+.panel-body p{
+    margin-left: 5%;
+}
+.panel-body b{
+    margin-left: 3%;
+}
+th, td{
+    text-align: left;
+}
+
+tbody{
+    cursor:pointer;
+}
+
 </style>
 	<script>
     $(function(){
         $("#revisions").dataTable({
-            order: [[ 1, "desc" ]]
+            order: [[ 2, "desc" ]]
         });
 
     });
@@ -92,13 +94,14 @@
           backdrop: 'static',
           show    : false,
         });
-        $(".show-revision").click(function () {
+        $('tbody').on('click','tr',function () {
             revision_pk =  $(this).data("revision_pk");
             url = $(this).data('url');
+            title_part = $(this).children('td:nth-child(2)').html();
 
             $("#show-revision-modal").modal('show');
 
-            $("#show-revision-modal .modal-title").html("Question Revision");
+            $("#show-revision-modal .modal-title").html("Revision of" + title_part);
             $("#show-revision-modal .modal-body").load(url);
             $("#show-revision-modal .modal-header").addClass('bg-primary')
 

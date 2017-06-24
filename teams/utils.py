@@ -3,7 +3,7 @@ def is_editor(user):
         return False
 
     if user.is_superuser or \
-       user.team_memberships.filter(access='editors').exists():
+       user.team_memberships.exists():
         return True
     else:
         return False

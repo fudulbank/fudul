@@ -1,37 +1,39 @@
 {% load bootstrap3 %}{% load staticfiles %}
-<head>
-    <style>
+<style>
 .panel-body a {
     color: white;
     font-size: medium;
     font-weight: bold;
     margin-top: auto
 }
-        .img-responsive {
-            padding: 0;
-            max-width: 100%;
-            max-height: 100%;
-            width: 100%;
-            height: 100%;
-            margin-right: 20%;
-        }
+.img-responsive {
+    padding: 0;
+    max-width: 100%;
+    max-height: 100%;
+    width: 100%;
+    height: 100%;
+    margin-right: 20%;
+}
+li.is-answer{
+    font-weight: 800;
+}
+p.question-text{
+    font-size: medium;
+    font-weight: 800;
+}
 </style>
-</head>
-<body>
-
     <div class="panel panel-flat">
                        <div class="panel-body">
                        {% if revision.figure %}
                            <img class="img-responsive center-block"  src="{{ revision.figure.url }}">
                        {% endif %}
-       <br> <strong style="font-size: medium">{{ revision.text|linebreaksbr }}</strong>
-                           {% for choice in revision.choice_set.all %}
-
-                               <div style="margin-right: 6%">
-                               <li>{{ choice.text|linebreaksbr }}</li>
-                               </div>
+       <p class="question-text">{{ revision.text|linebreaksbr }}</p>
+            <ul>
+                           {% for choice in revision.choice_set.order_by_alphabet %}
+                               <li {% if choice.is_answer %}class="is-answer text-success-800"{% endif %}>{{ choice.text|linebreaksbr }}</li>
                            {% endfor %}
-                       </div>
+            </ul>
+                </div>
             </div>
 
 
