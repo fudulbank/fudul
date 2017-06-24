@@ -102,9 +102,10 @@
                 processData: false,
                 success: function (data) {
                     if (data.message == "success") {
-                        $(':input').not(':button, :submit, :reset, :hidden').removeAttr('checked').removeAttr('selected').not('‌​:checkbox, :radio, select').val('');
+                        $(':input').not(':button, :submit, :reset, :hidden, :checkbox').removeAttr('checked').removeAttr('selected').not('‌​:checkbox, :radio, select').val('');
                         $('#id_subjects, #id_statuses, #id_parent_question').val('').trigger('change');
-
+                        // For some reason, doing checkbox clean-up in a second steps works!
+                        $('input:checkbox').removeAttr('checked');
                         // show success message (using toastr)
                         toastr.options.positionClass = "toast-top-left";
                         toastr.success("Question #" + data.question_pk + " has been successfully added. Fill another!");
