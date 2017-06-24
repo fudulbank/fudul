@@ -23,20 +23,13 @@ class ChoiceQuerySet(models.QuerySet):
     def order_by_alphabet(self):
         return self.order_by('text')
 
-# Used with Source and Subject models
-class ClassificationQuerySet(models.QuerySet):
+class SubjectQuerySet(models.QuerySet):
     def order_by_total_questions(self):
         return self.annotate(total_questions=models.Count('question')).order_by('-total_questions')
-
-    def order_by_name(self):
-        return self.order_by('name')
 
 class SourceQuerySet(models.QuerySet):
     def order_by_total_questions(self):
-        return self.annotate(total_questions=models.Count('question')).order_by('-total_questions')
-
-    def order_by_name(self):
-        return self.order_by('name')
+        return self.annotate(total_questions=models.Count('question')).order_by('-total_questions', 'name')
 
 class CategoryQuerySet(models.QuerySet):
     def get_from_slugs(self, slugs):
