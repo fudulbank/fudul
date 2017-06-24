@@ -11,7 +11,7 @@ class Source(models.Model):
     name = models.CharField(max_length=100)
     category = models.ForeignKey('Category')
     submission_date = models.DateTimeField(auto_now_add=True)
-    objects = managers.SourceQuerySet.as_manager()
+    objects = managers.ClassificationQuerySet.as_manager()
 
     def __str__(self):
         return self.name
@@ -159,7 +159,7 @@ class Subject(models.Model):
     exam = models.ForeignKey(Exam)
     submission_date = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
-    objects = managers.SubjectQuerySet.as_manager()
+    objects = managers.ClassificationQuerySet.as_manager()
     def __str__(self):
         return self.name
 

@@ -15,7 +15,7 @@
       {% if exam.get_sources.exists %}
        <strong>Available sources:</strong>
        <ul>
-       {% for source in exam.get_sources.order_by_total_questions %}
+       {% for source in exam.get_sources.order_by_total_questions.order_by_name %}
           <li>{{ source.name }} ({{ source.question_set.count }} questions)</li>
        {% endfor %%}
        </ul>
