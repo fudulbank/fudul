@@ -5,6 +5,7 @@
         <th>Submitter</th>
         <th>Status</th>
         <th>Date of last revision</th>
+        <th>Has right answer?</th>
         <th>Actions</th>
     </tr>
 </thead>
@@ -18,6 +19,7 @@
        <ul>{% for status in question.get_latest_revision.statuses.all %}<li>{{ status.name }}</li>{% endfor %}</ul>
     </td>
     <td data-order="{{ question.get_latest_revision.submission_date|date:'U' }}">{{ question.get_latest_revision.submission_date }}</td>
+    <td>{% question.get_latest_revision.has_right_answer %}Yes{% else %}No{% endif %}</td>
     <td>
        <a href="{% url 'exams:list_revisions' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}"><button class="btn btn-primary btn-icon btn-rounded"><i class="icon-menu7"></i></button></a>
        <a href="{% url 'exams:submit_revision' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}"><button class="btn btn-warning btn-icon btn-rounded"><i class="icon-pencil"></i></button></a>
