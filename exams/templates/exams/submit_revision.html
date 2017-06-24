@@ -1,5 +1,5 @@
 {% extends 'base.html' %}{% load staticfiles %}{% load bootstrap3 %}
-{% block title %}Editing question{% endblock %}
+{% block title %}Editing question #{{ revision.question.pk }}{% endblock %}
 {% block breadcrumb %}
 
 					<div class="breadcrumb-line">
@@ -16,7 +16,7 @@
 					</div>
 {% endblock %}
 {% block content %}
-<h1>Editing question</h1>
+<h1>Editing question #{{ revision.question.pk }}</h1>
 <form action="{% url 'exams:submit_revision' exam.category.get_slugs exam.pk revision.question.pk %}" method="post" class="form">
 {% csrf_token %}
 {% include 'exams/partials/question_form.html' %}
