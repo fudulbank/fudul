@@ -42,6 +42,10 @@ class CategoryQuerySet(models.QuerySet):
             kwarg = level + '__slug'
             kwargs[kwarg] = slug
             level += '__parent_category'
+        # Last parent to be a meta tag, with no parents
+        kwarg = level + '__isnull'
+        kwargs[kwarg] = True
+
         category = self.filter(**kwargs).first()
         return category
 
