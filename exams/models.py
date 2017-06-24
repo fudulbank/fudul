@@ -247,6 +247,7 @@ class Choice(models.Model):
     text = models.CharField(max_length=200)
     is_answer = models.BooleanField("Right answer?", default=False)
     revision = models.ForeignKey(Revision, on_delete=models.CASCADE,null=True)
+    objects = managers.ChoiceQuerySet.as_manager()
 
     def __str__(self):
         return self.text

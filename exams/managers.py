@@ -19,6 +19,10 @@ class RevisionQuerySet(models.QuerySet):
     def undeleted(self):
         return self.filter(is_deleted=False)
 
+class ChoiceQuerySet(models.QuerySet):
+    def order_by_alphabet(self):
+        return self.order_by('text')
+
 class CategoryQuerySet(models.QuerySet):
     def get_from_slugs(self, slugs):
         slug_list = [slug for slug in slugs.split('/') if slug]

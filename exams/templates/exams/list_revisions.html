@@ -1,5 +1,5 @@
 {% extends 'base.html' %}{% load staticfiles %}
-{% block title %}Revisions{% endblock %}
+{% block title %}Question #{{ question.pk }} revisions{% endblock %}
 {% block breadcrumb %}
 
 					<div class="breadcrumb-line">
@@ -11,7 +11,8 @@
                                                         {% endfor %}
                                                         <li><a href="{% url 'exams:show_category' exam.category.get_slugs %}">{{ exam.category.name }}</a></li>
                                                         <li><a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}">{{ exam.name }}</a></li>
-                                                        <li class="active">List revisions</li>
+                                                        <li><a href="{% url 'exams:list_questions' exam.category.get_slugs exam.pk %}">Question list</a></li>
+                                                        <li class="active">Question #{{ question.pk }} revisions</li>
 						</ul>
 					</div>
 {% endblock %}
@@ -19,7 +20,7 @@
     <div class="panel panel-flat">
     <div class="panel-heading">
 							<h5 style="font-weight: bolder" class="panel-title">Question Revisions</h5>
-<a href="{% url 'exams:submit_revision' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}"><button style="float: right;margin-right: 3%" type="button" class="btn btn-info btn-rounded btn-xs"><i class=" icon-quill4 position-left"></i> Edit</button></a><a class="heading-elements-toggle"><i class="icon-more"></i></a>
+<a href="{% url 'exams:submit_revision' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}"><button style="float: right;margin-right: 3%" class="btn btn-warning btn-rounded btn-xs"><i class="icon-pencil position-left"></i> Edit</button></a><a class="heading-elements-toggle"><i class="icon-more"></i></a>
 						</div>
         <div class="panel-body">
         <p class="content-group-lg"><b>ID:</b>{{ question.pk }}
@@ -32,7 +33,6 @@
   <table id="revisions" class="display datatable dt-responsive">
                         <thead>
                             <tr>
-                                <th>ID</th>
                                 <th>Submitter</th>
                                 <th>Date of Submission</th>
                                 <th>Approval Status</th>
@@ -40,8 +40,7 @@
                         </thead>
                         <tbody>
                         {% for revision in question.revision_set.order_by_submission %}
-                            <tr class="show-revision" data-url="{% url 'exams:show_question' revision.question.pk revision.pk %}" data-revision_pk="{{ revision.pk }}">
-                            <td>{{ revision.pk }}</td>
+                            <tr data-url="{% url 'exams:show_question' revision.question.pk revision.pk %}" data-revision_pk="{{ revision.pk }}">
                             <td>{{ revision.submitter }}</td>
                             <td data-order="{{ revision.submission_date|date:'U' }}">{{ revision.submission_date }}</td>
                             <td>{% if revision.is_approved %} Approved {% else %} Not Approved{% endif %}</td>
@@ -69,11 +68,16 @@
 th, td{
     text-align: left;
 }
+
+tbody{
+    cursor:pointer;
+}
+
 </style>
 	<script>
     $(function(){
         $("#revisions").dataTable({
-            order: [[ 0, "desc" ]]
+            order: [[ 2, "desc" ]]
         });
 
     });
@@ -88,13 +92,14 @@ th, td{
           backdrop: 'static',
           show    : false,
         });
-        $(".show-revision").click(function () {
+        $('tbody').on('click','tr',function () {
             revision_pk =  $(this).data("revision_pk");
             url = $(this).data('url');
+            title_part = $(this).children('td:nth-child(2)').html();
 
             $("#show-revision-modal").modal('show');
 
-            $("#show-revision-modal .modal-title").html("Question Revision");
+            $("#show-revision-modal .modal-title").html("Revision of" + date);
             $("#show-revision-modal .modal-body").load(url);
             $("#show-revision-modal .modal-header").addClass('bg-primary')
 
