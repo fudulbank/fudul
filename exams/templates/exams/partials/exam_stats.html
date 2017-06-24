@@ -3,7 +3,7 @@
       {% if exam.subject_set.exists %}
        <strong>Available subjects:</strong>
        <ul>
-       {% for subject in exam.subject_set.all %}
+       {% for subject in exam.subject_set.order_by_total_questions %}
           <li>{{ subject.name }} ({{ subject.question_set.count }} questions)</li>
        {% endfor %%}
        </ul>
@@ -15,7 +15,7 @@
       {% if exam.get_sources.exists %}
        <strong>Available sources:</strong>
        <ul>
-       {% for source in exam.get_sources %}
+       {% for source in exam.get_sources.order_by_total_questions %}
           <li>{{ source.name }} ({{ source.question_set.count }} questions)</li>
        {% endfor %%}
        </ul>

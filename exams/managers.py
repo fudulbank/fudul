@@ -23,6 +23,14 @@ class ChoiceQuerySet(models.QuerySet):
     def order_by_alphabet(self):
         return self.order_by('text')
 
+class SubjectQuerySet(models.QuerySet):
+    def order_by_total_questions(self):
+        return self.annotate(total_questions=models.Count('question')).order_by('-total_questions')
+
+class SourceQuerySet(models.QuerySet):
+    def order_by_total_questions(self):
+        return self.annotate(total_questions=models.Count('question')).order_by('-total_questions')
+
 class CategoryQuerySet(models.QuerySet):
     def get_from_slugs(self, slugs):
         slug_list = [slug for slug in slugs.split('/') if slug]
