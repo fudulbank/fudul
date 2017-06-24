@@ -219,7 +219,7 @@ class Question(models.Model):
             return self.get_latest_revision()
 
 
-class Revision (models.Model):
+class Revision(models.Model):
     question = models.ForeignKey(Question)
     submitter = models.ForeignKey(User, null=True, blank=True)
     text = models.TextField()
@@ -234,6 +234,9 @@ class Revision (models.Model):
     approval_date = models.DateField(blank=True, null=True)
     is_deleted = models.BooleanField(default=False)
     objects = managers.RevisionQuerySet.as_manager()
+
+    def has_right_answer(self):
+        return self.choice_set.filter(is_answer=True).exists()
 
     def save(self, *args, **kwargs):
         if self.is_approved:
