@@ -9,7 +9,7 @@ from django.template.loader import get_template
 from django.views.decorators import csrf
 
 from core import decorators
-from .models import Exam, Question, Category, Revision
+from .models import Exam, Question, Category, Revision,Session
 from . import forms, utils
 import teams.utils
 
@@ -283,4 +283,127 @@ def list_question_per_status(request, slugs, exam_pk):
     context ={'writing_error':writing_error, 'unsloved':unsloved, 'incomplete_answer':incomplete_answer,
               'incomplete_question':incomplete_question,'exam':exam}
     return render(request, 'exams/list_question_per_status.html', context)
+#
+# @login_required
+# def start_session(request, slugs, exam_pk):
+#     category = Category.objects.get_from_slugs(slugs)
+#     if not category:
+#         raise Http404
+#
+#     # PERMISSION CHECK
+#     exam = get_object_or_404(Exam, pk=exam_pk, category=category)
+#     if not exam.can_user_edit(request.user):
+#         raise PermissionDenied
+#
+#     context = {'exam': exam}
+#     if request.method == 'POST':
+#         instance = Session(submitter=request.user, exam=exam)
+#         sessionform = forms.SessionForm(request.POST,
+#                                         request.FILES,
+#                                         instance=instance)
+#         if sessionform.is_valid():
+#             sessionform.save()
+#         # return HttpResponseRedirect(reverse("exams:list_revisions", args=(exam.category.get_slugs(), exam.pk, question.pk)))
+#     elif request.method == 'GET':
+#         sessionform = forms.SessionForm()
+#
+#     context['sessionform'] = sessionform
+#
+#     return render(request, "exams/start_session.html", context)
 
+
+@decorators.get_only
+@login_required
+def start_session(request, slugs, exam_pk):
+    category = Category.objects.get_from_slugs(slugs)
+    if not category:
+        raise Http404
+
+    # PERMISSION CHECK
+    exam = get_object_or_404(Exam, pk=exam_pk, category=category)
+    if not exam.can_user_edit(request.user):
+        raise PermissionDenied
+
+    context = {'exam': exam,
+               'sessionform': forms.SessionForm()}
+
+    return render(request, "exams/start_session.html", context)
+
+
+@decorators.post_only
+@decorators.ajax_only
+def handle_session(request,exam_pk):
+    exam = get_object_or_404(Exam, pk=exam_pk)
+
+    # PERMISSION CHECK
+    if not exam.can_user_edit(request.user):
+        raise PermissionDenied
+
+    instance = Session(submitter=request.user, exam=exam)
+    sessionform = forms.SessionForm(request.POST,
+                                      request.FILES,
+                                    instance=instance)
+
+    if sessionform.is_valid():
+        session = sessionform.save()
+        show_url = reverse('exams:session', args=(exam.category.get_slugs(),exam.pk,session.pk))
+        full_url = request.build_absolute_uri(show_url)
+        return {"message": "success",
+                "show_url":full_url}
+
+    context = {'exam': exam,
+               'sessionform': sessionform,}
+
+    return render(request, "exams/start_session.html", context)
+
+@decorators.post_only
+@decorators.ajax_only
+def start_session_ajax(request,session_pk):
+    session = get_object_or_404(Session,pk=session_pk)
+    exam = session.exam
+    subjects = []
+    sources = []
+
+    for subject in session.subjects.all():
+        subjects.append(subject)
+
+    for source in session.sources.all():
+        subjects.append(source)
+
+    question_pool = Question.objects.filter(exam=exam,statuses__code_name='COMPLETE',subjects__in=subjects, sources__in=sources)
+
+    results = {"questions": [],
+                 }
+
+    for question in question_pool.order_by('?')[:session.number_of_questions]:
+        choices = []
+        content = []
+        if question.get_latest_approved_revision():
+            revision = question.get_latest_approved_revision()
+            content.append({"text": revision.text})
+            for choice in revision.choice_set.all():
+                choices.append({"pk": choice.pk, "text": choice.text,'is_answer': choice.is_answer})
+            if revision.explanation :
+                content.append({"explanation": revision.explanation})
+            if revision.figure:
+                content.append({"figure": revision.figure.url})
+        question_result = {'content': content,
+                           'choices': choices,
+                           }
+        results["questions"].append(question_result)
+
+    return results
+
+def session(request, slugs, exam_pk,session_pk):
+    category = Category.objects.get_from_slugs(slugs)
+    session = get_object_or_404(Session,pk=session_pk)
+
+    if not category:
+        raise Http404
+
+    # PERMISSION CHECK
+    exam = get_object_or_404(Exam, pk=exam_pk, category=category)
+    if not exam.can_user_edit(request.user):
+        raise PermissionDenied
+
+    return render(request, "exams/solved_session.html")

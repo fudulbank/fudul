@@ -42,3 +42,7 @@ RevisionChoiceFormset = inlineformset_factory(models.Revision,
                                               models.Choice,
                                               extra=4,
                                               fields=['text','is_answer'])
+class SessionForm(forms.ModelForm):
+    class Meta:
+        model = models.Session
+        fields = ['explained','number_of_questions','session_type','solved','sources','subjects']

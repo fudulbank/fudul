@@ -1,0 +1,30 @@
+{% extends 'base.html' %}{% load staticfiles %}{% load bootstrap3 %}
+
+{% block title %}Fudul | Start Sesstion in {% endblock %}
+{% block breadcrumb %}
+
+{% endblock %}
+{% block content %}
+ <div id="start-session">
+
+</div>
+{% endblock %}
+{% block customscript %}
+ <script type="text/javascript">
+ $(function(){
+      $.ajax({
+          url: "{% url 'exams:start_session_ajax' session_pk %}",
+          type: 'POST',
+          cache: false,
+          success: function (data) {
+              if (data.success) {
+                  console.log(data.results)
+
+              }
+
+
+             }
+      });
+ });
+ </script>
+{% endblock %}

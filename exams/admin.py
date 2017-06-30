@@ -46,6 +46,7 @@ editor_site = EditorAdmin("editor_admin")
 admin.site.register(models.Category, CategoryAdmin)
 admin.site.register(models.Exam, ExamAdmin)
 admin.site.register(models.Status)
+admin.site.register(models.Session)
 
 editor_site.register(models.Category, CategoryAdmin)
 editor_site.register(models.Exam, ExamAdmin)

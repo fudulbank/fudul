@@ -278,3 +278,32 @@ class Choice(models.Model):
 
     def __str__(self):
         return self.text
+
+session_type_choices = (
+    ('',''),
+
+
+)
+
+class Session(models.Model):
+    explained = models.BooleanField("show explaination?", default=False)
+    solved = models.BooleanField("solved questions", default=False)
+    number_of_questions = models.IntegerField(default=0)
+    sources = models.ManyToManyField(Source, blank=True)
+    subjects = models.ManyToManyField(Subject)
+    exam = models.ForeignKey(Exam)
+    questions = models.ManyToManyField(Question)
+    session_type = models.CharField(max_length=15, blank=True,
+                                 choices=exam_type_choices)
+    submitter = models.ForeignKey(User)
+
+
+class Ansewer(models.Model):
+    session = models.ForeignKey(Session)
+    question = models.ForeignKey(Question)
+    choice = models.ForeignKey(Choice)
+    is_marked = models.BooleanField("is marked ?", default=False)
+    submitter = models.ForeignKey(User)
+
+
+

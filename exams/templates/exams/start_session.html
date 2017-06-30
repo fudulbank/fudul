@@ -1,0 +1,124 @@
+{% extends 'base.html' %}{% load staticfiles %}{% load bootstrap3 %}
+
+{% block title %}Fudul | Start Sesstion in {{ exam.name }}{% endblock %}
+{% block breadcrumb %}
+
+{% endblock %}
+{% block content %}
+
+<style>
+.panel-body a {
+    color: white;
+    font-weight: bold;
+    margin-top: auto
+}
+.panel-body li a {
+    color: blue !important;
+    font-weight: bold;
+    margin-top: auto
+}
+</style>
+<div class="row">
+   <div class="col-md-8">
+    <div class="panel panel-flat">
+						<div class="panel-heading">
+							<h1 class="panel-title">{{ exam.name }} Session</h1>
+						</div>
+        <div id="form-panel" class="panel-body">
+<script src="{% static 'bootstrap/bootstrap-toggle-master/js/bootstrap2-toggle.min.js'%}"></script>
+<link rel="stylesheet" href="{% static 'bootstrap/bootstrap-toggle-master/css/bootstrap2-toggle.min.css' %}">
+
+{% bootstrap_form_errors sessionform %}
+<form method="post" enctype="multipart/form-data" id="start-session-form" action="post">
+{% csrf_token %}
+
+{% bootstrap_field sessionform.explained show_label=False  %}
+
+{% bootstrap_field sessionform.solved show_label=False  %}
+
+        <div class="form-group has-feedback has-feedback-left">
+            <label class="control-label">Number of Questions</label>
+{% bootstrap_field sessionform.number_of_questions show_label=False  %}
+                <div class="form-control-feedback">
+				<i class="icon-pencil text-muted"></i>
+			    </div>
+		</div>
+
+        <div class="form-group has-feedback has-feedback-left">
+            <label class="control-label">Subjects</label>
+{% bootstrap_field sessionform.subjects show_label=False  %}
+                <div class="form-control-feedback">
+				<i class="icon-pencil text-muted"></i>
+			    </div>
+        </div>
+
+        <div class="form-group has-feedback has-feedback-left">
+            <label class="control-label">Sources</label>
+{% bootstrap_field sessionform.sources show_label=False  %}
+                <div class="form-control-feedback">
+				<i class="icon-git-branch text-muted"></i>
+                </div>
+		</div>
+
+        <div class="form-group has-feedback has-feedback-left">
+            <label class="control-label">Questions Type</label>
+{% bootstrap_field sessionform.session_type show_label=False  %}
+                                                                            			<div class="form-control-feedback">
+				<i class="icon-filter3 text-muted"></i>
+			</div>
+		</div>
+<input name="exam_pk" type="hidden" value="{{ exam.pk }}">
+{{ sessionform.media }}
+               <button type="submit" action ='submit' class="btn bg-primary btn-block btn-lg">Start Session <i class="icon-circle-right2 position-right"></i></button>
+
+</form>
+        </div>
+    </div>
+    </div> <!--panel-->
+</div> <!--col-->
+
+{% endblock %}
+{% block customscript %}
+        <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
+    <script src="{% static 'js/jquery.formset.js' %}"></script>
+    <script src="{% static 'js/jquery.autogrowtextarea.min.js' %}"></script>
+    <script src="{% static 'js/toastr.js' %}"></script>
+    <script type="text/javascript">
+    $(function() {
+
+        $('#start-session-form input[type=checkbox]').bootstrapToggle();
+        $('#start-session-form input[type=checkbox]').parent().attr('style',"width: 70px !important; height: 40px !important;");
+
+
+        $("form#start-session-form").submit(function (event) {
+        /* stop form from submitting normally */
+            event.preventDefault();
+            /* get some values from elements on the page: */
+            var formData = new FormData($(this)[0]);
+            var url = "{% url 'exams:handle_session' exam.pk %}";
+            /* Send the data */
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: formData,
+                cache: false,
+                contentType: false,
+                enctype: 'multipart/form-data',
+                processData: false,
+                success: function (data) {
+                    if (data.message == "success") {
+                        // show success message (using toastr)
+                        toastr.options.positionClass = "toast-top-left";
+                        window.location.href= data.show_url;
+                    } else {
+                        toastr.warning("There was an issue! " + data.message);
+                        $("#form-panel").html(data);
+                    }
+                }
+            });
+        });
+    });
+
+
+</script>
+{% endblock %}
