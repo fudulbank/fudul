@@ -40,7 +40,7 @@ def show_category(request, slugs):
     exams = Exam.objects.filter(category=category)
     
     context = {'category': category,
-               'subcategories': subcategories,
+               'subcategories': subcategories.order_by('name'),
                'exams': exams}
 
     return render(request, "exams/show_category.html", context)
