@@ -370,19 +370,19 @@ def start_session_ajax(request,session_pk):
         subjects.append(subject)
 
     for source in session.sources.all():
-        subjects.append(source)
+        sources.append(source)
 
-    question_pool = Question.objects.filter(exam=exam,statuses__code_name='COMPLETE',subjects__in=subjects, sources__in=sources)
+    # question_pool = Question.objects.filter(exam_type=session.session_type,statuses__code_name='COMPLETE',subjects__in=subjects, sources__in=sources)
 
     output = {"questions": [],
-                 }
+              'session_pk':session.pk }
 
-    for question in question_pool.order_by('?')[:session.number_of_questions]:
+    for question in Question.objects.all():
         choices = []
         content = []
         if question.get_latest_approved_revision():
             revision = question.get_latest_approved_revision()
-            content.append({"text": revision.text})
+            content.append({"text": revision.text,'pk':revision.pk})
             for choice in revision.choice_set.all():
                 choices.append({"pk": choice.pk, "text": choice.text,'is_answer': choice.is_answer})
             if revision.explanation :
