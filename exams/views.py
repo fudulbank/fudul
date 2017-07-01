@@ -358,6 +358,8 @@ def handle_session(request,exam_pk):
 
 @decorators.post_only
 @decorators.ajax_only
+@csrf.csrf_exempt
+
 def start_session_ajax(request,session_pk):
     session = get_object_or_404(Session,pk=session_pk)
     exam = session.exam
@@ -372,7 +374,7 @@ def start_session_ajax(request,session_pk):
 
     question_pool = Question.objects.filter(exam=exam,statuses__code_name='COMPLETE',subjects__in=subjects, sources__in=sources)
 
-    results = {"questions": [],
+    output = {"questions": [],
                  }
 
     for question in question_pool.order_by('?')[:session.number_of_questions]:
@@ -390,9 +392,9 @@ def start_session_ajax(request,session_pk):
         question_result = {'content': content,
                            'choices': choices,
                            }
-        results["questions"].append(question_result)
+        output["questions"].append(question_result)
 
-    return results
+    return output
 
 def session(request, slugs, exam_pk,session_pk):
     category = Category.objects.get_from_slugs(slugs)

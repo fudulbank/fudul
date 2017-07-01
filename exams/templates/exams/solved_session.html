@@ -11,14 +11,17 @@
 {% endblock %}
 {% block customscript %}
  <script type="text/javascript">
- $(function(){
+ $(document).ready(function(){
+     action = $(this).data("action");
       $.ajax({
           url: "{% url 'exams:start_session_ajax' session.pk %}",
           type: 'POST',
+          data: {action: action},
           cache: false,
           success: function (data) {
               if (data.success) {
-                  console.log(data.results)
+                              console.log('hi');
+
 
               }
 
