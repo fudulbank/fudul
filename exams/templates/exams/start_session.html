@@ -35,28 +35,57 @@
 {% bootstrap_field sessionform.explained show_label=False  %}
 
 {% bootstrap_field sessionform.solved show_label=False  %}
-
-        <div class="form-group has-feedback has-feedback-left">
-            <label class="control-label">Number of Questions</label>
+                <label class="control-label">Number of Questions</label>
+<div class="row">
+    <div class="col-xs-6 col-sm-4">
+              <div class="form-group has-feedback has-feedback-left">
 {% bootstrap_field sessionform.number_of_questions show_label=False  %}
                 <div class="form-control-feedback">
 				<i class="icon-pencil text-muted"></i>
 			    </div>
 		</div>
+    </div>
+
+    <div class="col-xs-6 col-sm-4 well-sm">
+    <strong>Out Of {{ question_count }} </strong>
+    </div>
+</div>
+
 
         <div class="form-group has-feedback has-feedback-left">
             <label class="control-label">Subjects</label>
-{% bootstrap_field sessionform.subjects show_label=False  %}
-                <div class="form-control-feedback">
-				<i class="icon-pencil text-muted"></i>
-			    </div>
+            <select id="subjects-select" class="alpaca-control form-control" name="">
+            <option value="">------</option>
+            <option value="All">All</option>
+            <option value="Custom">Custom</option>
+            </select>
+			<div class="form-control-feedback">
+            <i class="icon-pencil text-muted"></i>
+            </div>
+
+        </div>
+
+        <div id="all-subjects-options" style="display: none">
+            {% bootstrap_field sessionform.subjects show_label=False  %}
+            <div class="form-control-feedback">
+            </div>
         </div>
 
         <div class="form-group has-feedback has-feedback-left">
             <label class="control-label">Sources</label>
+            <select id="sources-select" class="alpaca-control form-control" name="">
+            <option value="">------</option>
+            <option value="All">All</option>
+            <option value="Custom">Custom</option>
+            </select>
+            <div class="form-control-feedback">
+            <i class="icon-git-branch text-muted"></i>
+            </div>
+        </div>
+
+        <div id="all-sources-options" style="display: none">
 {% bootstrap_field sessionform.sources show_label=False  %}
                 <div class="form-control-feedback">
-				<i class="icon-git-branch text-muted"></i>
                 </div>
 		</div>
 
@@ -116,6 +145,28 @@
                     }
                 }
             });
+        });
+
+        $('#subjects-select').change(function() {
+            if ($('#subjects-select option[value=All]:checked').length) {
+                $('#all-subjects-options').hide();
+                $('#all-subjects-options select option').prop('selected', true);
+            } else {
+                $('#all-subjects-options').show();
+                $('#all-subjects-options select option').prop('selected', false);
+
+            }
+        });
+        $('#sources-select').change(function() {
+            if ($('#sources-select option[value=All]:checked').length) {
+                $('#all-sources-options').hide();
+                $('#all-sources-options select option').prop('selected', true);
+            } else {
+                $('#all-sources-options').show();
+                $('#all-sources-options select option').prop('selected', false);
+
+            }
+
         });
     });
 

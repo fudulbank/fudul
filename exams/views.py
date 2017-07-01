@@ -9,7 +9,7 @@ from django.template.loader import get_template
 from django.views.decorators import csrf
 
 from core import decorators
-from .models import Exam, Question, Category, Revision,Session
+from .models import Exam, Question, Category, Revision,Session,Choice
 from . import forms, utils
 import teams.utils
 
@@ -324,8 +324,11 @@ def start_session(request, slugs, exam_pk):
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
 
+    question_count = exam.get_approved_questions().count()
+
     context = {'exam': exam,
-               'sessionform': forms.SessionForm()}
+               'sessionform': forms.SessionForm(),
+               'question_count':question_count}
 
     return render(request, "exams/start_session.html", context)
 
@@ -377,12 +380,12 @@ def start_session_ajax(request,session_pk):
     output = {"questions": [],
               'session_pk':session.pk }
 
-    for question in Question.objects.all():
+    for question in exam.get_approved_questions():
         choices = []
         content = []
         if question.get_latest_approved_revision():
             revision = question.get_latest_approved_revision()
-            content.append({"text": revision.text,'pk':revision.pk})
+            content.append({"text": revision.text,'pk':question.pk})
             for choice in revision.choice_set.all():
                 choices.append({"pk": choice.pk, "text": choice.text,'is_answer': choice.is_answer})
             if revision.explanation :
@@ -409,3 +412,23 @@ def session(request, slugs, exam_pk,session_pk):
         raise PermissionDenied
 
     return render(request, "exams/solved_session.html",{'session':session})
+
+
+@decorators.ajax_only
+@decorators.post_only
+@login_required
+@csrf.csrf_exempt
+def check_answer(request):
+    choice_pk = request.POST.get('choice_pk')
+    choice = get_object_or_404(Choice, pk=choice_pk)
+    question_pk = request.POST.get('question_pk')
+    question = get_object_or_404(Question,pk=question_pk)
+    session_pk = request.POST.get('session_pk')
+    session = get_object_or_404(Session, pk=session_pk)
+
+    if choice.is_answer:
+        right= True
+    else:
+        right = False
+    score = session.right_answers
+    return {"right":right,"score":score}

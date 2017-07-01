@@ -9,6 +9,7 @@ urlpatterns =[
     url(r'^ajax/delete_question/(?P<pk>\d+)$', views.delete_question, name='delete_question'),
     url(r'^ajax/handle_session/(?P<exam_pk>\d+)$', views.handle_session, name='handle_session'),
     url(r'^ajax/start_session/(?P<session_pk>\d+)$', views.start_session_ajax, name='start_session_ajax'),
+    url(r'^ajax/check_answer/$', views.check_answer, name='check_answer'),
 
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<pk>\d+)/control/add/$', views.add_question, name='add_question'),
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<pk>\d+)/control/list/$', views.list_questions, name='list_questions'),

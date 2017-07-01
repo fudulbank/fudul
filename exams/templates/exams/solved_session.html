@@ -5,29 +5,147 @@
 
 {% endblock %}
 {% block content %}
- <div id="start-session">
+<style>
 
-</div>
+label {
+display: block
+}
+
+</style>
+    <div class="panel panel-flat">
+<div class="page-header page-header-default" style="border-left: 1px solid #ddd; border-right: 1px solid #ddd;">
+									<div class="page-header-content">
+										<div class="page-title">
+											<h5>
+												 <span class="text-semibold">{{ session.exam.name }}</span> - Session
+												<small class="display-block"> <i class="icon-flag7"></i></small>
+											</h5>
+										<a class="heading-elements-toggle"><i class="icon-more"></i></a></div>
+
+										<div class="heading-elements">
+											<div class="progress">
+												<div class="progress-bar progress-bar-warning progress-bar-striped active" style="width: 55%">
+													<span class="sr-only">55% Complete (success)</span>
+												</div>
+											</div>
+										</div>
+									</div>
+
+								</div>
+ <div class="panel-body">
+  <div id="start-session">
+      <div id="end-session">
+
+      </div>
+    </div>
+    </div>
+    </div>
 {% endblock %}
 {% block customscript %}
+            <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
+    <script src="{% static 'js/jquery.formset.js' %}"></script>
+    <script src="{% static 'js/jquery.autogrowtextarea.min.js' %}"></script>
+    <script src="{% static 'js/toastr.js' %}"></script>
  <script type="text/javascript">
+
+ var score = 0;
+function initiate_radio(){
+    toastr.options.positionClass = "toast-top-center";
+    choice_pk = $(this).data("choice_pk");
+    question_pk = $(this).data("question_pk");
+    counter =  $(this).data("counter");
+    session_pk = $(this).data("session_pk");
+        $.ajax({
+            url: "{% url 'exams:check_answer' %}",
+            type: 'POST',
+            data: {choice_pk: choice_pk,question_pk:question_pk,counter:counter,session_pk:session_pk},
+            cache: false,
+            success: function (data) {
+                 console.log('radio intial');
+                if (data.success) {
+                    if (data.right) {
+                        alert('You Got the right answer.');
+                        score+= 1;
+                        console.log('right');
+
+                    }
+                    else {
+                        alert('No');
+                        console.log('nope');
+
+                    }
+                    $("#container-" + (counter - 1)).hide();
+                    data.score += score;
+                    console.log(data.score);
+                    if ($("#container-" + (counter)).length == 0) {
+                        $('#end-session').css('display','block');
+                        var $thedive = $('<div>').attr({
+                                    type: 'hidden',
+                                    id: 'container',
+                                    name: 'score'
+                                    }).appendTo('#end-session');
+                        var content = document.createTextNode( );
+                        $thedive.append(content);
+                    }
+                    else {
+                        $("#container-" + (counter)).show();
+                    }
+
+                }
+            }
+        });
+    }
+</script>
+ <script type="text/javascript">
+
  $(document).ready(function(){
-     action = $(this).data("action");
       $.ajax({
           url: "{% url 'exams:start_session_ajax' session.pk %}",
           type: 'POST',
-          data: {action: action},
           cache: false,
           success: function (data) {
               if (data.success) {
-                              console.log('hi');
+                    var counter = 1;
+                    var questionsArray = data.questions;
+                    var arrayLength = questionsArray.length;
+                    for (var i = 0; i < arrayLength; i++) {
+                        var $thedive = $('<div>').attr({
+                            type: 'hidden',
+                            id: 'container-' + counter,
+                            name: 'question-div',
+                            style: 'display:none'
+                        }).appendTo('#start-session');
+                        var number = counter;
+                        counter += 1;
+                        $($thedive).attr('data-question_pk', questionsArray[i].content[0].pk); // sets
+                        var content = document.createTextNode(questionsArray[i].content[0].text);
+                        $thedive.append(content);
+                        var choices = questionsArray[i].choices;
+                        var choicesLength = choices.length;
+                        for (var m = 0; m < choicesLength; m++) {
+                            var $thelabel = $('<label>').appendTo($thedive);
+                            var $thechoice = $('<input>').attr({
+                                type: 'radio',
+                                id: questionsArray[i].choices[m].pk,
+                                name: 'question-choice',
+                                style: 'word-wrap:break-word;'
+                            }).appendTo($thelabel);
+                            $($thechoice).attr('data-question_pk', questionsArray[i].content[0].pk); // sets
+                            $($thechoice).attr('data-counter', counter); // sets
+                            $($thechoice).attr('data-session_pk', data.session_pk); // sets
+                            $($thechoice).attr('data-choice_pk', questionsArray[i].choices[m].pk); // sets
+                            var choice = document.createTextNode(questionsArray[i].choices[m].text);
+                            $(choice).appendTo($thelabel);
+                            $($thedive).addClass('well-sm');
+                            $($thechoice).change(initiate_radio())
 
-
+                        }
+                    }
               }
-
-
-             }
+              $('#container-1').show();
+          }
       });
+
  });
  </script>
 {% endblock %}

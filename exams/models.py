@@ -285,6 +285,7 @@ session_type_choices = (
 
 )
 
+
 class Session(models.Model):
     explained = models.BooleanField("show explaination?", default=False)
     solved = models.BooleanField("solved questions", default=False)
