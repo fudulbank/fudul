@@ -13,7 +13,7 @@
  <script type="text/javascript">
  $(function(){
       $.ajax({
-          url: "{% url 'exams:start_session_ajax' session_pk %}",
+          url: "{% url 'exams:start_session_ajax' session.pk %}",
           type: 'POST',
           cache: false,
           success: function (data) {

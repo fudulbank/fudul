@@ -346,7 +346,7 @@ def handle_session(request,exam_pk):
 
     if sessionform.is_valid():
         session = sessionform.save()
-        show_url = reverse('exams:session', args=(exam.category.get_slugs(),exam.pk,session.pk))
+        show_url = reverse('exams:session', args=(session.exam.category.get_slugs(),session.exam.pk,session.pk))
         full_url = request.build_absolute_uri(show_url)
         return {"message": "success",
                 "show_url":full_url}
@@ -406,4 +406,4 @@ def session(request, slugs, exam_pk,session_pk):
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
 
-    return render(request, "exams/solved_session.html")
+    return render(request, "exams/solved_session.html",{'session':session})

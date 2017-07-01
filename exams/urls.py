@@ -15,8 +15,8 @@ urlpatterns =[
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/questions/(?P<pk>\d+)/$', views.list_revisions, name='list_revisions'),
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/questions/(?P<pk>\d+)/edit/$', views.submit_revision,name='submit_revision'),
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/questions/status/list/$', views.list_question_per_status,name='list_question_per_status'),
-    url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/session/', views.start_session, name='start_session'),
-    url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/session/(?P<session_pk>\d+)/', views.session, name='session'),
+    url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/session/$', views.start_session, name='start_session'),
+    url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/session/(?P<session_pk>\d+)/$', views.session, name='session'),
 
     url(r'^(?P<slugs>[/\d\w\-]+)/$', views.show_category, name='show_category'),
 ]
