@@ -66,7 +66,7 @@
         </div>
 
         <div id="all-subjects-options" style="display: none">
-            {% bootstrap_field sessionform.subjects show_label=False  %}
+           {{ sessionform.subjects }}
             <div class="form-control-feedback">
             </div>
         </div>
@@ -84,7 +84,7 @@
         </div>
 
         <div id="all-sources-options" style="display: none">
-{% bootstrap_field sessionform.sources show_label=False  %}
+            {{ sessionform.sources }}
                 <div class="form-control-feedback">
                 </div>
 		</div>

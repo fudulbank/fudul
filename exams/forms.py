@@ -43,6 +43,18 @@ RevisionChoiceFormset = inlineformset_factory(models.Revision,
                                               extra=4,
                                               fields=['text','is_answer'])
 class SessionForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        exam = kwargs.pop('exam')
+        super(SessionForm, self).__init__(*args, **kwargs)
+        self.fields['subjects'].queryset = models.Subject.objects.filter(exam=exam)
+        self.fields['sources'].queryset = exam.get_sources()
+
     class Meta:
         model = models.Session
         fields = ['explained','number_of_questions','session_type','solved','sources','subjects']
+        widgets = {
+            'sources': autocomplete.ModelSelect2Multiple(),
+            'subjects': autocomplete.ModelSelect2Multiple()
+        }
+
+
