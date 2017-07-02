@@ -327,7 +327,7 @@ def start_session(request, slugs, exam_pk):
     question_count = exam.get_approved_questions().count()
 
     context = {'exam': exam,
-               'sessionform': forms.SessionForm(),
+               'sessionform': forms.SessionForm(exam=exam),
                'question_count':question_count}
 
     return render(request, "exams/start_session.html", context)
@@ -345,6 +345,7 @@ def handle_session(request,exam_pk):
     instance = Session(submitter=request.user, exam=exam)
     sessionform = forms.SessionForm(request.POST,
                                       request.FILES,
+                                    exam=exam,
                                     instance=instance)
 
     if sessionform.is_valid():
