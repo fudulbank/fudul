@@ -40,7 +40,7 @@ def show_category(request, slugs):
     exams = Exam.objects.filter(category=category)
     
     context = {'category': category,
-               'subcategories': subcategories,
+               'subcategories': subcategories.order_by('name'),
                'exams': exams}
 
     return render(request, "exams/show_category.html", context)
@@ -314,7 +314,7 @@ def list_question_per_status(request, slugs, exam_pk):
 
 @decorators.get_only
 @login_required
-def start_session(request, slugs, exam_pk):
+def create_session(request, slugs, exam_pk):
     category = Category.objects.get_from_slugs(slugs)
     if not category:
         raise Http404
@@ -330,7 +330,7 @@ def start_session(request, slugs, exam_pk):
                'sessionform': forms.SessionForm(exam=exam),
                'question_count':question_count}
 
-    return render(request, "exams/start_session.html", context)
+    return render(request, "exams/create_session.html", context)
 
 
 @decorators.post_only
@@ -343,10 +343,8 @@ def handle_session(request,exam_pk):
         raise PermissionDenied
 
     instance = Session(submitter=request.user, exam=exam)
-    sessionform = forms.SessionForm(request.POST,
-                                      request.FILES,
-                                    exam=exam,
-                                    instance=instance)
+    sessionform = forms.SessionForm(request.POST, request.FILES,
+                                    instance=instance, exam=exam)
 
     if sessionform.is_valid():
         session = sessionform.save()
@@ -358,7 +356,7 @@ def handle_session(request,exam_pk):
     context = {'exam': exam,
                'sessionform': sessionform,}
 
-    return render(request, "exams/start_session.html", context)
+    return render(request, "exams/create_session.html", context)
 
 @decorators.post_only
 @decorators.ajax_only
@@ -400,6 +398,7 @@ def start_session_ajax(request,session_pk):
 
     return output
 
+@login_required
 def session(request, slugs, exam_pk,session_pk):
     category = Category.objects.get_from_slugs(slugs)
     session = get_object_or_404(Session,pk=session_pk)
@@ -431,5 +430,6 @@ def check_answer(request):
         right= True
     else:
         right = False
-    score = session.right_answers
+    #score = session.right_answers
+    score = 0
     return {"right":right,"score":score}

@@ -29,7 +29,7 @@ class SubjectQuerySet(models.QuerySet):
 
 class SourceQuerySet(models.QuerySet):
     def order_by_total_questions(self):
-        return self.annotate(total_questions=models.Count('question')).order_by('-total_questions')
+        return self.annotate(total_questions=models.Count('question')).order_by('-total_questions', 'name')
 
 class CategoryQuerySet(models.QuerySet):
     def get_from_slugs(self, slugs):
@@ -42,6 +42,10 @@ class CategoryQuerySet(models.QuerySet):
             kwarg = level + '__slug'
             kwargs[kwarg] = slug
             level += '__parent_category'
+        # Last parent to be a meta tag, with no parents
+        kwarg = level + '__isnull'
+        kwargs[kwarg] = True
+
         category = self.filter(**kwargs).first()
         return category
 

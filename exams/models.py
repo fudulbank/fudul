@@ -289,7 +289,7 @@ session_type_choices = (
 class Session(models.Model):
     explained = models.BooleanField("show explaination?", default=False)
     solved = models.BooleanField("solved questions", default=False)
-    number_of_questions = models.IntegerField(default=0)
+    number_of_questions = models.PositiveIntegerField(default=0)
     sources = models.ManyToManyField(Source, blank=True)
     subjects = models.ManyToManyField(Subject)
     exam = models.ForeignKey(Exam)
