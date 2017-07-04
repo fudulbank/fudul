@@ -34,7 +34,7 @@
 						</div>
         <div class="panel-body">
         <table id="approved" class="display datatable dt-responsive">
-{% with questions=exam.get_approved_questions.order_by_submission %}
+{% with revisions=exam.get_approved_latest_revisions.order_by_submission exam_pk=exam.pk category_slug=exam.category.get_slugs %}
 {% include 'exams/partials/question_table_content.html' %}
 {% endwith %}
             </table>
@@ -52,7 +52,7 @@
         </div>
         <div class="panel-body">
             <table id="pending" class="display datatable dt-responsive">
-{% with questions=exam.get_pending_questions.order_by_submission %}
+{% with revisions=exam.get_pending_latest_revisions.order_by_submission exam_pk=exam.pk category_slug=exam.category.get_slugs %}
 {% include 'exams/partials/question_table_content.html' %}
 {% endwith %}
             </table>

@@ -35,8 +35,8 @@
                             <tr>
                                 <th>Submitter</th>
                                 <th>Date of Submission</th>
-                                <th>Revision Status</th>
-                                <th>Approval Status</th>
+                                <th>Status</th>
+                                <th>Approvalth>
                             </tr>
                         </thead>
                         <tbody>
@@ -44,7 +44,9 @@
                             <tr data-url="{% url 'exams:show_question' revision.question.pk revision.pk %}" data-revision_pk="{{ revision.pk }}">
                             <td>{{ revision.submitter }}</td>
                             <td data-order="{{ revision.submission_date|date:'U' }}">{{ revision.submission_date }}</td>
-                            <td>{{ revision.get_status_display }}</td>
+                            <td>
+                                <ul>{% for status in revision.statuses.all %}<li>{{ status.name }}</li>{% endfor %}</ul>
+                            </td>
                             <td>{% if revision.is_approved %} Approved {% else %} Not Approved{% endif %}</td>
                             </tr>
                         {% endfor %}
