@@ -1,10 +1,11 @@
-from django import forms
 from dal import autocomplete
-from django.forms.models import inlineformset_factory
+from django import forms
 from django.core.validators import MaxValueValidator
+from django.forms.models import inlineformset_factory
 from accounts.utils import get_user_college
 from . import models
 from teams import utils
+
 
 class QuestionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -13,11 +14,17 @@ class QuestionForm(forms.ModelForm):
         self.fields['subjects'].queryset = models.Subject.objects.filter(exam=exam)
         self.fields['sources'].queryset = exam.get_sources()
 
+        exam_types = exam.get_exam_types()
+        if exam_types.exists():
+            self.fields['exam_types'].queryset = exam_types
+        else:
+            del self.fields['exam_types']
+
     class Meta:
         model = models.Question
-        fields = ['sources', 'subjects','exam_type', 'parent_question']
+        fields = ['sources', 'subjects','exam_types', 'parent_question']
         widgets = {
-            'exam_type': autocomplete.ListSelect2(),
+            'exam_types': autocomplete.ModelSelect2Multiple(),
             'parent_question': autocomplete.ModelSelect2(url='exams:autocomplete_questions',
                                                          forward=['exam_pk'],
                                                          attrs={'data-html': True}),
@@ -56,12 +63,19 @@ class SessionForm(forms.ModelForm):
 
         # Limit subjects and exams per exam
         self.fields['subjects'].queryset = models.Subject.objects.filter(exam=exam)
-        self.fields['sources'].queryset = exam.get_sources()
+        self.fields['sources'].queryset = exam.get_sources().filter(parent_source__isnull=True)
+
+        exam_types = exam.get_exam_types()
+        if exam_types.exists():
+            self.fields['exam_types'].queryset = exam_types
+        else:
+            del self.fields['exam_types']
 
     class Meta:
         model = models.Session
-        fields = ['explained','number_of_questions','session_type','solved','sources','subjects']
+        fields = ['explained','number_of_questions','exam_types','solved','sources','subjects']
         widgets = {
+            'exam_types': autocomplete.ModelSelect2Multiple(),
             'sources': autocomplete.ModelSelect2Multiple(),
             'subjects': autocomplete.ModelSelect2Multiple(),
             }

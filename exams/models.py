@@ -10,6 +10,9 @@ import textwrap
 class Source(models.Model):
     name = models.CharField(max_length=100)
     category = models.ForeignKey('Category')
+    parent_source = models.ForeignKey('self', null=True, blank=True,
+                                      related_name="children",
+                                      on_delete=models.SET_NULL)    
     submission_date = models.DateTimeField(auto_now_add=True)
     objects = managers.SourceQuerySet.as_manager()
 
@@ -18,12 +21,21 @@ class Source(models.Model):
 
 class Status(models.Model):
     name = models.CharField(max_length=100)
-    # code_name is something more table than 'name'
+    # code_name is something more stable than 'name'
     code_name = models.CharField(max_length=50)
 
     def __str__(self):
         return self.name
-    
+
+class ExamType(models.Model):
+    name = models.CharField(max_length=100)
+    # code_name is something more stable than 'name'
+    code_name = models.CharField(max_length=50)
+    category = models.ForeignKey('Category')
+
+    def __str__(self):
+        return self.name
+
 class Category(models.Model):
     slug = models.SlugField(max_length=50)
     name = models.CharField(max_length=100)
@@ -104,6 +116,14 @@ class Exam(models.Model):
             category = category.parent_category
         return sources
 
+    def get_exam_types(self):
+        exam_types = ExamType.objects.none()
+        category = self.category
+        while category:
+            exam_types |= category.examtype_set.all()
+            category = category.parent_category
+        return exam_types
+
     def can_user_edit(self, user):
         if user.is_superuser:
             return True
@@ -121,66 +141,71 @@ class Exam(models.Model):
                                .filter(subjects__exam=self).distinct()
 
     def get_complete_questions(self):
-        pks = Revision.objects.filter(question__subjects__exam=self,
-                                      statuses__code_name='COMPLETE',
-                                      is_last=True).distinct()\
+        pks = Revision.objects.per_exam(self)\
+                              .filter(statuses__code_name='COMPLETE',
+                                      is_last=True)\
                               .values_list('question__pk', flat=True)
         questions = Question.objects.undeleted().filter(pk__in=pks)
         return questions
 
     def get_incomplete_questions(self):
-        pks = Revision.objects.filter(question__subjects__exam=self,
-                                      is_last=True).distinct()\
+        pks = Revision.objects.per_exam(self)\
+                              .filter(is_last=True)\
                               .exclude(statuses__code_name='COMPLETE')\
                               .values_list('question__pk', flat=True)
         questions = Question.objects.undeleted().filter(pk__in=pks)
         return questions
 
+    def get_approved_latest_revisions(self):
+        return Revision.objects.select_related('question', 'submitter')\
+                               .per_exam(self)\
+                               .filter(is_last=True, is_approved=True)
+
+    def get_pending_latest_revisions(self):
+        return Revision.objects.select_related('question', 'submitter')\
+                               .per_exam(self)\
+                               .filter(is_last=True, is_approved=False)
+
     def get_approved_questions(self):
-        pks = Revision.objects.filter(question__subjects__exam=self,
-                                      is_last=True, is_approved=True).distinct()\
-                              .values_list('question__pk', flat=True)
+        pks = self.get_approved_latest_revisions().values_list('question__pk', flat=True)
         questions = Question.objects.undeleted().filter(pk__in=pks)
         return questions
 
     def get_pending_questions(self):
-        pks = Revision.objects.filter(question__subjects__exam=self,
-                                      is_last=True, is_approved=False).distinct()\
-                              .values_list('question__pk', flat=True)
+        pks = self.get_pending_latest_revisions().values_list('question__pk', flat=True)
         questions = Question.objects.undeleted().filter(pk__in=pks)
         return questions
 
     def get_questions_with_writing_error(self):
-        pks = Revision.objects.filter(question__subjects__exam=self,
-                                      is_last=True,status='WRITING_ERROR').distinct()\
+        pks = Revision.objects.per_exam(self)\
+                              .filter(is_last=True, status='WRITING_ERROR')\
                               .values_list('question__pk',flat=True)
         questions = Question.objects.undeleted().filter(pk__in=pks)
         return questions
 
     def get_questions_with_incomplete_question(self):
-        pks = Revision.objects.filter(question__subjects__exam=self,
-                                      is_last=True,status='INCOMPLETE_QUESTION').distinct()\
+        pks = Revision.objects.per_exam(self)\
+                              .filter(is_last=True, status='INCOMPLETE_QUESTION')\
                               .values_list('question__pk',flat=True)
         questions = Question.objects.undeleted().filter(pk__in=pks)
         return questions
 
     def get_questions_with_incomplete_answers(self):
-        pks = Revision.objects.filter(question__subjects__exam=self,
-                                      is_last=True,status='INCOMPLETE_ANSWERS').distinct()\
+        pks = Revision.objects.per_exam(self)\
+                              .filter(is_last=True, status='INCOMPLETE_ANSWERS')\
                               .values_list('question__pk',flat=True)
         questions = Question.objects.undeleted().filter(pk__in=pks)
         return questions
 
     def get_unsolved_questions(self):
-        pks = Revision.objects.filter(question__subjects__exam=self,
-                                      is_last=True, status='UNSOLVED').distinct()\
+        pks = Revision.objects.per_exam(self)\
+                              .filter(is_last=True, status='UNSOLVED')\
                               .values_list('question__pk',flat=True)
         questions = Question.objects.undeleted().filter(pk__in=pks)
         return questions
 
     def __str__(self):
         return self.name
-
 
 class Subject(models.Model):
     name = models.CharField(max_length=100)
@@ -191,28 +216,18 @@ class Subject(models.Model):
     def __str__(self):
         return self.name
 
-
-exam_type_choices = (
-    ('FINAL', 'Final'),
-    ('MIDTERM', 'Midterm'),
-    ('FORMATIVE', 'Formative'),
-    ('OSPE','OSPE'),
-)
-
 status_choices = (
     ('COMPLETE','Complete and valid question'),
     ('WRITING_ERROR', 'Writing errors'),
     ('INCOMPLETE_ANSWERS', 'Incomplete answers'),
     ('INCOMPLETE_QUESTION', 'Incomplete question'),
     ('UNSOLVED', 'Unsolved question'),
-
 )
 
 class Question(models.Model):
     sources = models.ManyToManyField(Source, blank=True)
     subjects = models.ManyToManyField(Subject)
-    exam_type = models.CharField(max_length=15, blank=True,
-                                 choices=exam_type_choices)
+    exam_types = models.ManyToManyField(ExamType)
     is_deleted = models.BooleanField(default=False)
     statuses = models.ManyToManyField(Status)
     objects = managers.QuestionQuerySet.as_manager()
@@ -239,8 +254,6 @@ class Question(models.Model):
 
     def get_latest_revision(self):
         return self.revision_set.filter(is_deleted=False).order_by('-submission_date').first()
-
-
 
 class Revision(models.Model):
     question = models.ForeignKey(Question)
@@ -279,25 +292,16 @@ class Choice(models.Model):
     def __str__(self):
         return self.text
 
-session_type_choices = (
-    ('',''),
-
-
-)
-
-
 class Session(models.Model):
-    explained = models.BooleanField("show explaination?", default=False)
-    solved = models.BooleanField("solved questions", default=False)
+    explained = models.BooleanField("Show explaination?", default=False)
+    solved = models.BooleanField("Show solved questions?", default=False)
     number_of_questions = models.PositiveIntegerField(default=0)
     sources = models.ManyToManyField(Source, blank=True)
     subjects = models.ManyToManyField(Subject)
     exam = models.ForeignKey(Exam)
     questions = models.ManyToManyField(Question)
-    session_type = models.CharField(max_length=15, blank=True,
-                                 choices=exam_type_choices)
+    exam_types = models.ManyToManyField(ExamType)
     submitter = models.ForeignKey(User)
-
 
 class Ansewer(models.Model):
     session = models.ForeignKey(Session)
@@ -305,6 +309,3 @@ class Ansewer(models.Model):
     choice = models.ForeignKey(Choice)
     is_marked = models.BooleanField("is marked ?", default=False)
     submitter = models.ForeignKey(User)
-
-
-

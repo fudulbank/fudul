@@ -120,8 +120,8 @@ def handle_question(request, exam_pk):
         revision.save()
         revisionform.save_m2m()
 
-        if teams.utils.is_editor(request.user) and \
-           revision.statuses.filter(code_name='COMPLETE').exists():
+
+        if utils.test_revision_approval(revision, request.user):
             revision.is_approved = True
         else:
             revision.is_approved = False
@@ -235,8 +235,7 @@ def submit_revision(request,slugs,exam_pk, pk):
             question.revision_set.exclude(pk=new_revision.pk)\
                                  .update(is_last=False)
 
-            if teams.utils.is_editor(request.user) and \
-               new_revision.statuses.filter(code_name='COMPLETE').exists():
+            if utils.test_revision_approval(new_revision, request.user):
                 new_revision.is_approved = True
             else:
                 new_revision.is_approved = False
