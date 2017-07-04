@@ -207,7 +207,6 @@ class Exam(models.Model):
     def __str__(self):
         return self.name
 
-
 class Subject(models.Model):
     name = models.CharField(max_length=100)
     exam = models.ForeignKey(Exam)
@@ -217,28 +216,17 @@ class Subject(models.Model):
     def __str__(self):
         return self.name
 
-
-exam_type_choices = (
-    ('FINAL', 'Final'),
-    ('MIDTERM', 'Midterm'),
-    ('FORMATIVE', 'Formative'),
-    ('OSPE','OSPE'),
-)
-
 status_choices = (
     ('COMPLETE','Complete and valid question'),
     ('WRITING_ERROR', 'Writing errors'),
     ('INCOMPLETE_ANSWERS', 'Incomplete answers'),
     ('INCOMPLETE_QUESTION', 'Incomplete question'),
     ('UNSOLVED', 'Unsolved question'),
-
 )
 
 class Question(models.Model):
     sources = models.ManyToManyField(Source, blank=True)
     subjects = models.ManyToManyField(Subject)
-    exam_type = models.CharField(max_length=15, blank=True,
-                                 choices=exam_type_choices)
     exam_types = models.ManyToManyField(ExamType)
     is_deleted = models.BooleanField(default=False)
     statuses = models.ManyToManyField(Status)
@@ -266,8 +254,6 @@ class Question(models.Model):
 
     def get_latest_revision(self):
         return self.revision_set.filter(is_deleted=False).order_by('-submission_date').first()
-
-
 
 class Revision(models.Model):
     question = models.ForeignKey(Question)
@@ -314,11 +300,8 @@ class Session(models.Model):
     subjects = models.ManyToManyField(Subject)
     exam = models.ForeignKey(Exam)
     questions = models.ManyToManyField(Question)
-    session_type = models.CharField(max_length=15, blank=True,
-                                 choices=exam_type_choices)
     exam_types = models.ManyToManyField(ExamType)
     submitter = models.ForeignKey(User)
-
 
 class Ansewer(models.Model):
     session = models.ForeignKey(Session)
@@ -326,5 +309,3 @@ class Ansewer(models.Model):
     choice = models.ForeignKey(Choice)
     is_marked = models.BooleanField("is marked ?", default=False)
     submitter = models.ForeignKey(User)
-
-
