@@ -12,7 +12,7 @@ class Source(models.Model):
     category = models.ForeignKey('Category')
     parent_source = models.ForeignKey('self', null=True, blank=True,
                                       related_name="children",
-                                      on_delete=models.SET_NULL)    
+                                      on_delete=models.SET_NULL)
     submission_date = models.DateTimeField(auto_now_add=True)
     objects = managers.SourceQuerySet.as_manager()
 
@@ -35,6 +35,7 @@ class ExamType(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class Category(models.Model):
     slug = models.SlugField(max_length=50)
@@ -293,7 +294,6 @@ class Choice(models.Model):
         return self.text
 
 class Session(models.Model):
-    explained = models.BooleanField("Show explaination?", default=False)
     solved = models.BooleanField("Show solved questions?", default=False)
     number_of_questions = models.PositiveIntegerField(default=0)
     sources = models.ManyToManyField(Source, blank=True)
@@ -302,10 +302,12 @@ class Session(models.Model):
     questions = models.ManyToManyField(Question)
     exam_types = models.ManyToManyField(ExamType)
     submitter = models.ForeignKey(User)
+    right_answers=models.PositiveIntegerField(default=0)
+    is_marked = models.ManyToManyField(Question,related_name='marked')
 
-class Ansewer(models.Model):
+
+class Answer(models.Model):
     session = models.ForeignKey(Session)
     question = models.ForeignKey(Question)
-    choice = models.ForeignKey(Choice)
+    choice = models.ForeignKey(Choice,null=True)
     is_marked = models.BooleanField("is marked ?", default=False)
-    submitter = models.ForeignKey(User)

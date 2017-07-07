@@ -18,7 +18,10 @@ display: block
 										<div class="page-title">
 											<h5>
 												 <span class="text-semibold">{{ session.exam.name }}</span> - Session
-												<small class="display-block"> <i class="icon-flag7"></i></small>
+												<small class="display-block">
+                                                    <input type="checkbox" name="marked" value="marked" id="marked">
+                                                    <i for="marked" class="icon-flag7"></i>
+                                                </small>
 											</h5>
 										<a class="heading-elements-toggle"><i class="icon-more"></i></a></div>
 
@@ -34,10 +37,13 @@ display: block
 								</div>
  <div class="panel-body">
   <div id="start-session">
-      <div id="end-session">
+
+  </div>
+         <button type="button" id="skip" class="btn btn-primary btn-rounded">Skip</button>
+    <button type="button" id="next"  style='float: right; display: none'class="btn btn-primary btn-rounded">Next</button>
+     <div id="end-session">
 
       </div>
-    </div>
     </div>
     </div>
 {% endblock %}
@@ -67,12 +73,18 @@ function initiate_radio(){
                         alert('You Got the right answer.');
                         score+= 1;
                         console.log('right');
-
                     }
                     else {
                         alert('No');
                         console.log('nope');
 
+                    }
+                    if ( $('input[name="marked"]').is(':checked') ) {
+                        data.marked = true
+
+                    }
+                    else {
+                       data.marked = false
                     }
                     $("#container-" + (counter - 1)).hide();
                     data.score += score;
@@ -113,7 +125,7 @@ function initiate_radio(){
                             type: 'hidden',
                             id: 'container-' + counter,
                             name: 'question-div',
-                            style: 'display:none'
+                            style: 'display:none',
                         }).appendTo('#start-session');
                         var number = counter;
                         counter += 1;
@@ -138,14 +150,28 @@ function initiate_radio(){
                             $(choice).appendTo($thelabel);
                             $($thedive).addClass('well-sm');
                             $($thechoice).change(initiate_radio)
-
                         }
                     }
               }
               $('#container-1').show();
+              $(' input[type=radio]').change(function(){
+                  console.log('it has been changed ');
+                  if ( $('input[name="question-choice"]').is(':checked') ) {
+                      $('#skip').hide();
+                      $('#next').show()
+
+                  }
+                  else {
+                      $('#next').hide();
+                      $('#skip').show()
+
+                  }
+              });
           }
       });
 
  });
+{#                     $(':input').not(':button, :submit, :reset, :hidden, :checkbox').removeAttr('checked').removeAttr('selected').not('‌​:checkbox, :radio, select').val('');#}
+
  </script>
 {% endblock %}

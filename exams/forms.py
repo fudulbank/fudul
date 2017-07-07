@@ -73,7 +73,7 @@ class SessionForm(forms.ModelForm):
 
     class Meta:
         model = models.Session
-        fields = ['explained','number_of_questions','exam_types','solved','sources','subjects']
+        fields = ['number_of_questions','exam_types','solved','sources','subjects']
         widgets = {
             'exam_types': autocomplete.ModelSelect2Multiple(),
             'sources': autocomplete.ModelSelect2Multiple(),

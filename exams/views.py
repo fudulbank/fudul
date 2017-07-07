@@ -9,7 +9,7 @@ from django.template.loader import get_template
 from django.views.decorators import csrf
 
 from core import decorators
-from .models import Exam, Question, Category, Revision,Session,Choice
+from .models import Exam, Question, Category, Revision,Session,Choice,Answer
 from . import forms, utils
 import teams.utils
 
@@ -424,11 +424,17 @@ def check_answer(request):
     question = get_object_or_404(Question,pk=question_pk)
     session_pk = request.POST.get('session_pk')
     session = get_object_or_404(Session, pk=session_pk)
+    answer = Answer.objects.create(session=session,question=question,choice=choice,submitter=request.user)
 
     if choice.is_answer:
         right= True
     else:
         right = False
-    #score = session.right_answers
-    score = 0
-    return {"right":right,"score":score}
+
+    for answer in Answer.objects.filter(session=session):
+        if answer.is_marked == True:
+            session.is_marked.add(answer)
+
+    score = session.right_answers
+    marked= answer.is_marked
+    return {"right":right,"score":score,'marked':marked}
