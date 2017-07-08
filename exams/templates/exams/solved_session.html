@@ -37,10 +37,12 @@ display: block
 								</div>
  <div class="panel-body">
   <div id="start-session">
+        <div id="form-panel" class="panel-body">
+            {% include 'exams/partials/session-question.html' %}
+        </div>
 
   </div>
-         <button type="button" id="skip" class="btn btn-primary btn-rounded">Skip</button>
-    <button type="button" id="next"  style='float: right; display: none'class="btn btn-primary btn-rounded">Next</button>
+
      <div id="end-session">
 
       </div>
@@ -52,32 +54,29 @@ display: block
     <script src="{% static 'js/jquery.formset.js' %}"></script>
     <script src="{% static 'js/jquery.autogrowtextarea.min.js' %}"></script>
     <script src="{% static 'js/toastr.js' %}"></script>
- <script type="text/javascript">
 
- var score = 0;
-function initiate_radio(){
+ <script type="text/javascript">
+var score = 0;
+function slected_choice(){
+    console.log('it was answered');
     toastr.options.positionClass = "toast-top-center";
-    choice_pk = $(this).data("choice_pk");
-    question_pk = $(this).data("question_pk");
-    counter =  $(this).data("counter");
-    session_pk = $(this).data("session_pk");
+    choice_pk = $('input[name=question-choice]:checked').data("choice_pk");
+    question_pk =$("input[name=question-choice]:checked").data("question_pk");
+    session_pk = $("input[name=question-choice]:checked").data("session_pk");
         $.ajax({
             url: "{% url 'exams:check_answer' %}",
             type: 'POST',
-            data: {choice_pk: choice_pk,question_pk:question_pk,counter:counter,session_pk:session_pk},
+            data: {choice_pk: choice_pk,question_pk:question_pk,session_pk:session_pk},
             cache: false,
             success: function (data) {
-                 console.log('radio intial');
+                console.log('the function has been called');
                 if (data.success) {
                     if (data.right) {
                         alert('You Got the right answer.');
                         score+= 1;
-                        console.log('right');
                     }
                     else {
                         alert('No');
-                        console.log('nope');
-
                     }
                     if ( $('input[name="marked"]').is(':checked') ) {
                         data.marked = true
@@ -86,92 +85,42 @@ function initiate_radio(){
                     else {
                        data.marked = false
                     }
-                    $("#container-" + (counter - 1)).hide();
-                    data.score += score;
-                    console.log(data.score);
-                    if ($("#container-" + (counter)).length == 0) {
-                        $('#end-session').css('display','block');
-                        var $thedive = $('<div>').attr({
-                                    type: 'hidden',
-                                    id: 'container',
-                                    name: 'score'
-                                    }).appendTo('#end-session');
-                        var content = document.createTextNode( );
-                        $thedive.append(content);
-                    }
-                    else {
-                        $("#container-" + (counter)).show();
-                    }
+                    $("#start-session .panel-body").html(data.stat_html);
+                    $(':input').not(':button, :submit, :reset, :hidden').removeAttr('checked').removeAttr('selected').not('‌​ :radio, select').val('');
 
                 }
             }
         });
     }
 </script>
- <script type="text/javascript">
+<script type="text/javascript">
+function skipped_answer(){
+    console.log('it was skipped');
+    toastr.options.positionClass = "toast-top-center";
+    question_pk =$("#question-container").data("question_pk");
+    session_pk = $("#question-container").data("session_pk");
+        $.ajax({
+            url: "{% url 'exams:check_answer' %}",
+            type: 'POST',
+            data: {question_pk:question_pk,session_pk:session_pk},
+            cache: false,
+            success: function (data) {
+                console.log('the function has been called');
+                if (data.success) {
+                    alert('it was skipped');
+                    if ( $('input[name="marked"]').is(':checked') ) {
+                        data.marked = true
 
- $(document).ready(function(){
-      $.ajax({
-          url: "{% url 'exams:start_session_ajax' session.pk %}",
-          type: 'POST',
-          cache: false,
-          success: function (data) {
-              if (data.success) {
-                    var counter = 1;
-                    var questionsArray = data.questions;
-                    var arrayLength = questionsArray.length;
-                    for (var i = 0; i < arrayLength; i++) {
-                        var $thedive = $('<div>').attr({
-                            type: 'hidden',
-                            id: 'container-' + counter,
-                            name: 'question-div',
-                            style: 'display:none',
-                        }).appendTo('#start-session');
-                        var number = counter;
-                        counter += 1;
-                        $($thedive).attr('data-question_pk', questionsArray[i].content[0].pk); // sets
-                        var content = document.createTextNode(questionsArray[i].content[0].text);
-                        $thedive.append(content);
-                        var choices = questionsArray[i].choices;
-                        var choicesLength = choices.length;
-                        for (var m = 0; m < choicesLength; m++) {
-                            var $thelabel = $('<label>').appendTo($thedive);
-                            var $thechoice = $('<input>').attr({
-                                type: 'radio',
-                                id: questionsArray[i].choices[m].pk,
-                                name: 'question-choice',
-                                style: 'word-wrap:break-word;'
-                            }).appendTo($thelabel);
-                            $($thechoice).attr('data-question_pk', questionsArray[i].content[0].pk); // sets
-                            $($thechoice).attr('data-counter', counter); // sets
-                            $($thechoice).attr('data-session_pk', data.session_pk); // sets
-                            $($thechoice).attr('data-choice_pk', questionsArray[i].choices[m].pk); // sets
-                            var choice = document.createTextNode(questionsArray[i].choices[m].text);
-                            $(choice).appendTo($thelabel);
-                            $($thedive).addClass('well-sm');
-                            $($thechoice).change(initiate_radio)
-                        }
                     }
-              }
-              $('#container-1').show();
-              $(' input[type=radio]').change(function(){
-                  console.log('it has been changed ');
-                  if ( $('input[name="question-choice"]').is(':checked') ) {
-                      $('#skip').hide();
-                      $('#next').show()
+                    else {
+                       data.marked = false
+                    }
+                    $("#start-session .panel-body").html(data.stat_html);
+                    $(':input').not(':button, :submit, :reset, :hidden').removeAttr('checked').removeAttr('selected').not('‌​ :radio, select').val('');
 
-                  }
-                  else {
-                      $('#next').hide();
-                      $('#skip').show()
-
-                  }
-              });
-          }
-      });
-
- });
-{#                     $(':input').not(':button, :submit, :reset, :hidden, :checkbox').removeAttr('checked').removeAttr('selected').not('‌​:checkbox, :radio, select').val('');#}
-
- </script>
+                }
+            }
+        });
+    }
+</script>
 {% endblock %}

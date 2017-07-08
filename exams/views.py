@@ -282,33 +282,6 @@ def list_question_per_status(request, slugs, exam_pk):
     context ={'writing_error':writing_error, 'unsloved':unsloved, 'incomplete_answer':incomplete_answer,
               'incomplete_question':incomplete_question,'exam':exam}
     return render(request, 'exams/list_question_per_status.html', context)
-#
-# @login_required
-# def start_session(request, slugs, exam_pk):
-#     category = Category.objects.get_from_slugs(slugs)
-#     if not category:
-#         raise Http404
-#
-#     # PERMISSION CHECK
-#     exam = get_object_or_404(Exam, pk=exam_pk, category=category)
-#     if not exam.can_user_edit(request.user):
-#         raise PermissionDenied
-#
-#     context = {'exam': exam}
-#     if request.method == 'POST':
-#         instance = Session(submitter=request.user, exam=exam)
-#         sessionform = forms.SessionForm(request.POST,
-#                                         request.FILES,
-#                                         instance=instance)
-#         if sessionform.is_valid():
-#             sessionform.save()
-#         # return HttpResponseRedirect(reverse("exams:list_revisions", args=(exam.category.get_slugs(), exam.pk, question.pk)))
-#     elif request.method == 'GET':
-#         sessionform = forms.SessionForm()
-#
-#     context['sessionform'] = sessionform
-#
-#     return render(request, "exams/start_session.html", context)
 
 
 @decorators.get_only
@@ -357,46 +330,6 @@ def handle_session(request,exam_pk):
 
     return render(request, "exams/create_session.html", context)
 
-@decorators.post_only
-@decorators.ajax_only
-@csrf.csrf_exempt
-
-def start_session_ajax(request,session_pk):
-    session = get_object_or_404(Session,pk=session_pk)
-    exam = session.exam
-    subjects = []
-    sources = []
-
-    for subject in session.subjects.all():
-        subjects.append(subject)
-
-    for source in session.sources.all():
-        sources.append(source)
-
-    # question_pool = Question.objects.filter(exam_type=session.session_type,statuses__code_name='COMPLETE',subjects__in=subjects, sources__in=sources)
-
-    output = {"questions": [],
-              'session_pk':session.pk }
-
-    for question in exam.get_approved_questions():
-        choices = []
-        content = []
-        if question.get_latest_approved_revision():
-            revision = question.get_latest_approved_revision()
-            content.append({"text": revision.text,'pk':question.pk})
-            for choice in revision.choice_set.all():
-                choices.append({"pk": choice.pk, "text": choice.text,'is_answer': choice.is_answer})
-            if revision.explanation :
-                content.append({"explanation": revision.explanation})
-            if revision.figure:
-                content.append({"figure": revision.figure.url})
-        question_result = {'content': content,
-                           'choices': choices,
-                           }
-        output["questions"].append(question_result)
-
-    return output
-
 @login_required
 def session(request, slugs, exam_pk,session_pk):
     category = Category.objects.get_from_slugs(slugs)
@@ -410,7 +343,12 @@ def session(request, slugs, exam_pk,session_pk):
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
 
-    return render(request, "exams/solved_session.html",{'session':session})
+    for question in exam.get_approved_questions()[:100]:
+        session.questions.add(question)
+
+    question = session.questions.first()
+
+    return render(request, "exams/solved_session.html",{'session':session,'question':question})
 
 
 @decorators.ajax_only
@@ -418,23 +356,35 @@ def session(request, slugs, exam_pk,session_pk):
 @login_required
 @csrf.csrf_exempt
 def check_answer(request):
-    choice_pk = request.POST.get('choice_pk')
-    choice = get_object_or_404(Choice, pk=choice_pk)
     question_pk = request.POST.get('question_pk')
-    question = get_object_or_404(Question,pk=question_pk)
+    answerd_question = get_object_or_404(Question,pk=question_pk)
     session_pk = request.POST.get('session_pk')
     session = get_object_or_404(Session, pk=session_pk)
-    answer = Answer.objects.create(session=session,question=question,choice=choice,submitter=request.user)
-
-    if choice.is_answer:
-        right= True
+    if request.method == 'GET' and 'choice_pk' in request.GET:
+        choice_pk = request.POST.get('choice_pk')
+        choice = get_object_or_404(Choice, pk=choice_pk)
+        if choice_pk is not None and choice_pk != '':
+            answer = Answer.objects.create(session=session,question=answerd_question,choice=choice)
+            if choice.is_answer:
+                right = True
+            else:
+                right = False
     else:
+        answer = Answer.objects.create(session=session,question=answerd_question)
         right = False
+
+
 
     for answer in Answer.objects.filter(session=session):
         if answer.is_marked == True:
-            session.is_marked.add(answer)
+            session.is_marked.add(answer.choice.revision.question)
 
+    unanswered_questions = session.questions.filter(answer__isnull=True)
+    question = unanswered_questions.first()
+    template = get_template('exams/partials/session-question.html')
+    context = {'question': question,'session':session}
+    stat_html = template.render(context)
     score = session.right_answers
-    marked= answer.is_marked
-    return {"right":right,"score":score,'marked':marked}
+    marked = answer.is_marked
+
+    return {"right":right,"score":score,'marked':marked,'stat_html':stat_html}

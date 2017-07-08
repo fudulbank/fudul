@@ -1,0 +1,46 @@
+<div id="question-container" class="well-sm" type="hidden" name="question-div" data-question_pk={{ question.pk }} data-session_pk={{ session.pk }}>
+    {{ question.get_latest_revision.text }}
+    {% for choice in question.get_latest_revision.choice_set.all %}
+    <label>
+    <input  name="question-choice" style="word-wrap:break-word;" data-question_pk="{{ question.pk }}" data-session_pk="{{ session.pk }}" data-choice_pk="{{ choice.pk }}" type="checkbox">
+        {{ choice.text }}</label>
+    {% endfor %}
+         <button type="button" id="skip" class="btn btn-primary btn-rounded">Skip</button>
+    <button type="button" id="next"  style='float: right; display: none'class="btn btn-primary btn-rounded">Next</button>
+</div>
+{% block customscript %}
+
+ <script type="text/javascript">
+
+ $(document).ready(function(){
+      $('#question-container input[type=checkbox]').on('change',function(){
+          console.log('it has been changed ');
+          var $box = $(this);
+          if ($box.is(":checked")) {
+            // the name of the box is retrieved using the .attr() method
+            // as it is assumed and expected to be immutable
+            var group = "input:checkbox[name='" + $box.attr("name") + "']";
+            // the checked state of the group/box on the other hand will change
+            // and the current value is retrieved using .prop() method
+            $(group).prop("checked", false);
+            $box.prop("checked", true);
+          } else {
+            $box.prop("checked", false);
+          }
+          if ( $('input[name="question-choice"]').is(':checked') ) {
+              $('#skip').hide();
+              $('#next').show()
+
+          }
+          else {
+              $('#next').hide();
+              $('#skip').show()
+
+          }
+      });
+      $('#next').click(slected_choice);
+      $('#skip').click(skipped_answer)
+ });
+
+ </script>
+{% endblock %}
