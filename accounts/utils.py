@@ -1,5 +1,18 @@
 from django.core.exceptions import ObjectDoesNotExist
 
+def get_user_representation(user, with_email=True):
+    try:
+        profile = user.profile
+        representation = profile.get_full_name()
+        if with_email:
+            representation +=  " (%s)" % user.email
+        return representation
+    except ObjectDoesNotExist:
+        if user.is_superuser:
+            return user.username
+        else:
+            return user.email
+
 def get_user_full_name(user):
     if not user.is_authenticated():
         return ''
