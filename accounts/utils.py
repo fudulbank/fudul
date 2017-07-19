@@ -4,6 +4,8 @@ def get_user_representation(user, with_email=True):
     try:
         profile = user.profile
         representation = profile.get_full_name()
+        if not representation:
+            raise ObjectDoesNotExist
         if with_email:
             representation +=  " (%s)" % user.email
         return representation

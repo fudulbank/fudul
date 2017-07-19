@@ -23,11 +23,9 @@ class Profile(models.Model):
     def get_full_name(self):
         # If the first name is missing, let's assume the rest is also
         # missing.
-        if self.first_name:
-            ar_fullname = " ".join([self.first_name,
-                                    self.middle_name,
-                                    self.last_name])
-            return ar_fullname
+        fullname = " ".join([self.first_name, self.middle_name,
+                             self.last_name])
+        return fullname
 
 class Batch(models.Model):
     name = models.CharField(max_length=50)
