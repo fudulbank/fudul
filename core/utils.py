@@ -5,8 +5,9 @@ BASIC_SEARCH_FIELDS = ['user__pk', 'user__username', 'user__email',
                        'user__profile__first_name',
                        'user__profile__middle_name',
                        'user__profile__last_name',
+                       'user__profile__mobile_number',
+                       'user__profile__alternative_email',
                        'user__profile__nickname']
-
 
 def get_search_queryset(queryset, search_fields, search_term):
     # Based on the Django app search functionality found in the
