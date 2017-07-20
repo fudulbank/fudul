@@ -38,8 +38,7 @@
             $(this).toggleClass("strike");
       });
 
-//Wrap selected text in  tags with the class 'hl'
-//Take some action after (in this case, a simple alert)
+{# Inspired by http://esbueno.noahstokes.com/post/92274686/highlight-selected-text-with-jquery #}
 $(".question-text").mouseup(
     function() {
         var selection = window.getSelection().toString();
