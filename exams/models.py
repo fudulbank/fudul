@@ -56,7 +56,7 @@ class Category(models.Model):
 
         category = self
         while category:
-            if category.college_limist.exists() and \
+            if category.college_limit.exists() and \
                not category.college_limit.filter(pk=user_college.pk).exists():
                 return False
             category = category.parent_category
