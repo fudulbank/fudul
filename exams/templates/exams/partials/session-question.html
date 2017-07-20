@@ -1,18 +1,62 @@
 <div id="question-container" class="well-sm" type="hidden" name="question-div" data-question_pk={{ question.pk }} data-session_pk={{ session.pk }}>
-    {{ question.get_latest_revision.text }}
-    {% for choice in question.get_latest_revision.choice_set.all %}
-    <label>
-    <input  name="question-choice" style="word-wrap:break-word;" data-question_pk="{{ question.pk }}" data-session_pk="{{ session.pk }}" data-choice_pk="{{ choice.pk }}" type="checkbox">
-        {{ choice.text }}</label>
-    {% endfor %}
-         <button type="button" id="skip" class="btn btn-primary btn-rounded">Skip</button>
-    <button type="button" id="next"  style='float: right; display: none'class="btn btn-primary btn-rounded">Next</button>
+    <p class="question-text">{{ question.get_latest_revision.text|linebreaksbr }}</p>
+
+    <table>
+      <tbody>
+        {% for choice in question.get_latest_revision.choice_set.all %}
+            <tr>
+               <td><input name="question-choice" style="margin-right: 10px; word-wrap:break-word;" data-question_pk="{{ question.pk }}" data-session_pk="{{ session.pk }}" data-choice_pk="{{ choice.pk }}" type="checkbox"></td>
+               <td class="choice-text">{{ choice.text }}</td>
+            </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <button type="button" id="skip" class="pull-right btn btn-warning btn-rounded">Skip</button>
+    <button type="button" id="next" style="display: none" class="pull-right btn btn-primary btn-rounded">Next</button>
 </div>
+
 {% block customscript %}
+<style>
+.strike{
+    text-decoration: line-through;
+}
+.highlight{
+    background: yellow;
+    cursor: pointer;
+}
+.choice-text{
+  -webkit-user-select: none;  
+  -moz-user-select: none;    
+  -ms-user-select: none;      
+  user-select: none;
+}
+</style>
 
  <script type="text/javascript">
-
  $(document).ready(function(){
+      $(".choice-text").click(function(){
+            $(this).toggleClass("strike");
+      });
+
+//Wrap selected text in  tags with the class 'hl'
+//Take some action after (in this case, a simple alert)
+$(".question-text").mouseup(
+    function() {
+        var selection = window.getSelection().toString();
+        console.log(selection);
+        if(selection.length >= 3) {
+            var replacement = $('<span></span>').addClass('highlight').html(selection);
+            var replacementHtml = $('<div>').append(replacement.clone()).remove().html();
+            $(this).html( $(this).html().replace(selection, replacementHtml) );
+        }
+        $(".highlight").click(function(){
+            $(this).removeClass("highlight");
+        });
+    }
+);
+
+
+
       $('#question-container input[type=checkbox]').on('change',function(){
           console.log('it has been changed ');
           var $box = $(this);
