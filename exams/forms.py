@@ -3,8 +3,8 @@ from django import forms
 from django.core.validators import MaxValueValidator
 from django.forms.models import inlineformset_factory
 from accounts.utils import get_user_college
-from . import models
-from teams import utils
+from . import models, utils
+import teams.utils
 
 
 class QuestionForm(forms.ModelForm):
@@ -33,6 +33,30 @@ class QuestionForm(forms.ModelForm):
         }
 
 class RevisionForm(forms.ModelForm):
+    def clone(self, question, user):
+        new_revision = self.save(commit=False)
+
+        # Setting primary key to None creates a new object, rather
+        # than modifying the pre-existing one
+        new_revision.pk = None
+        new_revision.submitter = user
+        new_revision.save()
+        self.save_m2m()
+
+        # Make sure that all previous revisions are set to
+        # is_last=False
+        question.revision_set.exclude(pk=new_revision.pk)\
+                             .update(is_last=False)
+
+        if utils.test_revision_approval(new_revision, user):
+            new_revision.is_approved = True
+        else:
+            new_revision.is_approved = False
+
+        new_revision.save()
+
+        return new_revision
+
     class Meta:
         model = models.Revision
         fields = ['text', 'explanation', 'figure', 'is_approved',
@@ -46,10 +70,27 @@ class ChoiceForms(forms.ModelForm):
         model = models.Choice
         fields = ['text','revision','is_answer']
 
+class CustomRevisionChoiceFormset(forms.BaseInlineFormSet):
+    def clone(self, revision):
+        # Let's clone choices!
+        modified_choices = self.save(commit=False)
+        unmodified_choices = []
+        for choice in self.queryset:
+            if not choice in self.deleted_objects and \
+               not choice in modified_choices:
+                unmodified_choices.append(choice)
+        choices = modified_choices + unmodified_choices
+        for choice in choices:
+            choice.pk = None
+            choice.revision = revision
+            choice.save()
+
 RevisionChoiceFormset = inlineformset_factory(models.Revision,
                                               models.Choice,
+                                              formset=CustomRevisionChoiceFormset,
                                               extra=4,
                                               fields=['text','is_answer'])
+
 class SessionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         exam = kwargs.pop('exam')
@@ -79,3 +120,13 @@ class SessionForm(forms.ModelForm):
             'sources': autocomplete.ModelSelect2Multiple(),
             'subjects': autocomplete.ModelSelect2Multiple(),
             }
+
+
+class ExplanationForm(RevisionForm):
+    def __init__(self, *args, **kwargs):
+        super(ExplanationForm, self).__init__(*args, **kwargs)
+        self.fields['explanation'].required  = True
+
+    class Meta:
+        model = models.Revision
+        fields = ['explanation']

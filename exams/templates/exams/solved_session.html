@@ -23,6 +23,13 @@ display: block
                                                     <i for="marked" class="icon-flag7"></i>
                                                 </small>
 											</h5>
+                      <button id="explain" data-question-pk="{{ question.pk }}" class="btn btn-success">
+                        Explain!
+                        <i class="icon-circle-right2 position-right"></i>
+                      </button>
+                      <small class="display-block">
+
+                      </small>
 										<a class="heading-elements-toggle"><i class="icon-more"></i></a></div>
 
 										<div class="heading-elements">
@@ -85,6 +92,7 @@ function slected_choice(){
                     else {
                        data.marked = false
                     }
+                    $("button#explain").data("question-pk", 'next_question_pk')
                     $("#start-session .panel-body").html(data.stat_html);
                     $(':input').not(':button, :submit, :reset, :hidden').removeAttr('checked').removeAttr('selected').not('‌​ :radio, select').val('');
 
@@ -92,8 +100,6 @@ function slected_choice(){
             }
         });
     }
-</script>
-<script type="text/javascript">
 function skipped_answer(){
     console.log('it was skipped');
     toastr.options.positionClass = "toast-top-center";
@@ -115,6 +121,7 @@ function skipped_answer(){
                     else {
                        data.marked = false
                     }
+                    $("button#explain").data("question-pk", 'next_question_pk')
                     $("#start-session .panel-body").html(data.stat_html);
                     $(':input').not(':button, :submit, :reset, :hidden').removeAttr('checked').removeAttr('selected').not('‌​ :radio, select').val('');
 
@@ -122,5 +129,31 @@ function skipped_answer(){
             }
         });
     }
+
+
+$(function(){
+  $("button#explain").click(function () {
+      $("#explanation-modal").modal('show');
+      var question_pk = $(this).data('question-pk');
+      var url = "{% url 'exams:submit_explanation' %}?"  + $.param({question_pk: question_pk});
+
+      $("#explanation-modal .modal-body").load(url, function(){
+        $("#explanation-form").data('url', url);
+      });
+
+      var $submitButton = $("#explanation-modal button.submit-button");
+
+      // Unbind any handlers previously attached to the submit button
+      // This is necessary to avoid multiple submissions of the form
+      $submitButton.off('click');
+      $submitButton.click(function () {
+          $("#explanation-form").submit();
+      });
+  });
+});
 </script>
+
+{% with modal_id='explanation-modal' modal_title="Contribute!" %}
+    {% include "exams/modals/common_edit_modal.html" %}
+{% endwith %}
 {% endblock %}
