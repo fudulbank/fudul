@@ -294,7 +294,7 @@ class Choice(models.Model):
         return self.text
 
 class Session(models.Model):
-    solved = models.BooleanField("Show solved questions?", default=False)
+    solved = models.BooleanField("Solved Questions", default=False)
     number_of_questions = models.PositiveIntegerField(default=0)
     sources = models.ManyToManyField(Source, blank=True)
     subjects = models.ManyToManyField(Subject)
@@ -304,6 +304,10 @@ class Session(models.Model):
     submitter = models.ForeignKey(User)
     right_answers=models.PositiveIntegerField(default=0)
     is_marked = models.ManyToManyField(Question,related_name='marked')
+    marked = models.BooleanField("Marked", default=False)
+    unsloved = models.BooleanField("Unsolved", default=False)
+    incoorect = models.BooleanField("Incorrect", default=False)
+
 
 
 class Answer(models.Model):

@@ -1,12 +1,15 @@
 <div id="question-container" class="well-sm" type="hidden" name="question-div" data-question_pk={{ question.pk }} data-session_pk={{ session.pk }}>
-    {{ question.get_latest_revision.text }}
-    {% for choice in question.get_latest_revision.choice_set.all %}
+    {{ question.get_latest_revision.text }} {{ session.questions.count }} {{ unanswered_questions.count }}
+    {% for choice in question.get_latest_revision.choice_set.order_by_alphabet %}
     <label>
     <input  name="question-choice" style="word-wrap:break-word;" data-question_pk="{{ question.pk }}" data-session_pk="{{ session.pk }}" data-choice_pk="{{ choice.pk }}" type="checkbox">
         {{ choice.text }}</label>
     {% endfor %}
          <button type="button" id="skip" class="btn btn-primary btn-rounded">Skip</button>
     <button type="button" id="next"  style='float: right; display: none'class="btn btn-primary btn-rounded">Next</button>
+    {% if question == None %}
+        it's empty
+    {% endif %}
 </div>
 {% block customscript %}
 

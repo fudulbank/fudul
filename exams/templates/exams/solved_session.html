@@ -86,8 +86,7 @@ function slected_choice(){
                        data.marked = false
                     }
                     $("#start-session .panel-body").html(data.stat_html);
-                    $(':input').not(':button, :submit, :reset, :hidden').removeAttr('checked').removeAttr('selected').not('‌​ :radio, select').val('');
-
+                    $(':input').not(':button, :submit, :reset, :hidden').removeAttr('checked').removeAttr('selected').not('‌​ :radio, select').val('')
                 }
             }
         });
@@ -107,7 +106,7 @@ function skipped_answer(){
             success: function (data) {
                 console.log('the function has been called');
                 if (data.success) {
-                    alert('it was skipped');
+{#                    alert('it was skipped');#}
                     if ( $('input[name="marked"]').is(':checked') ) {
                         data.marked = true
 

@@ -320,6 +320,27 @@ def handle_session(request,exam_pk):
 
     if sessionform.is_valid():
         session = sessionform.save()
+
+        # should exclude answered ones
+        for question in exam.get_approved_questions()[:session.number_of_questions]:
+            session.questions.add(question)
+        # # unsolved
+        # if session.unsloved:
+        #     for answer in Answer.objects.filter(session__submitter=request.user, session__exam=exam,
+        #                                         choice__isnull=True):
+        #         session.questions.add(answer.question)
+        # # marked
+        # if session.marked:
+        #     for previous_session in Session.objects.filter(submitter=request.user, exam=exam):
+        #         for question in previous_session.is_marked.all():
+        #             session.questions.add(question)
+        # # incorrect
+        # if session.incoorect:
+        #     for answer in Answer.objects.filter(session__submitter=request.user, session__exam=exam,
+        #                                         choice__isnull=False):
+        #         for choice in answer.choice:
+        #             if choice.is_answer == False:
+        #                 session.questions.add(choice.revision.question)
         show_url = reverse('exams:session', args=(session.exam.category.get_slugs(),session.exam.pk,session.pk))
         full_url = request.build_absolute_uri(show_url)
         return {"message": "success",
@@ -342,9 +363,6 @@ def session(request, slugs, exam_pk,session_pk):
     exam = get_object_or_404(Exam, pk=exam_pk, category=category)
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
-
-    for question in exam.get_approved_questions()[:100]:
-        session.questions.add(question)
 
     question = session.questions.first()
 
@@ -379,8 +397,8 @@ def check_answer(request):
         if answer.is_marked == True:
             session.is_marked.add(answer.choice.revision.question)
 
-    unanswered_questions = session.questions.filter(answer__isnull=True)
-    question = unanswered_questions.first()
+
+    question = session.questions.exclude(answer__isnull=False,answer__session__submitter=request.user).first()
     template = get_template('exams/partials/session-question.html')
     context = {'question': question,'session':session}
     stat_html = template.render(context)
