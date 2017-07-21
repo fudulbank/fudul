@@ -9,7 +9,7 @@ from django.template.loader import get_template
 from django.views.decorators import csrf
 
 from core import decorators
-from .models import Exam, Question, Category, Revision,Session,Choice,Answer
+from .models import Exam, Question, Category, Revision, Session, Choice, Answer
 from . import forms, utils
 import teams.utils
 
@@ -19,6 +19,7 @@ def list_meta_categories(request):
     subcategories = Category.objects.filter(parent_category__isnull=True).user_accessible(request.user)
     context = {"subcategories": subcategories}
     return render(request, 'exams/show_category.html', context)
+
 
 @login_required
 def show_category(request, slugs):
@@ -38,12 +39,13 @@ def show_category(request, slugs):
                                             args=(subcategory.get_slugs(),)))
 
     exams = Exam.objects.filter(category=category)
-    
+
     context = {'category': category,
                'subcategories': subcategories.order_by('name'),
                'exams': exams}
 
     return render(request, "exams/show_category.html", context)
+
 
 @decorators.get_only
 @login_required
@@ -64,6 +66,7 @@ def add_question(request, slugs, pk):
 
     return render(request, "exams/add_question.html", context)
 
+
 class QuestionAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         exam_pk = self.forwarded.get('exam_pk')
@@ -77,6 +80,7 @@ class QuestionAutocomplete(autocomplete.Select2QuerySetView):
         text_preview = str(item)
         return "<strong>{}</strong>: {}".format(item.pk, text_preview)
 
+
 @csrf.csrf_exempt
 @decorators.post_only
 @decorators.ajax_only
@@ -86,14 +90,15 @@ def delete_question(request, pk):
 
     # PERMISSION CHECK
     if not request.user.is_superuser and \
-       not exam.category.is_user_editor(request.user) and \
-       not question.is_user_creator(user):
+            not exam.category.is_user_editor(request.user) and \
+            not question.is_user_creator(user):
         raise Exception("You cannot delete that question!")
 
     question.is_deleted = True
     question.save()
 
     return {}
+
 
 @decorators.post_only
 @decorators.ajax_only
@@ -120,7 +125,6 @@ def handle_question(request, exam_pk):
         revision.save()
         revisionform.save_m2m()
 
-
         if utils.test_revision_approval(revision, request.user):
             revision.is_approved = True
         else:
@@ -145,6 +149,7 @@ def handle_question(request, exam_pk):
 
     return render(request, "exams/partials/question_form.html", context)
 
+
 @login_required
 def list_questions(request, slugs, pk):
     category = Category.objects.get_from_slugs(slugs)
@@ -157,8 +162,9 @@ def list_questions(request, slugs, pk):
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
 
-    context={'exam': exam}
+    context = {'exam': exam}
     return render(request, 'exams/list_questions.html', context)
+
 
 @login_required
 @decorators.ajax_only
@@ -178,6 +184,7 @@ def show_question(request, pk, revision_pk=None):
     context = {'revision': revision}
     return render(request, 'exams/partials/show_question.html', context)
 
+
 @login_required
 def list_revisions(request, slugs, exam_pk, pk):
     category = Category.objects.get_from_slugs(slugs)
@@ -189,13 +196,14 @@ def list_revisions(request, slugs, exam_pk, pk):
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
 
-    question = get_object_or_404(Question,pk=pk)
+    question = get_object_or_404(Question, pk=pk)
     context = {'question': question,
                'exam': exam}
     return render(request, 'exams/list_revisions.html', context)
 
+
 @login_required
-def submit_revision(request,slugs,exam_pk, pk):
+def submit_revision(request, slugs, exam_pk, pk):
     category = Category.objects.get_from_slugs(slugs)
     if not category:
         raise Http404
@@ -208,7 +216,7 @@ def submit_revision(request,slugs,exam_pk, pk):
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
 
-    context ={'exam':exam, 'revision': latest_revision}
+    context = {'exam': exam, 'revision': latest_revision}
 
     if request.method == 'POST':
         questionform = forms.QuestionForm(request.POST,
@@ -224,7 +232,8 @@ def submit_revision(request,slugs,exam_pk, pk):
             question = questionform.save()
             new_revision = revisionform.clone(question, request.user)
             revisionchoiceformset.clone(new_revision)
-            return HttpResponseRedirect(reverse("exams:list_revisions", args=(exam.category.get_slugs(),exam.pk,question.pk)))
+            return HttpResponseRedirect(
+                reverse("exams:list_revisions", args=(exam.category.get_slugs(), exam.pk, question.pk)))
 
     elif request.method == 'GET':
         questionform = forms.QuestionForm(instance=question, exam=exam)
@@ -235,6 +244,7 @@ def submit_revision(request,slugs,exam_pk, pk):
     context['revisionchoiceformset'] = revisionchoiceformset
 
     return render(request, 'exams/submit_revision.html', context)
+
 
 @login_required
 def list_question_per_status(request, slugs, exam_pk):
@@ -248,8 +258,8 @@ def list_question_per_status(request, slugs, exam_pk):
     unsloved = question_pool.filter(statuses__code_name='UNSOLVED')
     incomplete_answer = question_pool.filter(statuses__code_name='INCOMPLETE_ANSWERS')
     incomplete_question = question_pool.filter(statuses__code_name='INCOMPLETE_QUESTION')
-    context ={'writing_error':writing_error, 'unsloved':unsloved, 'incomplete_answer':incomplete_answer,
-              'incomplete_question':incomplete_question,'exam':exam}
+    context = {'writing_error': writing_error, 'unsloved': unsloved, 'incomplete_answer': incomplete_answer,
+               'incomplete_question': incomplete_question, 'exam': exam}
     return render(request, 'exams/list_question_per_status.html', context)
 
 
@@ -269,14 +279,14 @@ def create_session(request, slugs, exam_pk):
 
     context = {'exam': exam,
                'sessionform': forms.SessionForm(exam=exam),
-               'question_count':question_count}
+               'question_count': question_count}
 
     return render(request, "exams/create_session.html", context)
 
 
 @decorators.post_only
 @decorators.ajax_only
-def handle_session(request,exam_pk):
+def handle_session(request, exam_pk):
     exam = get_object_or_404(Exam, pk=exam_pk)
 
     # PERMISSION CHECK
@@ -289,53 +299,54 @@ def handle_session(request,exam_pk):
 
     if sessionform.is_valid():
         session = sessionform.save()
-
-        # should exclude answered ones
-        for question in exam.get_approved_questions()[:session.number_of_questions]:
-            session.questions.add(question)
-        # # unsolved
-        # if session.unsloved:
-        #     for answer in Answer.objects.filter(session__submitter=request.user, session__exam=exam,
-        #                                         choice__isnull=True):
-        #         session.questions.add(answer.question)
-        # # marked
-        # if session.marked:
-        #     for previous_session in Session.objects.filter(submitter=request.user, exam=exam):
-        #         for question in previous_session.is_marked.all():
-        #             session.questions.add(question)
-        # # incorrect
-        # if session.incoorect:
-        #     for answer in Answer.objects.filter(session__submitter=request.user, session__exam=exam,
-        #                                         choice__isnull=False):
-        #         for choice in answer.choice:
-        #             if choice.is_answer == False:
-        #                 session.questions.add(choice.revision.question)
-        show_url = reverse('exams:session', args=(session.exam.category.get_slugs(),session.exam.pk,session.pk))
+        show_url = reverse('exams:session', args=(session.exam.category.get_slugs(), session.exam.pk, session.pk))
         full_url = request.build_absolute_uri(show_url)
         return {"message": "success",
-                "show_url":full_url}
+                "show_url": full_url}
 
     context = {'exam': exam,
-               'sessionform': sessionform,}
+               'sessionform': sessionform, }
 
     return render(request, "exams/create_session.html", context)
 
+
 @login_required
-def session(request, slugs, exam_pk,session_pk):
+def session(request, slugs, exam_pk, session_pk):
     category = Category.objects.get_from_slugs(slugs)
-    session = get_object_or_404(Session,pk=session_pk)
+    session = get_object_or_404(Session, pk=session_pk)
 
     if not category:
         raise Http404
+
 
     # PERMISSION CHECK
     exam = get_object_or_404(Exam, pk=exam_pk, category=category)
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
+    #how to set priorty to marked questions
+    question_pool = []
+    for question in session.exam.get_approved_questions().exclude(answer__isnull=False,answer__session__submitter=request.user):
+        question_pool.append(question)
+    # if session.marked == True:
+    #     for question in session.is_marked.all():
+    #         question_pool.append(question)
+
+    if session.unsloved == True:
+        for answer in Answer.objects.filter(session__submitter=request.user, session__exam=exam,
+                                                                           choice__isnull=True):
+            question_pool.append(question)
+    if session.incoorect == True:
+        for answer in Answer.objects.filter(session__submitter=request.user, session__exam=exam,
+                                                choice__isnull=False):
+                    if answer.choice.is_answer == False:
+                        question_pool.append(answer.choice.revision.question)
+
+    for question in question_pool:
+        session.questions.add(question)
 
     question = session.questions.first()
 
-    return render(request, "exams/solved_session.html",{'session':session,'question':question})
+    return render(request, "exams/solved_session.html", {'session': session, 'question': question})
 
 
 @decorators.ajax_only
@@ -344,37 +355,38 @@ def session(request, slugs, exam_pk,session_pk):
 @csrf.csrf_exempt
 def check_answer(request):
     question_pk = request.POST.get('question_pk')
-    answerd_question = get_object_or_404(Question,pk=question_pk)
+    answerd_question = get_object_or_404(Question, pk=question_pk)
     session_pk = request.POST.get('session_pk')
     session = get_object_or_404(Session, pk=session_pk)
     if request.method == 'GET' and 'choice_pk' in request.GET:
         choice_pk = request.POST.get('choice_pk')
         choice = get_object_or_404(Choice, pk=choice_pk)
         if choice_pk is not None and choice_pk != '':
-            answer = Answer.objects.create(session=session,question=answerd_question,choice=choice)
+            answer = Answer.objects.create(session=session, question=answerd_question, choice=choice)
             if choice.is_answer:
                 right = True
             else:
                 right = False
     else:
-        answer = Answer.objects.create(session=session,question=answerd_question)
+        answer = Answer.objects.create(session=session, question=answerd_question)
         right = False
 
     for answer in Answer.objects.filter(session=session):
         if answer.is_marked == True:
             session.is_marked.add(answer.choice.revision.question)
 
-
-    question = session.questions.exclude(answer__isnull=False,answer__session__submitter=request.user).first()
+    unanswered_questions = session.questions.exclude(answer__isnull=False,answer__session__submitter=request.user)
+    question = unanswered_questions.first()
     template = get_template('exams/partials/session-question.html')
-    context = {'question': question,'session':session}
+    context = {'question': question, 'session': session}
     stat_html = template.render(context)
     score = session.right_answers
     marked = answer.is_marked
 
-    return {"right":right, "score":score, "marked": marked,
+    return {"right": right, "score": score, "marked": marked,
             'next_question_pk': question.pk,
             "stat_html": stat_html}
+
 
 @login_required
 @decorators.ajax_only

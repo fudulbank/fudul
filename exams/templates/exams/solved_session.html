@@ -27,6 +27,7 @@ display: block
                         Explain!
                         <i class="icon-circle-right2 position-right"></i>
                       </button>
+                      <button type="button" class="btn btn-success btn-icon"><i class="icon-pause"></i></button>
                       <small class="display-block">
 
                       </small>
@@ -94,7 +95,8 @@ function slected_choice(){
                     }
                     $("button#explain").data("question-pk", 'next_question_pk')
                     $("#start-session .panel-body").html(data.stat_html);
-                    $(':input').not(':button, :submit, :reset, :hidden').removeAttr('checked').removeAttr('selected').not('‌​ :radio, select').val('')
+                    $(':input').not(':button, :submit, :reset, :hidden').removeAttr('checked').removeAttr('selected').not('‌​ :radio, select').val('');
+
                 }
             }
         });
@@ -112,7 +114,7 @@ function skipped_answer(){
             success: function (data) {
                 console.log('the function has been called');
                 if (data.success) {
-{#                    alert('it was skipped');#}
+                    alert('it was skipped');
                     if ( $('input[name="marked"]').is(':checked') ) {
                         data.marked = true
 
