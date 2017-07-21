@@ -222,39 +222,8 @@ def submit_revision(request,slugs,exam_pk, pk):
                                                             instance=latest_revision)
         if questionform.is_valid() and revisionform.is_valid() and revisionchoiceformset.is_valid():
             question = questionform.save()
-            new_revision = revisionform.save(commit=False)
-            # Setting primary key to None creates a new object, rather
-            # than modifying the pre-existing one
-            new_revision.pk = None
-            new_revision.submitter = request.user
-            new_revision.save()
-            revisionform.save_m2m()
-
-            # Make sure that all previous revisions are set to
-            # is_last=False
-            question.revision_set.exclude(pk=new_revision.pk)\
-                                 .update(is_last=False)
-
-            if utils.test_revision_approval(new_revision, request.user):
-                new_revision.is_approved = True
-            else:
-                new_revision.is_approved = False
-
-            new_revision.save()
-
-            # Let's clone choices!
-            modified_choices = revisionchoiceformset.save(commit=False)
-            unmodified_choices = []
-            for choice in revisionchoiceformset.queryset:
-                if not choice in revisionchoiceformset.deleted_objects and \
-                   not choice in modified_choices:
-                    unmodified_choices.append(choice)
-            choices = modified_choices + unmodified_choices
-            for choice in choices:
-                choice.pk = None
-                choice.revision = new_revision
-                choice.save()
-
+            new_revision = revisionform.clone(question, request.user)
+            revisionchoiceformset.clone(new_revision)
             return HttpResponseRedirect(reverse("exams:list_revisions", args=(exam.category.get_slugs(),exam.pk,question.pk)))
 
     elif request.method == 'GET':
@@ -391,8 +360,6 @@ def check_answer(request):
         answer = Answer.objects.create(session=session,question=answerd_question)
         right = False
 
-
-
     for answer in Answer.objects.filter(session=session):
         if answer.is_marked == True:
             session.is_marked.add(answer.choice.revision.question)
@@ -405,4 +372,25 @@ def check_answer(request):
     score = session.right_answers
     marked = answer.is_marked
 
-    return {"right":right,"score":score,'marked':marked,'stat_html':stat_html}
+    return {"right":right, "score":score, "marked": marked,
+            'next_question_pk': question.pk,
+            "stat_html": stat_html}
+
+@login_required
+@decorators.ajax_only
+@csrf.csrf_exempt
+def submit_explanation(request):
+    question_pk = request.GET.get('question_pk')
+    question = get_object_or_404(Question, pk=question_pk)
+    latest_revision = question.get_latest_revision()
+    context = {'question': question}
+    if request.method == 'GET':
+        form = forms.ExplanationForm(instance=latest_revision)
+    elif request.method == 'POST':
+        form = forms.ExplanationForm(request.POST,
+                                     instance=latest_revision)
+        if form.is_valid():
+            form.clone(question, request.user)
+            return {}
+    context['form'] = form
+    return render(request, 'exams/partials/submit_explanation.html', context)

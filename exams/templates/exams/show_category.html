@@ -39,7 +39,7 @@
                         <div class="col-lg-4">
                             <div class="panel bg-primary-600">
                                 <div class="panel-body">
-                                    <a href="{% url 'exams:add_question' category.get_slugs exam.pk %}">{{ exam.name }}</a>
+                                    <a href="{% url 'exams:create_session' category.get_slugs exam.pk %}">{{ exam.name }}</a>
                 </div>
             </div>
         </div>
