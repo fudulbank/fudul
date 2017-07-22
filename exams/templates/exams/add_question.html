@@ -60,14 +60,6 @@
     <script src="{% static 'js/toastr.js' %}"></script>
     <script type="text/javascript">
     $(function(){
-        $('#exam-type select').change(function() {
-        if ($('#exam-type select option[value=OSPE]:checked').length) {
-            $('#figure').show();
-        } else {
-            $('#figure').hide();
-        }
-        });
-
         $('#choice_formset input[type=checkbox]').change(function(){
             $('#choice_formset input[type=checkbox]').not(this).prop('checked', false);
         });

@@ -107,9 +107,9 @@ def handle_question(request, exam_pk):
     instance = Revision(submitter=request.user, is_first=True,
                         is_last=True)
     questionform = forms.QuestionForm(request.POST,
-                                      request.FILES,
                                       exam=exam)
     revisionform = forms.RevisionForm(request.POST,
+                                      request.FILES,
                                       instance=instance)
     revisionchoiceformset = forms.RevisionChoiceFormset(request.POST)
 
@@ -212,10 +212,10 @@ def submit_revision(request,slugs,exam_pk, pk):
 
     if request.method == 'POST':
         questionform = forms.QuestionForm(request.POST,
-                                          request.FILES,
                                           instance=question,
                                           exam=exam)
         revisionform = forms.RevisionForm(request.POST,
+                                          request.FILES,
                                           instance=latest_revision)
 
         revisionchoiceformset = forms.RevisionChoiceFormset(request.POST,
