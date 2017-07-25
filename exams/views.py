@@ -318,11 +318,6 @@ def session(request, slugs, exam_pk, session_pk):
     if not category:
         raise Http404
 
-
-    # PERMISSION CHECK
-    exam = get_object_or_404(Exam, pk=exam_pk, category=category)
-    if not exam.can_user_edit(request.user):
-        raise PermissionDenied
     #how to set priorty to marked questions
     question_pool = []
     for question in session.exam.get_approved_questions().exclude(answer__isnull=False,answer__session__submitter=request.user):
