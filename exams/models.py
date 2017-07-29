@@ -256,6 +256,8 @@ class Question(models.Model):
     def get_latest_revision(self):
         return self.revision_set.filter(is_deleted=False).order_by('-submission_date').first()
 
+
+
 class Revision(models.Model):
     question = models.ForeignKey(Question)
     submitter = models.ForeignKey(User, null=True, blank=True)
@@ -293,6 +295,15 @@ class Choice(models.Model):
     def __str__(self):
         return self.text
 
+
+questions_choices = (
+    ('U','Unused'),
+    ('I', 'Incorrect'),
+    ('A', 'All'),
+    ('C', 'Custom'),
+    ('R','Random')
+)
+
 class Session(models.Model):
     solved = models.BooleanField("Solved Questions", default=False)
     number_of_questions = models.PositiveIntegerField(default=0)
@@ -307,7 +318,18 @@ class Session(models.Model):
     marked = models.BooleanField("Marked", default=False)
     unsloved = models.BooleanField("Unsolved", default=False)
     incoorect = models.BooleanField("Incorrect", default=False)
+    question_filter= models.CharField(max_length=1,choices=questions_choices,blank=False,default=None)
 
+
+    def score (self):
+        return self.answer_set.filter(choice__is_answer=True).count()/self.number_of_questions*100
+
+    def correct_answers (self):
+        return self.answer_set.filter(choice__is_answer=True).count()
+
+    def finished (self,user):
+        if self.answer_set.filter(choice__isnull=True,session__submitter=user).exist:
+            return False
 
 
 class Answer(models.Model):

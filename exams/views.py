@@ -91,7 +91,7 @@ def delete_question(request, pk):
     # PERMISSION CHECK
     if not request.user.is_superuser and \
             not exam.category.is_user_editor(request.user) and \
-            not question.is_user_creator(user):
+            not question.is_user_creator(request.user):
         raise Exception("You cannot delete that question!")
 
     question.is_deleted = True
@@ -314,7 +314,7 @@ def handle_session(request, exam_pk):
 def session(request, slugs, exam_pk, session_pk):
     category = Category.objects.get_from_slugs(slugs)
     session = get_object_or_404(Session, pk=session_pk)
-
+    exam = session.exam
     if not category:
         raise Http404
 
@@ -401,3 +401,23 @@ def submit_explanation(request):
             return {}
     context['form'] = form
     return render(request, 'exams/partials/submit_explanation.html', context)
+
+
+def show_pevious_sessions(request):
+
+    sessions= Session.objects.filter(submitter= request.user)
+
+    return render(request, 'exams/show_previous_sessions.html',{'sesstions':sessions})
+
+class SubjectQuestionCount(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        exam_pk = self.forwarded.get('exam_pk')
+        exam = Exam.objects.get(pk=exam_pk)
+        qs = exam.subject_set.all()
+        if self.q:
+            qs = qs.filter(pk=self.q)
+        return qs
+
+    def get_result_label(self, item):
+        return "<strong>{}</strong> ({})".format(item.name, item.question_set.count())
+

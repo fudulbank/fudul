@@ -105,6 +105,7 @@ class SessionForm(forms.ModelForm):
         # Limit subjects and exams per exam
         self.fields['subjects'].queryset = models.Subject.objects.filter(exam=exam)
         self.fields['sources'].queryset = exam.get_sources().filter(parent_source__isnull=True)
+        # self.fields['question_filter']=forms.ChoiceField(choices=models.questions_choices)
 
         exam_types = exam.get_exam_types()
         if exam_types.exists():
@@ -112,13 +113,17 @@ class SessionForm(forms.ModelForm):
         else:
             del self.fields['exam_types']
 
+
     class Meta:
         model = models.Session
-        fields = ['number_of_questions','exam_types','solved','sources','subjects','unsloved','incoorect','marked']
+        fields = ['number_of_questions','exam_types','solved','sources','subjects','unsloved','incoorect','marked','question_filter']
         widgets = {
             'exam_types': autocomplete.ModelSelect2Multiple(),
             'sources': autocomplete.ModelSelect2Multiple(),
-            'subjects': autocomplete.ModelSelect2Multiple(),
+            'subjects': autocomplete.ModelSelect2Multiple(url='exams:subject_questions_count',
+                                                         forward=['exam_pk'],
+                                                         attrs={'data-html': True}),
+            'question_filter':forms.RadioSelect(choices=models.questions_choices)
             }
 
 

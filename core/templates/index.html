@@ -13,6 +13,7 @@
 <p style="font-size: 1.3em" class="text-center">Welcome to <em>Fudul</em>, the comprehensive, collective, free-of-charge <strong>question bank</strong> built by students!</p>
 
 <a href="{% url 'exams:list_meta_categories' %}" class="btn btn-primary btn-float btn-float-lg"><i class="icon-stack-check"></i> Explore exams</a>
+
 {% if user.is_superuser %}
 <a href="{% url 'admin:index' %}" class="btn btn-primary btn-float btn-float-lg"><i class="icon-shield2"></i> Superuser admin</a>
 {% endif %}

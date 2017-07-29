@@ -1,6 +1,7 @@
 <!DOCTYPE html>{% load static %}
 <html lang="en">
 <head>
+
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
@@ -34,6 +35,8 @@
 	<script type="text/javascript" src="{% static 'limitless/assets/js/core/app.js' %}"></script>
 	<!-- /theme JS files -->
 {% include 'partials/piwik.html' %}
+{% block head %}
+{% endblock %}
 </head>
 
 <body>
@@ -104,17 +107,25 @@
 								<li>
 									<a href="{% url 'exams:list_meta_categories' %}"><i class="icon-stack-check"></i> <span>Explore exams!</span></a>
 								</li>
+                            <li>
+									<a href="{% url 'exams:show_previous_sessions' %}"><i class="icon-drawer3"></i> <span>Previous sessions</span></a>
+								</li>
+                                {% block sidepanel %}
+                                {% endblock %}
 {% if user.is_superuser %}
 								<li>
+
 									<a href="{% url 'admin:index' %}"><i class="icon-shield2"></i> <span>Superuser Admin</span></a>
 								</li>
 {% endif %}
 								<li>
 									<a href="{% url 'editor_admin:index' %}"><i class="icon-power2"></i> <span>Editor Admin</span></a>
 								</li>
-								<li>
+
+                                <li>
 									<a href="{% url 'about' %}"><i class="icon-info3"></i> <span>About <em>Fudul</em></span></a>
 								</li>
+
 {#								<li>#}
 {#									<a href="#"><i class="icon-copy"></i> <span>Menu item</span></a>#}
 {#								</li>#}
