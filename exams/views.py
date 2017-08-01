@@ -331,7 +331,7 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     else:
         unused_questions = session.get_unused_questions()
         question = unused_questions.first()
-
+        
     question_sequence = session.get_question_sequence(question)
 
     return render(request, "exams/show_session.html", {'session': session,
