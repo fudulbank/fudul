@@ -1,3 +1,4 @@
+from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
@@ -256,6 +257,13 @@ class Question(models.Model):
     def get_latest_revision(self):
         return self.revision_set.filter(is_deleted=False).order_by('-submission_date').first()
 
+    def get_session_url(self, session):
+        category = session.exam.category
+        slugs = category.get_slugs()
+        return reverse('exams:show_session', args=(slugs,
+                                                   session.exam.pk,
+                                                   session.pk,
+                                                   self.pk))
 
 
 class Revision(models.Model):
@@ -331,6 +339,11 @@ class Session(models.Model):
         if self.answer_set.filter(choice__isnull=True,session__submitter=user).exist:
             return False
 
+    def get_question_sequence(self, question):
+        return self.questions.filter(pk__lte=question.pk).count()
+
+    def get_unused_questions(self):
+        return self.questions.order_by('pk').exclude(answer__isnull=False)
 
 class Answer(models.Model):
     session = models.ForeignKey(Session)

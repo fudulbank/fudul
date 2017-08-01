@@ -1,89 +1,14 @@
-<div id="question-container" class="well-sm" type="hidden" name="question-div" data-question_pk={{ question.pk }} data-session_pk={{ session.pk }}>
+<div id="question-body" class="well-sm" data-question-pk="{{ question.pk }}" data-session-pk="{{ session.pk }}">
     <p class="question-text">{{ question.get_latest_revision.text|linebreaksbr }}</p>
 
     <table>
       <tbody>
         {% for choice in question.get_latest_revision.choice_set.order_by_alphabet %}
             <tr>
-               <td><input name="question-choice" style="margin-right: 10px; word-wrap:break-word;" data-question_pk="{{ question.pk }}" data-session_pk="{{ session.pk }}" data-choice_pk="{{ choice.pk }}" type="checkbox"></td>
+               <td><input class="question-choice" name="question-choice" data-question_pk="{{ question.pk }}" data-session_pk="{{ session.pk }}" data-choice_pk="{{ choice.pk }}" type="checkbox"></td>
                <td><span class="choice-text">{{ choice.text }}</span></td>
             </tr>
         {% endfor %}
       </tbody>
     </table>
-    <button type="button" id="skip" class="pull-right btn btn-warning btn-rounded">Skip</button>
-    <button type="button" id="next" style="display: none" class="pull-right btn btn-primary btn-rounded">Next</button>
 </div>
-
-{% block customscript %}
-<style>
-.strike{
-    text-decoration: line-through;
-}
-.highlight{
-    background: yellow;
-    cursor: pointer;
-}
-.choice-text{
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-</style>
-
- <script type="text/javascript">
- $(document).ready(function(){
-      $(".choice-text").click(function(){
-            $(this).toggleClass("strike");
-      });
-
-{# Inspired by http://esbueno.noahstokes.com/post/92274686/highlight-selected-text-with-jquery #}
-$(".question-text").mouseup(
-    function() {
-        var selection = window.getSelection().toString();
-        if(selection.length >= 3) {
-            var escapedSelection = $("<div>").text(selection).html();
-            var replacement = $('<span></span>').addClass('highlight').html(selection);
-            var replacementHtml = replacement.prop('outerHTML');
-            $(this).html( $(this).html().replace(escapedSelection, replacementHtml) );
-        }
-        $(".highlight").click(function(){
-            $(this).removeClass("highlight");
-        });
-    }
-);
-
-
-
-      $('#question-container input[type=checkbox]').on('change',function(){
-          console.log('it has been changed ');
-          var $box = $(this);
-          if ($box.is(":checked")) {
-            // the name of the box is retrieved using the .attr() method
-            // as it is assumed and expected to be immutable
-            var group = "input:checkbox[name='" + $box.attr("name") + "']";
-            // the checked state of the group/box on the other hand will change
-            // and the current value is retrieved using .prop() method
-            $(group).prop("checked", false);
-            $box.prop("checked", true);
-          } else {
-            $box.prop("checked", false);
-          }
-          if ( $('input[name="question-choice"]').is(':checked') ) {
-              $('#skip').hide();
-              $('#next').show()
-
-          }
-          else {
-              $('#next').hide();
-              $('#skip').show()
-
-          }
-      });
-      $('#next').click(slected_choice);
-      $('#skip').click(skipped_answer)
- });
-
- </script>
-{% endblock %}
