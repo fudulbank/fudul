@@ -263,9 +263,9 @@ def list_question_per_status(request, slugs, exam_pk):
     return render(request, 'exams/list_question_per_status.html', context)
 
 
-@decorators.get_only
 @login_required
 def create_session(request, slugs, exam_pk):
+
     category = Category.objects.get_from_slugs(slugs)
     if not category:
         raise Http404
@@ -278,36 +278,26 @@ def create_session(request, slugs, exam_pk):
     question_count = exam.get_approved_questions().count()
 
     context = {'exam': exam,
-               'sessionform': forms.SessionForm(exam=exam),
                'question_count': question_count}
 
-    return render(request, "exams/create_session.html", context)
+    if request.method == 'GET':
+        sessionform = forms.SessionForm(exam=exam)
+    elif request.method == 'POST':
+        instance = Session(submitter=request.user, exam=exam)
+        sessionform = forms.SessionForm(request.POST, request.FILES,
+                                        instance=instance, exam=exam)
 
-
-@decorators.post_only
-@decorators.ajax_only
-def handle_session(request, exam_pk):
-    exam = get_object_or_404(Exam, pk=exam_pk)
-
-    # PERMISSION CHECK
-    if not exam.can_user_edit(request.user):
-        raise PermissionDenied
-
-    instance = Session(submitter=request.user, exam=exam)
-    sessionform = forms.SessionForm(request.POST, request.FILES,
-                                    instance=instance, exam=exam)
-
-    if sessionform.is_valid():
-        session = sessionform.save()
-        show_url = reverse('exams:session', args=(session.exam.category.get_slugs(), session.exam.pk, session.pk))
-        full_url = request.build_absolute_uri(show_url)
-        return {"message": "success",
-                "show_url": full_url}
-
-    context = {'exam': exam,
-               'sessionform': sessionform, }
+        if sessionform.is_valid():
+            session = sessionform.save()
+            show_url = reverse('exams:session', args=(session.exam.category.get_slugs(), session.exam.pk, session.pk))
+            full_url = request.build_absolute_uri(show_url)
+            return HttpResponseRedirect(reverse("exams:session",
+                                                args=(session.exam.category.get_slugs(),session.exam.pk,session.pk)))
+    context['sessionform'] = sessionform
 
     return render(request, "exams/create_session.html", context)
+
+
 
 
 @login_required
@@ -322,26 +312,10 @@ def session(request, slugs, exam_pk, session_pk):
     question_pool = []
     for question in session.exam.get_approved_questions().exclude(answer__isnull=False,answer__session__submitter=request.user):
         question_pool.append(question)
-    # if session.marked == True:
-    #     for question in session.is_marked.all():
-    #         question_pool.append(question)
-
-    if session.unsloved == True:
-        for answer in Answer.objects.filter(session__submitter=request.user, session__exam=exam,
-                                                                           choice__isnull=True):
-            question_pool.append(question)
-    if session.incoorect == True:
-        for answer in Answer.objects.filter(session__submitter=request.user, session__exam=exam,
-                                                choice__isnull=False):
-                    if answer.choice.is_answer == False:
-                        question_pool.append(answer.choice.revision.question)
-
-    for question in question_pool:
-        session.questions.add(question)
 
     question = session.questions.first()
 
-    return render(request, "exams/solved_session.html", {'session': session, 'question': question})
+    return render(request, "exams/start_session.html", {'session': session, 'question': question})
 
 
 @decorators.ajax_only
@@ -368,7 +342,7 @@ def check_answer(request):
 
     for answer in Answer.objects.filter(session=session):
         if answer.is_marked == True:
-            session.is_marked.add(answer.choice.revision.question)
+            session.marked.add(answer.choice.revision.question)
 
     unanswered_questions = session.questions.exclude(answer__isnull=False,answer__session__submitter=request.user)
     question = unanswered_questions.first()

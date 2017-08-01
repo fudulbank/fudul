@@ -314,10 +314,7 @@ class Session(models.Model):
     exam_types = models.ManyToManyField(ExamType)
     submitter = models.ForeignKey(User)
     right_answers=models.PositiveIntegerField(default=0)
-    is_marked = models.ManyToManyField(Question,related_name='marked')
-    marked = models.BooleanField("Marked", default=False)
-    unsloved = models.BooleanField("Unsolved", default=False)
-    incoorect = models.BooleanField("Incorrect", default=False)
+    marked = models.ManyToManyField(Question,related_name='marked')
     question_filter= models.CharField(max_length=1,choices=questions_choices,blank=False,default=None)
 
 
