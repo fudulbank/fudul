@@ -5,50 +5,25 @@
 
         $('#start-session-form input[type=checkbox]').bootstrapToggle();
         $('#start-session-form input[type=checkbox]').parent().attr('style', "width: 70px !important; height: 40px !important;");
-// {##}
-// {#        $('#question-filter select').each(function(i, select){#}
-// {#        var $select = $(select);#}
-// {#        $select.find('option').each(function(j, option){#}
-// {#            var $option = $(option);#}
-// {#            // Create a radio:#}
-// {#            var $radio = $('<input id="targeted-radio" name="radio-styled-color" class="control-info" type="radio" />');#}
-// {#            // Set name and value:#}
-// {#            $radio.attr('name', $select.attr('name')).attr('value', $option.val());#}
-// {#            $radio.appendTo(".choice")#}
-// {#            // Set checked if the option was selected#}
-// {#            if ($option.attr('selected')) $radio.attr('checked', 'checked');#}
-// {#            // Insert radio before select box:#}
-// {#            $select.before($radio);#}
-// {#            // Insert a label:#}
-// {#            $select.before(#}
-// {#              $("<label class='radio-inline' style='margin-right:3%;' />").attr('for', $select.attr('name')).text($option.text())#}
-// {#            );#}
-// {##}
-// {##}
-// {##}
-// {#        });#}
-// {#        $select.remove();#}
-// {#        $('#targeted-radio').wrap('<div class="choice border-info-600 text-info-800"><span></span></div>')#}
-// {##}
-// {##}
-
-// $('#question-filter input').wrap('<div class="choice border-info-600 text-info-800"><span></span></div>')
     });
     </script>
 {% endblock %}
+
 {% block title %}Fudul | Start Sesstion in {{ exam.name }}{% endblock %}
+
 {% block sidepanel %}
         {% if user.is_superuser or user|is_editor %}
 
-    							<li>
+            <li>
 
-									<a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}"><i class="icon-pen-plus"></i> <span>Add Question</span></a>
-								</li>
-    {% endif %}
+                <a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}"><i class="icon-pen-plus"></i> <span>Add Question</span></a>
+            </li>
+        {% endif %}
 {% endblock %}
+
 {% block breadcrumb %}
-
 {% endblock %}
+
 {% block content %}
 
 <style>
@@ -69,9 +44,10 @@ padding-right: 20px;
     margin-top: auto
 }
 </style>
+
 <div class="row">
    <div class="col-md-8">
-    <div class="panel panel-flat">
+     <div class="panel panel-flat">
 						<div class="panel-heading">
 							<h1 class="panel-title">{{ exam.name }} Session</h1>
 						</div>
@@ -89,84 +65,87 @@ padding-right: 20px;
 
 
 
-<div class="row">
-    <div class="col-xs-6">
-        <div>
-        <div class="form-group has-feedback has-feedback-left">
-            <label class="control-label"><h5>Subjects</h5></label>
-            <select id="subjects-select" class="alpaca-control form-control" name="">
-            <option value="">------</option>
-            <option value="All">All</option>
-            <option value="Custom">Custom</option>
-            </select>
-			<div class="form-control-feedback">
-            <i></i>
-            </div>
+    <div class="row">
+            <div class="col-xs-6">
 
-        </div>
-
-        <div id="all-subjects-options" style="display: none">
-           {{ sessionform.subjects }}
-            <div class="form-control-feedback">
-            </div>
-        </div></div></div>
-    <div class="col-xs-6"><div class="form-group has-feedback has-feedback-left">
-            <label class="control-label"><h5>Sources</h5></label>
-            <select id="sources-select" class="alpaca-control form-control" name="">
-            <option value="">------</option>
-            <option value="All">All</option>
-            <option value="Custom">Custom</option>
-            </select>
-            <div class="form-control-feedback">
-            <i ></i>
-            </div>
-        </div>
-
-        <div id="all-sources-options" style="display: none">
-            {{ sessionform.sources }}
-                <div class="form-control-feedback">
+                <div class="form-group has-feedback has-feedback-left">
+                    <label class="control-label"><h5>Subjects</h5></label>
+                    <select id="subjects-select" class="alpaca-control form-control" name="">
+                    <option value="">------</option>
+                    <option value="All">All</option>
+                    <option value="Custom">Custom</option>
+                    </select>
+                    <div class="form-control-feedback">
+                    <i></i>
+                    </div>
                 </div>
-		</div>
+
+                <div id="all-subjects-options" style="display: none">
+                   {{ sessionform.subjects }}
+                    <div class="form-control-feedback">
+    {#                    icon here #}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xs-6">
+                <div class="form-group has-feedback has-feedback-left">
+                    <label class="control-label"><h5>Sources</h5></label>
+                    <select id="sources-select" class="alpaca-control form-control" name="">
+                    <option value="">------</option>
+                    <option value="All">All</option>
+                    <option value="Custom">Custom</option>
+                    </select>
+                    <div class="form-control-feedback">
+    {#icon is here #}
+                    </div>
+                </div>
+
+                <div id="all-sources-options" style="display: none">
+                    {{ sessionform.sources }}
+                </div>
+            </div>
+        </div>
+
+
+     <div class="form-group has-feedback has-feedback-left">
+         <label class="control-label"><h5> Sesstion Type:</h5></label>
+        {% bootstrap_field sessionform.solved show_label=False %}
+     </div>
+
+
+    <div class="form-group has-feedback has-feedback-left">
+        <label class="control-label"><h5>Exam type:</h5></label>
+            {% bootstrap_field sessionform.exam_types show_label=False  %}
     </div>
-</div>
-<h5> Sesstion Type:</h5>
-         <div class="form-group has-feedback has-feedback-left">
-    {% bootstrap_field sessionform.solved show_label=False %}
-         </div>
 
+    <label class="control-label"><h5>Number of Questions</h5></label>
+    <div class="row">
+    <div class="col-xs-8 col-sm-6">
 
-
-
-
-        <div class="form-group has-feedback has-feedback-left">
-            <label class="control-label"><h5>Exam type:</h5></label>
-{% bootstrap_field sessionform.exam_types show_label=False  %}
-		</div>
-<input name="exam_pk" type="hidden" value="{{ exam.pk }}">
-{{ sessionform.media }}
-<label class="control-label"><h5>Number of Questions</h5></label>
-<div class="row">
-<div class="col-xs-8 col-sm-6">
-<div class="col-xs-5 col-sm-4">
-          <div class="form-group has-feedback has-feedback-left">
-{% bootstrap_field sessionform.number_of_questions show_label=False  %}
-            <div class="form-control-feedback">
-    <i class="icon-pencil text-muted"></i>
-      </div>
-</div>
-</div>
-
-<div style=" margin-top: 3%" class="col-xs-3 col-sm-2">
-<strong>/ {{ question_count }} </strong>
-</div>
-</div>
-               <button type="submit" action ='submit' class="btn bg-primary btn-block btn-lg">Start Session <i class="icon-circle-right2 position-right"></i></button>
-
-
-</form>
-</div>
+    <div class="col-xs-5 col-sm-4">
+              <div class="form-group has-feedback has-feedback-left">
+    {% bootstrap_field sessionform.number_of_questions show_label=False  %}
+                <div class="form-control-feedback">
+        <i class="icon-pencil text-muted"></i>
+          </div>
     </div>
-    </div> <!--panel-->
+    </div>
+
+    <div style=" margin-top: 3%" class="col-xs-3 col-sm-2">
+    <strong>/ {{ question_count }} </strong>
+    </div>
+    </div>
+    </div>
+          <button type="submit" action ='submit' class="btn bg-primary btn-block btn-lg">Start Session <i class="icon-circle-right2 position-right"></i></button>
+
+
+    <input name="exam_pk" type="hidden" value="{{ exam.pk }}">
+    {{ sessionform.media }}
+
+    </form>
+     </div>
+        </div> <!--panel-->
     </div><!--col-->
     {% if user.is_superuser or user|is_editor %}
     <div class="col-md-4">
@@ -231,6 +210,7 @@ h5{
                     if (data.message == "success") {
                         // show success message (using toastr)
                         toastr.options.positionClass = "toast-top-left";
+                        console.log('hi')
                         window.location.href= data.show_url;
                     } else {
                         toastr.warning("There was an issue! " + data.message);
