@@ -15,33 +15,52 @@ import teams.utils
 
 
 @login_required
-def list_meta_categories(request):
+def list_meta_categories(request, indicators=False):
+    if indicators and not teams.utils.is_editor(request.user):
+        raise PermissionDenied
+
+    if indicators:
+        show_category_url = 'exams:show_category_indicators'
+    else:
+        show_category_url = 'exams:show_category'
+
     subcategories = Category.objects.filter(parent_category__isnull=True).user_accessible(request.user)
-    context = {"subcategories": subcategories}
+    context = {"subcategories": subcategories,
+               'show_category_url': show_category_url,
+               'indicators': indicators}
     return render(request, 'exams/show_category.html', context)
 
 @login_required
-def show_category(request, slugs):
+def show_category(request, slugs, indicators=False):
     category = Category.objects.get_from_slugs(slugs)
     if not category:
         raise Http404
 
+    if indicators:
+        show_category_url = 'exams:show_category_indicators'
+        exams = None
+    else:
+        show_category_url = 'exams:show_category'
+        exams = Exam.objects.filter(category=category)
+    
     # PERMISSION CHECK
     if not category.can_user_access(request.user):
         raise PermissionDenied
     subcategories = category.children.user_accessible(request.user)
-
+    
     # If this category has one child, just go to it!
     if subcategories.count() == 1:
         subcategory = subcategories.first()
-        return HttpResponseRedirect(reverse("exams:show_category",
+        return HttpResponseRedirect(reverse(show_category_url,
                                             args=(subcategory.get_slugs(),)))
+    elif subcategories.count() == 0 and indicators:
+        return show_category_indicators(request, category)
 
-    exams = Exam.objects.filter(category=category)
-    
     context = {'category': category,
+               'show_category_url': show_category_url,
+               'exams': exams,
                'subcategories': subcategories.order_by('name'),
-               'exams': exams}
+               'indicators': indicators}
 
     return render(request, "exams/show_category.html", context)
 
@@ -284,3 +303,9 @@ def list_question_per_status(request, slugs, exam_pk):
               'incomplete_question':incomplete_question,'exam':exam}
     return render(request, 'exams/list_question_per_status.html', context)
 
+def show_category_indicators(request, category):
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+    context = {'category': category}
+    return render(request, 'exams/show_category_indicators.html', context)

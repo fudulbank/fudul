@@ -150,6 +150,15 @@ class Exam(models.Model):
         questions = Question.objects.undeleted().filter(pk__in=pks)
         return questions
 
+    def get_unsolved_questions(self):
+        pks = Revision.objects.filter(question__subjects__exam=self,
+                                      is_last=True)\
+                              .exclude(choice__is_answer=True)\
+                              .distinct()\
+                              .values_list('question__pk', flat=True)
+        questions = Question.objects.undeleted().filter(pk__in=pks)
+        return questions
+
     def __str__(self):
         return self.name
 

@@ -5,10 +5,14 @@
 
 					<div class="breadcrumb-line">
 						<ul class="breadcrumb">
-							<li><a href="{% url 'index' %}"><i class="icon-home2 position-left"></i> Home</a></li>
-                                                        {% if category %}<li><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>{% endif %}
+							<li><a href="{% url 'index' %}"><i class="icon-home2 position-left"></i> Fudul</a></li>
+{% if category and indicators %}
+                                                        <li><a href="{% url 'exams:list_category_indicators' %}">Category indicators</a></li>
+{% elif category and not indicators %}
+                                                        <li><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
+{% endif %}
                                                         {% for parent_category in category.get_parent_categories %}
-							<li><a href="{% url 'exams:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
+							<li><a href="{% url show_category_url parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
                                                         {% endfor %}
                                                         <li class="active">{% if category %}{{ category.name }}{% else %}Exams{% endif %}</li>
 						</ul>
@@ -20,9 +24,14 @@
 <h1>{{ category.name }}</h1>
 {% else %}
 <div class="text-center">
+{% if indicators %}
+<h1>Category indicators</h1>
+	<div class="icon-object border-primary text-primary"><i class="icon-pie-chart2"></i></div>
+{% else %}
 <h1>Explore exams</h1>
-
 	<div class="icon-object border-primary text-primary"><i class="icon-stack-check"></i></div>
+{% endif %}
+
 </div>
 {% endif %}
 <style>
@@ -33,7 +42,7 @@
     margin-top: auto
 }
 </style>
-{% if exams.exists %}
+{% if not indicators and exams.exists %}
             {% for exam in exams %}
                     <div class="row">
                         <div class="col-lg-4">
@@ -52,7 +61,7 @@
         <div class="col-lg-4">
             <div class="panel bg-primary-600">
                 <div class="panel-body">
-                    <a href="{% url 'exams:show_category' subcategory.get_slugs %}">{{ subcategory.name }}</a>
+                    <a href="{% url show_category_url subcategory.get_slugs %}">{{ subcategory.name }}</a>
                 </div>
             </div>
         </div>

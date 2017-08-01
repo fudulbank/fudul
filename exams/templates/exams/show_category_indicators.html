@@ -1,0 +1,56 @@
+{% extends 'base.html' %}{% load staticfiles %}{% load bootstrap3 %}
+{% block title %}Fudul | {{ category.name }} indicators{% endblock %}
+{% block breadcrumb %}
+
+					<div class="breadcrumb-line">
+						<ul class="breadcrumb">
+							<li><a href="{% url 'index' %}"><i class="icon-home2 position-left"></i> Fudul</a></li>
+                                                        <li><a href="{% url 'exams:list_category_indicators' %}">Category indicators</a></li>
+                                                        {% for parent_category in category.get_parent_categories %}
+							<li><a href="{% url 'exams:show_category_indicators' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
+                                                        {% endfor %}
+                                                        <li class="active">{{ category.name }}</li>
+						</ul>
+					</div>
+{% endblock %}
+{% block content %}
+<h1>{{ category.name }} indicators</h1>
+<table class="display datatable dt-responsive">
+    <thead>
+        <tr>
+            <th>Exam name</th>
+            <th>Total questions</th>
+            <th>Incomplete (%)</th>
+            <th>Has no right answer (%)</th>
+            <th>Has pending revision (%)</th>
+        </tr>
+    </thead>
+    <tbody>
+       {% for exam in category.exams.all %}
+       {% with total_count=exam.get_questions.count %}
+            <tr>
+                <td><a href="{% url 'exams:list_questions' exam.category.get_slugs exam.pk %}">{{ exam.name }}</a></td>
+                <td>{{ total_count }}</td>
+                <td>{{ exam.get_incomplete_questions.count }} ({% widthratio exam.get_incomplete_questions.count total_count 100 %}%)</td>
+                <td>{{ exam.get_unsolved_questions.count }} ({% widthratio exam.get_unsolved_questions.count total_count 100 %}%)</td>
+                <td>{{ exam.get_pending_questions.count }} ({% widthratio exam.get_pending_questions.count total_count 100 %}%)</td>
+            </tr>
+       {% endwith %}
+       {% endfor %}
+    </tbody>
+</table>
+
+
+{% endblock %}
+{% block customscript %}
+	<link rel="stylesheet" href="{% static 'css/jquery.dataTables.min.css' %}">
+	<link rel="stylesheet" href="{% static 'js/datatables/responsive/css/responsive.dataTables.min.css' %}">
+	<script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'js/datatables/responsive/js/dataTables.responsive.min.js' %}"></script>
+    <script type="text/javascript">
+    $(function(){
+       $('.datatable').dataTable({order: [[1, 'desc']]});
+    });
+    </script>
+
+{% endblock %}
