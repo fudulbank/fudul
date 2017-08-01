@@ -43,12 +43,12 @@ def show_category(request, slugs, indicators=False):
     else:
         show_category_url = 'exams:show_category'
         exams = Exam.objects.filter(category=category)
-    
+
     # PERMISSION CHECK
     if not category.can_user_access(request.user):
         raise PermissionDenied
     subcategories = category.children.user_accessible(request.user)
-    
+
     # If this category has one child, just go to it!
     if subcategories.count() == 1:
         subcategory = subcategories.first()
@@ -281,9 +281,10 @@ def list_question_per_status(request, slugs, exam_pk):
                'incomplete_question': incomplete_question, 'exam': exam}
     return render(request, 'exams/list_question_per_status.html', context)
 
-@decorators.get_only
+
 @login_required
 def create_session(request, slugs, exam_pk):
+
     category = Category.objects.get_from_slugs(slugs)
     if not category:
         raise Http404
@@ -296,36 +297,23 @@ def create_session(request, slugs, exam_pk):
     question_count = exam.get_approved_questions().count()
 
     context = {'exam': exam,
-               'sessionform': forms.SessionForm(exam=exam),
                'question_count': question_count}
 
-    return render(request, "exams/create_session.html", context)
-
-
-@decorators.post_only
-@decorators.ajax_only
-def handle_session(request, exam_pk):
-    exam = get_object_or_404(Exam, pk=exam_pk)
-
-    # PERMISSION CHECK
-    if not exam.can_user_edit(request.user):
-        raise PermissionDenied
-
-    instance = Session(submitter=request.user, exam=exam)
-    sessionform = forms.SessionForm(request.POST, request.FILES,
-                                    instance=instance, exam=exam)
-
-    if sessionform.is_valid():
-        session = sessionform.save()
-        show_url = reverse('exams:show_session', args=(session.exam.category.get_slugs(), session.exam.pk, session.pk))
-        full_url = request.build_absolute_uri(show_url)
-        return {"message": "success",
-                "show_url": full_url}
-
-    context = {'exam': exam,
-               'sessionform': sessionform, }
+    if request.method == 'GET':
+        sessionform = forms.SessionForm(exam=exam)
+    elif request.method == 'POST':
+        instance = Session(submitter=request.user, exam=exam)
+        sessionform = forms.SessionForm(request.POST, request.FILES,
+                                        instance=instance, exam=exam)
+        if sessionform.is_valid():
+            session = sessionform.save()
+            return HttpResponseRedirect(reverse("exams:show_session",
+                                                args=(session.exam.category.get_slugs(),session.exam.pk,session.pk)))
+    context['sessionform'] = sessionform
 
     return render(request, "exams/create_session.html", context)
+
+
 
 
 @login_required
@@ -357,7 +345,7 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
 def toggle_marked(request):
     question_pk = request.POST.get('question_pk')
     session_pk = request.POST.get('session_pk')
-    
+
     question = get_object_or_404(Question, pk=question_pk)
     session = get_object_or_404(Session, pk=session_pk)
 
@@ -393,7 +381,7 @@ def get_previous_question(request):
             'question_sequence': question_sequence,
             'question_pk': previous_question.pk,
             "question_body": question_body}
-    
+
 @decorators.ajax_only
 @decorators.post_only
 @login_required
