@@ -15,17 +15,34 @@ import teams.utils
 
 
 @login_required
-def list_meta_categories(request):
+def list_meta_categories(request, indicators=False):
+    if indicators and not teams.utils.is_editor(request.user):
+        raise PermissionDenied
+
+    if indicators:
+        show_category_url = 'exams:show_category_indicators'
+    else:
+        show_category_url = 'exams:show_category'
+
     subcategories = Category.objects.filter(parent_category__isnull=True).user_accessible(request.user)
-    context = {"subcategories": subcategories}
+    context = {"subcategories": subcategories,
+               'show_category_url': show_category_url,
+               'indicators': indicators}
     return render(request, 'exams/show_category.html', context)
 
 
 @login_required
-def show_category(request, slugs):
+def show_category(request, slugs, indicators=False):
     category = Category.objects.get_from_slugs(slugs)
     if not category:
         raise Http404
+
+    if indicators:
+        show_category_url = 'exams:show_category_indicators'
+        exams = None
+    else:
+        show_category_url = 'exams:show_category'
+        exams = Exam.objects.filter(category=category)
 
     # PERMISSION CHECK
     if not category.can_user_access(request.user):
@@ -35,14 +52,16 @@ def show_category(request, slugs):
     # If this category has one child, just go to it!
     if subcategories.count() == 1:
         subcategory = subcategories.first()
-        return HttpResponseRedirect(reverse("exams:show_category",
+        return HttpResponseRedirect(reverse(show_category_url,
                                             args=(subcategory.get_slugs(),)))
-
-    exams = Exam.objects.filter(category=category)
+    elif subcategories.count() == 0 and indicators:
+        return show_category_indicators(request, category)
 
     context = {'category': category,
+               'show_category_url': show_category_url,
+               'exams': exams,
                'subcategories': subcategories.order_by('name'),
-               'exams': exams}
+               'indicators': indicators}
 
     return render(request, "exams/show_category.html", context)
 
@@ -112,9 +131,9 @@ def handle_question(request, exam_pk):
     instance = Revision(submitter=request.user, is_first=True,
                         is_last=True)
     questionform = forms.QuestionForm(request.POST,
-                                      request.FILES,
                                       exam=exam)
     revisionform = forms.RevisionForm(request.POST,
+                                      request.FILES,
                                       instance=instance)
     revisionchoiceformset = forms.RevisionChoiceFormset(request.POST)
 
@@ -220,10 +239,10 @@ def submit_revision(request, slugs, exam_pk, pk):
 
     if request.method == 'POST':
         questionform = forms.QuestionForm(request.POST,
-                                          request.FILES,
                                           instance=question,
                                           exam=exam)
         revisionform = forms.RevisionForm(request.POST,
+                                          request.FILES,
                                           instance=latest_revision)
 
         revisionchoiceformset = forms.RevisionChoiceFormset(request.POST,
@@ -301,22 +320,70 @@ def create_session(request, slugs, exam_pk):
 
 
 @login_required
-def session(request, slugs, exam_pk, session_pk):
+def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     category = Category.objects.get_from_slugs(slugs)
     session = get_object_or_404(Session, pk=session_pk)
     exam = session.exam
     if not category:
         raise Http404
 
-    #how to set priorty to marked questions
-    question_pool = []
-    for question in session.exam.get_approved_questions().exclude(answer__isnull=False,answer__session__submitter=request.user):
-        question_pool.append(question)
+    if question_pk:
+        if not session.questions.filter(pk=question_pk).exists():
+            raise Http404
+        question = session.questions.get(pk=question_pk)
+    else:
+        unused_questions = session.get_unused_questions()
+        question = unused_questions.first()
 
-    question = session.questions.first()
+    question_sequence = session.get_question_sequence(question)
 
-    return render(request, "exams/start_session.html", {'session': session, 'question': question})
+    return render(request, "exams/show_session.html", {'session': session,
+                                                       'question': question,
+                                                       'question_sequence': question_sequence})
 
+@decorators.ajax_only
+@decorators.post_only
+@login_required
+@csrf.csrf_exempt
+def toggle_marked(request):
+    question_pk = request.POST.get('question_pk')
+    session_pk = request.POST.get('session_pk')
+
+    question = get_object_or_404(Question, pk=question_pk)
+    session = get_object_or_404(Session, pk=session_pk)
+
+    if utils.is_question_marked(question, session):
+        session.is_marked.remove(question)
+        is_marked = False
+    else:
+        session.is_marked.add(question)
+        is_marked = True
+
+    return {'is_marked': is_marked}
+
+@decorators.ajax_only
+@decorators.post_only
+@login_required
+@csrf.csrf_exempt
+def get_previous_question(request):
+    question_pk = request.POST.get('question_pk')
+    session_pk = request.POST.get('session_pk')
+    question = get_object_or_404(Question, pk=question_pk)
+    session = get_object_or_404(Session, pk=session_pk)
+
+    previous_question = session.questions.order_by('pk').exclude(pk__gte=question.pk).last()
+    question_sequence = session.get_question_sequence(previous_question)
+    template = get_template('exams/partials/session-question.html')
+    context = {'question': previous_question, 'session': session}
+    question_body = template.render(context)
+    is_marked = utils.is_question_marked(previous_question, session)
+    url = previous_question.get_session_url(session)
+
+    return {"is_marked": is_marked,
+            'url': url,
+            'question_sequence': question_sequence,
+            'question_pk': previous_question.pk,
+            "question_body": question_body}
 
 @decorators.ajax_only
 @decorators.post_only
@@ -324,38 +391,47 @@ def session(request, slugs, exam_pk, session_pk):
 @csrf.csrf_exempt
 def check_answer(request):
     question_pk = request.POST.get('question_pk')
-    answerd_question = get_object_or_404(Question, pk=question_pk)
     session_pk = request.POST.get('session_pk')
+    choice_pk = request.POST.get('choice_pk') or None
+
+    question = get_object_or_404(Question, pk=question_pk)
     session = get_object_or_404(Session, pk=session_pk)
-    if request.method == 'GET' and 'choice_pk' in request.GET:
-        choice_pk = request.POST.get('choice_pk')
+    if choice_pk:
         choice = get_object_or_404(Choice, pk=choice_pk)
-        if choice_pk is not None and choice_pk != '':
-            answer = Answer.objects.create(session=session, question=answerd_question, choice=choice)
-            if choice.is_answer:
-                right = True
-            else:
-                right = False
     else:
-        answer = Answer.objects.create(session=session, question=answerd_question)
-        right = False
+        choice = None
 
-    for answer in Answer.objects.filter(session=session):
-        if answer.is_marked == True:
-            session.marked.add(answer.choice.revision.question)
+    answer = Answer.objects.create(session=session, question=question,
+                                   choice=choice)
 
-    unanswered_questions = session.questions.exclude(answer__isnull=False,answer__session__submitter=request.user)
-    question = unanswered_questions.first()
-    template = get_template('exams/partials/session-question.html')
-    context = {'question': question, 'session': session}
-    stat_html = template.render(context)
-    score = session.right_answers
-    marked = answer.is_marked
+    unused_questions = session.get_unused_questions()
 
-    return {"right": right, "score": score, "marked": marked,
-            'next_question_pk': question.pk,
-            "stat_html": stat_html}
+    if unused_questions.exists():
+        question = unused_questions.first()
+        question_sequence = session.get_question_sequence(question)
+        template = get_template('exams/partials/session-question.html')
+        context = {'question': question, 'session': session}
+        question_body = template.render(context)
 
+        if choice:
+            # FIXME: The field should be `is_right`
+            was_right = choice.is_answer
+        else:
+            was_right = None
+
+        is_marked = utils.is_question_marked(question, session)
+
+        url = question.get_session_url(session)
+
+        return {'done': False,
+                "was_right": was_right,
+                "is_marked": is_marked,
+                'url': url,
+                'question_sequence': question_sequence,
+                'question_pk': question.pk,
+                "question_body": question_body}
+    else:
+        return {'done': True}
 
 @login_required
 @decorators.ajax_only
@@ -396,3 +472,10 @@ class SubjectQuestionCount(autocomplete.Select2QuerySetView):
     def get_result_label(self, item):
         return "<strong>{}</strong> ({})".format(item.name, item.question_set.count())
 
+
+def show_category_indicators(request, category):
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+    context = {'category': category}
+    return render(request, 'exams/show_category_indicators.html', context)

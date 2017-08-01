@@ -38,7 +38,7 @@ class UserAdmin(UserenaAdmin):
     inlines = [ProfileInline,]
     actions = ['make_active']
     search_fields = [field.replace('user__', '') for field in BASIC_SEARCH_FIELDS]
-    list_display = ('pk', 'get_user_full_name', 'email',
+    list_display = ('pk', 'get_user_representation', 'email',
                     'is_active',
                     'date_joined')
 
@@ -46,11 +46,9 @@ class UserAdmin(UserenaAdmin):
         queryset.update(is_active=True)
         make_active.short_description = u"نشّط حسابات المستخدمين والمستخدمات"
 
-    def get_user_full_name(self, obj):
-        if obj.is_superuser:
-            return obj.username
-        else:
-            return utils.get_user_full_name(obj)
+    def get_user_representation(self, obj):
+        return utils.get_user_representation(obj, with_email=False)
+    get_user_representation.short_description = 'Name'
 
 admin.site.unregister(User)
 admin.site.unregister(Profile)

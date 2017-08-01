@@ -28,5 +28,4 @@ class UserAutocomplete(autocomplete.Select2QuerySetView):
         return qs
 
     def get_result_label(self, item):
-        full_name = accounts.utils.get_user_full_name(item) or item.username
-        return"%s <bdi style='font-family: monospace;'>(%s)</bdi>" % (full_name, item.username)
+        return accounts.utils.get_user_representation(item)
