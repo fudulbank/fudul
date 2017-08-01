@@ -305,12 +305,9 @@ def create_session(request, slugs, exam_pk):
         instance = Session(submitter=request.user, exam=exam)
         sessionform = forms.SessionForm(request.POST, request.FILES,
                                         instance=instance, exam=exam)
-
         if sessionform.is_valid():
             session = sessionform.save()
-            show_url = reverse('exams:session', args=(session.exam.category.get_slugs(), session.exam.pk, session.pk))
-            full_url = request.build_absolute_uri(show_url)
-            return HttpResponseRedirect(reverse("exams:session",
+            return HttpResponseRedirect(reverse("exams:show_session",
                                                 args=(session.exam.category.get_slugs(),session.exam.pk,session.pk)))
     context['sessionform'] = sessionform
 
