@@ -4,19 +4,22 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Fudul | Session</title>
+        <title>Fudul | {{ session.exam.name }} session #{{ session.pk }}</title>
 	<script type="text/javascript" src="{% static 'limitless/assets/js/core/libraries/jquery.min.js' %}"></script>
 	<script type="text/javascript" src="{% static 'limitless/assets/js/core/libraries/bootstrap.min.js' %}"></script>
 	<link href="{% static 'limitless/assets/css/icons/icomoon/styles.css' %}" rel="stylesheet" type="text/css">
         <link href="{% static 'limitless/assets/css/bootstrap.css' %}" rel="stylesheet" type="text/css">
         {% include 'partials/piwik.html' %}
         <style>
+    body, html, #container{
+        height: 100%
+    }
+
     body{
         background: #fff;
         font-size: 12pt;
         font-family: Arial,Verdana,Helvetica;
     }
-
 
     .top-info{
         background-color: #0067A9;
@@ -46,21 +49,12 @@
         background-color: #7cafe8;
         border-top: 1px solid #fff;
         height: 32px;
+        line-height: 32px;
     }
 
-    #mark {
-        margin-right: 19px;
-        width: 102px;
-        height: 32px;
-    }
-
-    #contribute {
-        margin-left: 19px;
-        height: 32px;
-    }
-
-
-    #mark:hover, #mark.marked, #contribute:hover{
+    #mark.marked{
+        font-weight: 700;
+        padding: 0 9px;
         color: yellow;
     }
 
@@ -68,18 +62,19 @@
         color: #fff;
         font-weight: 700;
         line-height: 36px;
-        height: 36px;
+        height: 38px;
         font-size: 12pt;
         background-color: #0067A9;
         bottom: 0;
+        position: fixed;
         border-top: solid 2px #fff;
         border-bottom: solid 2px #0067A9;
         width: 100%;
     }
 
-    #footer .option{
+    .option{
         padding: 0 10px;
-        vertical-align: top;
+        /*vertical-align: top;*/
     }
 
     .border-left{
@@ -121,27 +116,30 @@
         color: #fff;
         font-size: 12pt;
         font-family: Arial,Verdana,Helvetica;
+        margin-bottom: 45px;
     }
 
-    #next, #back {
+    #next, #back, #mark, #contribute {
         cursor: pointer;
     }
         </style>
     </head>
     <body>
+    <div id="container">
         <div class="top-info">
             <div class="top-exam-details text-center"> {{ session.exam.name }} <span class="separator">•</span> Session id: {{ session.pk }}<br> Question id: <span id="question-id">{{ question.pk }}</span> </div>
-            <div class="top-question-id pull-right text-right"><span id="question-sequence">{{ question_sequence }}</span> of {{ session.questions.count }}</div>
+            <div class="top-question-id pull-right text-right option"><span id="question-sequence">{{ question_sequence }}</span> of {{ session.questions.count }}</div>
         </div>
         <div class="top-options text-left">
             <div class="pull-left text-left">
-               <div id="contribute">
+               <div class="option border-right border-left" id="contribute">
                   <i class="icon-pencil"></i> Contribute
                </div>
             </div>
             <div class="pull-right text-right">
-               <div id="mark" {% if question|is_question_marked:session %}class="marked" {% endif %}>
-                  <i class="icon-flag7"></i> Mark
+               <div id="mark" class="option border-right border-left" {% if question|is_question_marked:session %}class="marked" {% endif %}>
+                  <img style="display: none; width: 16px;" id="mark-loading" src="{% static 'img/ajax-loader.gif' %}">
+                  <i id="mark-icon" class="icon-flag7"></i> Mark
                </div>
             </div>
         </div>
@@ -150,14 +148,14 @@
             {% include 'exams/partials/session-question.html' %}
         </div>
 
-        <button type="button" id="submit" class="btn">Submit</button>
+        <button type="button" id="submit" class="btn">Submit <i class=" icon-circle-right2"></i></button>
 
         <div id="footer" class="text-center">
-           <div class="option pull-left border-right border-left"><a href="{% url 'exams:create_session' session.exam.category.get_slugs session.exam.pk %}">Exit</a></div>
-           <div id="next" class="option pull-right border-right border-left">Next</div>
-           <div id="back" class="option pull-right border-left">Back</div>
+           <div class="option pull-left border-right border-left"><a href="{% url 'exams:create_session' session.exam.category.get_slugs session.exam.pk %}"><i class="icon-exit3"></i> Exit</a></div>
+           <div id="next" class="option pull-right border-right border-left">Next <i class=" icon-circle-right2"></i></div>
+           <div id="back" class="option pull-right border-left"><i class=" icon-circle-left2"></i> Back</div>
         </div>
-
+      </div>
         <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
         <script src="{% static 'js/toastr.js' %}"></script>
         <script>
@@ -197,13 +195,18 @@
     }
 
     function toggleMarked() {
+        $("#mark-icon").hide();
+        $("#mark-loading").show();
         $.ajax({
             url: "{% url 'exams:toggle_marked' %}",
             type: 'POST',
             data: data,
             cache: false,
             success: function(data){
-                handleMarked(data.is_marked);
+               handleMarked(data.is_marked);
+               $("#mark-icon").show();
+               $("#mark-loading").hide();
+ 
             }
         });
     }

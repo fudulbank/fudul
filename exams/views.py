@@ -320,9 +320,14 @@ def create_session(request, slugs, exam_pk):
 def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     category = Category.objects.get_from_slugs(slugs)
     session = get_object_or_404(Session, pk=session_pk)
-    exam = session.exam
+
     if not category:
         raise Http404
+
+    # PERMISSION CHECK
+    if not session.submitter == request.user and \
+       not request.user.is_superuser:
+        raise PermissionDenied
 
     if question_pk:
         if not session.questions.filter(pk=question_pk).exists():
@@ -401,13 +406,14 @@ def check_answer(request):
     answer = Answer.objects.create(session=session, question=question,
                                    choice=choice)
 
-    unused_questions = session.get_unused_questions()
+    next_question = session.questions.order_by('pk')\
+                                     .exclude(pk__lte=question.pk)\
+                                     .first()
 
-    if unused_questions.exists():
-        question = unused_questions.first()
-        question_sequence = session.get_question_sequence(question)
+    if next_question:
+        question_sequence = session.get_question_sequence(next_question)
         template = get_template('exams/partials/session-question.html')
-        context = {'question': question, 'session': session}
+        context = {'question': next_question, 'session': session}
         question_body = template.render(context)
 
         if choice:
@@ -416,16 +422,16 @@ def check_answer(request):
         else:
             was_right = None
 
-        is_marked = utils.is_question_marked(question, session)
+        is_marked = utils.is_question_marked(next_question, session)
 
-        url = question.get_session_url(session)
+        url = next_question.get_session_url(session)
 
         return {'done': False,
                 "was_right": was_right,
                 "is_marked": is_marked,
                 'url': url,
                 'question_sequence': question_sequence,
-                'question_pk': question.pk,
+                'question_pk': next_question.pk,
                 "question_body": question_body}
     else:
         return {'done': True}
