@@ -114,7 +114,9 @@
                                 {% endblock %}
 {% if user.is_superuser %}
 								<li>
-
+									<a href="{% url 'exams:list_category_indicators' %}"><i class="icon-pie-chart2"></i> <span>Category indicators</span></a>
+								</li>
+								<li>
 									<a href="{% url 'admin:index' %}"><i class="icon-shield2"></i> <span>Superuser Admin</span></a>
 								</li>
 {% endif %}

@@ -1,0 +1,298 @@
+<!DOCTYPE html>{% load static exam_utils %}
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Fudul | Session</title>
+	<script type="text/javascript" src="{% static 'limitless/assets/js/core/libraries/jquery.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'limitless/assets/js/core/libraries/bootstrap.min.js' %}"></script>
+	<link href="{% static 'limitless/assets/css/icons/icomoon/styles.css' %}" rel="stylesheet" type="text/css">
+        <link href="{% static 'limitless/assets/css/bootstrap.css' %}" rel="stylesheet" type="text/css">
+        {% include 'partials/piwik.html' %}
+        <style>
+    body{
+        background: #fff;
+        font-size: 12pt;
+        font-family: Arial,Verdana,Helvetica;
+    }
+
+
+    .top-info{
+        background-color: #0067A9;
+        height: 50px;
+        font-size: 12pt;
+        color: #FFF;
+    }
+
+    .top-exam-details {
+        position: absolute;
+        left: 47%;
+        margin-left: -50px;
+        padding: 4px 0;
+    }
+
+    .top-question-id {
+        font-weight: 700;
+        line-height: 15px;
+        margin-top: 18px;
+    }
+
+    .separator{
+        color: yellow;
+    }
+
+    .top-options {
+        background-color: #7cafe8;
+        border-top: 1px solid #fff;
+        height: 32px;
+    }
+
+    #mark {
+        margin-right: 19px;
+        width: 102px;
+        height: 32px;
+    }
+
+    #contribute {
+        margin-left: 19px;
+        height: 32px;
+    }
+
+
+    #mark:hover, #mark.marked, #contribute:hover{
+        color: yellow;
+    }
+
+    #footer {
+        color: #fff;
+        font-weight: 700;
+        line-height: 36px;
+        height: 36px;
+        font-size: 12pt;
+        background-color: #0067A9;
+        bottom: 0;
+        border-top: solid 2px #fff;
+        border-bottom: solid 2px #0067A9;
+        width: 100%;
+    }
+
+    #footer .option{
+        padding: 0 10px;
+        vertical-align: top;
+    }
+
+    .border-left{
+        border-left: solid 2px #fff;
+    }
+
+    .border-right{
+        border-right: solid 2px #fff;
+    }
+
+    #footer .option a{
+        color: white;
+    }
+
+    .strike {
+        text-decoration: line-through;
+    }
+
+    .highlight {
+        background: yellow;
+        cursor: pointer;
+    }
+
+    .choice-text {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+
+    .question-choice {
+        margin-right: 10px !important;
+        word-wrap: break-word;
+    }
+
+    #submit{
+        margin-left: 9px;
+        background: #0067A9;
+        color: #fff;
+        font-size: 12pt;
+        font-family: Arial,Verdana,Helvetica;
+    }
+
+    #next, #back {
+        cursor: pointer;
+    }
+        </style>
+    </head>
+    <body>
+        <div class="top-info">
+            <div class="top-exam-details text-center"> {{ session.exam.name }} <span class="separator">•</span> Session id: {{ session.pk }}<br> Question id: <span id="question-id">{{ question.pk }}</span> </div>
+            <div class="top-question-id pull-right text-right"><span id="question-sequence">{{ question_sequence }}</span> of {{ session.questions.count }}</div>
+        </div>
+        <div class="top-options text-left">
+            <div class="pull-left text-left">
+               <div id="contribute">
+                  <i class="icon-pencil"></i> Contribute
+               </div>
+            </div>
+            <div class="pull-right text-right">
+               <div id="mark" {% if question|is_question_marked:session %}class="marked" {% endif %}>
+                  <i class="icon-flag7"></i> Mark
+               </div>
+            </div>
+        </div>
+
+        <div id="question-container">
+            {% include 'exams/partials/session-question.html' %}
+        </div>
+
+        <button type="button" id="submit" class="btn">Submit</button>
+
+        <div id="footer" class="text-center">
+           <div class="option pull-left border-right border-left"><a href="{% url 'exams:create_session' session.exam.category.get_slugs session.exam.pk %}">Exit</a></div>
+           <div id="next" class="option pull-right border-right border-left">Next</div>
+           <div id="back" class="option pull-right border-left">Back</div>
+        </div>
+
+        <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
+        <script src="{% static 'js/toastr.js' %}"></script>
+        <script>
+    toastr.options.positionClass = "toast-top-left";
+
+    function updateData(){
+        data = {question_pk: $("#question-body").data('question-pk'),
+                session_pk: $("#question-body").data('session-pk')}
+    }
+
+    function handleMarked(is_marked){
+        $markButton = $("#mark");
+        if (is_marked){
+            $markButton.addClass("marked");
+        } else {
+            $markButton.removeClass("marked");
+        }
+    }
+
+    function getPrevious() {
+        $.ajax({
+            url: "{% url 'exams:get_previous_question' %}",
+            type: 'POST',
+            data: data,
+            cache: false,
+            success: function(data){
+                $("#question-container").html(data.question_body);
+                $("#question-sequence").html(data.question_sequence);
+                $("#question-id").html(data.question_pk);
+                // This changes the url without actually reloading the page.
+                history.pushState({url: data.url}, '', data.url);
+
+                handleMarked(data.is_marked);
+                updateData();
+            }
+        });
+    }
+
+    function toggleMarked() {
+        $.ajax({
+            url: "{% url 'exams:toggle_marked' %}",
+            type: 'POST',
+            data: data,
+            cache: false,
+            success: function(data){
+                handleMarked(data.is_marked);
+            }
+        });
+    }
+
+    function toggleChoices() {
+        var $choice = $(this);
+        if ($choice.is(":checked")) {
+            // other sister choices to be removed
+            $otherChoices = $choice.closest('#question-container').find('.question-choice').not($choice);
+            // If a choice is checked, it is no longer striked.
+            $choice.closest('tr').find('.choice-text').removeClass('strike');
+            $otherChoices.prop("checked", false);
+        } else {
+            $choice.prop("checked", false);
+        }
+    }
+
+    function highlightText() {
+        var selection = window.getSelection().toString();
+        if (selection.length >= 3) {
+            var escapedSelection = $("<div>").text(selection).html();
+            var replacement = $('<span></span>').addClass('highlight').html(selection);
+            var replacementHtml = replacement.prop('outerHTML');
+            $(this).html($(this).html().replace(escapedSelection, replacementHtml));
+        }
+        $(".highlight").click(function() {
+            $(this).removeClass("highlight");
+        });
+    }
+
+    function initializeInteractions() {
+        $(".question-text").mouseup(highlightText);
+        $('.question-choice').change(toggleChoices);
+        $(".choice-text").click(function() {
+            if (!$(this).hasClass("strike")){
+               // If a choice is striked, it is no longer checked.
+                $(this).closest("tr").find(".question-choice").prop('checked', false);
+            }
+            $(this).toggleClass("strike");
+        });
+    }
+
+    function submitChoice() {
+        $checkedChoice = $('.question-choice:checked');
+        // Do we have a choice, or was it skipped?
+        if ($checkedChoice.length) {
+            choice_pk = $checkedChoice.data("choice_pk");
+        } else {
+            choice_pk = null;
+        }
+        data.choice_pk = choice_pk;
+        $.ajax({
+            url: "{% url 'exams:check_answer' %}",
+            type: 'POST',
+            data: data,
+            cache: false,
+            success: function(data) {
+                if (data.success) {
+                    if (data.was_right) {
+                        toastr.success('You got the right answer.');
+                    } else if (choice_pk)  {
+                        toastr.warning('You got the wrong answer');
+                    } else if (!choice_pk){
+                        toastr.warning('You skipped this question');
+                    }
+                    $("#question-container").html(data.question_body);
+                    $("#question-sequence").html(data.question_sequence);
+                    $("#question-id").html(data.question_pk);
+                    handleMarked(data.is_marked);
+                    // This changes the url without actually reloading the page.
+                    history.pushState({url: data.url}, '', data.url);
+
+                    updateData();
+                    initializeInteractions();
+                }
+            }
+        });
+    }
+    $(function() {
+        updateData();
+        initializeInteractions();
+        $('#submit, #next').click(submitChoice);
+        $('#back').click(getPrevious);
+        $('#mark').click(toggleMarked);
+        $('#skip').click(function() {
+            $('.question-choice').prop('checked', false);
+            submitChoice();
+        })
+    });
+        </script>
+    </body>
+</html>

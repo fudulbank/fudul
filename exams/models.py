@@ -1,3 +1,4 @@
+from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
@@ -69,7 +70,7 @@ class Category(models.Model):
 
         category = self
         while category:
-            if category.college_limist.exists() and \
+            if category.college_limit.exists() and \
                not category.college_limit.filter(pk=user_college.pk).exists():
                 return False
             category = category.parent_category
@@ -205,6 +206,15 @@ class Exam(models.Model):
         questions = Question.objects.undeleted().filter(pk__in=pks)
         return questions
 
+    def get_unsolved_questions(self):
+        pks = Revision.objects.filter(question__subjects__exam=self,
+                                      is_last=True)\
+                              .exclude(choice__is_answer=True)\
+                              .distinct()\
+                              .values_list('question__pk', flat=True)
+        questions = Question.objects.undeleted().filter(pk__in=pks)
+        return questions
+
     def __str__(self):
         return self.name
 
@@ -256,6 +266,13 @@ class Question(models.Model):
     def get_latest_revision(self):
         return self.revision_set.filter(is_deleted=False).order_by('-submission_date').first()
 
+    def get_session_url(self, session):
+        category = session.exam.category
+        slugs = category.get_slugs()
+        return reverse('exams:show_session', args=(slugs,
+                                                   session.exam.pk,
+                                                   session.pk,
+                                                   self.pk))
 
 
 class Revision(models.Model):
@@ -331,6 +348,11 @@ class Session(models.Model):
         if self.answer_set.filter(choice__isnull=True,session__submitter=user).exist:
             return False
 
+    def get_question_sequence(self, question):
+        return self.questions.filter(pk__lte=question.pk).count()
+
+    def get_unused_questions(self):
+        return self.questions.order_by('pk').exclude(answer__isnull=False)
 
 class Answer(models.Model):
     session = models.ForeignKey(Session)
