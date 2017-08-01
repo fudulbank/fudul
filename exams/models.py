@@ -70,7 +70,7 @@ class Category(models.Model):
 
         category = self
         while category:
-            if category.college_limist.exists() and \
+            if category.college_limit.exists() and \
                not category.college_limit.filter(pk=user_college.pk).exists():
                 return False
             category = category.parent_category
@@ -203,6 +203,15 @@ class Exam(models.Model):
         pks = Revision.objects.per_exam(self)\
                               .filter(is_last=True, status='UNSOLVED')\
                               .values_list('question__pk',flat=True)
+        questions = Question.objects.undeleted().filter(pk__in=pks)
+        return questions
+
+    def get_unsolved_questions(self):
+        pks = Revision.objects.filter(question__subjects__exam=self,
+                                      is_last=True)\
+                              .exclude(choice__is_answer=True)\
+                              .distinct()\
+                              .values_list('question__pk', flat=True)
         questions = Question.objects.undeleted().filter(pk__in=pks)
         return questions
 

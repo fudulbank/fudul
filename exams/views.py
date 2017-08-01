@@ -15,34 +15,53 @@ import teams.utils
 
 
 @login_required
-def list_meta_categories(request):
+def list_meta_categories(request, indicators=False):
+    if indicators and not teams.utils.is_editor(request.user):
+        raise PermissionDenied
+
+    if indicators:
+        show_category_url = 'exams:show_category_indicators'
+    else:
+        show_category_url = 'exams:show_category'
+
     subcategories = Category.objects.filter(parent_category__isnull=True).user_accessible(request.user)
-    context = {"subcategories": subcategories}
+    context = {"subcategories": subcategories,
+               'show_category_url': show_category_url,
+               'indicators': indicators}
     return render(request, 'exams/show_category.html', context)
 
 
 @login_required
-def show_category(request, slugs):
+def show_category(request, slugs, indicators=False):
     category = Category.objects.get_from_slugs(slugs)
     if not category:
         raise Http404
 
+    if indicators:
+        show_category_url = 'exams:show_category_indicators'
+        exams = None
+    else:
+        show_category_url = 'exams:show_category'
+        exams = Exam.objects.filter(category=category)
+    
     # PERMISSION CHECK
     if not category.can_user_access(request.user):
         raise PermissionDenied
     subcategories = category.children.user_accessible(request.user)
-
+    
     # If this category has one child, just go to it!
     if subcategories.count() == 1:
         subcategory = subcategories.first()
-        return HttpResponseRedirect(reverse("exams:show_category",
+        return HttpResponseRedirect(reverse(show_category_url,
                                             args=(subcategory.get_slugs(),)))
-
-    exams = Exam.objects.filter(category=category)
+    elif subcategories.count() == 0 and indicators:
+        return show_category_indicators(request, category)
 
     context = {'category': category,
+               'show_category_url': show_category_url,
+               'exams': exams,
                'subcategories': subcategories.order_by('name'),
-               'exams': exams}
+               'indicators': indicators}
 
     return render(request, "exams/show_category.html", context)
 
@@ -112,9 +131,9 @@ def handle_question(request, exam_pk):
     instance = Revision(submitter=request.user, is_first=True,
                         is_last=True)
     questionform = forms.QuestionForm(request.POST,
-                                      request.FILES,
                                       exam=exam)
     revisionform = forms.RevisionForm(request.POST,
+                                      request.FILES,
                                       instance=instance)
     revisionchoiceformset = forms.RevisionChoiceFormset(request.POST)
 
@@ -220,10 +239,10 @@ def submit_revision(request, slugs, exam_pk, pk):
 
     if request.method == 'POST':
         questionform = forms.QuestionForm(request.POST,
-                                          request.FILES,
                                           instance=question,
                                           exam=exam)
         revisionform = forms.RevisionForm(request.POST,
+                                          request.FILES,
                                           instance=latest_revision)
 
         revisionchoiceformset = forms.RevisionChoiceFormset(request.POST,
@@ -261,7 +280,6 @@ def list_question_per_status(request, slugs, exam_pk):
     context = {'writing_error': writing_error, 'unsloved': unsloved, 'incomplete_answer': incomplete_answer,
                'incomplete_question': incomplete_question, 'exam': exam}
     return render(request, 'exams/list_question_per_status.html', context)
-
 
 @decorators.get_only
 @login_required
@@ -463,3 +481,10 @@ class SubjectQuestionCount(autocomplete.Select2QuerySetView):
     def get_result_label(self, item):
         return "<strong>{}</strong> ({})".format(item.name, item.question_set.count())
 
+
+def show_category_indicators(request, category):
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+    context = {'category': category}
+    return render(request, 'exams/show_category_indicators.html', context)

@@ -12,6 +12,7 @@ class Team(models.Model):
 
     def get_member_count(self):
         return self.members.count()
+    get_member_count.short_description = 'Member count'
 
     def __str__(self):
         return self.name
