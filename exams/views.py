@@ -332,9 +332,14 @@ def handle_session(request, exam_pk):
 def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     category = Category.objects.get_from_slugs(slugs)
     session = get_object_or_404(Session, pk=session_pk)
-    exam = session.exam
+
     if not category:
         raise Http404
+
+    # PERMISSION CHECK
+    if not session.submitter == request.user and \
+       not request.user.is_superuser:
+        raise PermissionDenied
 
     if question_pk:
         if not session.questions.filter(pk=question_pk).exists():
