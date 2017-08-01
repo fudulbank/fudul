@@ -409,6 +409,7 @@ def show_pevious_sessions(request):
 
     return render(request, 'exams/show_previous_sessions.html',{'sesstions':sessions})
 
+
 class SubjectQuestionCount(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         exam_pk = self.forwarded.get('exam_pk')
