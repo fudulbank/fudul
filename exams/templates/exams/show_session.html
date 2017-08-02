@@ -5,9 +5,12 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Fudul | {{ session.exam.name }} session #{{ session.pk }}</title>
-	<script type="text/javascript" src="{% static 'limitless/assets/js/core/libraries/jquery.min.js' %}"></script>
-	<script type="text/javascript" src="{% static 'limitless/assets/js/core/libraries/bootstrap.min.js' %}"></script>
-	<link href="{% static 'limitless/assets/css/icons/icomoon/styles.css' %}" rel="stylesheet" type="text/css">
+      	<script type="text/javascript" src="{% static 'limitless/assets/js/core/libraries/jquery.min.js' %}"></script>
+      	<script type="text/javascript" src="{% static 'limitless/assets/js/core/libraries/bootstrap.min.js' %}"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery.tooltipster/4.2.5/js/tooltipster.bundle.min.js"></script>
+      	<link href="{% static 'limitless/assets/css/icons/icomoon/styles.css' %}" rel="stylesheet" type="text/css">
+        <link href="https://cdn.jsdelivr.net/jquery.tooltipster/4.2.5/css/tooltipster.bundle.min.css" rel="stylesheet" type="text/css">
+        <link href="https://cdn.jsdelivr.net/jquery.tooltipster/4.2.5/css/plugins/tooltipster/sideTip/themes/tooltipster-sideTip-shadow.min.css" rel="stylesheet" type="text/css">
         <link href="{% static 'limitless/assets/css/bootstrap.css' %}" rel="stylesheet" type="text/css">
         {% include 'partials/piwik.html' %}
         <style>
@@ -119,6 +122,10 @@
         margin-bottom: 45px;
     }
 
+    #tooltip-container{
+      display: none;
+    }
+
     #next, #back, #mark, #contribute {
         cursor: pointer;
     }
@@ -152,6 +159,7 @@
 
         <div id="footer" class="text-center">
            <div class="option pull-left border-right border-left"><a href="{% url 'exams:create_session' session.exam.category.get_slugs session.exam.pk %}"><i class="icon-exit3"></i> Exit</a></div>
+           <div class="option pull-left border-right" id="contributors" data-tooltip-content="#tooltip-body"><i class="icon-stars"></i> Contributors</div>
            <div id="next" class="option pull-right border-right border-left">Next <i class=" icon-circle-right2"></i></div>
            <div id="back" class="option pull-right border-left"><i class=" icon-circle-left2"></i> Back</div>
         </div>
@@ -238,6 +246,7 @@
     }
 
     function initializeInteractions() {
+        $("#contributors").tooltipster({theme: 'tooltipster-shadow', contentCloning: true});
         $(".question-text").mouseup(highlightText);
         $('.question-choice').change(toggleChoices);
         $(".choice-text").click(function() {

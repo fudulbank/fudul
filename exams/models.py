@@ -242,6 +242,12 @@ class Question(models.Model):
                                                    session.pk,
                                                    self.pk))
 
+    def get_contributors(self):
+        contributors = []
+        for revision in self.revision_set.order_by('pk'):
+            if not revision.submitter in contributors:
+                contributors.append(revision.submitter)
+        return contributors
 
 class Revision(models.Model):
     question = models.ForeignKey(Question)

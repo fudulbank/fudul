@@ -11,4 +11,20 @@
         {% endfor %}
       </tbody>
     </table>
+
+<div id="tooltip-container">
+  <div id="tooltip-body">
+    {% for contributor in question.get_contributors %}
+      {% if forloop.first %}
+        This question was originally added by {{ contributor.0|default:contributor.username }}.
+        {% if question.get_contributors|length > 1 %}
+        Futher contributions where done by
+        {% endif %}
+      {% else %}
+        {{ contributor.0|default:contributor.username }}{% if forloop.last %}.{% else %}, {% endif %}
+    {% endif %}
+      {% endfor %}
+  </div>
+</div>
+
 </div>
