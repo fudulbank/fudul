@@ -169,47 +169,16 @@ class Exam(models.Model):
                                .filter(is_last=True, is_approved=False)
 
     def get_approved_questions(self):
-        pks = self.get_approved_latest_revisions().values_list('question__pk', flat=True)
-        questions = Question.objects.undeleted().filter(pk__in=pks)
-        return questions
-
-    def get_pending_questions(self):
-        pks = self.get_pending_latest_revisions().values_list('question__pk', flat=True)
-        questions = Question.objects.undeleted().filter(pk__in=pks)
-        return questions
-
-    def get_questions_with_writing_error(self):
         pks = Revision.objects.per_exam(self)\
-                              .filter(is_last=True, status='WRITING_ERROR')\
-                              .values_list('question__pk',flat=True)
-        questions = Question.objects.undeleted().filter(pk__in=pks)
-        return questions
-
-    def get_questions_with_incomplete_question(self):
-        pks = Revision.objects.per_exam(self)\
-                              .filter(is_last=True, status='INCOMPLETE_QUESTION')\
-                              .values_list('question__pk',flat=True)
-        questions = Question.objects.undeleted().filter(pk__in=pks)
-        return questions
-
-    def get_questions_with_incomplete_answers(self):
-        pks = Revision.objects.per_exam(self)\
-                              .filter(is_last=True, status='INCOMPLETE_ANSWERS')\
-                              .values_list('question__pk',flat=True)
+                              .filter(is_approved=True)\
+                              .values_list('question__pk', flat=True)
         questions = Question.objects.undeleted().filter(pk__in=pks)
         return questions
 
     def get_unsolved_questions(self):
         pks = Revision.objects.per_exam(self)\
-                              .filter(is_last=True, status='UNSOLVED')\
-                              .values_list('question__pk',flat=True)
-        questions = Question.objects.undeleted().filter(pk__in=pks)
-        return questions
-
-    def get_unsolved_questions(self):
-        pks = Revision.objects.filter(question__subjects__exam=self,
-                                      is_last=True)\
-                              .exclude(choice__is_answer=True)\
+                              .filter(is_last=True)\
+                              .exclude(choice__is_right=True)\
                               .distinct()\
                               .values_list('question__pk', flat=True)
         questions = Question.objects.undeleted().filter(pk__in=pks)
@@ -232,20 +201,14 @@ class Subject(models.Model):
     def __str__(self):
         return self.name
 
-status_choices = (
-    ('COMPLETE','Complete and valid question'),
-    ('WRITING_ERROR', 'Writing errors'),
-    ('INCOMPLETE_ANSWERS', 'Incomplete answers'),
-    ('INCOMPLETE_QUESTION', 'Incomplete question'),
-    ('UNSOLVED', 'Unsolved question'),
-)
-
 class Question(models.Model):
     sources = models.ManyToManyField(Source, blank=True)
     subjects = models.ManyToManyField(Subject)
     exam_types = models.ManyToManyField(ExamType)
     is_deleted = models.BooleanField(default=False)
     statuses = models.ManyToManyField(Status)
+    marking_users = models.ManyToManyField(User, blank=True,
+                                           related_name="marked_questions")
     objects = managers.QuestionQuerySet.as_manager()
     parent_question = models.ForeignKey('self', null=True, blank=True,
                                         related_name="children",
@@ -297,7 +260,7 @@ class Revision(models.Model):
     objects = managers.RevisionQuerySet.as_manager()
 
     def has_right_answer(self):
-        return self.choice_set.filter(is_answer=True).exists()
+        return self.choice_set.filter(is_right=True).exists()
 
     def save(self, *args, **kwargs):
         if self.is_approved:
@@ -310,7 +273,7 @@ class Revision(models.Model):
 
 class Choice(models.Model):
     text = models.CharField(max_length=200)
-    is_answer = models.BooleanField("Right answer?", default=False)
+    is_right = models.BooleanField("Right answer?", default=False)
     revision = models.ForeignKey(Revision, on_delete=models.CASCADE,null=True)
     objects = managers.ChoiceQuerySet.as_manager()
 
@@ -319,41 +282,40 @@ class Choice(models.Model):
 
 
 questions_choices = (
-    ('U','Unused'),
-    ('I', 'Incorrect'),
-    ('M', 'Marked'),
-    ('R','Random')
+    ('UNUSED','Unused'),
+    ('INCORRECT', 'Incorrect'),
+    ('MARKED', 'Marked'),
+    ('ALL','All'),
 )
 
 class Session(models.Model):
-    solved = models.BooleanField("Solved Questions", default=False)
-    number_of_questions = models.PositiveIntegerField(default=0)
+    is_solved = models.BooleanField("Show question solved?", default=False)
+    number_of_questions = models.PositiveIntegerField(null=True)
     sources = models.ManyToManyField(Source, blank=True)
-    subjects = models.ManyToManyField(Subject)
+    subjects = models.ManyToManyField(Subject, blank=True)
     exam = models.ForeignKey(Exam)
-    questions = models.ManyToManyField(Question)
+    questions = models.ManyToManyField(Question, blank=True)
     exam_types = models.ManyToManyField(ExamType)
     submitter = models.ForeignKey(User)
-    right_answers=models.PositiveIntegerField(default=0)
-    marked = models.ManyToManyField(Question,related_name='marked')
-    question_filter= models.CharField(max_length=1,choices=questions_choices,blank=False,default=None)
+    question_filter = models.CharField(max_length=20, choices=questions_choices, default=None)
 
+    def get_score(self):
+        return self.get_correct_answer_count() / self.number_of_questions * 100
 
-    def score (self):
-        return self.answer_set.filter(choice__is_answer=True).count()/self.number_of_questions*100
+    def get_correct_answer_count(self):
+        return self.answer_set.filter(choice__is_right=True).count()
 
-    def correct_answers (self):
-        return self.answer_set.filter(choice__is_answer=True).count()
-
-    def finished (self,user):
-        if self.answer_set.filter(choice__isnull=True,session__submitter=user).exist:
+    def has_finished(self,user):
+        if self.answer_set.count() == self.number_of_questions:
+            return True
+        else:
             return False
 
     def get_question_sequence(self, question):
         return self.questions.filter(pk__lte=question.pk).count()
 
     def get_unused_questions(self):
-        return self.questions.order_by('pk').exclude(answer__isnull=False)
+        return self.questions.exclude(answer__session=self)
 
 class Answer(models.Model):
     session = models.ForeignKey(Session)

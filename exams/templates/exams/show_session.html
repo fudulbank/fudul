@@ -137,7 +137,7 @@
                </div>
             </div>
             <div class="pull-right text-right">
-               <div id="mark" class="option border-right border-left" {% if question|is_question_marked:session %}class="marked" {% endif %}>
+               <div id="mark" class="option border-right border-left{% if question|is_question_marked:user %} marked{% endif %}"">
                   <img style="display: none; width: 16px;" id="mark-loading" src="{% static 'img/ajax-loader.gif' %}">
                   <i id="mark-icon" class="icon-flag7"></i> Mark
                </div>
@@ -206,7 +206,7 @@
                handleMarked(data.is_marked);
                $("#mark-icon").show();
                $("#mark-loading").hide();
- 
+
             }
         });
     }

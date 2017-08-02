@@ -303,57 +303,13 @@ def create_session(request, slugs, exam_pk):
         sessionform = forms.SessionForm(exam=exam)
     elif request.method == 'POST':
         instance = Session(submitter=request.user, exam=exam)
-        sessionform = forms.SessionForm(request.POST, request.FILES,
+        sessionform = forms.SessionForm(request.POST,
                                         instance=instance, exam=exam)
         if sessionform.is_valid():
+            # Question allocation happens in SessionForm.save()
             session = sessionform.save()
-            if session.question_filter == 'R':
-                for question in session.exam.get_targeted_questions(sources=session.sources,subjects=session.subjects,exam_types=session.exam_types)[:session.number_of_questions]:
-                    session.questions.add(question)
-            else:
-                sessions = Session.objects.filter(submitter=request.user)
-                if sessions.exists():
-                    if session.question_filter == 'U':
-                        for session in sessions:
-                            for question in session.get_unused_questions()[:session.number_of_questions]:
-                                session.questions.add(question)
-                            remaining_number = session.number_of_questions - session.questions.count()
-
-                            #repeated(1)
-                            if session.questions.count() < session.number_of_questions :
-                                for question in session.exam.get_targeted_questions(sources=session.sources,subjects=session.subjects,exam_types=session.exam_types)[:session.number_of_questions]:
-                                    session.questions.add(question)
-
-                    elif session.question_filter == 'I':
-                        for session in sessions:
-                            for question in session.questions.filter(answer__choice__is_answer=False)[:session.number_of_questions]:
-                                session.questions.add(question)
-                            remaining_number = session.number_of_questions - session.questions.count()
-
-                            #repeated(2)
-                            if session.questions.count() < session.number_of_questions :
-                                for question in session.exam.get_targeted_questions(sources=session.sources,subjects=session.subjects,exam_types=session.exam_types)[:session.number_of_questions]:
-                                    session.questions.add(question)
-
-                    elif session.question_filter == 'M':
-                        for session in sessions:
-                            #might be a better way
-                            questions = session.marked.all()[:session.number_of_questions]
-                            questions_list = list(questions)
-                            session.questions.add(*questions_list)
-                            remaining_number = session.number_of_questions - session.questions.count()
-
-                            #repeated(3)
-                            if session.questions.count() < session.number_of_questions:
-                                for question in session.exam.get_targeted_questions(sources=session.sources,subjects=session.subjects,exam_types=session.exam_types)[:session.number_of_questions]:
-                                    session.questions.add(question)
-                else:
-                    for question in session.exam.get_targeted_questions(sources=session.sources,subjects=session.subjects,exam_types=session.exam_types)[:int(session.number_of_questions)]:
-                        session.questions.add(question)
-
             return HttpResponseRedirect(reverse("exams:show_session",
                                                 args=(session.exam.category.get_slugs(),session.exam.pk,session.pk)))
-
     context['sessionform'] = sessionform
 
     return render(request, "exams/create_session.html", context)
@@ -399,11 +355,11 @@ def toggle_marked(request):
     question = get_object_or_404(Question, pk=question_pk)
     session = get_object_or_404(Session, pk=session_pk)
 
-    if utils.is_question_marked(question, session):
-        session.is_marked.remove(question)
+    if utils.is_question_marked(question, request.user):
+        question.marking_users.remove(request.user)
         is_marked = False
     else:
-        session.is_marked.add(question)
+        question.marking_users.add(request.user)
         is_marked = True
 
     return {'is_marked': is_marked}
@@ -423,7 +379,7 @@ def get_previous_question(request):
     template = get_template('exams/partials/session-question.html')
     context = {'question': previous_question, 'session': session}
     question_body = template.render(context)
-    is_marked = utils.is_question_marked(previous_question, session)
+    is_marked = utils.is_question_marked(previous_question, request.user)
     url = previous_question.get_session_url(session)
 
     return {"is_marked": is_marked,
@@ -462,12 +418,11 @@ def check_answer(request):
         question_body = template.render(context)
 
         if choice:
-            # FIXME: The field should be `is_right`
-            was_right = choice.is_answer
+            was_right = choice.is_right
         else:
             was_right = None
 
-        is_marked = utils.is_question_marked(next_question, session)
+        is_marked = utils.is_question_marked(next_question, request.user)
 
         url = next_question.get_session_url(session)
 

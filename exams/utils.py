@@ -1,8 +1,7 @@
 import teams.utils
 
-# FIXME: The field should be `marked_questions`
-def is_question_marked(question, session):
-    return session.marked.filter(pk=question.pk).exists()
+def is_question_marked(question, user):
+    return question.marking_users.filter(pk=user.pk).exists()
 
 def is_question_complete(question):
     return question.get_latest_revision().statuses.filter(code_name="COMPLETE").exists()

@@ -54,7 +54,7 @@ padding-right: 20px;
             <link rel="stylesheet" href="{% static 'bootstrap/bootstrap-toggle-master/css/bootstrap2-toggle.min.css' %}">
 
 {% bootstrap_form_errors sessionform %}
-<form method="post" enctype="multipart/form-data" id="start-session-form" action="post">
+<form method="post" id="start-session-form">
 {% csrf_token %}
     <h5> Type of Questions: </h5>
     <div id="question-filter">
@@ -107,7 +107,7 @@ padding-right: 20px;
 
      <div class="form-group has-feedback has-feedback-left">
          <label class="control-label"><h5> Sesstion Type:</h5></label>
-        {% bootstrap_field sessionform.solved show_label=False %}
+        {% bootstrap_field sessionform.is_solved show_label=False %}
      </div>
 
 
@@ -134,7 +134,7 @@ padding-right: 20px;
     </div>
     </div>
     </div>
-          <button type="submit" action='{% url 'exams:create_session' exam.category.get_slugs exam.pk %}' method='post' class="btn bg-primary btn-block btn-lg">Start Session <i class="icon-circle-right2 position-right"></i></button>
+          <button type="submit" class="btn bg-primary btn-block btn-lg">Start Session <i class="icon-circle-right2 position-right"></i></button>
 
 
     <input name="exam_pk" type="hidden" value="{{ exam.pk }}">

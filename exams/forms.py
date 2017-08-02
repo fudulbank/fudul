@@ -68,7 +68,7 @@ class RevisionForm(forms.ModelForm):
 class ChoiceForms(forms.ModelForm):
     class Meta:
         model = models.Choice
-        fields = ['text','revision','is_answer']
+        fields = ['text','revision','is_right']
 
 class CustomRevisionChoiceFormset(forms.BaseInlineFormSet):
     def clone(self, revision):
@@ -89,7 +89,7 @@ RevisionChoiceFormset = inlineformset_factory(models.Revision,
                                               models.Choice,
                                               formset=CustomRevisionChoiceFormset,
                                               extra=4,
-                                              fields=['text','is_answer'])
+                                              fields=['text','is_right'])
 
 class SessionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -113,10 +113,35 @@ class SessionForm(forms.ModelForm):
         else:
             del self.fields['exam_types']
 
+    def save(self, *args, **kwargs):
+        session = super(SessionForm, self).save(*args, **kwargs)
+        questions = session.exam.get_approved_questions()
+
+        if session.subjects.exists():
+            questions = questions.filter(subjects__in=session.subjects.all())
+
+        if session.sources.exists():
+            questions = questions.filter(sources__in=session.sources.all())
+
+        if session.question_filter == 'UNUSED':
+            questions = questions.exclude(answer__session__submitter=session.submitter)
+        elif session.question_filter == 'INCORRECT':
+            pks = models.Answer.objects.filter(session__exam=session.exam,
+                                               session__submitter=session.submitter,
+                                               choice__is_right=False)\
+                                       .distinct()\
+                                       .values_list('question__pk')
+            questions = questions.filter(pk__in=pks)
+        elif session.question_filter == 'MARKED':
+            questions = questions.filter(marking_users=session.submitter)
+
+        session.questions.add(*questions)
+
+        return session
 
     class Meta:
         model = models.Session
-        fields = ['number_of_questions','exam_types','solved','sources','subjects','question_filter']
+        fields = ['number_of_questions','exam_types','is_solved','sources','subjects','question_filter']
         widgets = {
             'exam_types': autocomplete.ModelSelect2Multiple(),
             'sources': autocomplete.ModelSelect2Multiple(),

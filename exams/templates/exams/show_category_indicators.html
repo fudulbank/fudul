@@ -22,7 +22,7 @@
             <th>Total questions</th>
             <th>Incomplete (%)</th>
             <th>Has no right answer (%)</th>
-            <th>Has pending revision (%)</th>
+            <th>Has pending latest revision (%)</th>
         </tr>
     </thead>
     <tbody>
@@ -33,7 +33,7 @@
                 <td>{{ total_count }}</td>
                 <td>{{ exam.get_incomplete_questions.count }} ({% widthratio exam.get_incomplete_questions.count total_count 100 %}%)</td>
                 <td>{{ exam.get_unsolved_questions.count }} ({% widthratio exam.get_unsolved_questions.count total_count 100 %}%)</td>
-                <td>{{ exam.get_pending_questions.count }} ({% widthratio exam.get_pending_questions.count total_count 100 %}%)</td>
+                <td>{{ exam.get_pending_latest_revisions.count }} ({% widthratio exam.get_pending_latest_revisions.count total_count 100 %}%)</td>
             </tr>
        {% endwith %}
        {% endfor %}
