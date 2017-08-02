@@ -215,6 +215,11 @@ class Exam(models.Model):
         questions = Question.objects.undeleted().filter(pk__in=pks)
         return questions
 
+    def get_targeted_questions(self,subjects,sources,exam_types):
+        pks = self.get_pending_latest_revisions().values_list('question__pk', flat=True)
+        questions = Question.objects.undeleted().filter(pk__in=pks,subjects=subjects,sources=sources,exam_types=exam_types)
+        return questions
+
     def __str__(self):
         return self.name
 
@@ -316,8 +321,7 @@ class Choice(models.Model):
 questions_choices = (
     ('U','Unused'),
     ('I', 'Incorrect'),
-    ('A', 'All'),
-    ('C', 'Custom'),
+    ('M', 'Marked'),
     ('R','Random')
 )
 

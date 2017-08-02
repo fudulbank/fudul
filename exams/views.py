@@ -307,8 +307,53 @@ def create_session(request, slugs, exam_pk):
                                         instance=instance, exam=exam)
         if sessionform.is_valid():
             session = sessionform.save()
+            if session.question_filter == 'R':
+                for question in session.exam.get_targeted_questions(sources=session.sources,subjects=session.subjects,exam_types=session.exam_types)[:session.number_of_questions]:
+                    session.questions.add(question)
+            else:
+                sessions = Session.objects.filter(submitter=request.user)
+                if sessions.exists():
+                    if session.question_filter == 'U':
+                        for session in sessions:
+                            for question in session.get_unused_questions()[:session.number_of_questions]:
+                                session.questions.add(question)
+                            remaining_number = session.number_of_questions - session.questions.count()
+
+                            #repeated(1)
+                            if session.questions.count() < session.number_of_questions :
+                                for question in session.exam.get_targeted_questions(sources=session.sources,subjects=session.subjects,exam_types=session.exam_types)[:session.number_of_questions]:
+                                    session.questions.add(question)
+
+                    elif session.question_filter == 'I':
+                        for session in sessions:
+                            for question in session.questions.filter(answer__choice__is_answer=False)[:session.number_of_questions]:
+                                session.questions.add(question)
+                            remaining_number = session.number_of_questions - session.questions.count()
+
+                            #repeated(2)
+                            if session.questions.count() < session.number_of_questions :
+                                for question in session.exam.get_targeted_questions(sources=session.sources,subjects=session.subjects,exam_types=session.exam_types)[:session.number_of_questions]:
+                                    session.questions.add(question)
+
+                    elif session.question_filter == 'M':
+                        for session in sessions:
+                            #might be a better way
+                            questions = session.marked.all()[:session.number_of_questions]
+                            questions_list = list(questions)
+                            session.questions.add(*questions_list)
+                            remaining_number = session.number_of_questions - session.questions.count()
+
+                            #repeated(3)
+                            if session.questions.count() < session.number_of_questions:
+                                for question in session.exam.get_targeted_questions(sources=session.sources,subjects=session.subjects,exam_types=session.exam_types)[:session.number_of_questions]:
+                                    session.questions.add(question)
+                else:
+                    for question in session.exam.get_targeted_questions(sources=session.sources,subjects=session.subjects,exam_types=session.exam_types)[:int(session.number_of_questions)]:
+                        session.questions.add(question)
+
             return HttpResponseRedirect(reverse("exams:show_session",
                                                 args=(session.exam.category.get_slugs(),session.exam.pk,session.pk)))
+
     context['sessionform'] = sessionform
 
     return render(request, "exams/create_session.html", context)

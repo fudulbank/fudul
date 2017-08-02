@@ -78,7 +78,7 @@ padding-right: 20px;
                     </div>
                 </div>
 
-                <div id="all-subjects-options" style="">
+                <div id="all-subjects-options" style="display: none">
                    {{ sessionform.subjects }}
                     <div class="form-control-feedback">
                     </div>
@@ -190,6 +190,7 @@ h5{
 
         $('#subjects-select').change(function() {
             if ($('#subjects-select option[value=All]:checked').length) {
+                $('#all-subjects-options').hide();
                 $('#all-subjects-options select option').prop('selected', true);
             } else {
                 $('#all-subjects-options').show();
