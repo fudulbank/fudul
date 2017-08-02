@@ -135,7 +135,7 @@ class SessionForm(forms.ModelForm):
         elif session.question_filter == 'MARKED':
             questions = questions.filter(marking_users=session.submitter)
 
-        session.questions.add(*questions)
+        session.questions.add(*questions[:session.number_of_questions])
 
         return session
 
