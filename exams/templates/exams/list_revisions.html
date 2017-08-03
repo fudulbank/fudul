@@ -25,11 +25,10 @@
         <div class="panel-body">
         <p class="content-group-lg"><b>ID:</b>{{ question.pk }}
             <b>Subject:</b>{% for subject in question.subjects.all %}{{ subject.name }}{% endfor %}
-            <b>Source:</b>{% for source in question.source.all %}{{ source.name }}{% endfor %}
+            <b>Source:</b>{% for source in question.sources.all %}{{ source.name }}{% endfor %}
             {% if question.get_ultimate_latest_revision.figure %}<a href="{{ question.get_ultimate_latest_revision.figure.url }}"><b>illustration</b></a>{% endif %}
             <b>Exam Type:</b>{{ question.get_exam_type_display }}
             <b> Status:</b> {% for status in question.get_latest_revision.statuses.all %}{{ status.name }} {% endfor %}
-            <b>Reference: </b>{{ question.get_ultimate_latest_revision.reference | urlize  }}
         </p>
   <table id="revisions" class="display datatable dt-responsive">
                         <thead>
