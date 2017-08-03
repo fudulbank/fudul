@@ -69,8 +69,7 @@ class Category(models.Model):
 
         category = self
         while category:
-            if category.privileged_teams.filter(access='editors',
-                                                members__pk=user.pk).exists():
+            if category.privileged_teams.filter(members__pk=user.pk).exists():
                 return True
             category = category.parent_category
 
@@ -243,6 +242,7 @@ class Revision(models.Model):
     approval_date = models.DateField(blank=True, null=True)
     is_deleted = models.BooleanField(default=False)
     objects = managers.RevisionQuerySet.as_manager()
+    reference = models.TextField(default="", blank=True)
 
     def has_right_answer(self):
         return self.choice_set.filter(is_answer=True).exists()

@@ -99,7 +99,15 @@
 			<div class="form-control-feedback">
 				<i class=" icon-info22 text-muted"></i>
 			</div>
+{% if revision  %}
+            <div class="form-group has-feedback has-feedback-left">
+            <label class="control-label">Answer reference </label>
+			{% bootstrap_field revisionform.reference show_label=False %}
+			<div class="form-control-feedback">
+				<i class=" icon-info22 text-muted"></i>
+			</div>
 		</div>
+                    {% endif %}
 <input name="exam_pk" type="hidden" value="{{ exam.pk }}">
 {{ questionform.media }}
                <button type="submit" action ='submit' class="btn bg-primary btn-block btn-lg">Submit Question <i class="icon-circle-right2 position-right"></i></button>

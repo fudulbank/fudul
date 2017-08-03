@@ -28,7 +28,7 @@ class RevisionForm(forms.ModelForm):
     class Meta:
         model = models.Revision
         fields = ['text', 'explanation', 'figure', 'is_approved',
-                  'statuses']
+                  'statuses','reference']
         widgets = {
             'statuses': autocomplete.ModelSelect2Multiple(),
         }
