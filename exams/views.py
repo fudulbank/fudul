@@ -391,10 +391,8 @@ def navigate_question(request):
     question_body = template.render(context)
     is_marked = utils.is_question_marked(question, request.user)
     url = question.get_session_url(session)
-    was_solved = question.was_solved_in_session(session)
 
     return {"is_marked": is_marked,
-            'was_solved': was_solved,
             'url': url,
             'question_sequence': question_sequence,
             'question_pk': question.pk,

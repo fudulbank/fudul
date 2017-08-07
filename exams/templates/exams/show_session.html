@@ -158,7 +158,7 @@
                </div>
             </div>
             <div class="pull-right text-right">
-               <div id="mark" class="option border-right border-left{% if question|is_question_marked:user %} marked{% endif %}"">
+               <div id="mark" class="option border-right border-left{% if question|is_question_marked:user %} marked{% endif %}">
                   <img id="mark-loading" src="{% static 'img/ajax-loader.gif' %}">
                   <i id="mark-icon" class="icon-flag7"></i> Mark
                </div>
@@ -169,7 +169,7 @@
             {% include 'exams/partials/session-question.html' %}
         </div>
 
-        <button type="button" id="submit" class="btn">Submit <i class=" icon-circle-right2"></i></button>
+        <button {% if question|was_solved_in_session:session %}style="display: none;"{% endif %} type="button" id="submit" class="btn">Submit <i class=" icon-circle-right2"></i></button>
 
         <div id="footer" class="text-center">
            <div class="option pull-left border-right border-left"><a href="{% url 'exams:create_session' session.exam.category.get_slugs session.exam.pk %}"><i class="icon-exit3"></i> Exit</a></div>
@@ -197,6 +197,17 @@
         }
     }
 
+    function handleWasSolved(){
+      was_solved = $("#question-body").data('was-solved');
+      initializeInteractions(was_solved);
+      if (was_solved){
+        $("#submit").hide();
+        $(".question-choice").prop("disabled", "disabled");
+      } else {
+        $("#submit").show();
+      }
+    }
+
     function navigate() {
         action = $(this).data('action');
         data.action = action;
@@ -212,14 +223,7 @@
                 // This changes the url without actually reloading the page.
                 history.pushState({url: data.url}, '', data.url);
 
-                if (!data.was_solved){
-                  $("#submit").show();
-                  initializeInteractions();
-                } else {
-                  $("#submit").hide();
-                  $(".question-choice").prop("disabled", "disabled");
-                }
-
+                handleWasSolved();
                 handleMarked(data.is_marked);
                 updateData();
 
@@ -270,17 +274,19 @@
         });
     }
 
-    function initializeInteractions() {
+    function initializeInteractions(was_solved) {
         $("#contributors").tooltipster({theme: 'tooltipster-shadow', contentCloning: true});
-        $(".question-text").mouseup(highlightText);
-        $('.question-choice').change(toggleChoices);
-        $(".choice-text").click(function() {
-            if (!$(this).hasClass("strike")){
-               // If a choice is striked, it is no longer checked.
-                $(this).closest("tr").find(".question-choice").prop('checked', false);
-            }
-            $(this).toggleClass("strike");
-        });
+        if (!was_solved){
+            $(".question-text").mouseup(highlightText);
+            $('.question-choice').change(toggleChoices);
+            $(".choice-text").click(function() {
+                if (!$(this).hasClass("strike")){
+                   // If a choice is striked, it is no longer checked.
+                    $(this).closest("tr").find(".question-choice").prop('checked', false);
+                }
+                $(this).toggleClass("strike");
+            });
+        }
     }
 
     function submitChoice() {
@@ -288,6 +294,8 @@
 
         // Disable choices upon submission
         $(".question-choice").prop("disabled", "disabled")
+        // Disable interactions after submission
+        $(".question-text, .question-choice, .choice-text, .highlight").off();
 
         $checkedChoice = $('.question-choice:checked');
         // Do we have a choice, or was it skipped?
@@ -330,7 +338,7 @@
     }
     $(function() {
         updateData();
-        initializeInteractions();
+        handleWasSolved();
         $('#submit').click(submitChoice);
         $('#previous, #next').click(navigate);
         $('#mark').click(toggleMarked);
