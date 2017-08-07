@@ -128,7 +128,7 @@
         margin-bottom: 45px;
     }
 
-    #tooltip-container, #mark-loading{
+    #tooltip-container, #mark-loading, #explanation{
       display: none;
     }
 
@@ -321,8 +321,8 @@
                       $incorrect_rows.find("td.check i").addClass("icon-cross3 incorrect");
                     }
 
-                    if (data.explaination){
-                      $("#question-container").append(data.explaination);
+                    if (data.explanation){
+                      $("#explanation").show().append(data.explanation);
                     }
                 } else {
                   toastr.error(data.message);

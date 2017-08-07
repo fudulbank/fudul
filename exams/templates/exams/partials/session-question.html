@@ -1,19 +1,24 @@
 {% load static exam_utils %}
-<div id="question-body" class="well-sm" data-question-pk="{{ question.pk }}" data-session-pk="{{ session.pk }}" data-was-solved="{% if question|was_solved_in_session:session %}true{% else %}false{% endif %}">
-    <p class="question-text">{{ question.get_latest_approved_revision.text|linebreaksbr }}</p>
+{% with latest_revision=question.get_latest_approved_revision was_solved=question|was_solved_in_session:session %}
+<div id="question-body" class="well-sm" data-question-pk="{{ question.pk }}" data-session-pk="{{ session.pk }}" data-was-solved="{% if was_solved %}true{% else %}false{% endif %}">
+    <p class="question-text">{{ latest_revision.text|linebreaksbr }}</p>
 
     <table>
       <tbody>
-        {% for choice in question.get_latest_approved_revision.choice_set.order_by_alphabet %}
+        {% for choice in latest_revision.choice_set.order_by_alphabet %}
             <tr data-choice-pk="{{ choice.pk }}">
-               <td class="check">{% if question|was_solved_in_session:session and choice.is_right %}<i class="icon-checkmark2 correct">{% elif question|was_solved_in_session:session and not choice.is_right %}<i class="icon-cross3 incorrect">{% else %}<i class="">{% endif %}</i></td>
-               <td><input {% if choice|was_chosen:session %}checked {% endif %}{% if question|was_solved_in_session:session %}disabled {% endif %}class="question-choice" name="question-choice" type="checkbox"></td>
+               <td class="check">{% if was_solved and choice.is_right %}<i class="icon-checkmark2 correct">{% elif was_solved and not choice.is_right %}<i class="icon-cross3 incorrect">{% else %}<i class="">{% endif %}</i></td>
+               <td><input {% if choice|was_chosen:session %}checked {% endif %}{% if was_solved %}disabled {% endif %}class="question-choice" name="question-choice" type="checkbox"></td>
                <td><span class="choice-text">{{ choice.text }}</span></td>
             </tr>
         {% endfor %}
       </tbody>
     </table>
-
+    <div id="explanation" {% if was_solved %}style="display: block;"{% endif %}>
+      <h2>Explanation</h2>
+      {% if was_solved %}{{ latest_revision.explanation }}{% endif %}
+    </div>
+{% endwith %}
 <div id="tooltip-container">
   <div id="tooltip-body">
     {% for contributor in question.get_contributors %}
