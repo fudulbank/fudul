@@ -197,17 +197,6 @@
         }
     }
 
-    function handleWasSolved(){
-      was_solved = $("#question-body").data('was-solved');
-      initializeInteractions(was_solved);
-      if (was_solved){
-        $("#submit").hide();
-        $(".question-choice").prop("disabled", "disabled");
-      } else {
-        $("#submit").show();
-      }
-    }
-
     function navigate() {
         action = $(this).data('action');
         data.action = action;
@@ -223,7 +212,7 @@
                 // This changes the url without actually reloading the page.
                 history.pushState({url: data.url}, '', data.url);
 
-                handleWasSolved();
+                initializeInteractions();
                 handleMarked(data.is_marked);
                 updateData();
 
@@ -274,9 +263,14 @@
         });
     }
 
-    function initializeInteractions(was_solved) {
+    function initializeInteractions() {
         $("#contributors").tooltipster({theme: 'tooltipster-shadow', contentCloning: true});
-        if (!was_solved){
+        was_solved = $("#question-body").data('was-solved');
+        if (was_solved){
+          $("#submit").hide();
+          $(".question-choice").prop("disabled", "disabled");
+        } else {
+            $("#submit").show();
             $(".question-text").mouseup(highlightText);
             $('.question-choice').change(toggleChoices);
             $(".choice-text").click(function() {
@@ -338,7 +332,7 @@
     }
     $(function() {
         updateData();
-        handleWasSolved();
+        initializeInteractions();
         $('#submit').click(submitChoice);
         $('#previous, #next').click(navigate);
         $('#mark').click(toggleMarked);
