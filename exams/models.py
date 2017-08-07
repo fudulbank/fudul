@@ -224,6 +224,9 @@ class Question(models.Model):
         first_revision = self.revision_set.order_by("submission_date").first()
         return first_revision.submitter == user
 
+    def was_solved_in_session(self, session):
+        return Answer.objects.filter(session=session, question=self).exists()
+
     def get_exam(self):
         if self.subjects.exists():
             return self.subjects.first().exam

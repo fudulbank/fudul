@@ -94,8 +94,12 @@
         color: white;
     }
 
-    .strike {
+    .strike{
         text-decoration: line-through;
+    }
+
+    td.check, #mark-loading{
+      width: 16px;
     }
 
     .highlight {
@@ -115,7 +119,7 @@
         word-wrap: break-word;
     }
 
-    #submit{
+    #submit, #next{
         margin-left: 9px;
         background: #0067A9;
         color: #fff;
@@ -124,12 +128,20 @@
         margin-bottom: 45px;
     }
 
-    #tooltip-container{
+    #tooltip-container, #mark-loading{
       display: none;
     }
 
-    #next, #back, #mark, #contribute {
+    #next, #previous, #mark, #contribute {
         cursor: pointer;
+    }
+
+    .correct {
+      color: green;
+    }
+
+    .incorrect {
+      color: red;
     }
         </style>
     </head>
@@ -147,7 +159,7 @@
             </div>
             <div class="pull-right text-right">
                <div id="mark" class="option border-right border-left{% if question|is_question_marked:user %} marked{% endif %}"">
-                  <img style="display: none; width: 16px;" id="mark-loading" src="{% static 'img/ajax-loader.gif' %}">
+                  <img id="mark-loading" src="{% static 'img/ajax-loader.gif' %}">
                   <i id="mark-icon" class="icon-flag7"></i> Mark
                </div>
             </div>
@@ -162,8 +174,8 @@
         <div id="footer" class="text-center">
            <div class="option pull-left border-right border-left"><a href="{% url 'exams:create_session' session.exam.category.get_slugs session.exam.pk %}"><i class="icon-exit3"></i> Exit</a></div>
            <div class="option pull-left border-right" id="contributors" data-tooltip-content="#tooltip-body"><i class="icon-stars"></i> Contributors</div>
-           <div id="next" class="option pull-right border-right border-left">Next <i class=" icon-circle-right2"></i></div>
-           <div id="back" class="option pull-right border-left"><i class=" icon-circle-left2"></i> Back</div>
+           <div data-action="next" id="next" class="option pull-right border-right border-left">Next <i class=" icon-circle-right2"></i></div>
+           <div data-action="previous" id="previous" class="option pull-right border-left"><i class=" icon-circle-left2"></i> Previous</div>
         </div>
       </div>
         <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
@@ -185,9 +197,11 @@
         }
     }
 
-    function getPrevious() {
+    function navigate() {
+        action = $(this).data('action');
+        data.action = action;
         $.ajax({
-            url: "{% url 'exams:get_previous_question' %}",
+            url: "{% url 'exams:navigate_question' %}",
             type: 'POST',
             data: data,
             cache: false,
@@ -198,8 +212,16 @@
                 // This changes the url without actually reloading the page.
                 history.pushState({url: data.url}, '', data.url);
 
+                if (!data.was_solved){
+                  $("#submit").show();
+                } else {
+                  $("#submit").hide();
+                  $(".question-choice").prop("disabled", "disabled");
+                }
+
                 handleMarked(data.is_marked);
                 updateData();
+                initializeInteractions();
             }
         });
     }
@@ -261,37 +283,46 @@
     }
 
     function submitChoice() {
+        $(this).hide();
+
+        // Disable choices upon submission
+        $(".question-choice").prop("disabled", "disabled")
+
         $checkedChoice = $('.question-choice:checked');
         // Do we have a choice, or was it skipped?
         if ($checkedChoice.length) {
-            choice_pk = $checkedChoice.data("choice_pk");
+            // We store choice pk at the row.
+            choice_pk = $checkedChoice.closest('tr').data("choice-pk");
         } else {
             choice_pk = null;
         }
         data.choice_pk = choice_pk;
         $.ajax({
-            url: "{% url 'exams:check_answer' %}",
+            url: "{% url 'exams:submit_answer' %}",
             type: 'POST',
             data: data,
             cache: false,
             success: function(data) {
                 if (data.success) {
-                    if (data.was_right) {
-                        toastr.success('You got the right answer.');
-                    } else if (choice_pk)  {
-                        toastr.warning('You got the wrong answer');
-                    } else if (!choice_pk){
+                    if (!choice_pk){
                         toastr.warning('You skipped this question');
                     }
-                    $("#question-container").html(data.question_body);
-                    $("#question-sequence").html(data.question_sequence);
-                    $("#question-id").html(data.question_pk);
-                    handleMarked(data.is_marked);
-                    // This changes the url without actually reloading the page.
-                    history.pushState({url: data.url}, '', data.url);
 
-                    updateData();
-                    initializeInteractions();
+                    if (data.right_choice_pk == null){
+                      toastr.warning("We don't have the right answer for this question.");
+                    } else if (typeof data.right_choice_pk !== "undefined"){
+                      pk_selector = "[data-choice-pk=" + data.right_choice_pk + "]";
+                      $correct_row = $("#question-body tr" + pk_selector);
+                      $correct_row.find("td.check i").addClass("icon-checkmark2 correct")
+                      $incorrect_rows = $("#question-body tr").not(pk_selector);
+                      $incorrect_rows.find("td.check i").addClass("icon-cross3 incorrect");
+                    }
+
+                    if (data.explaination){
+                      $("#question-container").append(data.explaination);
+                    }
+                } else {
+                  toastr.error(data.message);
                 }
             }
         });
@@ -299,13 +330,9 @@
     $(function() {
         updateData();
         initializeInteractions();
-        $('#submit, #next').click(submitChoice);
-        $('#back').click(getPrevious);
+        $('#submit').click(submitChoice);
+        $('#previous, #next').click(navigate);
         $('#mark').click(toggleMarked);
-        $('#skip').click(function() {
-            $('.question-choice').prop('checked', false);
-            submitChoice();
-        })
     });
         </script>
     </body>

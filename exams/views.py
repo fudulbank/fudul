@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse, HttpResponseRedirect, Http404
+from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
 from django.template.loader import get_template
 from django.views.decorators import csrf
@@ -368,73 +368,86 @@ def toggle_marked(request):
 @decorators.post_only
 @login_required
 @csrf.csrf_exempt
-def get_previous_question(request):
+def navigate_question(request):
     question_pk = request.POST.get('question_pk')
     session_pk = request.POST.get('session_pk')
-    question = get_object_or_404(Question, pk=question_pk)
+    action = request.POST.get('action')
+    current_question = get_object_or_404(Question, pk=question_pk)
     session = get_object_or_404(Session, pk=session_pk)
 
-    previous_question = session.questions.order_by('pk').exclude(pk__gte=question.pk).last()
-    question_sequence = session.get_question_sequence(previous_question)
+    # FIXME: If no previous/next question
+
+    question_pool = session.questions.order_by('pk')
+    if action == 'next':
+        question = question_pool.exclude(pk__lte=current_question.pk).first()
+    elif action == 'previous':
+        question = question_pool.exclude(pk__gte=current_question.pk).last()
+    else:
+        return HttpResponseBadRequest("No action provided.")
+
+    question_sequence = session.get_question_sequence(question)
     template = get_template('exams/partials/session-question.html')
-    context = {'question': previous_question, 'session': session}
+    context = {'question': question, 'session': session}
     question_body = template.render(context)
-    is_marked = utils.is_question_marked(previous_question, request.user)
-    url = previous_question.get_session_url(session)
+    is_marked = utils.is_question_marked(question, request.user)
+    url = question.get_session_url(session)
+    was_solved = question.was_solved_in_session(session)
 
     return {"is_marked": is_marked,
+            'was_solved': was_solved,
             'url': url,
             'question_sequence': question_sequence,
-            'question_pk': previous_question.pk,
+            'question_pk': question.pk,
             "question_body": question_body}
 
 @decorators.ajax_only
 @decorators.post_only
 @login_required
 @csrf.csrf_exempt
-def check_answer(request):
+def submit_answer(request):
     question_pk = request.POST.get('question_pk')
     session_pk = request.POST.get('session_pk')
     choice_pk = request.POST.get('choice_pk') or None
-
     question = get_object_or_404(Question, pk=question_pk)
     session = get_object_or_404(Session, pk=session_pk)
+
+    if question.was_solved_in_session(session):
+        raise Exception("Question previously solved in this session.")
+
     if choice_pk:
         choice = get_object_or_404(Choice, pk=choice_pk)
     else:
         choice = None
+
+    # FIXME: Check if the session `is_explained` before returing `explanation`
+    latest_revision = question.get_latest_approved_revision()
+    if latest_revision.explanation:
+        explanation = latest_revision.explanation
+    else:
+        explanation = None
 
     answer = Answer.objects.create(session=session, question=question,
                                    choice=choice)
 
     next_question = session.questions.order_by('pk')\
                                      .exclude(pk__lte=question.pk)\
-                                     .first()
+                                     .exists()
 
     if next_question:
-        question_sequence = session.get_question_sequence(next_question)
-        template = get_template('exams/partials/session-question.html')
-        context = {'question': next_question, 'session': session}
-        question_body = template.render(context)
-
-        if choice:
-            was_right = choice.is_right
-        else:
-            was_right = None
-
-        is_marked = utils.is_question_marked(next_question, request.user)
-
-        url = next_question.get_session_url(session)
+        # FIXME: Check if the session `is_explained` before returing `right_choice_pk`
+        latest_revision = question.get_latest_approved_revision()
+        try:
+            right_choice = latest_revision.choice_set.get(is_right=True)
+            right_choice_pk = right_choice.pk
+        except Choice.DoesNotExist:
+            right_choice_pk = None
 
         return {'done': False,
-                "was_right": was_right,
-                "is_marked": is_marked,
-                'url': url,
-                'question_sequence': question_sequence,
-                'question_pk': next_question.pk,
-                "question_body": question_body}
+                'explanation': explanation,
+                "right_choice_pk": right_choice_pk}
     else:
-        return {'done': True}
+        return {'done': True,
+                'explanation': explanation}
 
 @login_required
 @decorators.ajax_only
