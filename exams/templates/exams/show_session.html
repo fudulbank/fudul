@@ -214,6 +214,7 @@
 
                 if (!data.was_solved){
                   $("#submit").show();
+                  initializeInteractions();
                 } else {
                   $("#submit").hide();
                   $(".question-choice").prop("disabled", "disabled");
@@ -221,7 +222,7 @@
 
                 handleMarked(data.is_marked);
                 updateData();
-                initializeInteractions();
+
             }
         });
     }
