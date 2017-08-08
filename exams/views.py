@@ -314,9 +314,6 @@ def create_session(request, slugs, exam_pk):
 
     return render(request, "exams/create_session.html", context)
 
-
-
-
 @login_required
 def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     category = Category.objects.get_from_slugs(slugs)
@@ -326,14 +323,11 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
         raise Http404
 
     # PERMISSION CHECK
-    if not session.submitter == request.user and \
-       not request.user.is_superuser:
+    if not session.can_access(request.user):
         raise PermissionDenied
 
     if question_pk:
-        if not session.questions.filter(pk=question_pk).exists():
-            raise Http404
-        question = session.questions.get(pk=question_pk)
+        question = get_object_or_404(session.questions.all(), pk=question_pk)
     else:
         unused_questions = session.get_unused_questions()
         question = unused_questions.first()
@@ -355,6 +349,12 @@ def toggle_marked(request):
     question = get_object_or_404(Question, pk=question_pk)
     session = get_object_or_404(Session, pk=session_pk)
 
+    # PERMISSION CHECKS
+    if not session.can_access(request.user):
+        raise Exception("You cannot mark questions in this session.")
+    if not session.has_question(question):
+        raise Exception("This session does not have question #{}.".format(question_pk))
+
     if utils.is_question_marked(question, request.user):
         question.marking_users.remove(request.user)
         is_marked = False
@@ -375,7 +375,9 @@ def navigate_question(request):
     current_question = get_object_or_404(Question, pk=question_pk)
     session = get_object_or_404(Session, pk=session_pk)
 
-    # FIXME: If no previous/next question
+    # PERMISSION CHECK
+    if not session.can_access(request.user):
+        raise Exception("You cannot mark questions in this sessions")
 
     question_pool = session.questions.order_by('pk')
     if action == 'next':
@@ -384,6 +386,9 @@ def navigate_question(request):
         question = question_pool.exclude(pk__gte=current_question.pk).last()
     else:
         return HttpResponseBadRequest("No action provided.")
+
+    if not question:
+        raise Exception("No %s question" % action)        
 
     question_sequence = session.get_question_sequence(question)
     template = get_template('exams/partials/session-question.html')
@@ -409,8 +414,13 @@ def submit_answer(request):
     question = get_object_or_404(Question, pk=question_pk)
     session = get_object_or_404(Session, pk=session_pk)
 
+    # PERMISSION CHECKS
+    if not session.can_access(request.user):
+        raise Exception("You cannot submit answers in this session")
     if question.was_solved_in_session(session):
-        raise Exception("Question previously solved in this session.")
+        raise Exception("Question #{} was previously solved in this session.".format(question_pk))
+    if not session.has_question(question):
+        raise Exception("This session does not have question #{}.".format(question_pk))
 
     if choice_pk:
         choice = get_object_or_404(Choice, pk=choice_pk)

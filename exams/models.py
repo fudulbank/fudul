@@ -332,6 +332,12 @@ class Session(models.Model):
     def get_unused_questions(self):
         return self.questions.exclude(answer__session=self)
 
+    def has_question(self, question):
+        return self.questions.filter(pk=question.pk).exists()
+
+    def can_access(self, user):
+        return self.submitter == user or user.is_superuser
+
 class Answer(models.Model):
     session = models.ForeignKey(Session)
     question = models.ForeignKey(Question)
