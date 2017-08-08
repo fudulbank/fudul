@@ -408,7 +408,7 @@ def navigate_question(request):
 def submit_answer(request):
     question_pk = request.POST.get('question_pk')
     session_pk = request.POST.get('session_pk')
-    choice_pk = request.POST.get('choice_pk') or None
+    choice_pk = request.POST.get('choice_pk')
     session = get_object_or_404(Session, pk=session_pk)
     question = get_object_or_404(session.questions, pk=question_pk)
 
@@ -440,9 +440,10 @@ def submit_answer(request):
     if session.session_mode == 'EXPLAINED':
         try:
             right_choice = latest_revision.choice_set.get(is_right=True)
-            right_choice_pk = right_choice.pk
         except Choice.DoesNotExist:
             raise Exception("We don't have the right answer for this question.")
+        else:
+            right_choice_pk = right_choice.pk
     else:
         right_choice_pk = None
 

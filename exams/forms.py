@@ -162,7 +162,7 @@ class SessionForm(forms.ModelForm):
         final = selected
         if len(selected) > session.number_of_questions:
             for question in selected:
-                if not question.child_question and \
+                if not hasattr(question, 'child_question') and \
                    not question.parent_question:
                     final.remove(question)
 
