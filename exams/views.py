@@ -385,7 +385,7 @@ def navigate_question(request):
     elif action == 'previous':
         question = question_pool.exclude(pk__gte=current_question.pk).last()
     else:
-        return HttpResponseBadRequest("No action provided.")
+        return HttpResponseBadRequest("No valid action was provided.")
 
     if not question:
         raise Exception("No %s question" % action)        
