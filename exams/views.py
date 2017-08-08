@@ -327,7 +327,7 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
         raise PermissionDenied
 
     if question_pk:
-        question = get_object_or_404(session.questions.all(), pk=question_pk)
+        question = get_object_or_404(session.questions, pk=question_pk)
     else:
         unused_questions = session.get_unused_questions()
         question = unused_questions.first()
@@ -345,15 +345,12 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
 def toggle_marked(request):
     question_pk = request.POST.get('question_pk')
     session_pk = request.POST.get('session_pk')
-
-    question = get_object_or_404(Question, pk=question_pk)
     session = get_object_or_404(Session, pk=session_pk)
+    question = get_object_or_404(session.questions, pk=question_pk)
 
     # PERMISSION CHECKS
     if not session.can_access(request.user):
         raise Exception("You cannot mark questions in this session.")
-    if not session.has_question(question):
-        raise Exception("This session does not have question #{}.".format(question_pk))
 
     if utils.is_question_marked(question, request.user):
         question.marking_users.remove(request.user)
@@ -372,8 +369,8 @@ def navigate_question(request):
     question_pk = request.POST.get('question_pk')
     session_pk = request.POST.get('session_pk')
     action = request.POST.get('action')
-    current_question = get_object_or_404(Question, pk=question_pk)
     session = get_object_or_404(Session, pk=session_pk)
+    current_question = get_object_or_404(session.questions, pk=question_pk)
 
     # PERMISSION CHECK
     if not session.can_access(request.user):
@@ -411,16 +408,14 @@ def submit_answer(request):
     question_pk = request.POST.get('question_pk')
     session_pk = request.POST.get('session_pk')
     choice_pk = request.POST.get('choice_pk') or None
-    question = get_object_or_404(Question, pk=question_pk)
     session = get_object_or_404(Session, pk=session_pk)
+    question = get_object_or_404(session.questions, pk=question_pk)
 
     # PERMISSION CHECKS
     if not session.can_access(request.user):
         raise Exception("You cannot submit answers in this session")
     if question.was_solved_in_session(session):
         raise Exception("Question #{} was previously solved in this session.".format(question_pk))
-    if not session.has_question(question):
-        raise Exception("This session does not have question #{}.".format(question_pk))
 
     if choice_pk:
         choice = get_object_or_404(Choice, pk=choice_pk)
