@@ -149,7 +149,7 @@
     <div id="container">
         <div class="top-info">
             <div class="top-exam-details text-center"> {{ session.exam.name }} <span class="separator">•</span> Session id: {{ session.pk }} ({{ session.get_session_mode_display }})<br> Question id: <span id="question-id">{{ question.pk }}</span> </div>
-            <div class="top-question-id pull-right text-right option"><span id="question-sequence">{{ question_sequence }}</span> of {{ session.questions.count }}</div>
+            <div class="top-question-id pull-right text-right option"><span id="question-sequence">{{ question_sequence }}</span> of <span id="question-total">{{ session.questions.count }}</span></div>
         </div>
         <div class="top-options text-left">
             <div class="pull-left text-left">
@@ -197,8 +197,21 @@
         }
     }
 
+
     function navigate() {
         action = $(this).data('action');
+        total = $("#question-total").html();
+        current_sequence = $("#question-sequence").html();
+
+        // If no previous or no next, just return
+        if (current_sequence == 1 && action == 'previous'){
+          return
+        }
+
+        if (current_sequence == total && action == 'next'){
+          return
+        }
+
         data.action = action;
         $.ajax({
             url: "{% url 'exams:navigate_question' %}",
@@ -215,7 +228,6 @@
                 initializeInteractions();
                 handleMarked(data.is_marked);
                 updateData();
-
             }
         });
     }
@@ -264,7 +276,26 @@
     }
 
     function initializeInteractions() {
+      // Change navigation cursor as per the sequence
+        sequence = $("#question-sequence").html();
+        total = $("#question-total").html();
+
+        if (sequence == 1){
+          $("#previous").css('cursor', 'not-allowed');
+        } else {
+          $("#previous").css('cursor', 'pointer');
+        }
+
+        if (sequence == total){
+          $("#next").css('cursor', 'not-allowed');
+        } else {
+          $("#next").css('cursor', 'pointer');
+        }
+
+        // Show contributors as a tooltipster
         $("#contributors").tooltipster({theme: 'tooltipster-shadow', contentCloning: true});
+
+        // Disable interaction if question was solved.
         was_solved = $("#question-body").data('was-solved');
         if (was_solved){
           $("#submit").hide();
