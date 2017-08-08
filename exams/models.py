@@ -297,8 +297,14 @@ questions_choices = (
     ('ALL','All'),
 )
 
+session_mode_choices = (
+    ('EXPLAINED', 'Explained'),
+    ('UNEXPLAINED', 'Unexplained'),
+    ('SOLVED', 'Solved'),
+)
+
 class Session(models.Model):
-    is_solved = models.BooleanField("Show question solved?", default=False)
+    session_mode = models.CharField(max_length=20, choices=session_mode_choices, default=None)
     number_of_questions = models.PositiveIntegerField(null=True)
     sources = models.ManyToManyField(Source, blank=True)
     subjects = models.ManyToManyField(Subject, blank=True)
@@ -314,11 +320,8 @@ class Session(models.Model):
     def get_correct_answer_count(self):
         return self.answer_set.filter(choice__is_right=True).count()
 
-    def has_finished(self,user):
-        if self.answer_set.count() == self.number_of_questions:
-            return True
-        else:
-            return False
+    def has_finished(self):
+        return self.answer_set.count() == self.number_of_questions
 
     def get_question_sequence(self, question):
         return self.questions.filter(pk__lte=question.pk).count()

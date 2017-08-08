@@ -1,12 +1,55 @@
 {% extends 'base.html' %}{% load staticfiles %}{% load bootstrap3 %}{% load teams_utlis %}
 {% block head %}
-     <script type="text/javascript">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery.tooltipster/4.2.5/js/tooltipster.bundle.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/jquery.tooltipster/4.2.5/css/tooltipster.bundle.min.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript">
     $(function() {
-
-        $('#start-session-form input[type=checkbox]').bootstrapToggle();
-        $('#start-session-form input[type=checkbox]').parent().attr('style', "width: 70px !important; height: 40px !important;");
+        $("#id_session_mode li:nth-child(1) label").tooltipster({content: "This shows the right answer with its explanation after submitting each question."})
+        $("#id_session_mode li:nth-child(2) label").tooltipster({content: "This hides the right answer and explanation, and only shows them at the end."})
+        $("#id_session_mode li:nth-child(3) label").tooltipster({content: "This turns off exam mode, and it will show questions with the explanation and right answer right away."})
     });
     </script>
+    <style>
+    .mode li
+    {
+        display: inline;
+        list-style-type: none;
+        padding-right: 20px;
+    }
+
+    .tooltip-content{
+      display: none;
+    }
+
+    .panel-body a {
+        color: white;
+        font-weight: bold;
+        margin-top: auto
+    }
+    .panel-body li a {
+        font-weight: bold;
+        margin-top: auto
+    }
+
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        background-color: #0072d6;
+        color: #fff;
+        border-radius: 3px;
+        cursor: default;
+        float: left;
+        margin-right: 2px;
+        margin-top: 2px;
+        padding: 7px 12px;
+    }
+
+    .select2-container--default .select2-selection--multiple .select2-selection__choice__remove{
+        color: white;
+    }
+    h5{
+        margin-top: 3%;
+        margin-bottom: 2%;
+    }
+    </style>
 {% endblock %}
 
 {% block title %}Fudul | Start Sesstion in {{ exam.name }}{% endblock %}
@@ -23,26 +66,6 @@
 {% endblock %}
 
 {% block content %}
-
-<style>
-#question-filter li
-{
-display: inline;
-list-style-type: none;
-padding-right: 20px;
-}
-
-.panel-body a {
-    color: white;
-    font-weight: bold;
-    margin-top: auto
-}
-.panel-body li a {
-    font-weight: bold;
-    margin-top: auto
-}
-</style>
-
 <div class="row">
    <div class="col-md-8">
      <div class="panel panel-flat">
@@ -56,11 +79,15 @@ padding-right: 20px;
 {% bootstrap_form_errors sessionform %}
 <form method="post" id="start-session-form">
 {% csrf_token %}
-    <h5> Type of Questions: </h5>
-    <div id="question-filter">
-    {{ sessionform.question_filter }}
-        </div>
+    <h5>Session mode:</h5>
+    <div id="session-mode" class='mode'>
+      {{ sessionform.session_mode }}
+    </div>
 
+    <h5> Type of Questions: </h5>
+    <div class='mode'>
+      {{ sessionform.question_filter }}
+    </div>
 
 
     <div class="row">
@@ -103,13 +130,6 @@ padding-right: 20px;
                 </div>
             </div>
         </div>
-
-
-     <div class="form-group has-feedback has-feedback-left">
-         <label class="control-label"><h5> Sesstion Type:</h5></label>
-        {% bootstrap_field sessionform.is_solved show_label=False %}
-     </div>
-
 
     <div class="form-group has-feedback has-feedback-left">
         <label class="control-label"><h5>Exam type:</h5></label>
@@ -160,26 +180,6 @@ padding-right: 20px;
 {% endblock %}
 {% block customscript %}
 {{ sessionform.media }}
-<style>
-.select2-container--default .select2-selection--multiple .select2-selection__choice {
-    background-color: #0072d6;
-    color: #fff;
-    border-radius: 3px;
-    cursor: default;
-    float: left;
-    margin-right: 2px;
-    margin-top: 2px;
-    padding: 7px 12px;
-}
-
-.select2-container--default .select2-selection--multiple .select2-selection__choice__remove{
-    color: white;
-}
-h5{
-    margin-top: 3%;
-    margin-bottom: 2%;
-}
-</style>
         <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
     <script src="{% static 'js/jquery.formset.js' %}"></script>
     <script src="{% static 'js/jquery.autogrowtextarea.min.js' %}"></script>
@@ -197,9 +197,6 @@ h5{
                 $('#all-subjects-options select option').prop('selected', false);
             }
         });
-
-{#        $("#id_sources, #id_subjects").multiselect({includeSelectAllOption: true});#}
-
         $('#sources-select').change(function() {
             if ($('#sources-select option[value=All]:checked').length) {
                 $('#all-sources-options').hide();

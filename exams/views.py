@@ -417,35 +417,40 @@ def submit_answer(request):
     else:
         choice = None
 
-    # FIXME: Check if the session `is_explained` before returing `explanation`
     latest_revision = question.get_latest_approved_revision()
-    if latest_revision.explanation:
-        explanation = latest_revision.explanation
-    else:
-        explanation = None
 
     answer = Answer.objects.create(session=session, question=question,
                                    choice=choice)
 
-    next_question = session.questions.order_by('pk')\
-                                     .exclude(pk__lte=question.pk)\
-                                     .exists()
+    # Only return the explanation if the session mode is explained,
+    # and an explanation exists.
+    if session.session_mode == 'EXPLAINED' and \
+       latest_revision.explanation:
+        explanation = latest_revision.explanation
+    else:
+        explanation = None
 
-    if next_question:
-        # FIXME: Check if the session `is_explained` before returing `right_choice_pk`
-        latest_revision = question.get_latest_approved_revision()
+    # Only return the right answer if the session mode is explained.
+    if session.session_mode == 'EXPLAINED':
         try:
             right_choice = latest_revision.choice_set.get(is_right=True)
             right_choice_pk = right_choice.pk
         except Choice.DoesNotExist:
-            right_choice_pk = None
-
-        return {'done': False,
-                'explanation': explanation,
-                "right_choice_pk": right_choice_pk}
+            raise Exception("We don't have the right answer for this question.")
     else:
-        return {'done': True,
-                'explanation': explanation}
+        right_choice_pk = None
+
+    next_question = session.questions.order_by('pk')\
+                                     .exclude(pk__lte=question.pk)\
+                                     .exists()
+    if next_question:
+        done = False
+    else:
+        done = True
+
+    return {'done': done,
+            'right_choice_pk': right_choice_pk,
+            'explanation': explanation}
 
 @login_required
 @decorators.ajax_only

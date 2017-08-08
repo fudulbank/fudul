@@ -148,7 +148,7 @@
     <body>
     <div id="container">
         <div class="top-info">
-            <div class="top-exam-details text-center"> {{ session.exam.name }} <span class="separator">•</span> Session id: {{ session.pk }}<br> Question id: <span id="question-id">{{ question.pk }}</span> </div>
+            <div class="top-exam-details text-center"> {{ session.exam.name }} <span class="separator">•</span> Session id: {{ session.pk }} ({{ session.get_session_mode_display }})<br> Question id: <span id="question-id">{{ question.pk }}</span> </div>
             <div class="top-question-id pull-right text-right option"><span id="question-sequence">{{ question_sequence }}</span> of {{ session.questions.count }}</div>
         </div>
         <div class="top-options text-left">
@@ -311,9 +311,7 @@
                         toastr.warning('You skipped this question');
                     }
 
-                    if (data.right_choice_pk == null){
-                      toastr.warning("We don't have the right answer for this question.");
-                    } else if (typeof data.right_choice_pk !== "undefined"){
+                    if (data.right_choice_pk != null){
                       pk_selector = "[data-choice-pk=" + data.right_choice_pk + "]";
                       $correct_row = $("#question-body tr" + pk_selector);
                       $correct_row.find("td.check i").addClass("icon-checkmark2 correct")
@@ -322,7 +320,7 @@
                     }
 
                     if (data.explanation){
-                      $("#explanation").show().append(data.explanation);
+                      $("#explanation").append(data.explanation).show();
                     }
                 } else {
                   toastr.error(data.message);
