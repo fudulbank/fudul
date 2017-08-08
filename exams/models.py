@@ -225,7 +225,10 @@ class Question(models.Model):
         return first_revision.submitter == user
 
     def was_solved_in_session(self, session):
-        return Answer.objects.filter(session=session, question=self).exists()
+        if session.session_mode == 'SOLVED':
+            return True
+        else:
+            return Answer.objects.filter(session=session, question=self).exists()
 
     def get_exam(self):
         if self.subjects.exists():
