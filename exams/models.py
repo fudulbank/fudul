@@ -210,10 +210,11 @@ class Question(models.Model):
     marking_users = models.ManyToManyField(User, blank=True,
                                            related_name="marked_questions")
     objects = managers.QuestionQuerySet.as_manager()
-    parent_question = models.ForeignKey('self', null=True, blank=True,
-                                        related_name="children",
-                                        on_delete=models.SET_NULL,
-                                        default=None)
+    parent_question = models.OneToOneField('self', null=True,
+                                           blank=True,
+                                           related_name="child_question",
+                                           on_delete=models.SET_NULL,
+                                           default=None)
 
     def __str__(self):
         latest_revision = self.get_latest_revision()

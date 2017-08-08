@@ -115,27 +115,58 @@ class SessionForm(forms.ModelForm):
 
     def save(self, *args, **kwargs):
         session = super(SessionForm, self).save(*args, **kwargs)
-        questions = session.exam.get_approved_questions()
+        question_pool = session.exam.get_approved_questions()\
+                                    .order_by('?')\
+                                    .select_related('parent_question',
+                                                    'child_question')
 
         if session.subjects.exists():
-            questions = questions.filter(subjects__in=session.subjects.all())
+            question_pool = question_pool.filter(subjects__in=session.subjects.all())
 
         if session.sources.exists():
-            questions = questions.filter(sources__in=session.sources.all())
+            question_pool = question_pool.filter(sources__in=session.sources.all())
 
         if session.question_filter == 'UNUSED':
-            questions = questions.exclude(answer__session__submitter=session.submitter)
+            question_pool = question_pool.exclude(answer__session__submitter=session.submitter)
         elif session.question_filter == 'INCORRECT':
             pks = models.Answer.objects.filter(session__exam=session.exam,
                                                session__submitter=session.submitter,
                                                choice__is_right=False)\
                                        .distinct()\
                                        .values_list('question__pk')
-            questions = questions.filter(pk__in=pks)
+            question_pool = question_pool.filter(pk__in=pks)
         elif session.question_filter == 'MARKED':
-            questions = questions.filter(marking_users=session.submitter)
+            question_pool = question_pool.filter(marking_users=session.submitter)
 
-        session.questions.add(*questions[:session.number_of_questions])
+        # Let's make sure that when a question is randomly chosen, we
+        # also include its parents and children.
+        selected = []
+        for question in question_pool.iterator():
+            parent_question = question.parent_question
+            while parent_question:
+                selected.append(parent_question)
+                parent_question = parent_question.parent_question
+
+            current_question = question
+            while hasattr(current_question, 'child_question'):
+                selected.append(current_question.child_question)
+                current_question = current_question.child_question
+
+            selected.append(question)
+            if len(selected) >= session.number_of_questions:
+                break
+
+        # In the course of ensuring inclusion of the complete question
+        # child/parent tree, we might have exceeded the required
+        # number.  So let's cut on that.
+        final = selected
+        if len(selected) > session.number_of_questions:
+            for question in selected:
+                if not question.child_question and \
+                   not question.parent_question:
+                    final.remove(question)
+
+        session.questions.add(*final)
 
         return session
 

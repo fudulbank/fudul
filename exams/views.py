@@ -90,7 +90,8 @@ class QuestionAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         exam_pk = self.forwarded.get('exam_pk')
         exam = Exam.objects.get(pk=exam_pk)
-        qs = exam.get_questions().order_by_submission()
+        qs = exam.get_questions().order_by_submission().filter(parent_question__isnull=True)\
+                                                       .filter(child_question__isnull=True)
         if self.q:
             qs = qs.filter(pk=self.q)
         return qs
