@@ -333,7 +333,7 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     else:
         unused_questions = session.get_unused_questions()
         question = unused_questions.first()
-        
+
     question_sequence = session.get_question_sequence(question)
 
     return render(request, "exams/show_session.html", {'session': session,
@@ -378,11 +378,12 @@ def navigate_question(request):
     if not session.can_access(request.user):
         raise Exception("You cannot mark questions in this sessions")
 
-    question_pool = session.questions.order_by('pk')
+    question_pool = session.questions.order_by('global_sequence')
+    global_sequence = current_question.global_sequence
     if action == 'next':
-        question = question_pool.exclude(pk__lte=current_question.pk).first()
+        question = question_pool.exclude(global_sequence__lte=global_sequence).first()
     elif action == 'previous':
-        question = question_pool.exclude(pk__gte=current_question.pk).last()
+        question = question_pool.exclude(global_sequence__gte=global_sequence).last()
     else:
         return HttpResponseBadRequest("No valid action was provided.")
 
@@ -448,7 +449,7 @@ def submit_answer(request):
     else:
         right_choice_pk = None
 
-    next_question = session.questions.order_by('pk')\
+    next_question = session.questions.order_by('global_sequence')\
                                      .exclude(pk__lte=question.pk)\
                                      .exists()
     if next_question:
