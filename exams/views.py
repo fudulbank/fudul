@@ -75,13 +75,14 @@ def add_question(request, slugs, pk):
 
     # PERMISSION CHECK
     exam = get_object_or_404(Exam, pk=pk, category=category)
-    if not exam.can_user_edit(request.user):
-        raise PermissionDenied
-
+    # if not exam.can_user_edit(request.user):
+    #     raise PermissionDenied
+    editor = exam.can_user_edit(request.user)
     context = {'exam': exam,
                'questionform': forms.QuestionForm(exam=exam),
                'revisionform': forms.RevisionForm(),
-               'revisionchoiceformset': forms.RevisionChoiceFormset()}
+               'revisionchoiceformset': forms.RevisionChoiceFormset(),
+               'editor':editor}
 
     return render(request, "exams/add_question.html", context)
 
@@ -233,10 +234,10 @@ def submit_revision(request, slugs, exam_pk, pk):
     latest_revision = question.get_latest_revision()
 
     # PERMISSION CHECK
-    if not exam.can_user_edit(request.user):
-        raise PermissionDenied
-
-    context = {'exam': exam, 'revision': latest_revision}
+    # if not exam.can_user_edit(request.user):
+    #     raise PermissionDenied
+    editor = exam.can_user_edit(request.user)
+    context = {'editor':editor,'exam': exam, 'revision': latest_revision}
 
     if request.method == 'POST':
         questionform = forms.QuestionForm(request.POST,
