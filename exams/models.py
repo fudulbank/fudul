@@ -206,6 +206,10 @@ class Question(models.Model):
     subjects = models.ManyToManyField(Subject)
     exam_types = models.ManyToManyField(ExamType)
     is_deleted = models.BooleanField(default=False)
+    # `global_sequence` is a `pk` field that accounts for question
+    # parents and children.  It is used to determine the sequence of
+    # question within sessions.
+    global_sequence = models.PositiveIntegerField(null=True, blank=True)
     statuses = models.ManyToManyField(Status)
     marking_users = models.ManyToManyField(User, blank=True,
                                            related_name="marked_questions")
@@ -236,10 +240,14 @@ class Question(models.Model):
             return self.subjects.first().exam
 
     def get_latest_approved_revision(self):
-        return self.revision_set.filter(is_approved=True,is_deleted=False).order_by('-approval_date').first()
+        return self.revision_set.filter(is_approved=True, is_deleted=False)\
+                                .order_by('-approval_date')\
+                                .first()
 
     def get_latest_revision(self):
-        return self.revision_set.filter(is_deleted=False).order_by('-submission_date').first()
+        return self.revision_set.filter(is_deleted=False)\
+                                .order_by('-submission_date')\
+                                .first()
 
     def get_session_url(self, session):
         category = session.exam.category
@@ -255,6 +263,24 @@ class Question(models.Model):
             if not revision.submitter in contributors:
                 contributors.append(revision.submitter)
         return contributors
+
+    def get_tree(self):
+        """Get a sorted list of question parents and children."""
+        tree = []
+
+        parent_question = self.parent_question
+        while parent_question:
+            tree = [parent_question] + tree
+            parent_question = parent_question.parent_question
+
+        tree.append(self)
+
+        question = self
+        while hasattr(question, 'child_question'):
+            tree.append(question.child_question)
+            question = question.child_question
+
+        return tree
 
 class Revision(models.Model):
     question = models.ForeignKey(Question)
@@ -328,10 +354,11 @@ class Session(models.Model):
         return self.answer_set.count() == self.number_of_questions
 
     def get_question_sequence(self, question):
-        return self.questions.filter(pk__lte=question.pk).count()
+        return self.questions.filter(global_sequence__lte=question.pk).count()
 
     def get_unused_questions(self):
-        return self.questions.exclude(answer__session=self)
+        return self.questions.exclude(answer__session=self)\
+                             .order_by('global_sequence')
 
     def has_question(self, question):
         return self.questions.filter(pk=question.pk).exists()

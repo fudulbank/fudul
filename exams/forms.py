@@ -142,17 +142,9 @@ class SessionForm(forms.ModelForm):
         # also include its parents and children.
         selected = []
         for question in question_pool.iterator():
-            parent_question = question.parent_question
-            while parent_question:
-                selected.append(parent_question)
-                parent_question = parent_question.parent_question
+            tree = question.get_tree()
+            selected += tree
 
-            current_question = question
-            while hasattr(current_question, 'child_question'):
-                selected.append(current_question.child_question)
-                current_question = current_question.child_question
-
-            selected.append(question)
             if len(selected) >= session.number_of_questions:
                 break
 
