@@ -1,0 +1,91 @@
+{% extends 'base.html' %}{% load staticfiles %}
+{% block title %}Fudul | Session #{{ session.pk }} results{% endblock %}
+{% block head %}
+<link href="https://cdn.jsdelivr.net/jquery.tooltipster/4.2.5/css/tooltipster.bundle.min.css" rel="stylesheet" type="text/css">
+<link href="https://cdn.jsdelivr.net/jquery.tooltipster/4.2.5/css/plugins/tooltipster/sideTip/themes/tooltipster-sideTip-shadow.min.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="https://cdn.jsdelivr.net/jquery.tooltipster/4.2.5/js/tooltipster.bundle.min.js"></script>
+<style type="text/css">
+th, td{
+    text-align: left;
+}
+tbody tr td{
+    cursor:pointer;
+}
+tbody tr td:last-child{
+    cursor:initial;
+}
+</style>
+{% endblock %}
+{% block breadcrumb %}
+
+					<div class="breadcrumb-line">
+						<ul class="breadcrumb">
+							<li><a href="{% url 'index' %}"><i class="icon-home2 position-left"></i> Fudul</a></li>
+                                                        <li><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
+                                                        {% for parent_category in session.exam.category.get_parent_categories %}
+							<li><a href="{% url 'exams:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
+                                                        {% endfor %}
+                                                        <li><a href="{% url 'exams:show_category' session.exam.category.get_slugs %}">{{ session.exam.category.name }}</a></li>
+                                                        <li><a href="{% url 'exams:create_session' session.exam.category.get_slugs session.exam.pk %}">{{ session.exam.name }}</a></li>
+                                                        <li class="active">Session #{{ session.pk }} results</li>
+						</ul>
+					</div>
+{% endblock %}
+{% block content %}
+
+<h1>Session #<a href="{% url 'exams:show_session' session.exam.category.get_slugs session.exam.pk session.pk %}">{{ session.pk }}</a> results</h1>
+
+    <div class="panel panel-flat">
+    <div class="panel-heading">
+							<h5 class="panel-title">Session questions<a class="heading-elements-toggle"><i class="icon-more"></i></a></h5>
+							<div class="heading-elements">
+								<ul class="icons-list">
+			                		<li><a data-action="collapse"></a></li>
+			                		<li><a data-action="close"></a></li>
+			                	</ul>
+		                	</div>
+						</div>
+        <div class="panel-body">
+        <table class="display datatable dt-responsive">
+          <thead>
+              <tr>
+                <th></th>
+                <th>ID</th>
+                <th>Text</th>
+                <th>Subjects</th>
+                <th>Correct others (%)</th>
+              </tr>
+          </thead>
+          <tbody>
+          {% for answer in session.answer_set.all %}
+            <tr>
+              {% if not answer.choice %}<td data-order="skipped"><i title="Skipped" class="icon-question4 text-orange-400"></i>{% elif answer.choice.is_right %}<td data-order="correct"><i title="Correct" class="icon-plus-circle2 text-success-400"></i>{% elif not answer.choice.is_right %}<td title="Incorrect" data-order="incorrect"><i class="icon-cancel-circle2 text-danger-400"></i>{% endif %}</td>
+              <td><a href="{% url 'exams:show_session' session.exam.category.get_slugs session.exam.pk session.pk answer.question.pk %}">{{ answer.question.pk }}</a></td>
+              <td>{{ answer.question.get_latest_approved_revision.text|linebreaks|truncatewords:20 }}</td>
+              <td>
+                 <ul>{% for subject in answer.question.subjects.all %}<li>{{ subject.name }}</li>{% endfor %}</ul>
+              </td>
+              <td>{{ answer.question.get_correct_others }}%</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        </div>
+    </div>
+{% endblock %}
+{% block customscript %}
+	<link rel="stylesheet" href="{% static 'css/jquery.dataTables.min.css' %}">
+	<link rel="stylesheet" href="{% static 'js/datatables/responsive/css/responsive.dataTables.min.css' %}">
+	<script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
+  <script src="{% static 'js/datatables/responsive/js/dataTables.responsive.min.js' %}"></script>
+<script>
+    $(function () {
+        $("table.datatable").DataTable({
+            "columnDefs": [
+            { "orderable": false, "targets": 2 }
+          ],
+            "order": [[ 1, "asc" ]]
+        });
+    });
+</script>
+{% endblock %}

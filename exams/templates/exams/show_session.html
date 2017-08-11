@@ -132,7 +132,7 @@
       display: none;
     }
 
-    #next, #previous, #mark, #contribute {
+    #next, #previous, #mark, #contribute, #exit {
         cursor: pointer;
     }
 
@@ -143,6 +143,21 @@
     .incorrect {
       color: red;
     }
+    {% if session.has_finished %}
+    #results{
+      display: block;
+    }
+    #exit{
+      display: none;
+    }
+    {% else %}
+    #results{
+      display: none;
+    }
+    #exit{
+      display: block;
+    }
+    {% endif %}
         </style>
     </head>
     <body>
@@ -172,7 +187,8 @@
         <button {% if question|was_solved_in_session:session %}style="display: none;"{% endif %} type="button" id="submit" class="btn">Submit <i class=" icon-circle-right2"></i></button>
 
         <div id="footer" class="text-center">
-           <div class="option pull-left border-right border-left"><a href="{% url 'exams:create_session' session.exam.category.get_slugs session.exam.pk %}"><i class="icon-exit3"></i> Exit</a></div>
+           <div id="results" class="{% if not session.has_finished %}unfinished {% endif %}option pull-left border-right border-left"><a href="{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}"><i class="icon-list3"></i> Results</a></div>
+           <div id="exit" class="{% if not session.has_finished %}unfinished {% endif %}option pull-left border-right border-left"><i class="icon-exit3"></i> Exit</div>
            <div class="option pull-left border-right" id="contributors" data-tooltip-content="#tooltip-body"><i class="icon-stars"></i> Contributors</div>
            <div data-action="next" id="next" class="option pull-right border-right border-left">Next <i class=" icon-circle-right2"></i></div>
            <div data-action="previous" id="previous" class="option pull-right border-left"><i class=" icon-circle-left2"></i> Previous</div>
@@ -288,8 +304,12 @@
 
         if (sequence == total){
           $("#next").css('cursor', 'not-allowed');
+          $("#exit.unfinished").hide();
+          $("#results.unfinished").show();
         } else {
           $("#next").css('cursor', 'pointer');
+          $("#exit.unfinished").show();
+          $("#results.unfinished").hide();
         }
 
         // Show contributors as a tooltipster
@@ -362,10 +382,19 @@
     $(function() {
         updateData();
         initializeInteractions();
+        $("#exit").click(function(){
+          $("#confirm-exit-modal a.submit-button").prop("href", "{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}");
+          $("#confirm-exit-modal").modal('show');
+        });
         $('#submit').click(submitChoice);
         $('#previous, #next').click(navigate);
         $('#mark').click(toggleMarked);
     });
         </script>
+
+        {% with modal_id='confirm-exit-modal' is_small=True confirm_link=True modal_content="<i class='text-danger icon-exit3'></i> Are you sure you want to exit this session, and mark unsubmitted questions as unsolved?" %}
+            {% include "exams/modals/common_edit_modal.html" %}
+        {% endwith %}
+
     </body>
 </html>

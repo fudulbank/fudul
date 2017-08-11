@@ -327,17 +327,40 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     if not session.can_access(request.user):
         raise PermissionDenied
 
+    # If a question PK is given, show it.  Otheriwse show the first
+    # session unused question.  Otherwise, show the first session
+    # question.
     if question_pk:
         question = get_object_or_404(session.questions, pk=question_pk)
+    elif not session.has_finished():
+        question = session.get_unused_questions().first()
     else:
-        unused_questions = session.get_unused_questions()
-        question = unused_questions.first()
+        question = session.questions.order_by('global_sequence').first()
 
     question_sequence = session.get_question_sequence(question)
 
     return render(request, "exams/show_session.html", {'session': session,
                                                        'question': question,
                                                        'question_sequence': question_sequence})
+
+@login_required
+def show_session_results(request, slugs, exam_pk, session_pk):
+    category = Category.objects.get_from_slugs(slugs)
+    session = get_object_or_404(Session, pk=session_pk)
+
+    if not category:
+        raise Http404
+
+    if not session.has_finished():
+        answers = [] 
+        for question in session.get_unused_questions():
+            answer = Answer(session=session, question=question)
+            answers.append(answer)
+        Answer.objects.bulk_create(answers)
+
+    context = {'session': session}
+
+    return render(request, 'exams/show_session_results.html', context)
 
 @decorators.ajax_only
 @decorators.post_only
