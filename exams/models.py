@@ -258,6 +258,16 @@ class Question(models.Model):
                                 .order_by('-submission_date')\
                                 .first()
 
+    def get_correct_others(self):
+        correct_user_pks = Answer.objects.filter(question=self,
+                                                 choice__is_right=True)\
+                                         .values_list('session__submitter', flat=True)
+        total_user_pks = Answer.objects.filter(question=self)\
+                                       .values_list('session__submitter', flat=True)
+        correct_users = User.objects.filter(pk__in=correct_user_pks).count()
+        total_users = User.objects.filter(pk__in=total_user_pks).count()
+        return correct_users / total_users * 100
+
     def get_session_url(self, session):
         category = session.exam.category
         slugs = category.get_slugs()
@@ -363,14 +373,15 @@ class Session(models.Model):
         return self.answer_set.filter(choice__is_right=True).count()
 
     def has_finished(self):
-        return self.answer_set.count() == self.number_of_questions
+        return not self.get_unused_questions().exists()
 
     def get_question_sequence(self, question):
         return self.questions.filter(global_sequence__lte=question.pk).count()
 
     def get_unused_questions(self):
         return self.questions.exclude(answer__session=self)\
-                             .order_by('global_sequence')
+                             .order_by('global_sequence')\
+                             .distinct()
 
     def has_question(self, question):
         return self.questions.filter(pk=question.pk).exists()

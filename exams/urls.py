@@ -26,7 +26,6 @@ urlpatterns =[
     url(r'^indicators/categories/(?P<slugs>[/\d\w\-]+)/$', views.show_category, {'indicators': True}, name='show_category_indicators'),
 
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/(?P<pk>\d+)/control/approve/$', views.approve_question, name='approve_question'),
-
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<pk>\d+)/control/add/$', views.add_question, name='add_question'),
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<pk>\d+)/control/list/$', views.list_questions, name='list_questions'),
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/questions/(?P<pk>\d+)/$', views.list_revisions, name='list_revisions'),
@@ -34,6 +33,7 @@ urlpatterns =[
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/questions/status/list/$', views.list_question_per_status,name='list_question_per_status'),
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/session/$', views.create_session, name='create_session'),
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/session/(?P<session_pk>\d+)/(?:(?P<question_pk>\d+)/)?$', views.show_session, name='show_session'),
+    url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/session/(?P<session_pk>\d+)/results/$', views.show_session_results, name='show_session_results'),
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/contributions/$',views.approve_user_contributions, name='approve_user_contributions'),
 
     url(r'^(?P<slugs>[/\d\w\-]+)/$', views.show_category, name='show_category'),
