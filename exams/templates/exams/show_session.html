@@ -143,22 +143,13 @@
     .incorrect {
       color: red;
     }
-    {% if session.has_finished %}
-    #results{
-      display: block;
-    }
     #exit{
       display: none;
     }
-    {% else %}
-    #results{
+    #results.unfinished{
       display: none;
     }
-    #exit{
-      display: block;
-    }
-    {% endif %}
-        </style>
+  </style>
     </head>
     <body>
     <div id="container">
