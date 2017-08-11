@@ -135,9 +135,9 @@ def handle_question(request, exam_pk,question_pk=None):
         questionform = forms.QuestionForm(request.POST,
                                           exam=exam,
                                           instance=question)
-        revisionform = forms.DisabledRevisionForm(request.POST,
-                                   request.FILES,
-                                   instance=instance)
+        revisionform = forms.RevisionForm(request.POST,
+                                          request.FILES,
+                                          instance=instance)
     else:
         instance = Revision(submitter=request.user, is_first=True,
                             is_last=True)
@@ -173,10 +173,13 @@ def handle_question(request, exam_pk,question_pk=None):
         template = get_template('exams/partials/exam_stats.html')
         context = {'exam': exam}
         stat_html = template.render(context)
-
+        show_url = reverse('exams:approve_user_contributions', args=(exam.category.get_slugs(),exam.pk))
+        full_url = request.build_absolute_uri(show_url)
         return {"message": "success",
                 "question_pk": question.pk,
-                "stat_html": stat_html}
+                "stat_html": stat_html,
+                "show_url": full_url
+                }
 
     context = {'exam': exam,
                'questionform': questionform,
@@ -311,9 +314,10 @@ def create_session(request, slugs, exam_pk):
 
 
     question_count = exam.get_approved_questions().count()
-
+    editor = teams.utils.is_editor(request.user)
     context = {'exam': exam,
-               'question_count': question_count}
+               'question_count': question_count,
+               'editor':editor}
 
     if request.method == 'GET':
         sessionform = forms.SessionForm(exam=exam)
@@ -615,6 +619,7 @@ def approve_user_contributions(request,slugs,exam_pk):
 def show_revision_comparison(request, pk, revision_pk=None):
 
     question = get_object_or_404(Question, pk=pk)
+
     if revision_pk:
         revision = get_object_or_404(Revision, pk=revision_pk)
     else:
@@ -626,7 +631,7 @@ def show_revision_comparison(request, pk, revision_pk=None):
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
 
-    context = {'revision': revision}
+    context = {'revision': revision,'exam':exam}
     return render(request, 'exams/partials/show_revision_comparison.html', context)
 
 @csrf.csrf_exempt
@@ -634,7 +639,7 @@ def show_revision_comparison(request, pk, revision_pk=None):
 @decorators.ajax_only
 def remove_revision(request, pk):
     revision = get_object_or_404(Revision, pk=pk)
-    exam = revision.exam
+    exam = revision.question.subjects.first.exam
 
     # PERMISSION CHECK
     if not request.user.is_superuser and \
@@ -652,7 +657,7 @@ def remove_revision(request, pk):
 @decorators.ajax_only
 def approve_revision (request, pk):
     revision = get_object_or_404(Revision, pk=pk)
-    exam = revision.exam
+    exam = revision.question.subjects.first.exam
 
     # PERMISSION CHECK
     if not request.user.is_superuser and \
@@ -680,7 +685,7 @@ def approve_question(request, slugs, exam_pk,pk):
 
     context = {'exam': exam,
                'questionform': forms.QuestionForm(exam=exam,instance=question),
-               'revisionform': forms.DisabledRevisionForm(instance=revision),
+               'revisionform': forms.RevisionForm(instance=revision),
                'revisionchoiceformset': forms.RevisionChoiceFormset(instance=revision),
                'editor':editor,
                'question':question}

@@ -4,6 +4,12 @@
     <li>
     <a href="{% url 'exams:create_session' exam.category.get_slugs exam.pk %}"><i class="icon-pencil3"></i>Start Session</a>
     </li>
+    {% if editor %}
+    <li>
+               <a href="{% url 'exams:approve_user_contributions' exam.category.get_slugs exam.pk %}"><i class="icon-file-plus"></i> <span>User contributions</span></a>
+
+    </li>
+    {% endif %}
 {% endblock %}
 {% block breadcrumb %}
 
@@ -99,7 +105,11 @@
                         // show success message (using toastr)
                         toastr.options.positionClass = "toast-top-left";
                         toastr.success("Question #" + data.question_pk + " has been successfully added. Fill another!");
+                        {% if question %}
+                                            window.location.href = data.show_url;
+                        {% else %}
 												$("#exam-stats .panel-body").html(data.stat_html);
+                        {% endif %}
                     } else {
                         toastr.warning("There was an issue! " + data.message);
                         $("#form-panel").html(data);
