@@ -55,11 +55,19 @@
 {% block title %}Fudul | Start Sesstion in {{ exam.name }}{% endblock %}
 
 {% block sidepanel %}
+{#    TODO: porber filter #}
         {% if user.is_superuser or user|is_editor %}
             <li>
                 <a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}"><i class="icon-pen-plus"></i> <span>Add Question</span></a>
             </li>
+            <li>
+               <a href="{% url 'exams:approve_user_contributions' exam.category.get_slugs exam.pk %}"><i class="icon-file-plus"></i> <span>User contributions</span></a>
+
+            </li>
         {% endif %}
+       <li>
+                <a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}"><i class="icon-database-add"></i> <span>Submit A Question</span></a>
+            </li>
 {% endblock %}
 
 {% block breadcrumb %}
@@ -214,4 +222,5 @@
 
 
 </script>
+
 {% endblock %}

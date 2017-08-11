@@ -184,6 +184,15 @@ class Exam(models.Model):
         questions = Question.objects.undeleted().filter(pk__in=pks)
         return questions
 
+    def get_contributed_questions(self):
+        pks = Revision.objects.per_exam(self)\
+                              .filter(is_first=True,is_contribution=True,is_approved=False,is_last=True)\
+                              .distinct()\
+                              .values_list('question__pk', flat=True)
+        questions = Question.objects.undeleted().filter(pk__in=pks)
+
+        return questions
+
     def get_targeted_questions(self,subjects,sources,exam_types):
         pks = self.get_pending_latest_revisions().values_list('question__pk', flat=True)
         questions = Question.objects.undeleted().filter(pk__in=pks,subjects=subjects,sources=sources,exam_types=exam_types)
@@ -282,6 +291,7 @@ class Question(models.Model):
 
         return tree
 
+
 class Revision(models.Model):
     question = models.ForeignKey(Question)
     submitter = models.ForeignKey(User, null=True, blank=True)
@@ -297,6 +307,8 @@ class Revision(models.Model):
     approval_date = models.DateField(blank=True, null=True)
     is_deleted = models.BooleanField(default=False)
     objects = managers.RevisionQuerySet.as_manager()
+    change_summary = models.TextField(default="", blank=True)
+    is_contribution = models.BooleanField(default=False)
 
     def has_right_answer(self):
         return self.choice_set.filter(is_right=True).exists()

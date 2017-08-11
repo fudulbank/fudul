@@ -1,0 +1,175 @@
+{% load bootstrap3 %}{% load static exam_utils %}
+    <div class="panel panel-flat">
+                       <div class="panel-body">
+        <form method="post"  enctype="multipart/form-data" id="modify-revision-form" action="post">
+	    {% csrf_token %}
+    <div class="row">
+
+		<div class="form-group">
+            <div class="col-md-6">
+
+            <label class="control-label"><i class="icon-stack-check text-muted"></i> Status</label> <a data-placement="left" class="circle" data-toggle="tooltip" title="Before tagging a question as 'complete' make sure it has complete answers, and it should be solved."> ? </a>
+
+			{% bootstrap_field revisionform.statuses show_label=False  %}
+              </div>
+		</div>
+
+
+        {% bootstrap_form_errors revisionform %}
+
+	<div class="col-md-6">
+		<div class="form-group" id="figure">
+                        <label class="control-label"><i class="icon-image2 text-muted"></i> Corresponding figure</label>
+			<div style="margin-left: 10%">{% bootstrap_field revisionform.figure show_label=False %}</div>
+
+		</div>
+	</div>
+</div>
+
+        <div class="form-group has-feedback has-feedback-left">
+            <label class="control-label">Question Text</label>
+
+			{% bootstrap_field revisionform.text show_label=False %}
+			<div class="form-control-feedback">
+				<i class="icon-pencil text-muted"></i>
+			</div>
+		</div>
+
+                      <h3 style="font-weight: bold">Question Choices</h3><a data-placement="left" class="circle" data-toggle="tooltip" title="Make sure to check the box for the right answer."> ? </a>
+        <div style="margin-left: 10%">
+                        {{ revisionchoiceformset.management_form }}
+                        {{ revisionchoiceformset.non_form_errors.as_ul }}
+                        <table id="choice_formset" class="form" style="width: 100%;">
+
+                        {% for form in revisionchoiceformset.forms %}
+                          {% if forloop.first %}
+                            <colgroup>
+                                <col class="col-xs-8">
+                                <col class="col-xs-2">
+                                <col class="col-xs-2">
+                            </colgroup>
+                            <thead><tr>
+                              <th>Text</th>
+                              <th></th>
+                              <th></th>
+                            </tr></thead>
+                          {% endif %}
+                          <tr class="form-container">
+                          {% for field in form.visible_fields %}
+                            <td>
+                            {% if forloop.first %}
+                              {% for hidden in form.hidden_fields %}
+                              {{ hidden }}
+                              {% endfor %}
+                            {% endif %}
+                                <div class="form-group">
+                              {{ field.errors.as_ul }}
+                              {% bootstrap_field field show_label=False %}
+                                </div>
+                            </td>
+                          {% endfor %}
+                          </tr>
+                        {% endfor %}
+                        </table>
+        </div>
+        <div style="margin-top: 5%" class="form-group has-feedback has-feedback-left">
+            <label class="control-label">Answer explanation</label> <a data-placement="left" class="circle" data-toggle="tooltip" title="An explanation is written to support your claim of the right answer, it would be displayed with the question during sessions."> ? </a>
+			{% bootstrap_field revisionform.explanation show_label=False %}
+			<div class="form-control-feedback">
+				<i class=" icon-info22 text-muted"></i>
+			</div>
+		</div>
+        <div class="form-group has-feedback has-feedback-left">
+            <label class="control-label">Summary of change</label><a data-placement="left" class="circle" data-toggle="tooltip" title="Please briefly explain what have you modified in the question."> ? </a>
+			{% bootstrap_field revisionform.change_summary show_label=False %}
+			<div class="form-control-feedback">
+				<i class=" icon-database-edit2 text-muted"></i>
+			</div>
+		</div>
+
+               <button type="submit" action ='submit' class="btn bg-primary btn-block btn-lg">Submit Revision <i class="icon-circle-right2 position-right"></i></button>
+
+        </form>
+       </div>
+    </div>
+
+<style>
+.circle {
+   width: 20px;
+   height: 20px;
+   background: lightblue;
+   -moz-border-radius: 10px;
+   -webkit-border-radius: 10px;
+   border-radius: 10px;
+    text-align: center;
+    color: white;
+    float: right;
+}
+
+.select2-selection--single{
+    padding: 0;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: #0072d6;
+    color: #fff;
+    border-radius: 3px;
+    cursor: default;
+    float: left;
+    margin-right: 2px;
+    margin-top: 2px;
+    /*padding: 7px 12px;*/
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove{
+    color: white;
+}
+</style>
+{% block customscript %}
+     <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
+    <script src="{% static 'js/jquery.formset.js' %}"></script>
+    <script src="{% static 'js/jquery.autogrowtextarea.min.js' %}"></script>
+    <script src="{% static 'js/toastr.js' %}"></script>
+
+        <script type="text/javascript">
+
+    $(document).ready(function(){
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+
+    $("#choice_formset .form-container").formset({
+            prefix: '{{ choice_formset.prefix }}',
+            addText: 'Add a Choice',
+            deleteText: 'Delete',
+            addCssClass: 'add-row btn btn-xs btn-primary',
+            deleteCssClass: 'delete-row btn btn-xs btn-danger',
+    });
+    $(function() {
+        $("form#modify-revision-form").submit(function (event) {
+        /* stop form from submitting normally */
+            event.preventDefault();
+            /* get some values from elements on the page: */
+            var formData = new FormData($(this)[0]);
+            /* Send the data */
+            $.ajax({
+                url: "{% url 'exams:modify_revision' revision.pk %}",
+                type: 'POST',
+                data: formData,
+                cache: false,
+                contentType: false,
+                enctype: 'multipart/form-data',
+                processData: false,
+                success: function (data) {
+                    if (data.message == "success") {
+                        // show success message (using toastr)
+                        toastr.options.positionClass = "toast-top-left";
+                        toastr.success("We greatly apprciate your contribution" +data.new_revision );
+                    } else {
+                        toastr.warning("There was an issue! " + data.message);
+                    }
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

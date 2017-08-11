@@ -132,7 +132,7 @@
       display: none;
     }
 
-    #next, #previous, #mark, #contribute {
+     #explain #next, #previous, #mark, #contribute{
         cursor: pointer;
     }
 
@@ -143,7 +143,11 @@
     .incorrect {
       color: red;
     }
+
+
+
         </style>
+
     </head>
     <body>
     <div id="container">
@@ -153,8 +157,13 @@
         </div>
         <div class="top-options text-left">
             <div class="pull-left text-left">
-               <div class="option border-right border-left" id="contribute">
+               <div class="option border-right border-left"  id="contribute">
                   <i class="icon-pencil"></i> Contribute
+               </div>
+            </div>
+            <div class="pull-left text-left">
+               <div class="option border-right border-left"  id="explain">
+                  <i class=" icon-brain"></i> Explain
                </div>
             </div>
             <div class="pull-right text-right">
@@ -169,7 +178,7 @@
             {% include 'exams/partials/session-question.html' %}
         </div>
 
-        <button {% if question|was_solved_in_session:session %}style="display: none;"{% endif %} type="button" id="submit" class="btn">Submit <i class=" icon-circle-right2"></i></button>
+<button {% if question|was_solved_in_session:session %}style="display: none;"{% endif %} type="button" id="submit" class="btn">Submit <i class=" icon-circle-right2"></i></button>
 
         <div id="footer" class="text-center">
            <div class="option pull-left border-right border-left"><a href="{% url 'exams:create_session' session.exam.category.get_slugs session.exam.pk %}"><i class="icon-exit3"></i> Exit</a></div>
@@ -366,6 +375,48 @@
         $('#previous, #next').click(navigate);
         $('#mark').click(toggleMarked);
     });
+    $(function() {
+            // initialize project edit modal
+        $('#modify-question-modal').modal({
+          keyboard: false,
+          backdrop: 'static',
+          show    : false,
+        });
+        $("#contribute").click(function () {
+            $("#modify-question-modal").modal('show');
+            $("#modify-question-modal .modal-title").html("Submit a Revision");
+            $("#modify-question-modal .modal-body").load("{% url 'exams:submit_users_revision' question.get_latest_approved_revision.pk  %}", function(){
+
+            });
+
+        });
+
+    });
+    $(function() {
+
+            // initialize project edit modal
+        $('#explain-question-modal').modal({
+          keyboard: false,
+          backdrop: 'static',
+          show    : false,
+        });
+        $("#explain").click(function () {
+            $("#explain-question-modal").modal('show');
+            $("#explain-question-modal .modal-title").html("Submit an Explaination");
+            $("#explain-question-modal .modal-body").load("{% url 'exams:submit_users_revision' question.get_latest_approved_revision.pk question.pk %}", function(){
+
+            });
+
+        });
+
+    });
+
         </script>
+        {% with modal_id='modify-question-modal' no_footer=True %}
+    {% include "exams/modals/common_edit_modal.html" %}
+{% endwith %}
+            {% with modal_id='explain-question-modal' no_footer=True %}
+    {% include "exams/modals/common_edit_modal.html" %}
+{% endwith %}
     </body>
 </html>

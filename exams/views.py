@@ -123,20 +123,29 @@ def delete_question(request, pk):
 
 @decorators.post_only
 @decorators.ajax_only
-def handle_question(request, exam_pk):
+def handle_question(request, exam_pk,question_pk=None):
     exam = get_object_or_404(Exam, pk=exam_pk)
 
-    # PERMISSION CHECK
-    if not exam.can_user_edit(request.user):
-        raise PermissionDenied
-
-    instance = Revision(submitter=request.user, is_first=True,
-                        is_last=True)
-    questionform = forms.QuestionForm(request.POST,
-                                      exam=exam)
-    revisionform = forms.RevisionForm(request.POST,
-                                      request.FILES,
-                                      instance=instance)
+    # # PERMISSION CHECK
+    # if not exam.can_user_edit(request.user):
+    #     raise PermissionDenied
+    if question_pk :
+        question = get_object_or_404(Question, pk=question_pk)
+        instance = question.get_latest_revision()
+        questionform = forms.QuestionForm(request.POST,
+                                          exam=exam,
+                                          instance=question)
+        revisionform = forms.DisabledRevisionForm(request.POST,
+                                   request.FILES,
+                                   instance=instance)
+    else:
+        instance = Revision(submitter=request.user, is_first=True,
+                            is_last=True)
+        questionform = forms.QuestionForm(request.POST,
+                                          exam=exam)
+        revisionform = forms.RevisionForm(request.POST,
+                                          request.FILES,
+                                          instance=instance)
     revisionchoiceformset = forms.RevisionChoiceFormset(request.POST)
 
     if questionform.is_valid() and revisionform.is_valid() and revisionchoiceformset.is_valid():
@@ -150,6 +159,12 @@ def handle_question(request, exam_pk):
             revision.is_approved = True
         else:
             revision.is_approved = False
+
+        if teams.utils.is_editor(request.user):
+            revision.is_contribution = False
+        else:
+            revision.is_contribution = True
+
         revision.save()
 
         revisionchoiceformset.instance = revision
@@ -231,6 +246,7 @@ def submit_revision(request, slugs, exam_pk, pk):
 
     exam = get_object_or_404(Exam, pk=exam_pk)
     question = get_object_or_404(Question, pk=pk)
+    #TODO :latest approved revision
     latest_revision = question.get_latest_revision()
 
     # PERMISSION CHECK
@@ -291,10 +307,8 @@ def create_session(request, slugs, exam_pk):
     if not category:
         raise Http404
 
-    # PERMISSION CHECK
     exam = get_object_or_404(Exam, pk=exam_pk, category=category)
-    if not exam.can_user_edit(request.user):
-        raise PermissionDenied
+
 
     question_count = exam.get_approved_questions().count()
 
@@ -507,3 +521,146 @@ def show_category_indicators(request, category):
 
     context = {'category': category}
     return render(request, 'exams/show_category_indicators.html', context)
+
+
+@decorators.get_only
+@login_required
+def submit_users_revision(request,pk,question_pk=None):
+
+    revision = get_object_or_404(Revision, pk=pk)
+
+    context = { "revision":revision,
+                'revisionform': forms.RevisionForm(instance=revision),
+                'revisionchoiceformset': forms.RevisionChoiceFormset(instance=revision),}
+
+    if question_pk:
+        template_file = 'exams/partials/modify_explanation.html'
+    else:
+        template_file = "exams/partials/modify_revision.html"
+
+    return render(request, template_file, context)
+
+@decorators.ajax_only
+@csrf.csrf_exempt
+@decorators.post_only
+@login_required
+def modify_revision(request,pk):
+
+    revision = get_object_or_404(Revision, pk=pk)
+    #TODO :latest approved revision
+    question = revision.question
+    context = {'revision': revision}
+
+    if request.method == 'POST':
+
+        revisionform = forms.RevisionForm(request.POST,
+                                          request.FILES,
+                                          instance=revision)
+
+        revisionchoiceformset = forms.RevisionChoiceFormset(request.POST,
+                                                            instance=revision)
+        if revisionform.is_valid() and revisionchoiceformset.is_valid():
+            new_revision = revisionform.clone(question,request.user)
+            revisionchoiceformset.clone(new_revision)
+            return {"message": "success",'new_revision':new_revision.pk}
+
+    return render(request, 'exams/partials/modify_revision.html', context)
+
+@login_required
+def approve_user_contributions(request,slugs,exam_pk):
+
+    category = Category.objects.get_from_slugs(slugs)
+    if not category:
+        raise Http404
+
+    exam = get_object_or_404(Exam, pk=exam_pk, category=category)
+
+    # PERMISSION CHECK
+    if not exam.can_user_edit(request.user):
+        raise PermissionDenied
+
+    revisions = Revision.objects.per_exam(exam).filter(is_contribution =True,is_deleted=False)
+    contributed_questions = exam.get_contributed_questions()
+    number_of_contributions = Revision.objects.filter(submitter=request.user).count()
+
+    context ={'revisions':revisions,'contributed_questions':contributed_questions,'number_of_contributions':number_of_contributions,'exam':exam}
+    return render(request, 'exams/approve_user_contributions.html',context)
+
+# COMPAIN WITH SHOW_QUESTION IF NO FURTHER CHANGE IS DONE
+@login_required
+@decorators.ajax_only
+def show_revision_comparison(request, pk, revision_pk=None):
+
+    question = get_object_or_404(Question, pk=pk)
+    if revision_pk:
+        revision = get_object_or_404(Revision, pk=revision_pk)
+    else:
+        revision = question.get_latest_revision()
+
+    exam = question.get_exam()
+
+    # PERMISSION CHECK
+    if not exam.can_user_edit(request.user):
+        raise PermissionDenied
+
+    context = {'revision': revision}
+    return render(request, 'exams/partials/show_revision_comparison.html', context)
+
+@csrf.csrf_exempt
+@decorators.post_only
+@decorators.ajax_only
+def remove_revision(request, pk):
+    revision = get_object_or_404(Revision, pk=pk)
+    exam = revision.exam
+
+    # PERMISSION CHECK
+    if not request.user.is_superuser and \
+            not exam.category.is_user_editor(request.user) and \
+            not revision.submitter == request.user:
+        raise Exception("You cannot delete that question!")
+
+    revision.is_deleted = True
+    revision.save()
+
+    return {}
+
+@csrf.csrf_exempt
+@decorators.post_only
+@decorators.ajax_only
+def approve_revision (request, pk):
+    revision = get_object_or_404(Revision, pk=pk)
+    exam = revision.exam
+
+    # PERMISSION CHECK
+    if not request.user.is_superuser and \
+            not exam.category.is_user_editor(request.user) and \
+            not revision.submitter == request.user:
+        raise Exception("You cannot delete that question!")
+
+    revision.is_approved = True
+    revision.save()
+
+@login_required
+def approve_question(request, slugs, exam_pk,pk):
+    category = Category.objects.get_from_slugs(slugs)
+    if not category:
+        raise Http404
+
+    # PERMISSION CHECK
+    exam = get_object_or_404(Exam, pk=exam_pk, category=category)
+    question = get_object_or_404(Question, pk=pk)
+    revision = question.get_latest_revision()
+    if not exam.can_user_edit(request.user):
+        raise PermissionDenied
+
+    editor = exam.can_user_edit(request.user)
+
+    context = {'exam': exam,
+               'questionform': forms.QuestionForm(exam=exam,instance=question),
+               'revisionform': forms.DisabledRevisionForm(instance=revision),
+               'revisionchoiceformset': forms.RevisionChoiceFormset(instance=revision),
+               'editor':editor,
+               'question':question}
+
+    return render(request, "exams/add_question.html", context)
+
