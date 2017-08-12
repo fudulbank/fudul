@@ -132,7 +132,7 @@
       display: none;
     }
 
-    #next, #previous, #mark, #contribute, #exit {
+     #explain #next, #previous, #mark, #contribute, #exit {
         cursor: pointer;
     }
 
@@ -143,7 +143,7 @@
     .incorrect {
       color: red;
     }
-    #exit{
+    #exit:not(.unfinished){
       display: none;
     }
     #results.unfinished{
@@ -159,8 +159,13 @@
         </div>
         <div class="top-options text-left">
             <div class="pull-left text-left">
-               <div class="option border-right border-left" id="contribute">
+               <div class="option border-right border-left"  id="contribute">
                   <i class="icon-pencil"></i> Contribute
+               </div>
+            </div>
+            <div class="pull-left text-left">
+               <div class="option border-right border-left"  id="explain">
+                  <i class=" icon-brain"></i> Explain
                </div>
             </div>
             <div class="pull-right text-right">
@@ -381,11 +386,54 @@
         $('#previous, #next').click(navigate);
         $('#mark').click(toggleMarked);
     });
+    $(function() {
+            // initialize project edit modal
+        $('#modify-question-modal').modal({
+          keyboard: false,
+          backdrop: 'static',
+          show    : false,
+        });
+        $("#contribute").click(function () {
+            $("#modify-question-modal").modal('show');
+            $("#modify-question-modal .modal-title").html("Submit a Revision");
+            $("#modify-question-modal .modal-body").load("{% url 'exams:submit_users_revision' question.get_latest_approved_revision.pk  %}", function(){
+
+            });
+
+        });
+
+    });
+    $(function() {
+
+            // initialize project edit modal
+        $('#explain-question-modal').modal({
+          keyboard: false,
+          backdrop: 'static',
+          show    : false,
+        });
+        $("#explain").click(function () {
+            $("#explain-question-modal").modal('show');
+            $("#explain-question-modal .modal-title").html("Submit an Explaination");
+            $("#explain-question-modal .modal-body").load("{% url 'exams:submit_users_revision' question.get_latest_approved_revision.pk question.pk %}", function(){
+
+            });
+
+        });
+
+    });
+
         </script>
 
         {% with modal_id='confirm-exit-modal' is_small=True confirm_link=True modal_content="<i class='text-danger icon-exit3'></i> Are you sure you want to exit this session, and mark unsubmitted questions as unsolved?" %}
             {% include "exams/modals/common_edit_modal.html" %}
         {% endwith %}
 
+        {% with modal_id='modify-question-modal' no_footer=True %}
+             {% include "exams/modals/common_edit_modal.html" %}
+        {% endwith %}
+
+        {% with modal_id='explain-question-modal' no_footer=True %}
+            {% include "exams/modals/common_edit_modal.html" %}
+        {% endwith %}
     </body>
 </html>

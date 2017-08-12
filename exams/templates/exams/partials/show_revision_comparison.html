@@ -1,0 +1,160 @@
+{% load bootstrap3 %}{% load staticfiles %}
+<style>
+.panel-body a {
+    color: white;
+    font-size: medium;
+    font-weight: bold;
+    margin-top: auto
+}
+.img-responsive {
+    padding: 0;
+    max-width: 100%;
+    max-height: 100%;
+    width: 100%;
+    height: 100%;
+    margin-right: 20%;
+}
+li.is-answer{
+    font-weight: 800;
+}
+p.question-text{
+    font-size: medium;
+    font-weight: 800;
+}
+</style>
+    <div class="panel panel-flat">
+    <div class="panel-heading">
+
+							<h4 class="panel-title">Original Question :
+                            </h4>
+    </div>
+                       <div class="panel-body">
+                       {% if revision.question.get_latest_approved_revision.figure %}
+                           <img class="img-responsive center-block"  src="{{ revision.question.get_latest_approved_revision.figure.url }}">
+                       {% endif %}
+       <p class="question-text">{{ revision.question.get_latest_approved_revision.text|linebreaksbr }}</p>
+            <ul>
+                       {% for choice in revision.question.get_latest_approved_revision.choice_set.order_by_alphabet %}
+                               <li {% if choice.is_right %}class="is-answer text-success-800"{% endif %}>{{ choice.text|linebreaksbr }}</li>
+                           {% endfor %}
+            </ul>
+                </div>
+            </div>
+    <div class="panel panel-flat">
+    <div class="panel-heading">
+							<h4 class="panel-title"> Submitted Revision # {{ revision.pk }} :
+                            </h4>
+    </div>
+                       <div class="panel-body">
+                       {% if revision.figure %}
+                           <img class="img-responsive center-block"  src="{{ revision.figure.url }}">
+                       {% endif %}
+       <p class="question-text">{{ revision.text|linebreaksbr }}</p>
+            <ul>
+                       {% for choice in revision.choice_set.order_by_alphabet %}
+                               <li {% if choice.is_right %}class="is-answer text-success-800"{% endif %}>{{ choice.text|linebreaksbr }}</li>
+                           {% endfor %}
+            </ul>
+                </div>
+            </div>
+    <div class="panel panel-flat">
+                       <div class="panel-body">
+                           <div class="row">
+                               <div class="col-md-6">
+                               <button id='remove' data-pk="{{ revision.question.pk }}" data-url="{% url 'exams:remove_revision' revision.pk %}" style="float: left" type="button" class="btn btn-danger btn-rounded btn-sm"><i class=" icon-subtract position-left"></i> Remove </button>
+                               </div>
+                               <div class="col-md-6">
+                               <button id='approve' data-pk="{{ revision.question.pk }}" data-url="{% url 'exams:approve_revision' revision.pk %}"style="float: right" type="button" class="btn btn-primary btn-rounded btn-sm"><i class=" icon-add position-left"></i> Approve</button>
+                               </div>
+                           </div>
+                </div>
+            </div>
+
+
+
+</body>
+{% block customscript %}
+
+<div class="modal fade" id="confirm-delete-question-modal">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Remove revision</h4>
+      </div>
+      <div class="modal-body">
+          Are you sure you want to remove the submitted revision?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button id="delete-question" type="button" class="btn btn-danger confirm">Confirm</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+<link rel="stylesheet" href="{% static 'css/jquery.dataTables.min.css' %}">
+	<link rel="stylesheet" href="{% static 'js/datatables/responsive/css/responsive.dataTables.min.css' %}">
+	<script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'js/datatables/responsive/js/dataTables.responsive.min.js' %}"></script>
+<style type="text/css">
+th, td{
+    text-align: left;
+}
+tbody tr td{
+    cursor:pointer;
+}
+tbody tr td:last-child{
+    cursor:initial;
+}
+
+</style>
+<script src="{% static 'js/toastr.js' %}"></script>
+
+
+<script type="text/javascript">
+        $('#remove').click(function () {
+            var url = $(this).data('url');
+            var pk = $(this).data('pk');
+            $("#delete-question").data('url', url).data('pk', pk);
+            $("#confirm-delete-question-modal").modal('show');
+        });
+        $("#delete-question").click(function () {
+		        /* get some values from elements on the page: */
+		        var url = $(this).data('url');
+				var pk = $(this).data('pk');
+		        /* Send the data using post */
+		        var posting = $.post(url);
+		        posting.done(function (data) {
+		            if (data.success == 1) {
+		                // show success message (using toastr)
+		                toastr.options.positionClass = "toast-top-left";
+		                toastr.info("Question was successfuly deleted");
+						$("#confirm-delete-question-modal").modal('hide');
+		            } else {
+		                toastr.error(data.message);
+		            }
+		        });
+		    });
+        $("#approve").click(function () {
+		        /* get some values from elements on the page: */
+		        var url = $(this).data('url');
+				var pk = $(this).data('pk');
+		        /* Send the data using post */
+		        var posting = $.post(url);
+		        posting.done(function (data) {
+		            if (data.success == 1) {
+		                // show success message (using toastr)
+		                toastr.options.positionClass = "toast-top-left";
+		                toastr.info("Revision is now approved");
+		            } else {
+		                toastr.error(data.message);
+		            }
+		        });
+		    });
+
+{% include 'exams/modals/adjust_modal_size.js' %}
+</script>
+
+{% endblock %}

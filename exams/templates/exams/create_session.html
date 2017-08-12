@@ -55,11 +55,20 @@
 {% block title %}Fudul | Start Sesstion in {{ exam.name }}{% endblock %}
 
 {% block sidepanel %}
-        {% if user.is_superuser or user|is_editor %}
+{#    TODO: change filter #}
+        {% if editor %}
             <li>
                 <a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}"><i class="icon-pen-plus"></i> <span>Add Question</span></a>
             </li>
-        {% endif %}
+            <li>
+               <a href="{% url 'exams:approve_user_contributions' exam.category.get_slugs exam.pk %}"><i class="icon-file-plus"></i> <span>User contributions</span></a>
+
+            </li>
+        {% else %}
+            <li>
+                <a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}"><i class="icon-database-add"></i> <span>Submit A Question</span></a>
+            </li>
+         {% endif %}
 {% endblock %}
 
 {% block breadcrumb %}
@@ -164,7 +173,7 @@
      </div>
         </div> <!--panel-->
     </div><!--col-->
-    {% if user.is_superuser or user|is_editor %}
+    {% if editor %}
     <div class="col-md-4">
         <div id="exam-stats" class="panel panel-flat">
            <div class="panel-body">
@@ -214,4 +223,5 @@
 
 
 </script>
+
 {% endblock %}
