@@ -350,17 +350,17 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     # session unused question.  Otherwise, show the first session
     # question.
     if question_pk:
-        question = get_object_or_404(session.questions, pk=question_pk)
+        current_question = get_object_or_404(session.questions, pk=question_pk)
     elif not session.has_finished():
-        question = session.get_unused_questions().first()
+        current_question = session.get_unused_questions().first()
     else:
-        question = session.questions.order_by('global_sequence').first()
+        current_question = session.questions.order_by('global_sequence').first()
 
-    question_sequence = session.get_question_sequence(question)
+    current_question_sequence = session.get_question_sequence(current_question)
 
     return render(request, "exams/show_session.html", {'session': session,
-                                                       'question': question,
-                                                       'question_sequence': question_sequence})
+                                                       'current_question': current_question,
+                                                       'current_question_sequence': current_question_sequence})
 
 @login_required
 def show_session_results(request, slugs, exam_pk, session_pk):

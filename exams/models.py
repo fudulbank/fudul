@@ -250,7 +250,7 @@ class Question(models.Model):
 
     def get_latest_approved_revision(self):
         return self.revision_set.filter(is_approved=True, is_deleted=False)\
-                                .order_by('-approval_date')\
+                                .order_by('-pk')\
                                 .first()
 
     def get_latest_revision(self):

@@ -124,11 +124,15 @@
         background: #0067A9;
         color: #fff;
         font-size: 12pt;
-        font-family: Arial,Verdana,Helvetica;
+        font-family: Arial, Verdana, Helvetica;
         margin-bottom: 45px;
     }
 
-    #tooltip-container, #mark-loading, #explanation{
+    .tooltip-container, #mark-loading, #explanation{
+      display: none;
+    }
+
+    body.unfinished #results, :not(body.unfinished) #exit{
       display: none;
     }
 
@@ -143,19 +147,21 @@
     .incorrect {
       color: red;
     }
-    #exit:not(.unfinished){
+
+    .question-body{
       display: none;
     }
-    #results.unfinished{
-      display: none;
+
+    .question-body.show{
+      display: block;
     }
   </style>
     </head>
-    <body>
+    <body{% if not session.has_finished %} class="unfinished"{% endif %}>
     <div id="container">
         <div class="top-info">
-            <div class="top-exam-details text-center"> {{ session.exam.name }} <span class="separator">•</span> Session id: {{ session.pk }} ({{ session.get_session_mode_display }})<br> Question id: <span id="question-id">{{ question.pk }}</span> </div>
-            <div class="top-question-id pull-right text-right option"><span id="question-sequence">{{ question_sequence }}</span> of <span id="question-total">{{ session.questions.count }}</span></div>
+            <div class="top-exam-details text-center"> {{ session.exam.name }} <span class="separator">•</span> Session id: <span id="session-pk">{{ session.pk }}</span> ({{ session.get_session_mode_display }})<br> Question id: <span id="question-pk">{{ current_question.pk }}</span> </div>
+            <div class="top-question-id pull-right text-right option"><span id="question-sequence">{{ current_question_sequence }}</span> of <span id="question-total">{{ session.questions.count }}</span></div>
         </div>
         <div class="top-options text-left">
             <div class="pull-left text-left">
@@ -169,22 +175,26 @@
                </div>
             </div>
             <div class="pull-right text-right">
-               <div id="mark" class="option border-right border-left{% if question|is_question_marked:user %} marked{% endif %}">
+               <div id="mark" class="option border-right border-left{% if current_question|is_question_marked:user %} marked{% endif %}">
                   <img id="mark-loading" src="{% static 'img/ajax-loader.gif' %}">
                   <i id="mark-icon" class="icon-flag7"></i> Mark
                </div>
             </div>
         </div>
 
-        <div id="question-container">
-            {% include 'exams/partials/session-question.html' %}
+        <div id="question-pool">
+          {% for question in session.questions.order_global_sequence %}
+             {% with question_sequence=forloop.counter %}
+              {% include 'exams/partials/session-question.html' %}
+             {% endwith %}
+          {% endfor %}
         </div>
 
-        <button {% if question|was_solved_in_session:session %}style="display: none;"{% endif %} type="button" id="submit" class="btn">Submit <i class=" icon-circle-right2"></i></button>
+        <button {% if current_question|was_solved_in_session:session %}style="display: none;"{% endif %} type="button" id="submit" class="btn">Submit <i class=" icon-circle-right2"></i></button>
 
         <div id="footer" class="text-center">
-           <div id="results" class="{% if not session.has_finished %}unfinished {% endif %}option pull-left border-right border-left"><a href="{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}"><i class="icon-list3"></i> Results</a></div>
-           <div id="exit" class="{% if not session.has_finished %}unfinished {% endif %}option pull-left border-right border-left"><i class="icon-exit3"></i> Exit</div>
+           <div id="results" class="option pull-left border-right border-left"><a href="{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}"><i class="icon-list3"></i> Results</a></div>
+           <div id="exit" class="option pull-left border-right border-left"><i class="icon-exit3"></i> Exit</div>
            <div class="option pull-left border-right" id="contributors" data-tooltip-content="#tooltip-body"><i class="icon-stars"></i> Contributors</div>
            <div data-action="next" id="next" class="option pull-right border-right border-left">Next <i class=" icon-circle-right2"></i></div>
            <div data-action="previous" id="previous" class="option pull-right border-left"><i class=" icon-circle-left2"></i> Previous</div>
@@ -196,8 +206,8 @@
     toastr.options.positionClass = "toast-top-left";
 
     function updateData(){
-        data = {question_pk: $("#question-body").data('question-pk'),
-                session_pk: $("#question-body").data('session-pk')}
+        data = {question_pk: $(".question-body.show").data('question-pk'),
+                session_pk: $("#session-pk").html()}
     }
 
     function handleMarked(is_marked){
@@ -213,7 +223,7 @@
     function navigate() {
         action = $(this).data('action');
         total = $("#question-total").html();
-        current_sequence = $("#question-sequence").html();
+        current_sequence = parseInt($("#question-sequence").html());
 
         // If no previous or no next, just return
         if (current_sequence == 1 && action == 'previous'){
@@ -224,24 +234,23 @@
           return
         }
 
-        data.action = action;
-        $.ajax({
-            url: "{% url 'exams:navigate_question' %}",
-            type: 'POST',
-            data: data,
-            cache: false,
-            success: function(data){
-                $("#question-container").html(data.question_body);
-                $("#question-sequence").html(data.question_sequence);
-                $("#question-id").html(data.question_pk);
-                // This changes the url without actually reloading the page.
-                history.pushState({url: data.url}, '', data.url);
+        if (action == 'next' ){
+          targeted_sequence = current_sequence + 1;
+        } else if (action == 'previous' ){
+          targeted_sequence = current_sequence - 1;
+        }
 
-                initializeInteractions();
-                handleMarked(data.is_marked);
-                updateData();
-            }
-        });
+        $question = $("#question-pool [data-question-sequence=" + targeted_sequence + "]")
+        // Add 'show' class to the current question
+        $question.addClass("show");
+        // Remove 'show' class from other questions
+        $(".question-body").not($question).removeClass('show');
+        $("#question-sequence").html($question.data('question-sequence'));
+        $("#question-pk").html($question.data('question-pk'));
+        initializeInteractions();
+        handleMarked($question.data('is-marked'));
+        history.pushState({url: $question.data('url')}, '', $question.data('url'));
+        updateData();
     }
 
     function toggleMarked() {
@@ -265,7 +274,7 @@
         var $choice = $(this);
         if ($choice.is(":checked")) {
             // other sister choices to be removed
-            $otherChoices = $choice.closest('#question-container').find('.question-choice').not($choice);
+            $otherChoices = $choice.closest('.question-body').find('.question-choice').not($choice);
             // If a choice is checked, it is no longer striked.
             $choice.closest('tr').find('.choice-text').removeClass('strike');
             $otherChoices.prop("checked", false);
@@ -300,27 +309,27 @@
 
         if (sequence == total){
           $("#next").css('cursor', 'not-allowed');
-          $("#exit.unfinished").hide();
-          $("#results.unfinished").show();
+          $(".unfinished #exit").hide();
+          $(".unfinished #results").show();
         } else {
           $("#next").css('cursor', 'pointer');
-          $("#exit.unfinished").show();
-          $("#results.unfinished").hide();
+          $(".unfinished #exit").show();
+          $(".unfinished #results").hide();
         }
 
         // Show contributors as a tooltipster
         $("#contributors").tooltipster({theme: 'tooltipster-shadow', contentCloning: true});
 
         // Disable interaction if question was solved.
-        was_solved = $("#question-body").data('was-solved');
+        was_solved = $(".question-body.show").data('was-solved');
         if (was_solved){
           $("#submit").hide();
-          $(".question-choice").prop("disabled", "disabled");
+          $(".question-body.show .question-choice").prop("disabled", "disabled");
         } else {
             $("#submit").show();
-            $(".question-text").mouseup(highlightText);
-            $('.question-choice').change(toggleChoices);
-            $(".choice-text").click(function() {
+            $(".question-body.show .question-text").mouseup(highlightText);
+            $('.question-body.show .question-choice').change(toggleChoices);
+            $(".question-body.show .choice-text").click(function() {
                 if (!$(this).hasClass("strike")){
                    // If a choice is striked, it is no longer checked.
                     $(this).closest("tr").find(".question-choice").prop('checked', false);
@@ -333,8 +342,11 @@
     function submitChoice() {
         $(this).hide();
 
+        // Mark question as solved
+        $(".question-body.show").data('was-solved', true);
+
         // Disable choices upon submission
-        $(".question-choice").prop("disabled", "disabled")
+        $(".question-body.show .question-choice").prop("disabled", "disabled")
         // Disable interactions after submission
         $(".question-text, .question-choice, .choice-text, .highlight").off();
 
@@ -360,14 +372,14 @@
 
                     if (data.right_choice_pk != null){
                       pk_selector = "[data-choice-pk=" + data.right_choice_pk + "]";
-                      $correct_row = $("#question-body tr" + pk_selector);
+                      $correct_row = $(".question-body.show tr" + pk_selector);
                       $correct_row.find("td.check i").addClass("icon-checkmark2 correct")
-                      $incorrect_rows = $("#question-body tr").not(pk_selector);
+                      $incorrect_rows = $(".question-body.show tr").not(pk_selector);
                       $incorrect_rows.find("td.check i").addClass("icon-cross3 incorrect");
                     }
 
                     if (data.explanation){
-                      $("#explanation").append(data.explanation).show();
+                      $(".question-body.show .explanation").append(data.explanation).show();
                     }
                 } else {
                   toastr.error(data.message);
@@ -396,7 +408,7 @@
         $("#contribute").click(function () {
             $("#modify-question-modal").modal('show');
             $("#modify-question-modal .modal-title").html("Submit a Revision");
-            $("#modify-question-modal .modal-body").load("{% url 'exams:submit_users_revision' question.get_latest_approved_revision.pk  %}", function(){
+            $("#modify-question-modal .modal-body").load("{% url 'exams:submit_users_revision' current_question.get_latest_approved_revision.pk  %}", function(){
 
             });
 
@@ -414,7 +426,7 @@
         $("#explain").click(function () {
             $("#explain-question-modal").modal('show');
             $("#explain-question-modal .modal-title").html("Submit an Explaination");
-            $("#explain-question-modal .modal-body").load("{% url 'exams:submit_users_revision' question.get_latest_approved_revision.pk question.pk %}", function(){
+            $("#explain-question-modal .modal-body").load("{% url 'exams:submit_users_revision' current_question.get_latest_approved_revision.pk current_question.pk %}", function(){
 
             });
 

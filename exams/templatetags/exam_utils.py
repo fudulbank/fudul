@@ -16,6 +16,14 @@ def was_chosen(choice, session):
     return choice.answer_set.filter(session=session).exists()
 
 @register.filter
+def get_question_sequence(question, session):
+    return session.get_question_sequence(question)
+
+@register.filter
+def get_session_url(question, session):
+    return question.get_session_url(session)
+
+@register.filter
 def show_explanation(question, session):
     if session.session_mode == 'UNEXPLAINED':
         return session.has_finished()

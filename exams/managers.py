@@ -6,6 +6,9 @@ class QuestionQuerySet(models.QuerySet):
         return self.undeleted().exclude(revision__is_approved=True)\
                    .distinct()
 
+    def order_global_sequence(self):
+        return self.order_by('global_sequence')
+
     def order_by_submission(self):
         return self.order_by('-pk')
 

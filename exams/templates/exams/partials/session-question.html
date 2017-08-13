@@ -1,6 +1,6 @@
 {% load static exam_utils %}
 {% with latest_revision=question.get_latest_approved_revision was_solved=question|was_solved_in_session:session show_explanation=question|show_explanation:session %}
-<div id="question-body" class="well-sm" data-question-pk="{{ question.pk }}" data-session-pk="{{ session.pk }}" data-was-solved="{% if was_solved %}true{% else %}false{% endif %}">
+<div class="question-body well-sm{% if question == current_question %} show{% endif %}" data-url="{{ question|get_session_url:session }}" data-question-sequence="{{ question_sequence }}" data-question-pk="{{ question.pk }}" data-is-marked="{% if question|is_question_marked:user %}true{% else %}false{% endif %}" data-was-solved="{% if was_solved %}true{% else %}false{% endif %}">
     <p class="question-text">{{ latest_revision.text|linebreaksbr }}</p>
 
     <table>
@@ -14,14 +14,14 @@
         {% endfor %}
       </tbody>
     </table>
-    <div id="explanation" {% if show_explanation %}style="display: block;"{% endif %}>
 
+    <div class="explanation" {% if show_explanation %}style="display: block;"{% endif %}>
       <h2>Explanation </h2>
-
       {% if show_explanation %}{{ latest_revision.explanation }}{% endif %}
     </div>
+
 {% endwith %}
-<div id="tooltip-container">
+<div class="tooltip-container">
   <div id="tooltip-body">
     {% for contributor in question.get_contributors %}
       {% if forloop.first %}
