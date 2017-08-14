@@ -58,14 +58,12 @@
       display: inline-block;
       padding: 0 10px;
       /* For mobile devices */
-      width: 100%;
       height: auto;
     }
 
-    @media (min-width: 768px) {
+    @media (min-width: 576px) {
       .top-question-id {
         text-align: right;
-        margin-top: 18px;
       }
       .top-options div.text-right, #footer div.text-right{
         text-align: right !important;
@@ -73,9 +71,7 @@
       .top-options div.text-left, #footer div.text-left{
         text-align: left !important;
       }
-      .option{
-        width: auto;
-      }
+
       #footer .option{
         height: 38px;
       }
@@ -177,12 +173,12 @@
     </head>
     <body class="{% if session.has_finished %}finished{% else %}unfinished{% endif %}">
     <div class="container-fluid" id="container">
-        <div class="row top-info">
-            <div class="ml-auto col-md-6 text-center"> {{ session.exam.name }} <span class="separator">•</span> Session id: <span id="session-pk">{{ session.pk }}</span> ({{ session.get_session_mode_display }})<br> Question id: <span id="question-pk">{{ current_question.pk }}</span> </div>
-            <div class="col-md-3 top-question-id"><span id="question-sequence">{{ current_question_sequence }}</span> of <span id="question-total">{{ session.questions.count }}</span></div>
+        <div class="row top-info align-items-center">
+            <div class="ml-auto col-sm-6 text-center"> {{ session.exam.name }} <span class="separator">•</span> Session id: <span id="session-pk">{{ session.pk }}</span> ({{ session.get_session_mode_display }})<br> Question id: <span id="question-pk">{{ current_question.pk }}</span> </div>
+            <div class="col-sm-3 top-question-id"><span id="question-sequence">{{ current_question_sequence }}</span> of <span id="question-total">{{ session.questions.count }}</span></div>
         </div>
-        <div class="row top-options text-left">
-          <div class="col-md-6 text-left">
+        <div class="row top-options text-left align-items-center">
+          <div class="col-sm-6 text-left">
                <div class="option"  id="contribute">
                   <i class="icon-pencil"></i> Contribute
                </div>
@@ -190,7 +186,7 @@
                   <i class=" icon-brain"></i> Explain
                </div>
           </div>
-          <div class="col-md-6 text-right">
+          <div class="col-sm-6 text-right">
                <div id="mark" class="option{% if current_question|is_question_marked:user %} marked{% endif %}">
                   <img id="mark-loading" src="{% static 'img/ajax-loader.gif' %}">
                   <i id="mark-icon" class="icon-flag7"></i> Mark
@@ -209,14 +205,14 @@
           <button {% if current_question|was_solved_in_session:session %}style="display: none;"{% endif %} type="button" id="submit" class="btn">Submit <i class=" icon-circle-right2"></i></button>
         </div>
         <div id="footer" class="row text-center">
-          <div class="col-md-6 text-left">
-           <div id="results" class="option"><a href="{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}"><i class="icon-list3"></i> Results</a></div>
-           <div id="exit" class="option"><i class="icon-exit3"></i> Exit</div>
-           <div class="option" id="contributors" data-tooltip-content="#tooltip-body"><i class="icon-stars"></i> Contributors</div>
+          <div class="col-sm-6 text-left">
+           <div id="results" class="float-left float-sm-none option"><a href="{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}"><i class="icon-list3"></i> Results</a></div>
+           <div id="exit" class="float-left float-sm-none option"><i class="icon-exit3"></i> Exit</div>
+           <div id="contributors" class="float-right float-sm-none option" data-tooltip-content="#tooltip-body"><i class="icon-stars"></i> Contributors</div>
           </div>
-          <div class="col-md-6 text-right">
-           <div data-action="previous" id="previous" class="option"><i class=" icon-circle-left2"></i> Previous</div>
-           <div data-action="next" id="next" class="option">Next <i class=" icon-circle-right2"></i></div>
+          <div class="col-sm-6 text-right">
+           <div data-action="previous" id="previous" class="float-left float-sm-none option"><i class=" icon-circle-left2"></i> Previous</div>
+           <div data-action="next" id="next" class="float-right float-sm-none option">Next <i class=" icon-circle-right2"></i></div>
           </div>
         </div>
       </div>
