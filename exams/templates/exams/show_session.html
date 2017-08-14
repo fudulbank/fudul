@@ -324,10 +324,10 @@
         if (sequence == total){
           $("#next").css('cursor', 'not-allowed');
           $(".unfinished #exit").hide();
-          $(".unfinished #results").show();
+          $(".unfinished #results").css('display', 'inline-block');
         } else {
           $("#next").css('cursor', 'pointer');
-          $(".unfinished #exit").show();
+          $(".unfinished #exit").css('display', 'inline-block');
           $(".unfinished #results").hide();
         }
 
