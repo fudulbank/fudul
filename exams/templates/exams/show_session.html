@@ -55,6 +55,7 @@
     }
 
     .option{
+      cursor: pointer;
       display: inline-block;
       padding: 0 10px;
       /* For mobile devices */
@@ -113,6 +114,14 @@
         color: white;
     }
 
+    #footer .option a:hover{
+        text-decoration: none;
+    }
+
+    #contributors{
+      cursor:zoom-in;
+    }
+
     .strike{
         text-decoration: line-through;
     }
@@ -152,10 +161,6 @@
 
     body.unfinished #results, body.finished #exit{
       display: none;
-    }
-
-     #explain #next, #previous, #mark, #contribute, #exit {
-        cursor: pointer;
     }
 
     .question-body{
