@@ -9,11 +9,13 @@
       	<script type="text/javascript" src="{% static 'limitless/assets/js/core/libraries/bootstrap.min.js' %}"></script>
         <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery.tooltipster/4.2.5/js/tooltipster.bundle.min.js"></script>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/offline-js/0.7.19/offline.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/pace.min.js"></script>
       	<link href="{% static 'limitless/assets/css/icons/icomoon/styles.css' %}" rel="stylesheet" type="text/css">
         <link href="https://cdn.jsdelivr.net/jquery.tooltipster/4.2.5/css/tooltipster.bundle.min.css" rel="stylesheet" type="text/css">
         <link href="https://cdn.jsdelivr.net/jquery.tooltipster/4.2.5/css/plugins/tooltipster/sideTip/themes/tooltipster-sideTip-shadow.min.css" rel="stylesheet" type="text/css">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/offline-js/0.7.19/themes/offline-theme-chrome.css" rel="stylesheet" type="text/css">
         <link href="{% static 'limitless/assets/css/bootstrap.css' %}" rel="stylesheet" type="text/css">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/themes/black/pace-theme-minimal.min.css" rel="stylesheet" type="text/css">
         {% include 'partials/piwik.html' %}
         <style>
     body, html, #container{
@@ -28,12 +30,12 @@
 
     .top-info{
         background-color: #0067A9;
-        height: 50px;
         font-size: 12pt;
         color: #FFF;
     }
 
     .top-exam-details {
+        height: 50px;
         position: absolute;
         left: 47%;
         margin-left: -50px;
@@ -41,9 +43,43 @@
     }
 
     .top-question-id {
+        text-align: center;
         font-weight: 700;
         line-height: 15px;
+    }
+
+    .top-options div.text-right, .top-options div.text-left, #footer div.text-right, #footer div.text-left{
+      text-align: center;
+    }
+
+    .option{
+      display: inline-block;
+      padding: 0 10px;
+      /* For mobile devices */
+      width: 100%;
+      height: auto;
+    }
+
+    @media (min-width: 769px) {
+      .top-question-id {
+        text-align: right;
         margin-top: 18px;
+      }
+      .top-options div.text-right, #footer div.text-right{
+        text-align: right;
+      }
+      .top-options div.text-left, #footer div.text-left{
+        text-align: left;
+      }
+      .option{
+        width: auto;
+      }
+      #footer .option{
+        height: 38px;
+      }
+      .top-options .option{
+        height: 32px;
+      }
     }
 
     .separator{
@@ -53,7 +89,6 @@
     .top-options {
         background-color: #7cafe8;
         border-top: 1px solid #fff;
-        height: 32px;
         line-height: 32px;
     }
 
@@ -67,7 +102,6 @@
         color: #fff;
         font-weight: 700;
         line-height: 36px;
-        height: 38px;
         font-size: 12pt;
         background-color: #0067A9;
         bottom: 0;
@@ -75,19 +109,6 @@
         border-top: solid 2px #fff;
         border-bottom: solid 2px #0067A9;
         width: 100%;
-    }
-
-    .option{
-        padding: 0 10px;
-        /*vertical-align: top;*/
-    }
-
-    .border-left{
-        border-left: solid 2px #fff;
-    }
-
-    .border-right{
-        border-right: solid 2px #fff;
     }
 
     #footer .option a{
@@ -119,33 +140,24 @@
         word-wrap: break-word;
     }
 
-    #submit, #next{
+    #submit{
         margin-left: 9px;
         background: #0067A9;
         color: #fff;
         font-size: 12pt;
         font-family: Arial, Verdana, Helvetica;
-        margin-bottom: 45px;
     }
 
-    .tooltip-container, #mark-loading, #explanation{
+    .tooltip-container, #mark-loading, .explanation{
       display: none;
     }
 
-    body.unfinished #results, :not(body.unfinished) #exit{
+    body.unfinished #results, body.finished #exit{
       display: none;
     }
 
      #explain #next, #previous, #mark, #contribute, #exit {
         cursor: pointer;
-    }
-
-    .correct {
-      color: green;
-    }
-
-    .incorrect {
-      color: red;
     }
 
     .question-body{
@@ -157,47 +169,49 @@
     }
   </style>
     </head>
-    <body{% if not session.has_finished %} class="unfinished"{% endif %}>
-    <div id="container">
-        <div class="top-info">
-            <div class="top-exam-details text-center"> {{ session.exam.name }} <span class="separator">•</span> Session id: <span id="session-pk">{{ session.pk }}</span> ({{ session.get_session_mode_display }})<br> Question id: <span id="question-pk">{{ current_question.pk }}</span> </div>
-            <div class="top-question-id pull-right text-right option"><span id="question-sequence">{{ current_question_sequence }}</span> of <span id="question-total">{{ session.questions.count }}</span></div>
+    <body class="{% if session.has_finished %}finished{% else %}unfinished{% endif %}">
+    <div class="container-fluid" id="container">
+        <div class="row top-info">
+            <div class="col-sm-offset-3 col-sm-6 text-center"> {{ session.exam.name }} <span class="separator">•</span> Session id: <span id="session-pk">{{ session.pk }}</span> ({{ session.get_session_mode_display }})<br> Question id: <span id="question-pk">{{ current_question.pk }}</span> </div>
+            <div class="col-sm-3 text-right top-question-id"><span id="question-sequence">{{ current_question_sequence }}</span> of <span id="question-total">{{ session.questions.count }}</span></div>
         </div>
-        <div class="top-options text-left">
-            <div class="pull-left text-left">
-               <div class="option border-right border-left"  id="contribute">
+        <div class="row top-options text-left">
+          <div class="col-sm-6 text-left">
+               <div class="option"  id="contribute">
                   <i class="icon-pencil"></i> Contribute
                </div>
-            </div>
-            <div class="pull-left text-left">
-               <div class="option border-right border-left"  id="explain">
+               <div class="option"  id="explain">
                   <i class=" icon-brain"></i> Explain
                </div>
-            </div>
-            <div class="pull-right text-right">
-               <div id="mark" class="option border-right border-left{% if current_question|is_question_marked:user %} marked{% endif %}">
+          </div>
+          <div class="col-sm-6 text-right">
+               <div id="mark" class="option{% if current_question|is_question_marked:user %} marked{% endif %}">
                   <img id="mark-loading" src="{% static 'img/ajax-loader.gif' %}">
                   <i id="mark-icon" class="icon-flag7"></i> Mark
                </div>
-            </div>
+          </div>
         </div>
 
-        <div id="question-pool">
-          {% for question in session.questions.order_global_sequence %}
-             {% with question_sequence=forloop.counter %}
-              {% include 'exams/partials/session-question.html' %}
-             {% endwith %}
-          {% endfor %}
+        <div id="question-container">
+          <div id="question-pool">
+            {% for question in session.questions.order_global_sequence %}
+               {% with question_sequence=forloop.counter %}
+                {% include 'exams/partials/session-question.html' %}
+               {% endwith %}
+            {% endfor %}
+          </div>
+          <button {% if current_question|was_solved_in_session:session %}style="display: none;"{% endif %} type="button" id="submit" class="btn">Submit <i class=" icon-circle-right2"></i></button>
         </div>
-
-        <button {% if current_question|was_solved_in_session:session %}style="display: none;"{% endif %} type="button" id="submit" class="btn">Submit <i class=" icon-circle-right2"></i></button>
-
-        <div id="footer" class="text-center">
-           <div id="results" class="option pull-left border-right border-left"><a href="{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}"><i class="icon-list3"></i> Results</a></div>
-           <div id="exit" class="option pull-left border-right border-left"><i class="icon-exit3"></i> Exit</div>
-           <div class="option pull-left border-right" id="contributors" data-tooltip-content="#tooltip-body"><i class="icon-stars"></i> Contributors</div>
-           <div data-action="next" id="next" class="option pull-right border-right border-left">Next <i class=" icon-circle-right2"></i></div>
-           <div data-action="previous" id="previous" class="option pull-right border-left"><i class=" icon-circle-left2"></i> Previous</div>
+        <div id="footer" class="row text-center">
+          <div class="col-sm-6 text-left">
+           <div id="results" class="option"><a href="{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}"><i class="icon-list3"></i> Results</a></div>
+           <div id="exit" class="option"><i class="icon-exit3"></i> Exit</div>
+           <div class="option" id="contributors" data-tooltip-content="#tooltip-body"><i class="icon-stars"></i> Contributors</div>
+          </div>
+          <div class="col-sm-6 text-right">
+           <div data-action="previous" id="previous" class="option"><i class=" icon-circle-left2"></i> Previous</div>
+           <div data-action="next" id="next" class="option">Next <i class=" icon-circle-right2"></i></div>
+          </div>
         </div>
       </div>
         <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
@@ -359,6 +373,7 @@
             choice_pk = null;
         }
         data.choice_pk = choice_pk;
+
         $.ajax({
             url: "{% url 'exams:submit_answer' %}",
             type: 'POST',
@@ -373,9 +388,9 @@
                     if (data.right_choice_pk != null){
                       pk_selector = "[data-choice-pk=" + data.right_choice_pk + "]";
                       $correct_row = $(".question-body.show tr" + pk_selector);
-                      $correct_row.find("td.check i").addClass("icon-checkmark2 correct")
+                      $correct_row.find("td.check i").addClass("icon-checkmark2 text-success")
                       $incorrect_rows = $(".question-body.show tr").not(pk_selector);
-                      $incorrect_rows.find("td.check i").addClass("icon-cross3 incorrect");
+                      $incorrect_rows.find("td.check i").addClass("icon-cross3 text-danger");
                     }
 
                     if (data.explanation){
@@ -386,8 +401,19 @@
                 }
             }
         });
+
     }
+
+    function updateFooterMargins() {
+      $("#question-container").css({
+        'margin-bottom': $('#footer').height() + 10
+      })
+    }
+
     $(function() {
+        updateFooterMargins();
+        $(window).resize(updateFooterMargins);
+
         updateData();
         initializeInteractions();
         $("#exit").click(function(){
@@ -397,8 +423,6 @@
         $('#submit').click(submitChoice);
         $('#previous, #next').click(navigate);
         $('#mark').click(toggleMarked);
-    });
-    $(function() {
             // initialize project edit modal
         $('#modify-question-modal').modal({
           keyboard: false,
@@ -413,11 +437,7 @@
             });
 
         });
-
-    });
-    $(function() {
-
-            // initialize project edit modal
+        // initialize project edit modal
         $('#explain-question-modal').modal({
           keyboard: false,
           backdrop: 'static',
