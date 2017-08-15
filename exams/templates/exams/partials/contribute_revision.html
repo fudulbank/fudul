@@ -165,10 +165,10 @@
                 success: function (data) {
                     if (data.success == 1) {
                         // show success message (using toastr)
-                        toastr.success("We greatly apprciate your contribution");
+                        toastr.success("Thank you!  Your edit will be reviewed very soon!");
                         $("#modify-question-modal").modal('hide');
                     } else {
-                        toastr.warning("There was an issue! " + data.message);
+                      $("#modify-question-modal .modal-body").html(data);
                     }
                 }
             });

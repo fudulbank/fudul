@@ -65,10 +65,11 @@
                 success: function (data) {
                     if (data.success == 1) {
                         // show success message (using toastr)
-                        toastr.success("We greatly apprciate your contribution" );
+                        toastr.success("Thank you!  Your explanation will be reviewed very soon!");
                         $("#explain-question-modal").modal('hide');
+                        $("#explain").hide()
                     } else {
-                        toastr.warning("There was an issue! " + data.message);
+                        $("#explain-question-modal .modal-body").html(data);
                     }
                 }
             });

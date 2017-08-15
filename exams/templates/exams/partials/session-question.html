@@ -15,9 +15,9 @@
       </tbody>
     </table>
 
-    <div class="explanation" {% if show_explanation %}style="display: block;"{% endif %}>
+    <div class="explanation-container" {% if show_explanation %}style="display: block;"{% endif %}>
       <h2>Explanation </h2>
-      {% if show_explanation %}{{ latest_revision.explanation }}{% endif %}
+      <div class="explanation-content">{% if show_explanation %}{{ latest_revision.explanation }}{% endif %}</div>
     </div>
 
 {% endwith %}

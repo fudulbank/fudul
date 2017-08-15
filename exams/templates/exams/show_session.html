@@ -146,8 +146,11 @@
         word-wrap: break-word;
     }
 
-    #submit{
+    #submit, #explain{
         margin-top: 20px;
+    }
+
+    #submit{
         margin-left: 9px;
         background: #0067A9;
         color: #fff;
@@ -155,7 +158,7 @@
         font-family: Arial, Verdana, Helvetica;
     }
 
-    .tooltip-container, #mark-loading, .explanation{
+    .tooltip-container, #mark-loading, .explanation-container, #explain{
       display: none;
     }
 
@@ -175,7 +178,7 @@
       display: block;
     }
 
-    .explanation{
+    .explanation-container{
       margin-top: 20px;
     }
   </style>
@@ -188,11 +191,8 @@
         </div>
         <div class="row top-options text-left align-items-center">
           <div class="col-sm-6 text-left">
-               <div class="option"  id="contribute">
-                  <i class="icon-pencil"></i> Contribute
-               </div>
-               <div class="option"  id="explain">
-                  <i class=" icon-brain"></i> Explain
+               <div class="option" id="contribute">
+                  <i class="icon-pencil"></i> Edit
                </div>
           </div>
           <div class="col-sm-6 text-right">
@@ -212,6 +212,7 @@
             {% endfor %}
           </div>
           <button {% if current_question|was_solved_in_session:session %}style="display: none;"{% endif %} type="button" id="submit" class="btn">Submit <i class=" icon-circle-right2"></i></button>
+          <button class="btn btn-outline-primary" id="explain"><i class=" icon-brain"></i> Improve this explanation!</button>
         </div>
         <div id="footer" class="row text-center">
           <div class="col-sm-6 text-left">
@@ -321,8 +322,20 @@
         });
     }
 
+    function controlExplanation(was_solved){
+      if (!was_solved){
+        $(".question-body.show .explanation-container, #explain").hide()
+      } else if ($('.question-body.show .explanation-content').html().length){
+        $("#explain").show().html("Improve this explanation!");
+        $(".question-body.show .explanation-container").show();
+      } else {
+        $(".question-body.show .explanation-container").hide()
+        $("#explain").show().html("Add an explanation!");
+      }
+    }
+
     function initializeInteractions() {
-      // Change navigation cursor as per the sequence
+        // Change navigation cursor as per the sequence
         sequence = $("#question-sequence").html();
         total = $("#question-total").html();
 
@@ -347,6 +360,7 @@
 
         // Disable interaction if question was solved.
         was_solved = $(".question-body.show").data('was-solved');
+        controlExplanation(was_solved);
         if (was_solved){
           $("#submit").hide();
           $(".question-body.show .question-choice").prop("disabled", "disabled");
@@ -405,8 +419,10 @@
                     }
 
                     if (data.explanation){
-                      $(".question-body.show .explanation").append(data.explanation).show();
+                      $(".question-body.show .explanation-content").html(data.explanation).show();
                     }
+
+                    controlExplanation(true);
                 } else {
                   toastr.error(data.message);
                 }
@@ -452,7 +468,7 @@
           backdrop: 'static',
           show    : false,
         });
-        $("#explain").click(function () {
+        $("#explain, a.explain").click(function () {
             $("#explain-question-modal").modal('show');
             url = "{% url 'exams:contribute_explanation' %}?" + $.param({question_pk: data.question_pk})
             $("#explain-question-modal .modal-body").load(url);
