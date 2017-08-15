@@ -1,0 +1,78 @@
+ {% load bootstrap3 %}{% load static exam_utils %}
+<form method="post"  enctype="multipart/form-data" id="modify-explanation-form">
+  {% csrf_token %}
+  <div id=explaination  style="margin-top: 5%;" class="form-group has-feedback has-feedback-left">
+    <label class="control-label">Explain the answer!</label> <a data-placement="left" class="circle" data-toggle="tooltip" title="An explanation is written to support your claim of the right answer, it would be displayed with the question during sessions."> ? </a>
+		{% bootstrap_field form.explanation show_label=False %}
+		<div class="form-control-feedback">
+			<i class=" icon-info22 text-muted"></i>
+		</div>
+  </div>
+  <input type="hidden" value="{{ question.pk }}" name="question_pk">
+  <button type="submit" action ='submit' class="btn bg-primary btn-block btn-lg">Improve explanation <i class="icon-circle-right2 position-right"></i></button>
+</form>
+
+<style>
+.circle {
+   width: 20px;
+   height: 20px;
+   background: lightblue;
+   -moz-border-radius: 10px;
+   -webkit-border-radius: 10px;
+   border-radius: 10px;
+    text-align: center;
+    color: white;
+    float: right;
+}
+</style>
+{% block customscript %}
+     <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
+    <script src="{% static 'js/jquery.formset.js' %}"></script>
+    <script src="{% static 'js/jquery.autogrowtextarea.min.js' %}"></script>
+    <script src="{% static 'js/toastr.js' %}"></script>
+
+        <script type="text/javascript">
+
+    $(document).ready(function(){
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+
+    $("#choice_formset .form-container").formset({
+            prefix: '{{ choice_formset.prefix }}',
+            addText: 'Add a Choice',
+            deleteText: 'Delete',
+            addCssClass: 'add-row btn btn-xs btn-primary',
+            deleteCssClass: 'delete-row btn btn-xs btn-danger',
+    });
+    $("#id_change_summary").append("Modify Explanation");
+    $(function() {
+        $("form#modify-explanation-form").submit(function (event) {
+        /* stop form from submitting normally */
+            event.preventDefault();
+            /* get some values from elements on the page: */
+            var formData = new FormData($(this)[0]);
+            url = "{% url 'exams:contribute_explanation' %}?" + $.param({question_pk: {{ question.pk }}});
+            /* Send the data */
+
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: formData,
+                cache: false,
+                contentType: false,
+                enctype: 'multipart/form-data',
+                processData: false,
+                success: function (data) {
+                    if (data.success == 1) {
+                        // show success message (using toastr)
+                        toastr.success("We greatly apprciate your contribution" );
+                        $("#explain-question-modal").modal('hide');
+                    } else {
+                        toastr.warning("There was an issue! " + data.message);
+                    }
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

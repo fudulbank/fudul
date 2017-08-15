@@ -442,10 +442,8 @@
         });
         $("#contribute").click(function () {
             $("#modify-question-modal").modal('show');
-            $("#modify-question-modal .modal-title").html("Submit a Revision");
-            $("#modify-question-modal .modal-body").load("{% url 'exams:submit_users_revision' current_question.get_latest_approved_revision.pk  %}", function(){
-
-            });
+            url = "{% url 'exams:contribute_revision' %}?" + $.param({question_pk: data.question_pk})
+            $("#modify-question-modal .modal-body").load(url);
 
         });
         // initialize project edit modal
@@ -456,12 +454,8 @@
         });
         $("#explain").click(function () {
             $("#explain-question-modal").modal('show');
-            $("#explain-question-modal .modal-title").html("Submit an Explaination");
-            $("#explain-question-modal .modal-body").load("{% url 'exams:submit_users_revision' current_question.get_latest_approved_revision.pk current_question.pk %}", function(){
-
-
-            });
-
+            url = "{% url 'exams:contribute_explanation' %}?" + $.param({question_pk: data.question_pk})
+            $("#explain-question-modal .modal-body").load(url);
         });
 
     });
@@ -472,11 +466,11 @@
             {% include "exams/modals/common_modal_v4.html" %}
         {% endwith %}
 
-        {% with modal_id='modify-question-modal' no_footer=True %}
+        {% with modal_id='modify-question-modal' no_footer=True modal_title="Edit the question" %}
              {% include "exams/modals/common_modal_v4.html" %}
         {% endwith %}
 
-        {% with modal_id='explain-question-modal' no_footer=True %}
+        {% with modal_id='explain-question-modal' no_footer=True modal_title="Explain the answer" %}
             {% include "exams/modals/common_modal_v4.html" %}
         {% endwith %}
     </body>

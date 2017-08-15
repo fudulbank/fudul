@@ -87,6 +87,8 @@
 			</div>
 		</div>
 
+    <input type="hidden" value="{{ question.pk }}" name="question_pk">
+
                <button type="submit" action ='submit' class="btn bg-primary btn-block btn-lg">Submit Revision <i class="icon-circle-right2 position-right"></i></button>
 
         </form>
@@ -148,11 +150,12 @@
         $("form#modify-revision-form").submit(function (event) {
         /* stop form from submitting normally */
             event.preventDefault();
+            url = "{% url 'exams:contribute_revision' %}?" + $.param({question_pk: {{ question.pk }}});
             /* get some values from elements on the page: */
             var formData = new FormData($(this)[0]);
             /* Send the data */
             $.ajax({
-                url: "{% url 'exams:modify_revision' revision.pk %}",
+                url: url,
                 type: 'POST',
                 data: formData,
                 cache: false,
@@ -160,10 +163,10 @@
                 enctype: 'multipart/form-data',
                 processData: false,
                 success: function (data) {
-                    if (data.message == "success") {
+                    if (data.success == 1) {
                         // show success message (using toastr)
-                        toastr.options.positionClass = "toast-top-left";
-                        toastr.success("We greatly apprciate your contribution" +data.new_revision );
+                        toastr.success("We greatly apprciate your contribution");
+                        $("#modify-question-modal").modal('hide');
                     } else {
                         toastr.warning("There was an issue! " + data.message);
                     }

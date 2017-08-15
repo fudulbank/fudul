@@ -15,11 +15,10 @@ urlpatterns =[
     url(r'^ajax/examiners/submit_answer$', views.submit_answer, name='submit_answer'),
     url(r'^ajax/examiners/toggle_marked$', views.toggle_marked, name='toggle_marked'),
     url(r'^ajax/examiners/navigate_question$', views.navigate_question, name='navigate_question'),
-    url(r'^ajax/examiners/explain$', views.submit_explanation, name='submit_explanation'),
+    url(r'^ajax/examiners/explain$', views.contribute_explanation, name='contribute_explanation'),
+    url(r'^ajax/examiners/edit$', views.contribute_revision, name='contribute_revision'),
     url(r'^tmep/end_session/$', TemplateView.as_view(template_name='exams/session_end.html'), name="session_end"),
     url(r'^previous_sessions/$', views.show_pevious_sessions, name='show_previous_sessions'),
-    url(r'^ajax/users/modify_revision/(?P<pk>\d+)$', views.modify_revision, name='modify_revision'),
-    url(r'^ajax/users/modify_revision_form/(?P<pk>\d+)(?:/(?P<question_pk>\d+))?$', views.submit_users_revision, name='submit_users_revision'),
 
 
     url(r'^indicators/categories/$', views.list_meta_categories, {'indicators': True}, name='list_category_indicators'),

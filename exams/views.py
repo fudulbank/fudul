@@ -502,26 +502,6 @@ def submit_answer(request):
             'right_choice_pk': right_choice_pk,
             'explanation': explanation}
 
-@login_required
-@decorators.ajax_only
-@csrf.csrf_exempt
-def submit_explanation(request):
-    question_pk = request.GET.get('question_pk')
-    question = get_object_or_404(Question, pk=question_pk)
-    latest_revision = question.get_latest_revision()
-    context = {'question': question}
-    if request.method == 'GET':
-        form = forms.ExplanationForm(instance=latest_revision)
-    elif request.method == 'POST':
-        form = forms.ExplanationForm(request.POST,
-                                     instance=latest_revision)
-        if form.is_valid():
-            form.clone(question, request.user)
-            return {}
-    context['form'] = form
-    return render(request, 'exams/partials/submit_explanation.html', context)
-
-
 def show_pevious_sessions(request):
 
     sessions= Session.objects.filter(submitter= request.user)
@@ -549,49 +529,55 @@ def show_category_indicators(request, category):
     context = {'category': category}
     return render(request, 'exams/show_category_indicators.html', context)
 
-
-@decorators.get_only
 @login_required
-def submit_users_revision(request,pk,question_pk=None):
-
-    revision = get_object_or_404(Revision, pk=pk)
-
-    context = { "revision":revision,
-                'revisionform': forms.RevisionForm(instance=revision),
-                'revisionchoiceformset': forms.RevisionChoiceFormset(instance=revision),}
-
-    if question_pk:
-        template_file = 'exams/partials/modify_explanation.html'
-    else:
-        template_file = "exams/partials/modify_revision.html"
-
-    return render(request, template_file, context)
-
 @decorators.ajax_only
 @csrf.csrf_exempt
-@decorators.post_only
+def contribute_explanation(request):
+    question_pk = request.GET.get('question_pk')
+    question = get_object_or_404(Question, pk=question_pk)
+    latest_revision = question.get_latest_revision()
+
+    if request.method == 'GET':
+        form = forms.ExplanationForm(instance=latest_revision)
+    elif request.method == 'POST':
+        form = forms.ExplanationForm(request.POST,
+                                     instance=latest_revision)
+        if form.is_valid():
+            form.clone(question, request.user)
+            return {}
+
+    context = {'question': question,
+               'form': form}
+    return render(request, 'exams/partials/contribute_explanation.html', context)
+
 @login_required
-def modify_revision(request,pk):
+@decorators.ajax_only
+@csrf.csrf_exempt
+def contribute_revision(request):
+    question_pk = request.GET.get('question_pk')
+    question = get_object_or_404(Question, pk=question_pk)
+    latest_revision = question.get_latest_revision()
 
-    revision = get_object_or_404(Revision, pk=pk)
-    #TODO :latest approved revision
-    question = revision.question
-    context = {'revision': revision}
-
-    if request.method == 'POST':
-
+    if request.method == 'GET':
+        revisionform = forms.RevisionForm(instance=latest_revision)
+        revisionchoiceformset = forms.RevisionChoiceFormset(instance=latest_revision)
+    elif request.method == 'POST':
         revisionform = forms.RevisionForm(request.POST,
                                           request.FILES,
-                                          instance=revision)
+                                          instance=latest_revision)
 
         revisionchoiceformset = forms.RevisionChoiceFormset(request.POST,
-                                                            instance=revision)
+                                                            instance=latest_revision)
         if revisionform.is_valid() and revisionchoiceformset.is_valid():
             new_revision = revisionform.clone(question,request.user)
             revisionchoiceformset.clone(new_revision)
-            return {"message": "success",'new_revision':new_revision.pk}
+            return {}
 
-    return render(request, 'exams/partials/modify_revision.html', context)
+    context = {'question': question,
+               'revisionform': revisionform,
+               'revisionchoiceformset': revisionchoiceformset}
+
+    return render(request, 'exams/partials/contribute_revision.html', context)
 
 @login_required
 def approve_user_contributions(request,slugs,exam_pk):
