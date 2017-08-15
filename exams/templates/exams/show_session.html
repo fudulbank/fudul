@@ -15,7 +15,6 @@
         <link href="https://cdn.jsdelivr.net/jquery.tooltipster/4.2.5/css/tooltipster.bundle.min.css" rel="stylesheet" type="text/css">
         <link href="https://cdn.jsdelivr.net/jquery.tooltipster/4.2.5/css/plugins/tooltipster/sideTip/themes/tooltipster-sideTip-shadow.min.css" rel="stylesheet" type="text/css">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/offline-js/0.7.19/themes/offline-theme-chrome.css" rel="stylesheet" type="text/css">
-        <link href="{% static 'limitless/assets/css/bootstrap.css' %}" rel="stylesheet" type="text/css">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/themes/black/pace-theme-minimal.min.css" rel="stylesheet" type="text/css">
         {% include 'partials/piwik.html' %}
@@ -148,6 +147,7 @@
     }
 
     #submit{
+        margin-top: 20px;
         margin-left: 9px;
         background: #0067A9;
         color: #fff;
@@ -161,6 +161,10 @@
 
     body.unfinished #results, body.finished #exit{
       display: none;
+    }
+
+    #question-container{
+      margin-top: 20px;
     }
 
     .question-body{
@@ -413,7 +417,7 @@
 
     function updateFooterMargins() {
       $("#question-container").css({
-        'margin-bottom': $('#footer').height() + 10
+        'margin-bottom': $('#footer').height() + 20
       })
     }
 
@@ -455,6 +459,7 @@
             $("#explain-question-modal .modal-title").html("Submit an Explaination");
             $("#explain-question-modal .modal-body").load("{% url 'exams:submit_users_revision' current_question.get_latest_approved_revision.pk current_question.pk %}", function(){
 
+
             });
 
         });
@@ -464,15 +469,15 @@
         </script>
 
         {% with modal_id='confirm-exit-modal' is_small=True confirm_link=True modal_content="<i class='text-danger icon-exit3'></i> Are you sure you want to exit this session, and mark unsubmitted questions as unsolved?" %}
-            {% include "exams/modals/common_edit_modal.html" %}
+            {% include "exams/modals/common_modal_v4.html" %}
         {% endwith %}
 
         {% with modal_id='modify-question-modal' no_footer=True %}
-             {% include "exams/modals/common_edit_modal.html" %}
+             {% include "exams/modals/common_modal_v4.html" %}
         {% endwith %}
 
         {% with modal_id='explain-question-modal' no_footer=True %}
-            {% include "exams/modals/common_edit_modal.html" %}
+            {% include "exams/modals/common_modal_v4.html" %}
         {% endwith %}
     </body>
 </html>
