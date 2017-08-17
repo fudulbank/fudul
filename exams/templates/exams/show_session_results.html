@@ -29,10 +29,7 @@ tbody tr td:last-child{
 					</div>
 {% endblock %}
 {% block content %}
-    <div style="float: right;">
 
- <a href="{% url 'exams:create_session' session.exam.category.get_slugs session.exam.pk %}" class="btn btn-primary">Create Another Session<i class="icon-arrow-right14 position-right"></i></a>
-    </div>
 <h1>Session #<a href="{% url 'exams:show_session' session.exam.category.get_slugs session.exam.pk session.pk %}">{{ session.pk }}</a> results</h1>
 
 

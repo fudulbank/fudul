@@ -366,7 +366,7 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
 def show_session_results(request, slugs, exam_pk, session_pk):
     category = Category.objects.get_from_slugs(slugs)
     session = get_object_or_404(Session, pk=session_pk)
-
+    exam = session.exam
     if not category:
         raise Http404
 
@@ -377,7 +377,7 @@ def show_session_results(request, slugs, exam_pk, session_pk):
             answers.append(answer)
         Answer.objects.bulk_create(answers)
 
-    context = {'session': session}
+    context = {'session': session,'exam':exam}
 
     return render(request, 'exams/show_session_results.html', context)
 
@@ -603,9 +603,9 @@ def approve_user_contributions(request,slugs,exam_pk):
     # PERMISSION CHECK
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
-
-    revisions = Revision.objects.per_exam(exam).filter(is_contribution =True,is_deleted=False)
-    contributed_questions = exam.get_contributed_questions()
+    pks = utils.get_contributed_questions(exam).values_list('pk', flat=True)
+    revisions = Revision.objects.per_exam(exam).filter(is_contribution =True,is_deleted=False).exclude(question__pk__in=pks)
+    contributed_questions = utils.get_contributed_questions(exam)
     number_of_contributions = Revision.objects.filter(submitter=request.user).count()
 
     context ={'revisions':revisions,'contributed_questions':contributed_questions,'number_of_contributions':number_of_contributions,'exam':exam}
