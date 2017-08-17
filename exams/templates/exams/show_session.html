@@ -117,11 +117,12 @@
         width: 100%;
     }
 
-    #footer .option a{
+    /* Styling "results", which is a direct link */
+    a.option{
         color: white;
     }
 
-    #footer .option a:hover{
+    a.option:hover{
         text-decoration: none;
     }
 
@@ -220,7 +221,7 @@
         </div>
         <div id="footer" class="row text-center">
           <div class="col-sm-6 text-left">
-           <div id="results" class="float-left float-sm-none option"><a href="{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}"><i class="icon-list3"></i> Results</a></div>
+           <a id="results" class="float-left float-sm-none option" href="{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}"><i class="icon-list3"></i> Results</a>
            <div id="exit" class="float-left float-sm-none option"><i class="icon-exit3"></i> Exit</div>
            <div id="contributors" class="float-right float-sm-none option" data-tooltip-content="#tooltip-body"><i class="icon-stars"></i> Contributors</div>
           </div>
@@ -442,9 +443,9 @@
     }
 
     $(function() {
-        url = "{% url 'exams:list_session_questions' %}?" + $.param({ {% if current_question_pk %}question_pk: {{ current_question_pk }},{% endif %}
-                                                                     session_pk: {{ session.pk }}});
-        $("#question-pool").load(url, function(){
+        pool_url = "{% url 'exams:list_session_questions' %}?" + $.param({ {% if current_question_pk %}question_pk: {{ current_question_pk }},{% endif %}
+                                                                          session_pk: {{ session.pk }}});
+        $("#question-pool").load(pool_url, function(){
           updateData();
           initializeInteractions();
         });
@@ -468,7 +469,6 @@
             $("#modify-question-modal").modal('show');
             url = "{% url 'exams:contribute_revision' %}?" + $.param({question_pk: data.question_pk})
             $("#modify-question-modal .modal-body").load(url);
-
         });
         // initialize project edit modal
         $('#explain-question-modal').modal({
