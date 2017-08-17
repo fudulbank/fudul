@@ -311,13 +311,15 @@ def create_session(request, slugs, exam_pk):
         raise Http404
 
     exam = get_object_or_404(Exam, pk=exam_pk, category=category)
-
+    #TODO: filter by most recent
+    sessions = Session.objects.filter(submitter= request.user)[:5]
 
     question_count = exam.get_approved_questions().count()
     editor = teams.utils.is_editor(request.user)
     context = {'exam': exam,
                'question_count': question_count,
-               'editor':editor}
+               'editor':editor,
+               'sessions':sessions}
 
     if request.method == 'GET':
         sessionform = forms.SessionForm(exam=exam)

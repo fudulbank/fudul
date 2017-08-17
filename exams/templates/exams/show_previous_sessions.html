@@ -14,27 +14,44 @@
 {% block content %}
     <div class="panel panel-flat">
     <div class="panel-heading">
-						Scores
+					<h4>Previous Sessions:</h4>
     </div>
     <div class="panel-body">
  <table id="scores" class="display datatable dt-responsive">
 
     <thead>
     <tr>
-        <th>ID</th>
-        <th>Date</th>
         <th>Score</th>
-        <th>Action</th>
+        <th>ID</th>
+        <th>Exam</th>
+        {#        <th>Date</th>#}
+        <th>Subjects</th>
+{#        <th>Score</th>#}
+        <th>Actions</th>
     </tr>
 </thead>
 <tbody>
-    {% for sesstion in sesstions %}
+    {% for session in sesstions %}
     <tr data-pk="{{ revision.question.pk }}">
-    <td>{{ sesstion.pk }}</td>
-    <td></td>
-    <td>{{ sesstion.correct_answers }}/ {{ sesstion.number_of_questions }}</td>
-    {% if not sesstion.finished %}
-        <td>resume</td>
+    {% if session.get_score %}
+    <td>  <button class="btn btn-primary btn-icon btn-rounded">{{ session.get_score }}%</button></td>
+    {% else %}
+    <td>  <button class="btn btn-primary btn-icon btn-rounded">0.0%</button></td>
+    {% endif %}
+    <td>{{ session.pk }}</td>
+    <td>{{ session.exam.name }}</td>
+{#    <td></td>#}
+    {% if session.subjects.count == 1 %}
+    <td>{{ session.subjects.first.name }}</td>
+    {% else %}
+    <td>Multiple</td>
+    {% endif %}
+{#    <td>{{ session.get_correct_answer_count }}/ {{ session.number_of_questions }}</td>#}
+    {% if not session.has_finished %}
+        <td> <a href="{% url 'exams:show_session' session.exam.category.get_slugs session.exam.pk session.pk %}"> Resume </a></td>
+{#        <button class="btn btn-primary btn-icon btn-rounded"><i class="icon-play4"></i></button>#}
+    {% else %}
+        <td><a href="{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}"> View Results </a></td>
     {% endif %}
   </tr>
 
@@ -53,7 +70,7 @@
     <script>
     $(function () {
         $("#scores").DataTable({
-            "order": [[ 3, "desc" ]]
+            "order": [[ 2, "desc" ]]
         });
     });
     </script>

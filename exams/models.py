@@ -367,7 +367,8 @@ class Session(models.Model):
     question_filter = models.CharField(max_length=20, choices=questions_choices, default=None)
 
     def get_score(self):
-        return self.get_correct_answer_count() / self.number_of_questions * 100
+        if not self.number_of_questions ==0 :
+            return round(self.get_correct_answer_count() / self.number_of_questions * 100, 2)
 
     def get_correct_answer_count(self):
         return self.answer_set.filter(choice__is_right=True).count()

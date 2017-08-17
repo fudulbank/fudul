@@ -55,20 +55,7 @@
 {% block title %}Fudul | Start Sesstion in {{ exam.name }}{% endblock %}
 
 {% block sidepanel %}
-{#    TODO: change filter #}
-{#        {% if editor %}#}
-{#            <li>#}
-{#                <a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}"><i class="icon-pen-plus"></i> <span>Add Question</span></a>#}
-{#            </li>#}
-{#            <li>#}
-{#               <a href="{% url 'exams:approve_user_contributions' exam.category.get_slugs exam.pk %}"><i class="icon-file-plus"></i> <span>User contributions</span></a>#}
-{##}
-{#            </li>#}
-{#        {% else %}#}
-{#            <li>#}
-{#                <a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}"><i class="icon-database-add"></i> <span>Submit A Question</span></a>#}
-{#            </li>#}
-{#         {% endif %}#}
+
 {% endblock %}
 
 {% block breadcrumb %}
@@ -176,8 +163,38 @@
     {% if editor %}
     <div class="col-md-4">
         <div id="exam-stats" class="panel panel-flat">
+        <div class="panel-heading">
+            <h5> Your Latest Sessions :</h5>
+        </div>
            <div class="panel-body">
-               {% include 'exams/partials/exam_stats.html' %}
+               <ul>
+                   {% for session in sessions %}
+
+
+
+                       <div class="panel panel-body">
+								<div class="media">
+									<div class="media-left">
+                                    {% if session.get_score %}
+                                    <a  {% if session.has_finished %}href=""{% else %} href="{% url 'exams:show_session' session.exam.category.get_slugs session.exam.pk session.pk %}">{% endif %}><button class="btn btn-primary btn-icon btn-rounded">{{ session.get_score }}%</button></a>
+                                    {% else %}
+                                     <button class="btn btn-primary btn-icon btn-rounded">0.0%</button>
+                                    {% endif %}
+									</div>
+
+									<div class="media-body">
+										<h6 class="media-heading">#{{ session.pk }}</h6>
+										<span class="text-muted"></span>
+									</div>
+
+									<div class="media-right media-middle">
+
+									</div>
+								</div>
+							</div>
+
+                   {% endfor %}
+               </ul>
                <br>
 
            </div>
