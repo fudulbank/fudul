@@ -334,6 +334,28 @@ def create_session(request, slugs, exam_pk):
 
     return render(request, "exams/create_session.html", context)
 
+@decorators.ajax_only
+@decorators.get_only
+@login_required
+def list_session_questions(request):
+    question_pk = request.GET.get('question_pk')
+    session_pk = request.GET.get('session_pk')
+    session = get_object_or_404(Session, pk=session_pk)
+
+    # If a question PK is given, show it.  Otheriwse show the first
+    # session unused question.  Otherwise, show the first session
+    # question.
+    if question_pk:
+        current_question = get_object_or_404(session.questions, pk=question_pk)
+    elif not session.has_finished():
+        current_question = session.get_unused_questions().first()
+    else:
+        current_question = session.questions.order_by('global_sequence').first()
+
+    return render(request, "exams/partials/session_question_list.html",
+                  {'session': session,
+                   'current_question': current_question})
+
 @login_required
 def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     category = Category.objects.get_from_slugs(slugs)
@@ -346,6 +368,7 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     if not session.can_access(request.user):
         raise PermissionDenied
 
+    # FIXME: Check the validity of question_pk
     # If a question PK is given, show it.  Otheriwse show the first
     # session unused question.  Otherwise, show the first session
     # question.
@@ -355,12 +378,15 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
         current_question = session.get_unused_questions().first()
     else:
         current_question = session.questions.order_by('global_sequence').first()
-
     current_question_sequence = session.get_question_sequence(current_question)
+    context = {'session': session,
+               'current_question': current_question,
+               'current_question_sequence': current_question_sequence}
 
-    return render(request, "exams/show_session.html", {'session': session,
-                                                       'current_question': current_question,
-                                                       'current_question_sequence': current_question_sequence})
+    if question_pk:
+        context['current_question_pk'] = question_pk
+
+    return render(request, "exams/show_session.html", context)
 
 @login_required
 def show_session_results(request, slugs, exam_pk, session_pk):
