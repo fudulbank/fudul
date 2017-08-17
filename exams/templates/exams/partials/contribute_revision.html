@@ -1,22 +1,14 @@
 {% load bootstrap3 %}{% load static exam_utils %}
     <div class="panel panel-flat">
-                       <div class="panel-body">
+     <div class="panel-body">
         <form method="post"  enctype="multipart/form-data" id="modify-revision-form" action="post">
 	    {% csrf_token %}
     <div class="row">
 
-		<div class="form-group">
-            <div class="col-md-6">
-
-            <label class="control-label"><i class="icon-stack-check text-muted"></i> Status</label> <a data-placement="left" class="circle" data-toggle="tooltip" title="Before tagging a question as 'complete' make sure it has complete answers, and it should be solved."> ? </a>
-
-			{% bootstrap_field revisionform.statuses show_label=False  %}
-              </div>
-		</div>
-
-
         {% bootstrap_form_errors revisionform %}
-
+        <div style="display: none">
+        {% bootstrap_field revisionform.statuses %}
+    </div>
 	<div class="col-md-6">
 		<div class="form-group" id="figure">
                         <label class="control-label"><i class="icon-image2 text-muted"></i> Corresponding figure</label>
@@ -24,14 +16,13 @@
 
 		</div>
 	</div>
-</div>
+    </div>
 
         <div class="form-group has-feedback has-feedback-left">
             <label class="control-label">Question Text</label>
 
 			{% bootstrap_field revisionform.text show_label=False %}
 			<div class="form-control-feedback">
-				<i class="icon-pencil text-muted"></i>
 			</div>
 		</div>
 
@@ -76,14 +67,13 @@
             <label class="control-label">Answer explanation</label> <a data-placement="left" class="circle" data-toggle="tooltip" title="An explanation is written to support your claim of the right answer, it would be displayed with the question during sessions."> ? </a>
 			{% bootstrap_field revisionform.explanation show_label=False %}
 			<div class="form-control-feedback">
-				<i class=" icon-info22 text-muted"></i>
 			</div>
 		</div>
         <div class="form-group has-feedback has-feedback-left">
+
             <label class="control-label">Summary of change</label><a data-placement="left" class="circle" data-toggle="tooltip" title="Please briefly explain what have you modified in the question."> ? </a>
 			{% bootstrap_field revisionform.change_summary show_label=False %}
-			<div class="form-control-feedback">
-				<i class=" icon-database-edit2 text-muted"></i>
+           <div class="form-control-feedback">
 			</div>
 		</div>
 

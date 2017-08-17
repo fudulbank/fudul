@@ -6,6 +6,7 @@ urlpatterns =[
     url(r'^$', views.list_meta_categories, name='list_meta_categories'),
     url(r'^ajax/general/questions$', views.QuestionAutocomplete.as_view(), name='autocomplete_questions'),
     url(r'^ajax/general/subjects', views.SubjectQuestionCount.as_view(), name='subject_questions_count'),
+    url(r'^ajax/general/exam_types', views.ExamTypeQuestionCount.as_view(), name='exam_type_questions_count'),
     url(r'^ajax/collectors/show_question/(?P<pk>\d+)(?:/(?P<revision_pk>\d+))?$', views.show_question, name='show_question'),
     url(r'^ajax/collectors/handle_question/(?P<exam_pk>\d+)(?:/(?P<question_pk>\d+))?$', views.handle_question, name='handle_question'),
     url(r'^ajax/collectors/delete_question/(?P<pk>\d+)$', views.delete_question, name='delete_question'),

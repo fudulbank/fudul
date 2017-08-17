@@ -1,4 +1,4 @@
-<!DOCTYPE html>{% load static %}
+<!DOCTYPE html>{% load static %}{% load exam_utils %}
 <html lang="en">
 <head>
 
@@ -47,6 +47,7 @@
 			<a class="navbar-brand" href="{% url 'index' %}"></a>
 
 			<ul class="nav navbar-nav visible-xs-block">
+                <li><a href="{% url 'userena_signout' %}"><i class=" icon-switch"></i></a></li>
 				<li><a data-toggle="collapse" data-target="#navbar-mobile"><i class="icon-tree5"></i></a></li>
 				<li><a class="sidebar-mobile-main-toggle"><i class="icon-paragraph-justify3"></i></a></li>
 			</ul>
@@ -110,6 +111,24 @@
                             <li>
 									<a href="{% url 'exams:show_previous_sessions' %}"><i class="icon-drawer3"></i> <span>Previous sessions</span></a>
 								</li>
+                            {% if exam %}
+                                {% if exam.category|is_editor:user %}
+                            <li>
+                                <a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}"><i class="icon-pen-plus"></i> <span>Add Question</span></a>
+                            </li>
+                            <li>
+                               <a href="{% url 'exams:approve_user_contributions' exam.category.get_slugs exam.pk %}"><i class="icon-file-plus"></i> <span>User contributions</span></a>
+                            </li>
+                             {% else %}
+                            <li>
+                                <a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}"><i class="icon-database-add"></i> <span>Submit A Question</span></a>
+                            </li>
+                            {% endif %}
+                            <li>
+                            <a href="{% url 'exams:create_session' exam.category.get_slugs exam.pk %}"><i class="icon-pencil3"></i>Start Session</a>
+                            </li>
+
+                            {% endif %}
                                 {% block sidepanel %}
                                 {% endblock %}
 {% if user.is_superuser %}
