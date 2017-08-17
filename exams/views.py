@@ -432,7 +432,7 @@ def navigate_question(request):
         raise Exception("No %s question" % action)        
 
     question_sequence = session.get_question_sequence(question)
-    template = get_template('exams/partials/session-question.html')
+    template = get_template('exams/partials/session_question.html')
     context = {'question': question, 'session': session}
     question_body = template.render(context)
     is_marked = utils.is_question_marked(question, request.user)

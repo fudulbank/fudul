@@ -16,7 +16,7 @@
         <link href="https://cdn.jsdelivr.net/jquery.tooltipster/4.2.5/css/plugins/tooltipster/sideTip/themes/tooltipster-sideTip-shadow.min.css" rel="stylesheet" type="text/css">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/offline-js/0.7.19/themes/offline-theme-chrome.css" rel="stylesheet" type="text/css">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/themes/black/pace-theme-minimal.min.css" rel="stylesheet" type="text/css">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/themes/black/pace-theme-loading-bar.min.css" rel="stylesheet" type="text/css">
         {% include 'partials/piwik.html' %}
         <style>
     body, html, #container{
@@ -207,7 +207,7 @@
           <div id="question-pool">
             {% for question in session.questions.order_global_sequence %}
                {% with question_sequence=forloop.counter %}
-                {% include 'exams/partials/session-question.html' %}
+                {% include 'exams/partials/session_question.html' %}
                {% endwith %}
             {% endfor %}
           </div>
