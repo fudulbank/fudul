@@ -1,0 +1,5 @@
+{% for question in session.questions.order_global_sequence %}
+   {% with question_sequence=forloop.counter %}
+    {% include 'exams/partials/session_question.html' %}
+   {% endwith %}
+{% endfor %}
