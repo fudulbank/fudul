@@ -29,3 +29,16 @@ def show_explanation(question, session):
         return session.has_finished()
     else:
         return question.was_solved_in_session(session)
+
+@register.filter
+def is_editor(category, user):
+    if user.is_superuser:
+        return True
+
+    while category:
+        if category.privileged_teams.filter(members__pk=user.pk).exists():
+            return True
+        category = category.parent_category
+
+    return False
+

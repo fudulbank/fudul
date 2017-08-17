@@ -521,6 +521,18 @@ class SubjectQuestionCount(autocomplete.Select2QuerySetView):
     def get_result_label(self, item):
         return "<strong>{}</strong> ({})".format(item.name, item.question_set.count())
 
+class ExamTypeQuestionCount(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        exam_pk = self.forwarded.get('exam_pk')
+        exam = Exam.objects.get(pk=exam_pk)
+        qs = exam.get_exam_types()
+        if self.q:
+            qs = qs.filter(pk=self.q)
+        return qs
+
+    def get_result_label(self, item):
+        return "<strong>{}</strong> ({})".format(item.name, item.question_set.count())
+
 
 def show_category_indicators(request, category):
     if not request.user.is_superuser:

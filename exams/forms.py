@@ -171,7 +171,9 @@ class SessionForm(forms.ModelForm):
         model = models.Session
         fields = ['session_mode', 'number_of_questions','exam_types', 'sources','subjects','question_filter']
         widgets = {
-            'exam_types': autocomplete.ModelSelect2Multiple(),
+            'exam_types': autocomplete.ModelSelect2Multiple(url='exams:exam_type_questions_count',
+                                                         forward=['exam_pk'],
+                                                         attrs={'data-html': True}),
             'sources': autocomplete.ModelSelect2Multiple(),
             # 'subjects': autocomplete.ModelSelect2Multiple(url='exams:subject_questions_count',
             #                                              forward=['exam_pk'],

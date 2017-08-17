@@ -83,8 +83,7 @@ class Category(models.Model):
 
         category = self
         while category:
-            if category.privileged_teams.filter(access='editors',
-                                                members__pk=user.pk).exists():
+            if category.privileged_teams.filter(members__pk=user.pk).exists():
                 return True
             category = category.parent_category
 

@@ -1,4 +1,4 @@
-{% extends 'base.html' %}{% load staticfiles %}{% load bootstrap3 %}{% load teams_utlis %}
+{% extends 'base.html' %}{% load staticfiles %}{% load bootstrap3 %}{% load exam_utils %}
 {% block head %}
     <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery.tooltipster/4.2.5/js/tooltipster.bundle.min.js"></script>
     <link href="https://cdn.jsdelivr.net/jquery.tooltipster/4.2.5/css/tooltipster.bundle.min.css" rel="stylesheet" type="text/css">
@@ -56,19 +56,19 @@
 
 {% block sidepanel %}
 {#    TODO: change filter #}
-        {% if editor %}
-            <li>
-                <a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}"><i class="icon-pen-plus"></i> <span>Add Question</span></a>
-            </li>
-            <li>
-               <a href="{% url 'exams:approve_user_contributions' exam.category.get_slugs exam.pk %}"><i class="icon-file-plus"></i> <span>User contributions</span></a>
-
-            </li>
-        {% else %}
-            <li>
-                <a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}"><i class="icon-database-add"></i> <span>Submit A Question</span></a>
-            </li>
-         {% endif %}
+{#        {% if editor %}#}
+{#            <li>#}
+{#                <a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}"><i class="icon-pen-plus"></i> <span>Add Question</span></a>#}
+{#            </li>#}
+{#            <li>#}
+{#               <a href="{% url 'exams:approve_user_contributions' exam.category.get_slugs exam.pk %}"><i class="icon-file-plus"></i> <span>User contributions</span></a>#}
+{##}
+{#            </li>#}
+{#        {% else %}#}
+{#            <li>#}
+{#                <a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}"><i class="icon-database-add"></i> <span>Submit A Question</span></a>#}
+{#            </li>#}
+{#         {% endif %}#}
 {% endblock %}
 
 {% block breadcrumb %}
