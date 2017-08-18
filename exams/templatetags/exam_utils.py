@@ -42,6 +42,11 @@ def is_editor(category, user):
 
     return False
 
+@register.filter
+def get_user_answered_question_count(exam, user):
+    return exam.get_user_answered_questions(user).count()
+
 @register.simple_tag
 def get_user_answer_stats(target, user, result, percent=False):
     return utils.get_user_answer_stats(target, user, result, percent)
+

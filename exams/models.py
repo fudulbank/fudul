@@ -188,6 +188,9 @@ class Exam(models.Model):
         questions = Question.objects.undeleted().filter(pk__in=pks,subjects=subjects,sources=sources,exam_types=exam_types)
         return questions
 
+    def get_user_answered_questions(self, user):
+        return Question.objects.filter(answer__session__submitter=user).distinct()
+
     def __str__(self):
         return self.name
 

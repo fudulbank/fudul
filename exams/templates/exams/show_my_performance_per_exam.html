@@ -5,6 +5,21 @@
 {% block head %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chartist/0.11.0/chartist.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartist/0.11.0/chartist.min.js"></script>
+<link rel="stylesheet" href="{% static 'css/jquery.dataTables.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/datatables/responsive/css/responsive.dataTables.min.css' %}">
+<script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'js/datatables/responsive/js/dataTables.responsive.min.js' %}"></script>
+
+{% endblock %}
+
+{% block breadcrumb %}
+<div class="breadcrumb-line">
+	<ul class="breadcrumb">
+		<li><a href="{% url 'index' %}"><i class="icon-home2 position-left"></i> Fudul</a></li>
+    <li><a href="{% url 'exams:show_my_performance' %}">My performance</a></li>
+    <li class="active">{{ exam.name }}</li>
+	</ul>
+</div>
 {% endblock %}
 
 {% block content %}
@@ -13,13 +28,13 @@
 <h2>{{ exam.name }} performance</h2>
 <div id="performance-chart"></div>
 <h2>Performance per subject</h2>
-<table class="table table-hover" id="exam-stats">
+<table class="datatable display dt-responsive">
   <thead>
     <tr>
       <th>Subject</th>
-      <th>Correct</th>
-      <th>Incorrect</th>
-      <th>Skipped</th>
+      <th>Correct answers</th>
+      <th>Incorrect answers</th>
+      <th class="not-mobile">Skipped answers</th>
     </tr>
   </thead>
   <tbody>
@@ -35,4 +50,11 @@
 </table>
 
 {% include 'exams/partials/performance_chart.html' %}
+
+<script>
+$(function () {
+    $("table.datatable").DataTable();
+});
+</script>
+
 {% endblock %}
