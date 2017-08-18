@@ -680,3 +680,40 @@ def approve_question(request, slugs, exam_pk,pk):
 
     return render(request, "exams/add_question.html", context)
 
+@login_required
+def show_my_performance(request):
+    answer_pool = Answer.objects.filter(session__submitter=request.user)
+    total_answers = answer_pool.count()
+    correct_answers = answer_pool.filter(choice__is_right=True).count()
+    incorrect_answers = answer_pool.filter(choice__is_right=False).count()
+    skipped_answers = answer_pool.filter(choice__isnull=True).count()
+
+    # Only get exams which the user has taken
+    exams = Exam.objects.filter(session__submitter=request.user).distinct()
+
+    context = {'correct_answers': correct_answers,
+               'incorrect_answers': incorrect_answers,
+               'skipped_answers': skipped_answers,
+               'exams': exams}
+
+    return render(request, "exams/show_my_performance.html", context)
+
+@login_required
+def show_my_performance_per_exam(request, exam_pk):
+    user_exams = Exam.objects.filter(session__submitter=request.user).distinct()
+    exam = get_object_or_404(user_exams, pk=exam_pk)
+    correct_answers =  utils.get_user_answer_stats(target=exam,
+                                                   user=request.user,
+                                                   result='correct')
+    incorrect_answers =  utils.get_user_answer_stats(target=exam,
+                                                     user=request.user,
+                                                     result='incorrect')
+    skipped_answers =  utils.get_user_answer_stats(target=exam,
+                                                   user=request.user,
+                                                   result='correct')
+    context = {'correct_answers': correct_answers,
+               'incorrect_answers': incorrect_answers,
+               'skipped_answers': skipped_answers,
+               'exam': exam}
+
+    return render(request, "exams/show_my_performance_per_exam.html", context)

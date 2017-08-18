@@ -197,6 +197,7 @@ class Subject(models.Model):
     submission_date = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
     objects = managers.SubjectQuerySet.as_manager()
+
     def __str__(self):
         return self.name
 

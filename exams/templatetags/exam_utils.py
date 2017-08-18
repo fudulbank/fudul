@@ -1,5 +1,5 @@
 from django import template
-from exams import utils
+from exams import utils, models
 
 register = template.Library()
 
@@ -42,3 +42,6 @@ def is_editor(category, user):
 
     return False
 
+@register.simple_tag
+def get_user_answer_stats(target, user, result, percent=False):
+    return utils.get_user_answer_stats(target, user, result, percent)

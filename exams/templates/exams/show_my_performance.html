@@ -1,0 +1,37 @@
+{% extends 'base.html' %}{% load staticfiles bootstrap3 exam_utils %}
+
+{% block title %}Fudul | My performance {% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chartist/0.11.0/chartist.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartist/0.11.0/chartist.min.js"></script>
+{% endblock %}
+
+{% block content %}
+
+<h1>My performance</h1>
+<h2>Over all performance</h2>
+<div id="performance-chart"></div>
+<h2>Performance per exam</h2>
+<table class="table table-hover" id="exam-stats">
+  <thead>
+    <tr>
+      <th>Exam</th>
+      <th>Correct</th>
+      <th>Incorrect</th>
+      <th>Skipped</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for exam in exams %}
+      <tr>
+        <td><a href="{% url 'exams:show_my_performance_per_exam' exam.pk %}">{{ exam.name }}</a></td>
+        <td>{% get_user_answer_stats exam user 'correct' %} ({% get_user_answer_stats exam user 'correct' percent=True %}%)</td>
+        <td>{% get_user_answer_stats exam user 'incorrect' %} ({% get_user_answer_stats exam user 'incorrect' percent=True %}%)</td>
+        <td>{% get_user_answer_stats exam user 'skipped' %} ({% get_user_answer_stats exam user 'skipped' percent=True %}%)</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% include 'exams/partials/performance_chart.html' %}
+{% endblock %}

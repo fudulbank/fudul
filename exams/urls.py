@@ -20,7 +20,8 @@ urlpatterns =[
     url(r'^ajax/examiners/edit$', views.contribute_revision, name='contribute_revision'),
     url(r'^tmep/end_session/$', TemplateView.as_view(template_name='exams/session_end.html'), name="session_end"),
     url(r'^previous_sessions/$', views.show_pevious_sessions, name='show_previous_sessions'),
-
+    url(r'^performance/$', views.show_my_performance, name='show_my_performance'),
+    url(r'^performance/(?P<exam_pk>\d+)/$', views.show_my_performance_per_exam, name='show_my_performance_per_exam'),
 
     url(r'^indicators/categories/$', views.list_meta_categories, {'indicators': True}, name='list_category_indicators'),
     url(r'^indicators/categories/(?P<slugs>[/\d\w\-]+)/$', views.show_category, {'indicators': True}, name='show_category_indicators'),

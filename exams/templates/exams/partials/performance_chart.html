@@ -1,0 +1,37 @@
+<style>
+#performance-chart{
+  height: 300px;
+}
+
+.ct-series-a .ct-slice-pie{
+  fill: #00a314;
+}
+
+.ct-series-b .ct-slice-pie{
+  fill: #d70206;
+}
+
+.ct-series-c .ct-slice-pie{
+  fill: #f4c63d;
+}
+
+.ct-label {
+    fill: black;
+    color: black;
+    font-size: 1.2rem;
+}
+</style>
+
+<script>
+data = {
+  labels: ['Correct', 'Incorrect', 'Skipped'],
+  series: [{{ correct_answers }}, {{ incorrect_answers }}, {{ skipped_answers }}]
+}
+var sum = function(a, b) { return a + b };
+new Chartist.Pie('#performance-chart', data, {
+  showLabel: true,
+  labelInterpolationFnc: function(label, index) {
+    percentage =  Math.round(data.series[index] / data.series.reduce(sum) * 100) + '%';
+  return label + " (" + percentage + ")" ;}
+});
+</script>
