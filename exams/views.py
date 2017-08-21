@@ -7,6 +7,7 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpRespons
 from django.shortcuts import get_object_or_404, render
 from django.template.loader import get_template
 from django.views.decorators import csrf
+from htmlmin.decorators import minified_response
 
 from core import decorators
 from .models import Exam, Question, Category, Revision, Session, Choice, Answer
@@ -336,6 +337,7 @@ def create_session(request, slugs, exam_pk):
 
     return render(request, "exams/create_session.html", context)
 
+@minified_response
 @decorators.ajax_only
 @decorators.get_only
 @login_required
@@ -344,15 +346,7 @@ def list_session_questions(request):
     session_pk = request.GET.get('session_pk')
     session = get_object_or_404(Session, pk=session_pk)
 
-    # If a question PK is given, show it.  Otheriwse show the first
-    # session unused question.  Otherwise, show the first session
-    # question.
-    if question_pk:
-        current_question = get_object_or_404(session.questions, pk=question_pk)
-    elif not session.has_finished():
-        current_question = session.get_unused_questions().first()
-    else:
-        current_question = session.questions.order_by('global_sequence').first()
+    current_question = session.get_current_question(question_pk)
 
     return render(request, "exams/partials/session_question_list.html",
                   {'session': session,
@@ -370,17 +364,9 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     if not session.can_access(request.user):
         raise PermissionDenied
 
-    # FIXME: Check the validity of question_pk
-    # If a question PK is given, show it.  Otheriwse show the first
-    # session unused question.  Otherwise, show the first session
-    # question.
-    if question_pk:
-        current_question = get_object_or_404(session.questions, pk=question_pk)
-    elif not session.has_finished():
-        current_question = session.get_unused_questions().first()
-    else:
-        current_question = session.questions.order_by('global_sequence').first()
+    current_question = session.get_current_question(question_pk)
     current_question_sequence = session.get_question_sequence(current_question)
+
     context = {'session': session,
                'current_question': current_question,
                'current_question_sequence': current_question_sequence}
@@ -431,46 +417,6 @@ def toggle_marked(request):
         is_marked = True
 
     return {'is_marked': is_marked}
-
-@decorators.ajax_only
-@decorators.post_only
-@login_required
-@csrf.csrf_exempt
-def navigate_question(request):
-    question_pk = request.POST.get('question_pk')
-    session_pk = request.POST.get('session_pk')
-    action = request.POST.get('action')
-    session = get_object_or_404(Session, pk=session_pk)
-    current_question = get_object_or_404(session.questions, pk=question_pk)
-
-    # PERMISSION CHECK
-    if not session.can_access(request.user):
-        raise Exception("You cannot mark questions in this sessions")
-
-    question_pool = session.questions.order_by('global_sequence')
-    global_sequence = current_question.global_sequence
-    if action == 'next':
-        question = question_pool.exclude(global_sequence__lte=global_sequence).first()
-    elif action == 'previous':
-        question = question_pool.exclude(global_sequence__gte=global_sequence).last()
-    else:
-        return HttpResponseBadRequest("No valid action was provided.")
-
-    if not question:
-        raise Exception("No %s question" % action)        
-
-    question_sequence = session.get_question_sequence(question)
-    template = get_template('exams/partials/session_question.html')
-    context = {'question': question, 'session': session}
-    question_body = template.render(context)
-    is_marked = utils.is_question_marked(question, request.user)
-    url = question.get_session_url(session)
-
-    return {"is_marked": is_marked,
-            'url': url,
-            'question_sequence': question_sequence,
-            'question_pk': question.pk,
-            "question_body": question_body}
 
 @decorators.ajax_only
 @decorators.post_only
