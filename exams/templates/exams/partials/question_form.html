@@ -4,18 +4,22 @@
 	    {% csrf_token %}
 
 <div class="row">
+
+
 	<div class="col-md-6">
 		<div class="form-group">
                         <label class="control-label"><i class="icon-filter3 text-muted"></i> Exam type</label>
             <div  id='exam-type'>
-			{% bootstrap_field questionform.exam_type show_label=False %}
+			{% bootstrap_field questionform.exam_types show_label=False %}
             </div>
 		</div>
 	</div>
 	<div class="col-md-6">
 		<div class="form-group">
-                        <label class="control-label"><i class="icon-stack-check text-muted"></i> Status</label>
+                        <label class="control-label"><i class="icon-stack-check text-muted"></i> Status</label> {% if question %}<small style="margin-left: 1%;color: red"> This question will be approved if you set status to complete.</small>{% endif %}<a data-placement="left" class="circle" data-toggle="tooltip" title="Before tagging a question as 'complete' make sure it has complete answers, and it should be solved."> ? </a>
+
 			{% bootstrap_field revisionform.statuses show_label=False  %}
+
 		</div>
 	</div>
 	<div class="col-md-6">
@@ -33,9 +37,8 @@
 	</div>
 	<div class="col-md-6">
 		<div class="form-group">
-                        <label class="control-label"><i class="icon-list-unordered text-muted"></i> Parent question</label>
+                        <label class="control-label"><i class="icon-list-unordered text-muted"></i> Parent question</label><a class="circle" data-placement="left" data-toggle="tooltip"  title="if you are adding a case questions you can use parent question field by typing the number of the question that should come before it."> ? </a>
 			{{ questionform.parent_question }}
-
 		</div>
 	</div>
         {% bootstrap_form_errors revisionform %}
@@ -58,6 +61,7 @@
 		</div>
 
                       <h3>Question Choices</h3>
+
                         {{ revisionchoiceformset.management_form }}
                         {{ revisionchoiceformset.non_form_errors.as_ul }}
                         <table id="choice_formset" class="form" style="width: 100%;">
@@ -115,6 +119,17 @@
         </form>
 
 <style>
+.circle {
+   width: 20px;
+   height: 20px;
+   background: lightblue;
+   -moz-border-radius: 10px;
+   -webkit-border-radius: 10px;
+   border-radius: 10px;
+    text-align: center;
+    color: white;
+    float: right;
+}
 .select2-selection--single{
     padding: 0;
 }
@@ -127,10 +142,18 @@
     float: left;
     margin-right: 2px;
     margin-top: 2px;
-    padding: 7px 12px;
+    /*padding: 7px 12px;*/
 }
 
 .select2-container--default .select2-selection--multiple .select2-selection__choice__remove{
     color: white;
 }
 </style>
+{% block customscript %}
+        <script type="text/javascript">
+
+    $(document).ready(function(){
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>
+{% endblock %}

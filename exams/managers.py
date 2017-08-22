@@ -6,6 +6,9 @@ class QuestionQuerySet(models.QuerySet):
         return self.undeleted().exclude(revision__is_approved=True)\
                    .distinct()
 
+    def order_global_sequence(self):
+        return self.order_by('global_sequence')
+
     def order_by_submission(self):
         return self.order_by('-pk')
 
@@ -15,6 +18,9 @@ class QuestionQuerySet(models.QuerySet):
 class RevisionQuerySet(models.QuerySet):
     def order_by_submission(self):
         return self.order_by('-pk')
+
+    def per_exam(self, exam):
+        return self.filter(question__subjects__exam=exam).distinct()
 
     def undeleted(self):
         return self.filter(is_deleted=False)

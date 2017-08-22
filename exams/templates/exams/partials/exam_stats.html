@@ -27,8 +27,8 @@
        <ul>
          <li>{{ exam.get_complete_questions.count }} complete.</li>
          <li>{{ exam.get_incomplete_questions.count }} incomplete.</li>
-         <li>{{ exam.get_approved_questions.count }} with latest revision approved.</li>
-         <li>{{ exam.get_pending_questions.count }} with latest revision pending.</li>
+         <li>{{ exam.get_approved_latest_revisions.count }} with latest revision approved.</li>
+         <li>{{ exam.get_pending_latest_revisions.count }} with latest revision pending.</li>
        </ul>
     </li>
 </ul>

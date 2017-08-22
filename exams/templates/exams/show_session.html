@@ -1,0 +1,505 @@
+<!DOCTYPE html>{% load static exam_utils %}
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Fudul | {{ session.exam.name }} session #{{ session.pk }}</title>
+      	<script src="{% static 'limitless/assets/js/core/libraries/jquery.min.js' %}"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/jquery.tooltipster/4.2.5/js/tooltipster.bundle.min.js"></script>
+        <script>
+        paceOptions = {
+            document: false,
+            elements: ['#question-pool'],
+            eventLag: false,
+            restartOnPushState: false
+        }
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/pace.min.js"></script>
+      	<link href="{% static 'limitless/assets/css/icons/icomoon/styles.css' %}" rel="stylesheet" type="text/css">
+        <link href="https://cdn.jsdelivr.net/jquery.tooltipster/4.2.5/css/tooltipster.bundle.min.css" rel="stylesheet" type="text/css">
+        <link href="https://cdn.jsdelivr.net/jquery.tooltipster/4.2.5/css/plugins/tooltipster/sideTip/themes/tooltipster-sideTip-shadow.min.css" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/themes/black/pace-theme-loading-bar.min.css" rel="stylesheet" type="text/css">
+        {% include 'partials/piwik.html' %}
+        <style>
+    body, html, #container{
+        height: 100%
+    }
+
+    body{
+        background: #fff;
+        font-size: 17px;
+        font-family: Arial,Verdana,Helvetica;
+        line-height: 1.8em;
+        font-family: Roboto, "Helvetica Neue", Helvetica, Arial, Lucida, sans-serif;
+        font-weight: 300;
+    }
+
+    #question-container{}
+
+    .top-info{
+        background-color: #0067A9;
+        font-size: 12pt;
+        color: #FFF;
+    }
+
+    .top-exam-details {
+        height: 50px;
+        position: absolute;
+        left: 47%;
+        margin-left: -50px;
+        padding: 4px 0;
+    }
+
+    .top-question-id {
+        text-align: center;
+        font-weight: 700;
+        line-height: 15px;
+    }
+
+    .top-options div.text-right, .top-options div.text-left, #footer div.text-right, #footer div.text-left{
+      text-align: center !important;
+    }
+
+    .option{
+      cursor: pointer;
+      display: inline-block;
+      padding: 0 10px;
+      /* For mobile devices */
+      height: auto;
+    }
+
+    @media (min-width: 576px) {
+      .top-question-id {
+        text-align: right;
+      }
+      .top-options div.text-right, #footer div.text-right{
+        text-align: right !important;
+      }
+      .top-options div.text-left, #footer div.text-left{
+        text-align: left !important;
+      }
+
+      #footer .option{
+        height: 38px;
+      }
+      .top-options .option{
+        height: 32px;
+      }
+    }
+
+    .separator{
+        color: yellow;
+    }
+
+    .top-options {
+        background-color: #7cafe8;
+        border-top: 1px solid #fff;
+        line-height: 32px;
+    }
+
+    #mark.marked{
+        font-weight: 700;
+        padding: 0 9px;
+        color: yellow;
+    }
+
+    #footer {
+        color: #fff;
+        font-weight: 700;
+        line-height: 36px;
+        font-size: 12pt;
+        background-color: #0067A9;
+        bottom: 0;
+        position: fixed;
+        border-top: solid 2px #fff;
+        border-bottom: solid 2px #0067A9;
+        width: 100%;
+    }
+
+    /* Styling "results", which is a direct link */
+    a.option{
+        color: white;
+    }
+
+    a.option:hover{
+        text-decoration: none;
+    }
+
+    #contributors{
+      cursor:zoom-in;
+    }
+
+    .strike{
+        text-decoration: line-through;
+    }
+
+    td.check, #mark-loading{
+      width: 16px;
+    }
+
+    .highlight {
+        background: yellow;
+        cursor: pointer;
+    }
+
+    .choice-text {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+
+    .question-choice {
+        margin-right: 10px !important;
+        word-wrap: break-word;
+    }
+
+    #submit, #explain{
+        margin-top: 20px;
+    }
+
+    #submit{
+        margin-left: 9px;
+        background: #0067A9;
+        color: #fff;
+        font-size: 12pt;
+        font-family: Arial, Verdana, Helvetica;
+    }
+
+    .tooltip-container, #mark-loading, .explanation-container, #explain, #submit{
+      display: none;
+    }
+
+    body.unfinished #results, body.finished #exit{
+      display: none;
+    }
+
+    #question-container{
+      margin-top: 20px;
+    }
+
+    .question-body{
+      display: none;
+    }
+
+    .question-body.show{
+      display: block;
+    }
+
+    .explanation-container{
+      margin-top: 20px;
+    }
+  </style>
+    </head>
+    <body class="{% if session.has_finished %}finished{% else %}unfinished{% endif %}">
+    <div class="container-fluid" id="container">
+        <div class="row top-info align-items-center">
+            <div class="ml-auto col-sm-6 text-center"> {{ session.exam.name }} <span class="separator">•</span> Session id: <span id="session-pk">{{ session.pk }}</span> ({{ session.get_session_mode_display }})<br> Question id: <span id="question-pk">{{ current_question.pk }}</span> </div>
+            <div class="col-sm-3 top-question-id"><span id="question-sequence">{{ current_question_sequence }}</span> of <span id="question-total">{{ session.questions.count }}</span></div>
+        </div>
+        <div class="row top-options text-left align-items-center">
+          <div class="col-sm-6 text-left">
+               <div class="option" id="contribute">
+                  <i class="icon-pencil"></i> Edit
+               </div>
+          </div>
+          <div class="col-sm-6 text-right">
+               <div id="mark" class="option{% if current_question|is_question_marked:user %} marked{% endif %}">
+                  <img id="mark-loading" src="{% static 'img/ajax-loader.gif' %}">
+                  <i id="mark-icon" class="icon-flag7"></i> Mark
+               </div>
+          </div>
+        </div>
+
+        <div id="question-container">
+          <div id="question-pool">
+            <!--AJAX will insert questions here--->
+          </div>
+          <button {% if current_question|was_solved_in_session:session %}style="display: none;"{% endif %} type="button" id="submit" class="btn">Submit <i class=" icon-circle-right2"></i></button>
+          <button class="btn btn-outline-primary" id="explain"><i class=" icon-brain"></i> Improve this explanation!</button>
+        </div>
+        <div id="footer" class="row text-center">
+          <div class="col-sm-6 text-left">
+           <a id="results" class="float-left float-sm-none option" href="{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}"><i class="icon-list3"></i> Results</a>
+           <div id="exit" class="float-left float-sm-none option"><i class="icon-exit3"></i> Exit</div>
+           <div id="contributors" class="float-right float-sm-none option" data-tooltip-content="#tooltip-body"><i class="icon-stars"></i> Contributors</div>
+          </div>
+          <div class="col-sm-6 text-right">
+           <div data-action="previous" id="previous" class="float-left float-sm-none option"><i class=" icon-circle-left2"></i> Previous</div>
+           <div data-action="next" id="next" class="float-right float-sm-none option">Next <i class=" icon-circle-right2"></i></div>
+          </div>
+        </div>
+      </div>
+        <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
+        <script src="{% static 'js/toastr.js' %}"></script>
+        <script>
+    toastr.options.positionClass = "toast-top-left";
+
+    function updateData(){
+        data = {question_pk: $(".question-body.show").data('question-pk'),
+                session_pk: $("#session-pk").html()}
+    }
+
+    function handleMarked(is_marked){
+        $markButton = $("#mark");
+        if (is_marked){
+            $markButton.addClass("marked");
+        } else {
+            $markButton.removeClass("marked");
+        }
+    }
+
+
+    function navigate() {
+        action = $(this).data('action');
+        total = $("#question-total").html();
+        current_sequence = parseInt($("#question-sequence").html());
+
+        // If no previous or no next, just return
+        if (current_sequence == 1 && action == 'previous'){
+          return
+        }
+
+        if (current_sequence == total && action == 'next'){
+          return
+        }
+
+        if (action == 'next' ){
+          targeted_sequence = current_sequence + 1;
+        } else if (action == 'previous' ){
+          targeted_sequence = current_sequence - 1;
+        }
+
+        $question = $("#question-pool [data-question-sequence=" + targeted_sequence + "]")
+        // Add 'show' class to the current question
+        $question.addClass("show");
+        // Remove 'show' class from other questions
+        $(".question-body").not($question).removeClass('show');
+        $("#question-sequence").html($question.data('question-sequence'));
+        $("#question-pk").html($question.data('question-pk'));
+        initializeInteractions();
+        handleMarked($question.data('is-marked'));
+        history.pushState({url: $question.data('url')}, '', $question.data('url'));
+        updateData();
+    }
+
+    function toggleMarked() {
+        $("#mark-icon").hide();
+        $("#mark-loading").show();
+        $.ajax({
+            url: "{% url 'exams:toggle_marked' %}",
+            type: 'POST',
+            data: data,
+            cache: false,
+            success: function(data){
+               handleMarked(data.is_marked);
+               $("#mark-icon").show();
+               $("#mark-loading").hide();
+
+            }
+        });
+    }
+
+    function toggleChoices() {
+        var $choice = $(this);
+        if ($choice.is(":checked")) {
+            // other sister choices to be removed
+            $otherChoices = $choice.closest('.question-body').find('.question-choice').not($choice);
+            // If a choice is checked, it is no longer striked.
+            $choice.closest('tr').find('.choice-text').removeClass('strike');
+            $otherChoices.prop("checked", false);
+        } else {
+            $choice.prop("checked", false);
+        }
+    }
+
+    function highlightText() {
+        var selection = window.getSelection().toString();
+        if (selection.length >= 3) {
+            var escapedSelection = $("<div>").text(selection).html();
+            var replacement = $('<span></span>').addClass('highlight').html(selection);
+            var replacementHtml = replacement.prop('outerHTML');
+            $(this).html($(this).html().replace(escapedSelection, replacementHtml));
+        }
+        $(".highlight").click(function() {
+            $(this).removeClass("highlight");
+        });
+    }
+
+    function controlExplanation(was_solved){
+      if (!was_solved){
+        $(".question-body.show .explanation-container, #explain").hide()
+      } else if ($('.question-body.show .explanation-content').html().length){
+        $("#explain").show().html("Improve this explanation!");
+        $(".question-body.show .explanation-container").show();
+      } else {
+        $(".question-body.show .explanation-container").hide()
+        $("#explain").show().html("Add an explanation!");
+      }
+    }
+
+    function initializeInteractions() {
+        // Change navigation cursor as per the sequence
+        sequence = $("#question-sequence").html();
+        total = $("#question-total").html();
+
+        if (sequence == 1){
+          $("#previous").css('cursor', 'not-allowed');
+        } else {
+          $("#previous").css('cursor', 'pointer');
+        }
+
+        if (sequence == total){
+          $("#next").css('cursor', 'not-allowed');
+          $(".unfinished #exit").hide();
+          $(".unfinished #results").css('display', 'inline-block');
+        } else {
+          $("#next").css('cursor', 'pointer');
+          $(".unfinished #exit").css('display', 'inline-block');
+          $(".unfinished #results").hide();
+        }
+
+        // Show contributors as a tooltipster
+        $("#contributors").tooltipster({theme: 'tooltipster-shadow', contentCloning: true});
+
+        // Disable interaction if question was solved.
+        was_solved = $(".question-body.show").data('was-solved');
+        controlExplanation(was_solved);
+        if (was_solved){
+          $("#submit").hide();
+          $(".question-body.show .question-choice").prop("disabled", "disabled");
+        } else {
+            $("#submit").show();
+            $(".question-body.show .question-text").mouseup(highlightText);
+            $('.question-body.show .question-choice').change(toggleChoices);
+            $(".question-body.show .choice-text").click(function() {
+                if (!$(this).hasClass("strike")){
+                   // If a choice is striked, it is no longer checked.
+                    $(this).closest("tr").find(".question-choice").prop('checked', false);
+                }
+                $(this).toggleClass("strike");
+            });
+        }
+    }
+
+    function submitChoice() {
+        $(this).hide();
+
+        // Mark question as solved
+        $(".question-body.show").data('was-solved', true);
+
+        // Disable choices upon submission
+        $(".question-body.show .question-choice").prop("disabled", "disabled")
+        // Disable interactions after submission
+        $(".question-text, .question-choice, .choice-text, .highlight").off();
+
+        $checkedChoice = $('.question-choice:checked');
+        // Do we have a choice, or was it skipped?
+        if ($checkedChoice.length) {
+            // We store choice pk at the row.
+            choice_pk = $checkedChoice.closest('tr').data("choice-pk");
+        } else {
+            choice_pk = null;
+        }
+        data.choice_pk = choice_pk;
+
+        $.ajax({
+            url: "{% url 'exams:submit_answer' %}",
+            type: 'POST',
+            data: data,
+            cache: false,
+            success: function(data) {
+                if (data.success) {
+                    if (!choice_pk){
+                        toastr.warning('You skipped this question');
+                    }
+
+                    if (data.right_choice_pk != null){
+                      pk_selector = "[data-choice-pk=" + data.right_choice_pk + "]";
+                      $correct_row = $(".question-body.show tr" + pk_selector);
+                      $correct_row.find("td.check i").addClass("icon-checkmark2 text-success")
+                      $incorrect_rows = $(".question-body.show tr").not(pk_selector);
+                      $incorrect_rows.find("td.check i").addClass("icon-cross3 text-danger");
+                    }
+
+                    if (data.explanation){
+                      $(".question-body.show .explanation-content").html(data.explanation).show();
+                    }
+
+                    controlExplanation(true);
+                } else {
+                  toastr.error(data.message);
+                }
+            }
+        });
+
+    }
+
+    function updateFooterMargins() {
+      $("#question-container").css({
+        'margin-bottom': $('#footer').height() + 20
+      })
+    }
+
+    $(function() {
+        pool_url = "{% url 'exams:list_session_questions' %}?" + $.param({ {% if current_question_pk %}question_pk: {{ current_question_pk }},{% endif %}
+                                                                          session_pk: {{ session.pk }}});
+        $("#question-pool").load(pool_url, function(){
+          updateData();
+          initializeInteractions();
+        });
+        updateFooterMargins();
+        $(window).resize(updateFooterMargins);
+
+        $("#exit").click(function(){
+          $("#confirm-exit-modal a.submit-button").prop("href", "{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}");
+          $("#confirm-exit-modal").modal('show');
+        });
+        $('#submit').click(submitChoice);
+        $('#previous, #next').click(navigate);
+        $('#mark').click(toggleMarked);
+            // initialize project edit modal
+        $('#modify-question-modal').modal({
+          keyboard: false,
+          backdrop: 'static',
+          show    : false,
+        });
+        $("#contribute").click(function () {
+            $("#modify-question-modal").modal('show');
+            url = "{% url 'exams:contribute_revision' %}?" + $.param({question_pk: data.question_pk})
+            $("#modify-question-modal .modal-body").load(url);
+        });
+        // initialize project edit modal
+        $('#explain-question-modal').modal({
+          keyboard: false,
+          backdrop: 'static',
+          show    : false,
+        });
+        $("#explain, a.explain").click(function () {
+            $("#explain-question-modal").modal('show');
+            url = "{% url 'exams:contribute_explanation' %}?" + $.param({question_pk: data.question_pk})
+            $("#explain-question-modal .modal-body").load(url);
+        });
+
+    });
+
+        </script>
+
+        {% with modal_id='confirm-exit-modal' is_small=True confirm_link=True modal_content="<i class='text-danger icon-exit3'></i> Are you sure you want to exit this session, and mark unsubmitted questions as unsolved?" %}
+            {% include "exams/modals/common_modal_v4.html" %}
+        {% endwith %}
+
+        {% with modal_id='modify-question-modal' no_footer=True modal_title="Edit the question" %}
+             {% include "exams/modals/common_modal_v4.html" %}
+        {% endwith %}
+
+        {% with modal_id='explain-question-modal' no_footer=True modal_title="Explain the answer" %}
+            {% include "exams/modals/common_modal_v4.html" %}
+        {% endwith %}
+    </body>
+</html>

@@ -1,6 +1,7 @@
-<!DOCTYPE html>{% load static %}
+<!DOCTYPE html>{% load static %}{% load exam_utils %}
 <html lang="en">
 <head>
+
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
@@ -34,6 +35,8 @@
 	<script type="text/javascript" src="{% static 'limitless/assets/js/core/app.js' %}"></script>
 	<!-- /theme JS files -->
 {% include 'partials/piwik.html' %}
+{% block head %}
+{% endblock %}
 </head>
 
 <body>
@@ -44,11 +47,12 @@
 			<a class="navbar-brand" href="{% url 'index' %}"></a>
 
 			<ul class="nav navbar-nav visible-xs-block">
+                <li><a href="{% url 'userena_signout' %}"><i class=" icon-switch"></i></a></li>
 				<li><a data-toggle="collapse" data-target="#navbar-mobile"><i class="icon-tree5"></i></a></li>
 				<li><a class="sidebar-mobile-main-toggle"><i class="icon-paragraph-justify3"></i></a></li>
 			</ul>
 		</div>
-
+{% if user.is_authinticated %}
 		<div class="navbar-collapse collapse" id="navbar-mobile">
 			<ul class="nav navbar-nav navbar-right">
 				<li class="dropdown dropdown-user">
@@ -64,6 +68,7 @@
 				</li>
 			</ul>
 		</div>
+{% endif %}
 	</div>
 	<!-- /main navbar -->
 
@@ -103,6 +108,29 @@
 								<li>
 									<a href="{% url 'exams:list_meta_categories' %}"><i class="icon-stack-check"></i> <span>Explore exams!</span></a>
 								</li>
+                            <li>
+									<a href="{% url 'exams:show_previous_sessions' %}"><i class="icon-drawer3"></i> <span>Previous sessions</span></a>
+								</li>
+                            {% if exam %}
+                                {% if exam.category|is_editor:user %}
+                            <li>
+                                <a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}"><i class="icon-pen-plus"></i> <span>Add Question</span></a>
+                            </li>
+                            <li>
+                               <a href="{% url 'exams:approve_user_contributions' exam.category.get_slugs exam.pk %}"><i class="icon-file-plus"></i> <span>User contributions</span></a>
+                            </li>
+                             {% else %}
+                            <li>
+                                <a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}"><i class="icon-database-add"></i> <span>Submit A Question</span></a>
+                            </li>
+                            {% endif %}
+                            <li>
+                            <a href="{% url 'exams:create_session' exam.category.get_slugs exam.pk %}"><i class="icon-pencil3"></i>Start Session</a>
+                            </li>
+
+                            {% endif %}
+                                {% block sidepanel %}
+                                {% endblock %}
 {% if user.is_superuser %}
 								<li>
 									<a href="{% url 'exams:list_category_indicators' %}"><i class="icon-pie-chart2"></i> <span>Category indicators</span></a>
@@ -114,9 +142,11 @@
 								<li>
 									<a href="{% url 'editor_admin:index' %}"><i class="icon-power2"></i> <span>Editor Admin</span></a>
 								</li>
-								<li>
+
+                                <li>
 									<a href="{% url 'about' %}"><i class="icon-info3"></i> <span>About <em>Fudul</em></span></a>
 								</li>
+
 {#								<li>#}
 {#									<a href="#"><i class="icon-copy"></i> <span>Menu item</span></a>#}
 {#								</li>#}

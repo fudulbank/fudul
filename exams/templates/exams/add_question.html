@@ -1,5 +1,8 @@
 {% extends 'base.html' %}{% load staticfiles %}{% load bootstrap3 %}{% load teams_utlis %}
 {% block title %}Fudul | Add questions to {{ exam.name }}{% endblock %}
+{% block sidepanel %}
+
+{% endblock %}
 {% block breadcrumb %}
 
 					<div class="breadcrumb-line">
@@ -18,6 +21,7 @@
 {% block content %}
 
 <style>
+
 .panel-body a {
     color: white;
     font-weight: bold;
@@ -33,7 +37,7 @@
    <div class="col-md-8">
     <div class="panel panel-flat">
 						<div class="panel-heading">
-							<h1 class="panel-title">Add questions to {{ exam.name }}</h1>
+							<h1 class="panel-title">{% if editor %}Add {% else %} Submit{% endif %} questions to {{ exam.name }}</h1>
 						</div>
         <div id="form-panel" class="panel-body">
 {% include 'exams/partials/question_form.html' %}
@@ -41,6 +45,7 @@
 
     </div> <!--panel-->
 </div> <!--col-->
+{% if editor %}
 <div class="col-md-4">
     <div id="exam-stats" class="panel panel-flat">
        <div class="panel-heading">
@@ -50,7 +55,8 @@
 {% include 'exams/partials/exam_stats.html' %}
        </div>
     </div>
-</div> <!--col-->
+</div>
+    {% endif %}<!--col-->
 </div> <!--row-->
 {% endblock %}
 {% block customscript %}
@@ -59,30 +65,20 @@
     <script src="{% static 'js/jquery.autogrowtextarea.min.js' %}"></script>
     <script src="{% static 'js/toastr.js' %}"></script>
     <script type="text/javascript">
-    $(function(){
-        $('#choice_formset input[type=checkbox]').change(function(){
-            $('#choice_formset input[type=checkbox]').not(this).prop('checked', false);
-        });
-        $('#choice_formset div.checkbox label').ready(function(){
-             $(this).html($(this).children('input'));
-        });
-        $("textarea").autoGrow();
 
-        // add formset controls
-        $("#choice_formset .form-container").formset({
-            prefix: '{{ choice_formset.prefix }}',
-            addText: 'Add a Choice',
-            deleteText: 'Delete',
-            addCssClass: 'add-row btn btn-xs btn-primary',
-            deleteCssClass: 'delete-row btn btn-xs btn-danger',
-        });
+    $(function(){
 
         $("form#add-question-form").submit(function (event) {
         /* stop form from submitting normally */
             event.preventDefault();
             /* get some values from elements on the page: */
             var formData = new FormData($(this)[0]);
-            var url = "{% url 'exams:handle_question' exam.pk %}";
+
+            {% if question %}
+                var url = "{% url 'exams:handle_question' exam.pk question.pk %}";
+            {% else %}
+                var url = "{% url 'exams:handle_question' exam.pk %}";
+            {% endif %}
             /* Send the data */
             $.ajax({
                 url: url,
@@ -101,7 +97,11 @@
                         // show success message (using toastr)
                         toastr.options.positionClass = "toast-top-left";
                         toastr.success("Question #" + data.question_pk + " has been successfully added. Fill another!");
+                        {% if question %}
+                                            window.location.href = data.show_url;
+                        {% else %}
 												$("#exam-stats .panel-body").html(data.stat_html);
+                        {% endif %}
                     } else {
                         toastr.warning("There was an issue! " + data.message);
                         $("#form-panel").html(data);
@@ -109,6 +109,23 @@
             });
         });
     });
+        $('#choice_formset input[type=checkbox]').change(function(){
+            $('#choice_formset input[type=checkbox]').not(this).prop('checked', false);
+        });
+        $('#choice_formset div.checkbox label').ready(function(){
+             $(this).html($(this).children('input'));
+        });
+        $("textarea").autoGrow();
+
+        // add formset controls
+        $("#choice_formset .form-container").formset({
+            prefix: '{{ choice_formset.prefix }}',
+            addText: 'Add a Choice',
+            deleteText: 'Delete',
+            addCssClass: 'add-row btn btn-xs btn-primary',
+            deleteCssClass: 'delete-row btn btn-xs btn-danger',
+        });
+
     </script>
 
 {% endblock %}
