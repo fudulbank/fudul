@@ -1,6 +1,7 @@
-from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
 from django.db import models
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from accounts.models import College, Batch
 from . import managers
@@ -58,7 +59,7 @@ class Category(models.Model):
             parent_category = parent_category.parent_category
 
         parent_categories.reverse()
-        return parent_categories        
+        return parent_categories
 
     def can_user_access(self, user):
         if user.is_superuser:
@@ -94,7 +95,7 @@ class Category(models.Model):
         for parent_category in self.get_parent_categories():
             slugs =  slugs + parent_category.slug + '/'
 
-        slugs += self.slug 
+        slugs += self.slug
 
         return slugs
 
@@ -320,6 +321,7 @@ class Revision(models.Model):
     approval_date = models.DateField(blank=True, null=True)
     is_deleted = models.BooleanField(default=False)
     objects = managers.RevisionQuerySet.as_manager()
+    reference = models.TextField(default="", blank=True)
     change_summary = models.TextField(default="", blank=True)
     is_contribution = models.BooleanField(default=False)
 
@@ -390,6 +392,19 @@ class Session(models.Model):
 
     def has_question(self, question):
         return self.questions.filter(pk=question.pk).exists()
+
+    def get_current_question(self, question_pk=None):
+        # If a question PK is given, show it.  Otheriwse show the first
+        # session unused question.  Otherwise, show the first session
+        # question.
+        if question_pk:
+            current_question = get_object_or_404(self.questions, pk=question_pk)
+        elif not self.has_finished():
+            current_question = self.get_unused_questions().first()
+        else:
+            current_question = self.questions.order_by('global_sequence').first()
+
+        return current_question
 
     def can_access(self, user):
         return self.submitter == user or user.is_superuser

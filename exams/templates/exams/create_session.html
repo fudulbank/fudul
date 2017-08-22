@@ -164,9 +164,13 @@
     <div class="col-md-4">
         <div id="exam-stats" class="panel panel-flat">
         <div class="panel-heading">
-            <h5> Your Latest Sessions :</h5>
+            <div style="margin-bottom: 20px;" class="text-right">
+                <a class="btn btn-primary" href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}">Add question <i class=" icon-file-plus position-left"></i></a>
+           </div>
+            <h5> Your latest sessions:</h5>
         </div>
            <div class="panel-body">
+
                <ul>
                    {% for session in sessions %}
 

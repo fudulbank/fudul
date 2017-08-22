@@ -346,15 +346,7 @@ def list_session_questions(request):
     session_pk = request.GET.get('session_pk')
     session = get_object_or_404(Session, pk=session_pk)
 
-    # If a question PK is given, show it.  Otheriwse show the first
-    # session unused question.  Otherwise, show the first session
-    # question.
-    if question_pk:
-        current_question = get_object_or_404(session.questions, pk=question_pk)
-    elif not session.has_finished():
-        current_question = session.get_unused_questions().first()
-    else:
-        current_question = session.questions.order_by('global_sequence').first()
+    current_question = session.get_current_question(question_pk)
 
     return render(request, "exams/partials/session_question_list.html",
                   {'session': session,
@@ -372,15 +364,7 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     if not session.can_access(request.user):
         raise PermissionDenied
 
-    # If a question PK is given, show it.  Otheriwse show the first
-    # session unused question.  Otherwise, show the first session
-    # question.
-    if question_pk:
-        current_question = get_object_or_404(session.questions, pk=question_pk)
-    elif not session.has_finished():
-        current_question = session.get_unused_questions().first()
-    else:
-        current_question = session.questions.order_by('global_sequence').first()
+    current_question = session.get_current_question(question_pk)
     current_question_sequence = session.get_question_sequence(current_question)
 
     context = {'session': session,

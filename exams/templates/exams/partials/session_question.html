@@ -27,7 +27,7 @@
       {% if forloop.first %}
         This question was originally added by {{ contributor.0|default:contributor.username }}.
         {% if question.get_contributors|length > 1 %}
-        Futher contributions where done by
+        Futher contributions were done by
         {% endif %}
       {% else %}
         {{ contributor.0|default:contributor.username }}{% if forloop.last %}.{% else %}, {% endif %}
