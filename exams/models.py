@@ -59,7 +59,7 @@ class Category(models.Model):
             parent_category = parent_category.parent_category
 
         parent_categories.reverse()
-        return parent_categories        
+        return parent_categories
 
     def can_user_access(self, user):
         if user.is_superuser:
@@ -95,7 +95,7 @@ class Category(models.Model):
         for parent_category in self.get_parent_categories():
             slugs =  slugs + parent_category.slug + '/'
 
-        slugs += self.slug 
+        slugs += self.slug
 
         return slugs
 
@@ -317,6 +317,7 @@ class Revision(models.Model):
     approval_date = models.DateField(blank=True, null=True)
     is_deleted = models.BooleanField(default=False)
     objects = managers.RevisionQuerySet.as_manager()
+    reference = models.TextField(default="", blank=True)
     change_summary = models.TextField(default="", blank=True)
     is_contribution = models.BooleanField(default=False)
 

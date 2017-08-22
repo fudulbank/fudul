@@ -65,7 +65,7 @@ class RevisionForm(forms.ModelForm):
     class Meta:
         model = models.Revision
         fields = ['text', 'explanation', 'figure', 'is_approved',
-                  'statuses','change_summary','is_contribution']
+                  'statuses','reference', 'change_summary','is_contribution']
         widgets = {
             'statuses': autocomplete.ModelSelect2Multiple(),
         }
@@ -221,6 +221,3 @@ class ExplanationForm(RevisionForm):
 #                     cleaned_data[field] = getattr(self.instance, field)
 #
 #         return cleaned_data
-
-
-
