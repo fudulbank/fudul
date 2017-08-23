@@ -1,6 +1,6 @@
 from dal import autocomplete
 from django import forms
-from django.core.validators import MaxValueValidator
+from django.core.validators import MaxValueValidator,MinValueValidator
 from django.forms.models import inlineformset_factory
 from accounts.utils import get_user_college
 from . import models, utils
@@ -96,16 +96,25 @@ RevisionChoiceFormset = inlineformset_factory(models.Revision,
                                               extra=4,
                                               fields=['text','is_right'])
 
+
+ContributedRevisionChoiceFormset = inlineformset_factory(models.Revision,
+                                              models.Choice,
+                                              formset=CustomRevisionChoiceFormset,
+                                              extra=0,
+                                              fields=['text','is_right'])
+
 class SessionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         exam = kwargs.pop('exam')
         super(SessionForm, self).__init__(*args, **kwargs)
 
         # Limit number of questions
-        total_questions = exam.get_approved_questions().count()
-        total_question_validator = MaxValueValidator(total_questions)
-        self.fields['number_of_questions'].validators.append(total_question_validator)
-        self.fields['number_of_questions'].widget.attrs['max'] = total_questions
+        # total_questions = exam.get_approved_questions().count()
+        # total_question_validator = MaxValueValidator(total_questions)
+        # self.fields['number_of_questions'].validators.append(total_question_validator)
+        self.fields['number_of_questions'].validators.append(MinValueValidator(1))
+        # self.fields['number_of_questions'].widget.attrs['max'] = total_questions
+        self.fields['number_of_questions'].widget.attrs['min'] = 1
 
         # Limit subjects and exams per exam
         self.fields['subjects'].queryset = models.Subject.objects.filter(exam=exam)
@@ -121,6 +130,7 @@ class SessionForm(forms.ModelForm):
     def save(self, *args, **kwargs):
         session = super(SessionForm, self).save(*args, **kwargs)
         question_pool = session.exam.get_approved_questions()\
+                                    .filter(exam_types__in=session.exam_types.all())\
                                     .order_by('?')\
                                     .select_related('parent_question',
                                                     'child_question')
@@ -175,10 +185,10 @@ class SessionForm(forms.ModelForm):
                                                          forward=['exam_pk'],
                                                          attrs={'data-html': True}),
             'sources': autocomplete.ModelSelect2Multiple(),
-            # 'subjects': autocomplete.ModelSelect2Multiple(url='exams:subject_questions_count',
-            #                                              forward=['exam_pk'],
-            #                                              attrs={'data-html': True}),
-            'subjects': autocomplete.ModelSelect2Multiple(),
+            'subjects': autocomplete.ModelSelect2Multiple(url='exams:subject_questions_count',
+                                                         forward=['exam_pk'],
+                                                         attrs={'data-html': True}),
+            # 'subjects': autocomplete.ModelSelect2Multiple(),
             'question_filter':forms.RadioSelect(choices=models.questions_choices),
             'session_mode':forms.RadioSelect(choices=models.session_mode_choices)
             }

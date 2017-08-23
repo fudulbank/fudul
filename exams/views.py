@@ -139,6 +139,8 @@ def handle_question(request, exam_pk,question_pk=None):
         revisionform = forms.RevisionForm(request.POST,
                                           request.FILES,
                                           instance=instance)
+        revisionchoiceformset = forms.RevisionChoiceFormset(request.POST,
+                                                            instance=instance,)
     else:
         instance = Revision(submitter=request.user, is_first=True,
                             is_last=True)
@@ -147,7 +149,7 @@ def handle_question(request, exam_pk,question_pk=None):
         revisionform = forms.RevisionForm(request.POST,
                                           request.FILES,
                                           instance=instance)
-    revisionchoiceformset = forms.RevisionChoiceFormset(request.POST)
+        revisionchoiceformset = forms.RevisionChoiceFormset(request.POST)
 
     if questionform.is_valid() and revisionform.is_valid() and revisionchoiceformset.is_valid():
         question = questionform.save()
@@ -161,14 +163,16 @@ def handle_question(request, exam_pk,question_pk=None):
         else:
             revision.is_approved = False
 
+        revision.save()
+
         if teams.utils.is_editor(request.user):
             revision.is_contribution = False
         else:
             revision.is_contribution = True
 
         revision.save()
-
         revisionchoiceformset.instance = revision
+
         revisionchoiceformset.save()
 
         template = get_template('exams/partials/exam_stats.html')
@@ -493,7 +497,8 @@ class SubjectQuestionCount(autocomplete.Select2QuerySetView):
         return qs
 
     def get_result_label(self, item):
-        return "<strong>{}</strong> ({})".format(item.name, item.question_set.count())
+        number_of_questions= item.question_set.filter(is_deleted=False,revision__is_approved=True).distinct().count()
+        return "<strong>{}</strong> ({})".format(item.name, number_of_questions)
 
 class ExamTypeQuestionCount(autocomplete.Select2QuerySetView):
     def get_queryset(self):
@@ -505,7 +510,8 @@ class ExamTypeQuestionCount(autocomplete.Select2QuerySetView):
         return qs
 
     def get_result_label(self, item):
-        return "<strong>{}</strong> ({})".format(item.name, item.question_set.count())
+        number_of_questions= item.question_set.filter(is_deleted=False,revision__is_approved=True).distinct().count()
+        return "<strong>{}</strong> ({})".format(item.name,number_of_questions)
 
 
 def show_category_indicators(request, category):
@@ -546,13 +552,13 @@ def contribute_revision(request):
 
     if request.method == 'GET':
         revisionform = forms.RevisionForm(instance=latest_revision)
-        revisionchoiceformset = forms.RevisionChoiceFormset(instance=latest_revision)
+        revisionchoiceformset = forms.ContributedRevisionChoiceFormset(instance=latest_revision)
     elif request.method == 'POST':
         revisionform = forms.RevisionForm(request.POST,
                                           request.FILES,
                                           instance=latest_revision)
 
-        revisionchoiceformset = forms.RevisionChoiceFormset(request.POST,
+        revisionchoiceformset = forms.ContributedRevisionChoiceFormset(request.POST,
                                                             instance=latest_revision)
         if revisionform.is_valid() and revisionchoiceformset.is_valid():
             new_revision = revisionform.clone(question,request.user)
@@ -578,7 +584,7 @@ def approve_user_contributions(request,slugs,exam_pk):
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
     pks = utils.get_contributed_questions(exam).values_list('pk', flat=True)
-    revisions = Revision.objects.per_exam(exam).filter(is_contribution =True,is_deleted=False).exclude(question__pk__in=pks)
+    revisions = Revision.objects.per_exam(exam).filter(is_contribution=True,is_deleted=False,is_approved=False).exclude(question__pk__in=pks)
     contributed_questions = utils.get_contributed_questions(exam)
     number_of_contributions = Revision.objects.filter(submitter=request.user).count()
 
@@ -611,7 +617,7 @@ def show_revision_comparison(request, pk, revision_pk=None):
 @decorators.ajax_only
 def remove_revision(request, pk):
     revision = get_object_or_404(Revision, pk=pk)
-    exam = revision.question.subjects.first.exam
+    exam = revision.question.subjects.first().exam
 
     # PERMISSION CHECK
     if not request.user.is_superuser and \
@@ -629,7 +635,7 @@ def remove_revision(request, pk):
 @decorators.ajax_only
 def approve_revision (request, pk):
     revision = get_object_or_404(Revision, pk=pk)
-    exam = revision.question.subjects.first.exam
+    exam = revision.question.subjects.first().exam
 
     # PERMISSION CHECK
     if not request.user.is_superuser and \
@@ -656,7 +662,7 @@ def approve_question(request, slugs, exam_pk,pk):
     editor = exam.can_user_edit(request.user)
 
     context = {'exam': exam,
-               'questionform': forms.QuestionForm(exam=exam,instance=question),
+               'questionform': forms.QuestionForm(exam=exam, instance=question),
                'revisionform': forms.RevisionForm(instance=revision),
                'revisionchoiceformset': forms.RevisionChoiceFormset(instance=revision),
                'editor':editor,
@@ -664,3 +670,8 @@ def approve_question(request, slugs, exam_pk,pk):
 
     return render(request, "exams/add_question.html", context)
 
+
+@login_required
+def show_credits(request,pk):
+    exam = get_object_or_404(Exam, pk=pk)
+    return render(request, 'exams/partials/show_credits.html',{'exam':exam})

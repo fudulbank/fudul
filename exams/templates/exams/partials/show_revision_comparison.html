@@ -38,6 +38,13 @@ p.question-text{
                                <li {% if choice.is_right %}class="is-answer text-success-800"{% endif %}>{{ choice.text|linebreaksbr }}</li>
                            {% endfor %}
             </ul>
+                                              <strong>Explaination:</strong>
+                       {% if revision.question.get_latest_approved_revision.explanation %}
+                        <br>
+                       <p>{{ revision.question.get_latest_approved_revision.explanation }}</p>
+                       {% else %}
+                           No Explanation
+                       {% endif  %}
                 </div>
             </div>
     <div class="panel panel-flat">
@@ -55,6 +62,13 @@ p.question-text{
                                <li {% if choice.is_right %}class="is-answer text-success-800"{% endif %}>{{ choice.text|linebreaksbr }}</li>
                            {% endfor %}
             </ul>
+                       <strong>Explaination:</strong>
+                       {% if revision.explanation %}
+                        <br>
+                       <p>{{ revision.explanation }}</p>
+                       {% else %}
+                           No Explanation
+                       {% endif  %}
                 </div>
             </div>
     <div class="panel panel-flat">
@@ -111,8 +125,6 @@ tbody tr td:last-child{
 
 </style>
 <script src="{% static 'js/toastr.js' %}"></script>
-
-
 <script type="text/javascript">
         $('#remove').click(function () {
             var url = $(this).data('url');
@@ -120,6 +132,7 @@ tbody tr td:last-child{
             $("#delete-question").data('url', url).data('pk', pk);
             $("#confirm-delete-question-modal").modal('show');
         });
+         var table =$("#revisions").DataTable();
         $("#delete-question").click(function () {
 		        /* get some values from elements on the page: */
 		        var url = $(this).data('url');
@@ -128,10 +141,10 @@ tbody tr td:last-child{
 		        var posting = $.post(url);
 		        posting.done(function (data) {
 		            if (data.success == 1) {
-		                // show success message (using toastr)
-		                toastr.options.positionClass = "toast-top-left";
-		                toastr.info("Question was successfuly deleted");
-						$("#confirm-delete-question-modal").modal('hide');
+
+		                row = table.row("tr[data-pk=" +  pk + "]");
+						row.remove().draw(false);
+						$("#confirm-delete-question-modal,#show-revision-modal").modal('hide');
 		            } else {
 		                toastr.error(data.message);
 		            }
@@ -145,9 +158,11 @@ tbody tr td:last-child{
 		        var posting = $.post(url);
 		        posting.done(function (data) {
 		            if (data.success == 1) {
-		                // show success message (using toastr)
-		                toastr.options.positionClass = "toast-top-left";
-		                toastr.info("Revision is now approved");
+
+		                    row = table.row("tr[data-pk=" +  pk + "]");
+							row.remove().draw(false);
+		                    $("#show-revision-modal").modal('hide');
+		                    $("#confirm-delete-question-modal").modal('hide');
 		            } else {
 		                toastr.error(data.message);
 		            }

@@ -66,7 +66,10 @@
    <div class="col-md-8">
      <div class="panel panel-flat">
 						<div class="panel-heading">
-							<h1 class="panel-title">{{ exam.name }} Session</h1>
+							<h1 class="panel-title"> {{ exam.name }} Session
+                            <div style="float: right;">
+                    <a id ='credits' data-url='{% url 'exams:show_credits' exam.pk %}' class="btn btn-primary btn-xs"><i class="  icon-medal-star position-left"></i> Credits</a>
+                        </div></h1>
 						</div>
         <div id="form-panel" class="panel-body">
             <script src="{% static 'bootstrap/bootstrap-toggle-master/js/bootstrap2-toggle.min.js'%}"></script>
@@ -235,10 +238,25 @@
 
         });
 
+                // initialize project edit modal
+        $('#show-credit-modal').modal({
+          keyboard: false,
+          backdrop: 'static',
+          show    : false,
+        });
+        $("#credits").click(function () {
+            var url = $(this).data('url');
+            $("#show-credit-modal").modal('show');
+            $("#show-credit-modal .modal-title").html("Some of the great contributors");
+            $("#show-credit-modal .modal-body").load(url);
 
+        });
     });
 
-
+{% include 'exams/modals/adjust_modal_size.js' %}
 </script>
+{% with modal_id='show-credit-modal' no_footer=True %}
+    {% include "exams/modals/common_edit_modal.html" %}
+{% endwith %}
 
 {% endblock %}

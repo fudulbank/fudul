@@ -5,3 +5,4 @@ django-post-office>=2.0.8,<2.0.99
 django-userena>=2.0.1,<2.0.99
 django-autocomplete-light>=3.2,<3.2.99
 django-htmlmin>=0.10,<0.10.99
+django-ckeditor==5.3.0

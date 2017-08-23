@@ -117,6 +117,9 @@
                                 <a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}"><i class="icon-pen-plus"></i> <span>Add Question</span></a>
                             </li>
                             <li>
+                                <a href="{% url 'exams:list_questions' exam.category.get_slugs exam.pk %}"><i class="icon-list2 position-right"></i><span>List questions</span> </a>
+                            </li>
+                            <li>
                                <a href="{% url 'exams:approve_user_contributions' exam.category.get_slugs exam.pk %}"><i class="icon-file-plus"></i> <span>User contributions</span></a>
                             </li>
                              {% else %}

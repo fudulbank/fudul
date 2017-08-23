@@ -46,8 +46,8 @@
                                 <th>ID</th>
                                 <th>Submitter</th>
                                 <th>Date of Submission</th>
-                                <th>Right Answer?</th>
-                                <th>Explaination?</th>
+                                <th>Has Right Answer?</th>
+                                <th>Has Explaination?</th>
                                 <th>Edit</th>
                             </tr>
                         </thead>
@@ -77,13 +77,9 @@
     <script src="{% static 'js/datatables/responsive/js/dataTables.responsive.min.js' %}"></script>
 <script>
     $(function(){
-        tables =$("#revisions").dataTable({
+        tables =$("#revisions,#questions").dataTable({
             order: [[ 2, "desc" ]]
         });
-        $("#questions").dataTable({
-            order: [[ 2, "desc" ]]
-        });
-
     });
 </script>
     <script type="text/javascript">
@@ -94,18 +90,22 @@
           backdrop: 'static',
           show    : false,
         });
-        $('#revisions tbody').on('click','tr',function () {
-            revision_pk =  $(this).data("revision_pk");
-            url = $(this).data('url');
-            title_part = $(this).children('td:nth-child(2)').html();
+        var table =$("#revisions").DataTable();
+        if ( table.data().any() ) {
+            $('#revisions tbody').on('click','tr',function () {
+                revision_pk =  $(this).data("revision_pk");
+                url = $(this).data('url');
+                title_part = $(this).children('td:nth-child(2)').html();
 
-            $("#show-revision-modal").modal('show');
+                $("#show-revision-modal").modal('show');
 
-            $("#show-revision-modal .modal-title").html("Revision of" + title_part);
-            $("#show-revision-modal .modal-body").load(url);
-            $("#show-revision-modal .modal-header").addClass('bg-primary')
+                $("#show-revision-modal .modal-title").html("Revision of" + title_part);
+                $("#show-revision-modal .modal-body").load(url);
+                $("#show-revision-modal .modal-header").addClass('bg-primary')
 
-        });
+            });
+        }
+
     });
 {% include 'exams/modals/adjust_modal_size.js' %}
 </script>
