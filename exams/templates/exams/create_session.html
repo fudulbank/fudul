@@ -172,6 +172,7 @@
            <div class="panel-body">
 
                <ul>
+                   {% if sessions %}
                    {% for session in sessions %}
 
 
@@ -198,6 +199,9 @@
 							</div>
 
                    {% endfor %}
+                                 {% else %}
+                       <h6> You don't have any previous sessions.</h6>
+                 {% endif %}
                </ul>
                <br>
 
