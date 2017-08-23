@@ -38,6 +38,13 @@ p.question-text{
                                <li {% if choice.is_right %}class="is-answer text-success-800"{% endif %}>{{ choice.text|linebreaksbr }}</li>
                            {% endfor %}
             </ul>
+                                              <strong>Explaination:</strong>
+                       {% if revision.question.get_latest_approved_revision.explanation %}
+                        <br>
+                       <p>{{ revision.question.get_latest_approved_revision.explanation }}</p>
+                       {% else %}
+                           No Explanation
+                       {% endif  %}
                 </div>
             </div>
     <div class="panel panel-flat">
@@ -55,6 +62,13 @@ p.question-text{
                                <li {% if choice.is_right %}class="is-answer text-success-800"{% endif %}>{{ choice.text|linebreaksbr }}</li>
                            {% endfor %}
             </ul>
+                       <strong>Explaination:</strong>
+                       {% if revision.explanation %}
+                        <br>
+                       <p>{{ revision.explanation }}</p>
+                       {% else %}
+                           No Explanation
+                       {% endif  %}
                 </div>
             </div>
     <div class="panel panel-flat">
@@ -111,8 +125,6 @@ tbody tr td:last-child{
 
 </style>
 <script src="{% static 'js/toastr.js' %}"></script>
-
-
 <script type="text/javascript">
         $('#remove').click(function () {
             var url = $(this).data('url');
@@ -130,8 +142,9 @@ tbody tr td:last-child{
 		            if (data.success == 1) {
 		                // show success message (using toastr)
 		                toastr.options.positionClass = "toast-top-left";
-		                toastr.info("Question was successfuly deleted");
-						$("#confirm-delete-question-modal").modal('hide');
+		                toastr.info("Question was successfully deleted");
+
+						$("#confirm-delete-question-modal,#show-revision-modal").modal('hide');
 		            } else {
 		                toastr.error(data.message);
 		            }
@@ -148,6 +161,8 @@ tbody tr td:last-child{
 		                // show success message (using toastr)
 		                toastr.options.positionClass = "toast-top-left";
 		                toastr.info("Revision is now approved");
+		                $("#show-revision-modal").modal('hide');
+		                $("#confirm-delete-question-modal").modal('hide');
 		            } else {
 		                toastr.error(data.message);
 		            }

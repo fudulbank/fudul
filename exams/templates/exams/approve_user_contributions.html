@@ -27,7 +27,7 @@
                             <tr data-url="{% url 'exams:show_revision_comparison' revision.question.pk revision.pk %}" data-revision_pk="{{ revision.pk }}">
                             <td>{{ revision.question.pk }}</td>
                             <td>{{ revision.submitter }} {% if not number_of_contributions == 0 %}[{{ number_of_contributions }}]{% endif %}</td>
-                            <td data-order="{{ revision.submission_date|date:'U' }}">{{ revision.submission_date }}</td>
+                            <td data-order="{{ revision.submission_date|date:'U'}}">{{ revision.submission_date }}</td>
                             <td>{% if revision.change_summary %}{{ revision.change_summary }}{% else %} No Summary {% endif %}</td>
                             </tr>
                         {% endfor %}
@@ -77,13 +77,9 @@
     <script src="{% static 'js/datatables/responsive/js/dataTables.responsive.min.js' %}"></script>
 <script>
     $(function(){
-        tables =$("#revisions").dataTable({
+        tables =$("#revisions,#questions").dataTable({
             order: [[ 2, "desc" ]]
         });
-        $("#questions").dataTable({
-            order: [[ 2, "desc" ]]
-        });
-
     });
 </script>
     <script type="text/javascript">

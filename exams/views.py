@@ -578,7 +578,7 @@ def approve_user_contributions(request,slugs,exam_pk):
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
     pks = utils.get_contributed_questions(exam).values_list('pk', flat=True)
-    revisions = Revision.objects.per_exam(exam).filter(is_contribution =True,is_deleted=False).exclude(question__pk__in=pks)
+    revisions = Revision.objects.per_exam(exam).filter(is_contribution =True,is_deleted=False,is_approved=False).exclude(question__pk__in=pks)
     contributed_questions = utils.get_contributed_questions(exam)
     number_of_contributions = Revision.objects.filter(submitter=request.user).count()
 
@@ -611,7 +611,7 @@ def show_revision_comparison(request, pk, revision_pk=None):
 @decorators.ajax_only
 def remove_revision(request, pk):
     revision = get_object_or_404(Revision, pk=pk)
-    exam = revision.question.subjects.first.exam
+    exam = revision.question.subjects.first().exam
 
     # PERMISSION CHECK
     if not request.user.is_superuser and \
@@ -629,7 +629,7 @@ def remove_revision(request, pk):
 @decorators.ajax_only
 def approve_revision (request, pk):
     revision = get_object_or_404(Revision, pk=pk)
-    exam = revision.question.subjects.first.exam
+    exam = revision.question.subjects.first().exam
 
     # PERMISSION CHECK
     if not request.user.is_superuser and \
