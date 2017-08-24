@@ -675,3 +675,15 @@ def approve_question(request, slugs, exam_pk,pk):
 def show_credits(request,pk):
     exam = get_object_or_404(Exam, pk=pk)
     return render(request, 'exams/partials/show_credits.html',{'exam':exam})
+
+@login_required
+def list_contributions(request,user_pk=None):
+    if user_pk:
+        user = get_object_or_404(User,pk=user_pk)
+    else:
+        user = request.user
+
+    revisions = Revision.objects.filter(submitter=user)
+    exams = Exam.objects.all()
+
+    return render(request, 'exams/list_contributions.html',{'revisions':revisions,'exams':exams})

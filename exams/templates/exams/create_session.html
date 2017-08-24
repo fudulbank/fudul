@@ -68,7 +68,6 @@
 						<div class="panel-heading">
 							<h1 class="panel-title"> {{ exam.name }} Session
                             <div style="float: right;">
-                    <a id ='credits' data-url='{% url 'exams:show_credits' exam.pk %}' class="btn btn-primary btn-xs"><i class="  icon-medal-star position-left"></i> Credits</a>
                         </div></h1>
 						</div>
         <div id="form-panel" class="panel-body">
@@ -168,16 +167,15 @@
         <div id="exam-stats" class="panel panel-flat">
         <div class="panel-heading">
             <div style="margin-bottom: 20px;" class="text-right">
-                <a class="btn btn-primary" href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}">Add question <i class=" icon-file-plus position-left"></i></a>
-           </div>
+                        {% if exam.credits %} <a id ='credits' data-url='{% url 'exams:show_credits' exam.pk %}' class="btn btn-primary btn-icon"><i class="  icon-medal-star"></i></a>{% endif %}
+                        <a class="btn btn-primary" href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}">Add question <i class=" icon-file-plus position-left"></i></a>
+            </div>
             <h5> Your latest sessions:</h5>
         </div>
            <div class="panel-body">
 
                <ul>
                    {% for session in sessions %}
-
-
 
                        <div class="panel panel-body">
 								<div class="media">
@@ -251,7 +249,7 @@
         $("#credits").click(function () {
             var url = $(this).data('url');
             $("#show-credit-modal").modal('show');
-            $("#show-credit-modal .modal-title").html("Some of the great contributors");
+            $("#show-credit-modal .modal-title").attr("display",'none');
             $("#show-credit-modal .modal-body").load(url);
 
         });

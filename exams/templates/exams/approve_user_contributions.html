@@ -24,7 +24,7 @@
                         </thead>
                         <tbody>
                         {% for revision in revisions%}
-                            <tr data-url="{% url 'exams:show_revision_comparison' revision.question.pk revision.pk %}" data-revision_pk="{{ revision.pk }}">
+                            <tr data-url="{% url 'exams:show_revision_comparison' revision.question.pk revision.pk %}" data-pk="{{ revision.pk }}">
                             <td>{{ revision.question.pk }}</td>
                             <td>{{ revision.submitter }} {% if not number_of_contributions == 0 %}[{{ number_of_contributions }}]{% endif %}</td>
                             <td data-order="{{ revision.submission_date|date:'U' }}">{{ revision.submission_date }}</td>
@@ -93,7 +93,7 @@
         var table =$("#revisions").DataTable();
         if ( table.data().any() ) {
             $('#revisions tbody').on('click','tr',function () {
-                revision_pk =  $(this).data("revision_pk");
+                pk =  $(this).data("pk");
                 url = $(this).data('url');
                 title_part = $(this).children('td:nth-child(2)').html();
 

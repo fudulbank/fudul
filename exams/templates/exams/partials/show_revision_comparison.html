@@ -75,10 +75,10 @@ p.question-text{
                        <div class="panel-body">
                            <div class="row">
                                <div class="col-md-6">
-                               <button id='remove' data-pk="{{ revision.question.pk }}" data-url="{% url 'exams:remove_revision' revision.pk %}" style="float: left" type="button" class="btn btn-danger btn-rounded btn-sm"><i class=" icon-subtract position-left"></i> Remove </button>
+                               <button id='remove' data-pk="{{ revision.pk }}" data-url="{% url 'exams:remove_revision' revision.pk %}" style="float: left" type="button" class="btn btn-danger btn-rounded btn-sm"><i class=" icon-subtract position-left"></i> Remove </button>
                                </div>
                                <div class="col-md-6">
-                               <button id='approve' data-pk="{{ revision.question.pk }}" data-url="{% url 'exams:approve_revision' revision.pk %}"style="float: right" type="button" class="btn btn-primary btn-rounded btn-sm"><i class=" icon-add position-left"></i> Approve</button>
+                               <button id='approve' data-pk="{{ revision.pk }}" data-url="{% url 'exams:approve_revision' revision.pk %}"style="float: right" type="button" class="btn btn-primary btn-rounded btn-sm"><i class=" icon-add position-left"></i> Approve</button>
                                </div>
                            </div>
                 </div>
