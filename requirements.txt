@@ -3,5 +3,6 @@ django-bootstrap3>=8.2.3,<8.2.99
 django-guardian>=1.4.8,<1.4.99
 django-post-office>=2.0.8,<2.0.99
 django-userena>=2.0.1,<2.0.99
+django-loginas>=0.3.2,<0.3.99
 django-autocomplete-light>=3.2,<3.2.99
 django-htmlmin>=0.10,<0.10.99
