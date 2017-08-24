@@ -156,10 +156,7 @@ def handle_question(request, exam_pk,question_pk=None):
         revision.save()
         revisionform.save_m2m()
 
-        if utils.test_revision_approval(revision, request.user):
-            revision.is_approved = True
-        else:
-            revision.is_approved = False
+        revision.is_approved = utils.test_revision_approval(revision)
 
         if teams.utils.is_editor(request.user):
             revision.is_contribution = False

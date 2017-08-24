@@ -48,10 +48,7 @@ class RevisionForm(forms.ModelForm):
         question.revision_set.exclude(pk=new_revision.pk)\
                              .update(is_last=False)
 
-        if utils.test_revision_approval(new_revision, user):
-            new_revision.is_approved = True
-        else:
-            new_revision.is_approved = False
+        new_revision.is_approved = utils.test_revision_approval(new_revision)
 
         if teams.utils.is_editor(user):
             new_revision.is_contribution = False
