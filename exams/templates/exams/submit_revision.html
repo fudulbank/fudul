@@ -1,4 +1,4 @@
-{% extends 'base.html' %}{% load staticfiles %}{% load bootstrap3 %}
+{% extends 'base.html' %}{% load staticfiles bootstrap3 %}
 {% block title %}Editing question #{{ revision.question.pk }}{% endblock %}
 {% block breadcrumb %}
 
@@ -44,7 +44,7 @@
         });
 
         $('#choice_formset input[type=checkbox]').change(function(){
-            $('#choice_formset input[type=checkbox]').not(this).prop('checked', false);  
+            $('#choice_formset input[type=checkbox]').not(this).prop('checked', false);
         });
         $("textarea").autoGrow();
         // add formset controls
