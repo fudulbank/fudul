@@ -1,3 +1,4 @@
+<table class="display datatable dt-responsive">{% load account_utils %}
 <thead>
     <tr>
         <th>ID</th>
@@ -14,17 +15,26 @@
   <tr data-pk="{{ revision.question.pk }}" data-url="{% url 'exams:show_question' revision.question.pk %}">
     <td>{{ revision.question.pk }}</td>
     <td> {{ revision.text|linebreaks|truncatewords:20 }}</td>
-    <td>{{ revision.submitter }}</td>
+    <td>{% get_user_representation revision.submitter %}</td>
     <td>
        <ul>{% for status in revision.statuses.all %}<li>{{ status.name }}</li>{% endfor %}</ul>
     </td>
     <td data-order="{{ revision.submission_date|date:'U' }}">{{ revision.submission_date }}</td>
-    <td>{% if revision.has_right_answer %}Yes{% else %}No{% endif %}</td>
+    <td>{% if revision.has_right_answer %}<span class="text-success">Yes</span>{% else %}<span class="text-danger">No</span>{% endif %}</td>
     <td>
-       <a href="{% url 'exams:list_revisions' category_slug exam_pk revision.question.pk %}"><button class="btn btn-primary btn-icon btn-rounded"><i class="icon-menu7"></i></button></a>
-       <a href="{% url 'exams:submit_revision' category_slug exam_pk revision.question.pk %}"><button class="btn btn-warning btn-icon btn-rounded"><i class="icon-pencil"></i></button></a>
-       <button data-pk="{{ revision.question.pk }}" data-url="{% url 'exams:delete_question' revision.question.pk %}" class="confirm-delete-question btn btn-danger btn-icon btn-rounded"><i class="icon-cross2"></i></button>
+      <div class="btn-group" role="group">
+        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Actions
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+          <li><a href="{% url 'exams:list_revisions' category_slug exam_pk revision.question.pk %}"><i class="icon-menu7"></i> History</a></li>
+          <li><a href="{% url 'exams:submit_revision' category_slug exam_pk revision.question.pk %}"><i class="icon-pencil"></i> Edit</a></li>
+          <li><a data-pk="{{ revision.question.pk }}" data-url="{% url 'exams:delete_question' revision.question.pk %}" class="confirm-delete-question"><i class="icon-cross2"></i> Delete</a></li>
+        </ul>
+      </div>
     </td>
   </tr>
 {% endfor %}
 </tbody>
+</table>
