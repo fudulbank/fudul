@@ -35,6 +35,7 @@ class InstitutionAdmin(admin.ModelAdmin):
         return User.objects.filter(profile__college__institution=obj).count()
 
 class UserAdmin(UserenaAdmin):
+    change_form_template = 'loginas/change_form.html'
     inlines = [ProfileInline,]
     actions = ['make_active']
     search_fields = [field.replace('user__', '') for field in BASIC_SEARCH_FIELDS]
