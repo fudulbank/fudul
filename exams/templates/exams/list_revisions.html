@@ -1,7 +1,24 @@
 {% extends 'base.html' %}{% load staticfiles account_utils %}
 {% block title %}Question #{{ question.pk }} revisions{% endblock %}
-{% block breadcrumb %}
+{% block head %}
+<style>
+.panel-body p{
+    margin-left: 5%;
+}
+.panel-body b{
+    margin-left: 3%;
+}
+th, td{
+    text-align: left;
+}
 
+tbody{
+    cursor:pointer;
+}
+
+</style>
+{% endblock %}
+{% block breadcrumb %}
 					<div class="breadcrumb-line">
 						<ul class="breadcrumb">
 							<li><a href="{% url 'index' %}"><i class="icon-home2 position-left"></i> Fudul</a></li>
@@ -24,8 +41,8 @@
 						</div>
         <div class="panel-body">
         <p class="content-group-lg"><b>ID:</b>{{ question.pk }}
-            <b>Subject:</b>{% for subject in question.subjects.all %}{{ subject.name }}{% endfor %}
-            <b>Source:</b>{% for source in question.sources.all %}{{ source.name }}{% endfor %}
+            <b>Subject:</b> {% for subject in question.subjects.all %}{{ subject.name }} {% endfor %}
+            <b>Source:</b> {% for source in question.sources.all %}{{ source.name }} {% endfor %}
             {% if question.get_latest_revision.figure %}<a href="{{ question.get_latest_revision.figure.url }}"><b>illustration</b></a>{% endif %}
             <b>Exam Type:</b>{{ question.get_exam_type_display }}
             <b> Status:</b> {% for status in question.get_latest_revision.statuses.all %}{{ status.name }} {% endfor %}
@@ -35,8 +52,9 @@
                             <tr>
                                 <th>Submitter</th>
                                 <th>Date of Submission</th>
-                                <th>Status</th>
-                                <th>Approval</th>
+                                <th class="not-mobile">Status</th>
+                                <th>Is approved?</th>
+																<th class="always">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -47,7 +65,19 @@
                             <td>
                                 <ul>{% for status in revision.statuses.all %}<li>{{ status.name }}</li>{% endfor %}</ul>
                             </td>
-                            <td>{% if revision.is_approved %} Approved {% else %} Not Approved{% endif %}</td>
+                            <td>{% if revision.is_approved %}<span class="text-success">Yes</span>{% else %}<span class="text-danger">No</span>{% endif %}</td>
+														<td>
+															<div class="btn-group" role="group">
+																<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+																	Actions
+																	<span class="caret"></span>
+																</button>
+																<ul class="dropdown-menu">
+																	<li><a data-pk="{{ revision.question.pk }}" data-url="{% url 'exams:approve_revision' revision.pk %}" class="approve-revision"><i class="icon-checkmark2"></i> Approve</a></li>
+																	<li><a data-pk="{{ revision.question.pk }}" data-url="{% url 'exams:delete_question' revision.question.pk %}" class="confirm-delete-revision"><i class="icon-cross3"></i> Delete</a></li>
+																</ul>
+															</div>
+														</td>
                             </tr>
                         {% endfor %}
                         </tbody>
@@ -55,51 +85,30 @@
         </div>
     </div>
 
-
 {% endblock %}
 {% block customscript %}
 	<link rel="stylesheet" href="{% static 'css/jquery.dataTables.min.css' %}">
 	<link rel="stylesheet" href="{% static 'js/datatables/responsive/css/responsive.dataTables.min.css' %}">
 	<script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
-    <script src="{% static 'js/datatables/responsive/js/dataTables.responsive.min.js' %}"></script>
-<style>
-.panel-body p{
-    margin-left: 5%;
-}
-.panel-body b{
-    margin-left: 3%;
-}
-th, td{
-    text-align: left;
-}
-
-tbody{
-    cursor:pointer;
-}
-
-</style>
-	<script>
-    $(function(){
-        $("#revisions").dataTable({
-            order: [[ 1, "desc" ]]
-        });
-
-    });
-</script>
+  <script src="{% static 'js/datatables/responsive/js/dataTables.responsive.min.js' %}"></script>
 <script src="{% static 'js/toastr.js' %}"></script>
 
 <script type="text/javascript">
     $(function () {
+        $("#revisions").dataTable({
+	            order: [[ 1, "desc" ]]
+	      });
         // initialize project edit modal
         $('#show-revision-modal').modal({
           keyboard: false,
           backdrop: 'static',
           show    : false,
         });
-        $('tbody').on('click','tr',function () {
-            revision_pk =  $(this).data("revision_pk");
-            url = $(this).data('url');
-            title_part = $(this).children('td:nth-child(2)').html();
+        $('tbody').on('click','tr td:not(:last-child)',function () {
+					  $row = $(this).closest('tr')
+            revision_pk =  $row.data("revision_pk");
+            url = $row.data('url');
+            title_part = $row.children('td:nth-child(2)').html();
 
             $("#show-revision-modal").modal('show');
 
@@ -114,4 +123,7 @@ tbody{
 {% with modal_id='show-revision-modal' no_footer=True %}
     {% include "exams/modals/common_edit_modal.html" %}
 {% endwith %}
+
+{% include 'exams/partials/initialize_revision_review.html' %}
+
 {% endblock %}
