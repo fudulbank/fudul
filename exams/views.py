@@ -158,12 +158,8 @@ def handle_question(request, exam_pk,question_pk=None):
         revision.save()
         revisionform.save_m2m()
 
-        if utils.test_revision_approval(revision, request.user):
-            revision.is_approved = True
-        else:
-            revision.is_approved = False
+        revision.is_approved = utils.test_revision_approval(revision)
 
-        revision.save()
 
         if teams.utils.is_editor(request.user):
             revision.is_contribution = False
@@ -497,8 +493,7 @@ class SubjectQuestionCount(autocomplete.Select2QuerySetView):
         return qs
 
     def get_result_label(self, item):
-        number_of_questions= item.question_set.filter(is_deleted=False,revision__is_approved=True).distinct().count()
-        return "<strong>{}</strong> ({})".format(item.name, number_of_questions)
+        return "<strong>{}</strong> ({})".format(item.name, item.question_set.count())
 
 class ExamTypeQuestionCount(autocomplete.Select2QuerySetView):
     def get_queryset(self):
@@ -584,7 +579,7 @@ def approve_user_contributions(request,slugs,exam_pk):
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
     pks = utils.get_contributed_questions(exam).values_list('pk', flat=True)
-    revisions = Revision.objects.per_exam(exam).filter(is_contribution=True,is_deleted=False,is_approved=False).exclude(question__pk__in=pks)
+    revisions = Revision.objects.per_exam(exam).filter(is_contribution =True,is_deleted=False,is_approved=False).exclude(question__pk__in=pks)
     contributed_questions = utils.get_contributed_questions(exam)
     number_of_contributions = Revision.objects.filter(submitter=request.user).count()
 
