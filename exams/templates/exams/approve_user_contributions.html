@@ -7,7 +7,7 @@
 
 {% block content %}
 <div class="row">
-   <div class="col-md-8">
+   <div class="col-md-12">
      <div class="panel panel-flat">
 						<div class="panel-heading">
                             <h1 class="panel-title">  Users Pending Revisions </h1>
@@ -24,7 +24,7 @@
                         </thead>
                         <tbody>
                         {% for revision in revisions%}
-                            <tr data-url="{% url 'exams:show_revision_comparison' revision.question.pk revision.pk %}" data-revision_pk="{{ revision.pk }}">
+                            <tr data-url="{% url 'exams:show_revision_comparison' revision.question.pk revision.pk %}" data-pk="{{ revision.pk }}">
                             <td>{{ revision.question.pk }}</td>
                             <td>{% get_user_representation revision.submitter %} {% if not number_of_contributions == 0 %}[{{ number_of_contributions }}]{% endif %}</td>
                             <td data-order="{{ revision.submission_date|date:'U'}}">{{ revision.submission_date }}</td>
@@ -79,7 +79,7 @@
     <script src="{% static 'js/datatables/responsive/js/dataTables.responsive.min.js' %}"></script>
 <script>
     $(function(){
-        tables =$("#revisions,#questions").dataTable({
+        review_tables = $("#revisions,#questions").DataTable({
             order: [[ 2, "desc" ]]
         });
     });
@@ -93,14 +93,14 @@
           show    : false,
         });
         $('#revisions tbody').on('click','tr',function () {
-            revision_pk =  $(this).data("revision_pk");
+            revision_pk =  $(this).data("pk");
             url = $(this).data('url');
             title_part = $(this).children('td:nth-child(2)').html();
 
             $("#show-revision-modal").modal('show');
 
             $("#show-revision-modal .modal-title").html("Revision of" + title_part);
-            $("#show-revision-modal .modal-body").load(url);
+            $("#show-revision-modal .modal-body").load(url, initializeReview);
             $("#show-revision-modal .modal-header").addClass('bg-primary')
 
         });
@@ -110,5 +110,6 @@
 {% with modal_id='show-revision-modal' no_footer=True %}
     {% include "exams/modals/common_edit_modal.html" %}
 {% endwith %}
+{% include 'exams/partials/initialize_revision_review.html' %}
 
 {% endblock %}
