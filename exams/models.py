@@ -99,7 +99,7 @@ class Category(models.Model):
         return slugs
 
     def __str__(self):
-        parent_categories = self.get_parent_categories()
+        parent_categories = self.get_parent_categories() + [self.name]
         parent_categories.reverse()
         names = [category.name for category in parent_categories]
         return "/".join(names)
