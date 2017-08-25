@@ -23,7 +23,8 @@ class RevisionQuerySet(models.QuerySet):
         return self.filter(question__subjects__exam=exam).distinct()
 
     def undeleted(self):
-        return self.filter(is_deleted=False)
+        return self.filter(is_deleted=False,
+                           question__is_deleted=False)
 
 class ChoiceQuerySet(models.QuerySet):
     def order_by_alphabet(self):

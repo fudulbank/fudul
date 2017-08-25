@@ -1,4 +1,4 @@
-{% extends 'base.html' %}{% load staticfiles %}{% load bootstrap3 %}{% load teams_utlis %}
+{% extends 'base.html' %}{% load staticfiles bootstrap3 teams_utlis account_utils %}
 {% block title %}Fudul | User Contributions {% endblock %}
 
 
@@ -26,8 +26,8 @@
                         {% for revision in revisions%}
                             <tr data-url="{% url 'exams:show_revision_comparison' revision.question.pk revision.pk %}" data-revision_pk="{{ revision.pk }}">
                             <td>{{ revision.question.pk }}</td>
-                            <td>{{ revision.submitter }} {% if not number_of_contributions == 0 %}[{{ number_of_contributions }}]{% endif %}</td>
-                            <td data-order="{{ revision.submission_date|date:'U' }}">{{ revision.submission_date }}</td>
+                            <td>{% get_user_representation revision.submitter %} {% if not number_of_contributions == 0 %}[{{ number_of_contributions }}]{% endif %}</td>
+                            <td data-order="{{ revision.submission_date|date:'U'}}">{{ revision.submission_date }}</td>
                             <td>{% if revision.change_summary %}{{ revision.change_summary }}{% else %} No Summary {% endif %}</td>
                             </tr>
                         {% endfor %}
@@ -53,15 +53,17 @@
                         </thead>
                         <tbody>
                         {% for question in contributed_questions %}
+                        {% with latest_revision=question.get_latest_revision %}
 {#                            revision_set.get(is_first=True).submitter #}
                             <tr>
                                 <td>{{ question.pk }}</td>
-                            <td>{{ question.get_latest_revision.submitter }} {% if not number_of_contributions == 0 %}[{{ number_of_contributions }}]{% endif %}</td>
-                            <td data-order="{{ question.get_latest_revision.submission_date|date:'U' }}">{{ question.get_latest_revision.submission_date }}</td>
-                            <td>{% if question.get_latest_revision.has_right_answer %}Yes{% else %}No{% endif %}</td>
-                            <td>{% if question.get_latest_revision.explaination %}Yes {% else %} No {% endif %}</td>
+                                <td>{% get_user_representation latest_revision.submitter %} {% if not number_of_contributions == 0 %}[{{ number_of_contributions }}]{% endif %}</td>
+                                <td data-order="{{ latest_revision.submission_date|date:'U' }}">{{ latest_revision.submission_date }}</td>
+                                <td>{% if latest_revision.has_right_answer %}Yes{% else %}No{% endif %}</td>
+                                <td>{% if latest_revision.explaination %}Yes {% else %} No {% endif %}</td>
                                 <td><a href="{% url 'exams:approve_question' exam.category.get_slugs exam.pk question.pk %}"><button class="btn btn-primary btn-icon btn-rounded"><i class="icon-pencil"></i></button></a></td>
                             </tr>
+                        {% endwith %}
                         {% endfor %}
                         </tbody>
             </table>

@@ -158,10 +158,7 @@ def handle_question(request, exam_pk,question_pk=None):
         revision.save()
         revisionform.save_m2m()
 
-        if utils.test_revision_approval(revision, request.user):
-            revision.is_approved = True
-        else:
-            revision.is_approved = False
+        revision.is_approved = utils.test_revision_approval(revision)
 
         revision.save()
 
@@ -389,7 +386,7 @@ def show_session_results(request, slugs, exam_pk, session_pk):
         raise Http404
 
     if not session.has_finished():
-        answers = [] 
+        answers = []
         for question in session.get_unused_questions():
             answer = Answer(session=session, question=question)
             answers.append(answer)

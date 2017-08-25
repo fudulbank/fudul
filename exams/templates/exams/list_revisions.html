@@ -1,4 +1,4 @@
-{% extends 'base.html' %}{% load staticfiles %}
+{% extends 'base.html' %}{% load staticfiles account_utils %}
 {% block title %}Question #{{ question.pk }} revisions{% endblock %}
 {% block breadcrumb %}
 
@@ -42,7 +42,7 @@
                         <tbody>
                         {% for revision in question.revision_set.order_by_submission %}
                             <tr data-url="{% url 'exams:show_question' revision.question.pk revision.pk %}" data-revision_pk="{{ revision.pk }}">
-                            <td>{{ revision.submitter }}</td>
+                            <td>{% get_user_representation revision.submitter %}</td>
                             <td data-order="{{ revision.submission_date|date:'U' }}">{{ revision.submission_date }}</td>
                             <td>
                                 <ul>{% for status in revision.statuses.all %}<li>{{ status.name }}</li>{% endfor %}</ul>

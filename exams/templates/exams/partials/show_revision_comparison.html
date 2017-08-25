@@ -141,9 +141,12 @@ tbody tr td:last-child{
 		        var posting = $.post(url);
 		        posting.done(function (data) {
 		            if (data.success == 1) {
+		                // show success message (using toastr)
+                    row = table.row("tr[data-pk=" +  pk + "]");
+        						row.remove().draw(false);
+		                toastr.options.positionClass = "toast-top-left";
+		                toastr.info("Question was successfully deleted");
 
-		                row = table.row("tr[data-pk=" +  pk + "]");
-						row.remove().draw(false);
 						$("#confirm-delete-question-modal,#show-revision-modal").modal('hide');
 		            } else {
 		                toastr.error(data.message);
@@ -158,11 +161,13 @@ tbody tr td:last-child{
 		        var posting = $.post(url);
 		        posting.done(function (data) {
 		            if (data.success == 1) {
-
-		                    row = table.row("tr[data-pk=" +  pk + "]");
-							row.remove().draw(false);
-		                    $("#show-revision-modal").modal('hide');
-		                    $("#confirm-delete-question-modal").modal('hide');
+		                // show success message (using toastr)
+                    row = table.row("tr[data-pk=" +  pk + "]");
+                    row.remove().draw(false);
+		                toastr.options.positionClass = "toast-top-left";
+		                toastr.info("Revision is now approved");
+		                $("#show-revision-modal").modal('hide');
+		                $("#confirm-delete-question-modal").modal('hide');
 		            } else {
 		                toastr.error(data.message);
 		            }
