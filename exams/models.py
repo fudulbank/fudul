@@ -100,9 +100,8 @@ class Category(models.Model):
 
     def __str__(self):
         parent_categories = self.get_parent_categories()
-        parent_categories.reverse()
-        names = [self.name] + \
-                [category.name for category in parent_categories]
+        names = [category.name for category in parent_categories] + \
+                [self.name]
         return "/".join(names)
 
 class Exam(models.Model):
