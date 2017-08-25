@@ -14,9 +14,8 @@ class QuestionForm(forms.ModelForm):
         self.fields['subjects'].queryset = models.Subject.objects.filter(exam=exam)
         self.fields['sources'].queryset = exam.get_sources()
 
-        exam_types = exam.get_exam_types()
-        if exam_types.exists():
-            self.fields['exam_types'].queryset = exam_types
+        if exam.exam_types.exists():
+            self.fields['exam_types'].queryset = exam.exam_types.all()
         else:
             del self.fields['exam_types']
 
@@ -109,9 +108,8 @@ class SessionForm(forms.ModelForm):
         self.fields['sources'].queryset = exam.get_sources().filter(parent_source__isnull=True)
         # self.fields['question_filter']=forms.ChoiceField(choices=models.questions_choices)
 
-        exam_types = exam.get_exam_types()
-        if exam_types.exists():
-            self.fields['exam_types'].queryset = exam_types
+        if exam.exam_types.exists():
+            self.fields['exam_types'].queryset = exam.exam_types.all()
         else:
             del self.fields['exam_types']
 

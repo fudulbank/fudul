@@ -48,7 +48,6 @@ class Category(models.Model):
                                         related_name="children",
                                         on_delete=models.SET_NULL,
                                         default=None)
-    exam_types = models.ManyToManyField('ExamType')
     objects = managers.CategoryQuerySet.as_manager()
 
     def get_parent_categories(self):
@@ -109,6 +108,7 @@ class Exam(models.Model):
     submission_date = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
     batches_allowed_to_take = models.ForeignKey(Batch, null=True, blank=True)
+    exam_types = models.ManyToManyField('ExamType')
 
     def get_sources(self):
         sources = Source.objects.none()
@@ -117,14 +117,6 @@ class Exam(models.Model):
             sources |= category.source_set.all()
             category = category.parent_category
         return sources
-
-    def get_exam_types(self):
-        exam_types = ExamType.objects.none()
-        category = self.category
-        while category:
-            exam_types |= category.exam_types.all()
-            category = category.parent_category
-        return exam_types
 
     def can_user_edit(self, user):
         if user.is_superuser:

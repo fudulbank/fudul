@@ -499,7 +499,7 @@ class ExamTypeQuestionCount(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         exam_pk = self.forwarded.get('exam_pk')
         exam = Exam.objects.get(pk=exam_pk)
-        qs = exam.get_exam_types()
+        qs = exam.exam_types.all()
         if self.q:
             qs = qs.filter(pk=self.q)
         return qs
