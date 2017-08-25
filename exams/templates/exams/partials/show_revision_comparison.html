@@ -74,10 +74,10 @@ p.question-text{
 
  <div class="row">
      <div class="col-md-6">
-         <button data-pk="{{ revision.question.pk }}" data-url="{% url 'exams:remove_revision' revision.pk %}" type="button" class="btn btn-danger btn-rounded btn-sm pull-left confirm-delete-revision"><i class=" icon-subtract position-left"></i> Remove </button>
+         <button data-pk="{{ revision.question.pk }}" data-url="{% url 'exams:delete_revision' revision.pk %}" type="button" class="btn btn-danger btn-rounded btn-sm pull-left confirm-delete-revision"><i class=" icon-trash position-left"></i> Delete revision</button>
      </div>
      <div class="col-md-6">
-         <button data-pk="{{ revision.question.pk }}" data-url="{% url 'exams:approve_revision' revision.pk %}" type="button" class="btn btn-primary btn-rounded btn-sm pull-right approve-revision"><i class=" icon-add position-left"></i> Approve</button>
+         <button data-pk="{{ revision.question.pk }}" data-url="{% url 'exams:mark_revision_approved' revision.pk %}" type="button" class="btn btn-primary btn-rounded btn-sm pull-right approve-revision"><i class=" icon-add position-left"></i> Approve revision</button>
      </div>
  </div>
 </div>
