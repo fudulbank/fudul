@@ -131,7 +131,8 @@ def handle_question(request, exam_pk,question_pk=None):
     # if not exam.can_user_edit(request.user):
     #     raise PermissionDenied
     if question_pk :
-        question = get_object_or_404(Question, pk=question_pk)
+        question = get_object_or_404(Question, pk=question_pk,
+                                     is_deleted=False)
         instance = question.get_latest_revision()
         questionform = forms.QuestionForm(request.POST,
                                           exam=exam,
@@ -210,7 +211,7 @@ def list_questions(request, slugs, pk):
 @login_required
 @decorators.ajax_only
 def show_question(request, pk, revision_pk=None):
-    question = get_object_or_404(Question, pk=pk)
+    question = get_object_or_404(Question, pk=pk, is_deleted=False)
     if revision_pk:
         revision = get_object_or_404(Revision, pk=revision_pk)
     else:
@@ -237,7 +238,8 @@ def list_revisions(request, slugs, exam_pk, pk):
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
 
-    question = get_object_or_404(Question, pk=pk)
+    question = get_object_or_404(Question, pk=pk,
+                                 is_deleted=False)
     context = {'question': question,
                'exam': exam}
     return render(request, 'exams/list_revisions.html', context)
@@ -250,7 +252,7 @@ def submit_revision(request, slugs, exam_pk, pk):
         raise Http404
 
     exam = get_object_or_404(Exam, pk=exam_pk)
-    question = get_object_or_404(Question, pk=pk)
+    question = get_object_or_404(Question, pk=pk, is_deleted=False)
     #TODO :latest approved revision
     latest_revision = question.get_latest_revision()
 
@@ -404,7 +406,8 @@ def toggle_marked(request):
     question_pk = request.POST.get('question_pk')
     session_pk = request.POST.get('session_pk')
     session = get_object_or_404(Session, pk=session_pk)
-    question = get_object_or_404(session.questions, pk=question_pk)
+    question = get_object_or_404(session.questions, pk=question_pk,
+                                 is_deleted=False)
 
     # PERMISSION CHECKS
     if not session.can_access(request.user):
@@ -428,7 +431,7 @@ def submit_answer(request):
     session_pk = request.POST.get('session_pk')
     choice_pk = request.POST.get('choice_pk')
     session = get_object_or_404(Session, pk=session_pk)
-    question = get_object_or_404(session.questions, pk=question_pk)
+    question = get_object_or_404(session.questions, pk=question_pk, is_deleted=False)
 
     # PERMISSION CHECKS
     if not session.can_access(request.user):
@@ -523,7 +526,8 @@ def show_category_indicators(request, category):
 @csrf.csrf_exempt
 def contribute_explanation(request):
     question_pk = request.GET.get('question_pk')
-    question = get_object_or_404(Question, pk=question_pk)
+    question = get_object_or_404(Question, pk=question_pk,
+                                 is_deleted=False)
     latest_revision = question.get_latest_revision()
 
     if request.method == 'GET':
@@ -596,7 +600,8 @@ def show_revision_comparison(request, pk, revision_pk=None):
     question = get_object_or_404(Question, pk=pk)
 
     if revision_pk:
-        revision = get_object_or_404(Revision, pk=revision_pk)
+        revision = get_object_or_404(Revision, pk=revision_pk,
+                                     is_deleted=False)
     else:
         revision = question.get_latest_revision()
 
@@ -612,9 +617,10 @@ def show_revision_comparison(request, pk, revision_pk=None):
 @csrf.csrf_exempt
 @decorators.post_only
 @decorators.ajax_only
-def remove_revision(request, pk):
+def delete_revision(request, pk):
     revision = get_object_or_404(Revision, pk=pk)
-    exam = revision.question.subjects.first().exam
+    question = revision.question
+    exam = question.get_exam()
 
     # PERMISSION CHECK
     if not request.user.is_superuser and \
@@ -625,23 +631,42 @@ def remove_revision(request, pk):
     revision.is_deleted = True
     revision.save()
 
+    # If no undeleted revision remains, then mark the whole question
+    # as deleted as well.
+    if not question.revision_set.undeleted().count():
+        question.is_deleted = True
+        question.save()
+
     return {}
 
 @csrf.csrf_exempt
 @decorators.post_only
 @decorators.ajax_only
-def approve_revision (request, pk):
+def mark_revision_approved(request, pk):
     revision = get_object_or_404(Revision, pk=pk)
-    exam = revision.question.subjects.first().exam
+    exam = revision.question.get_exam()
 
     # PERMISSION CHECK
-    if not request.user.is_superuser and \
-            not exam.category.is_user_editor(request.user) and \
-            not revision.submitter == request.user:
-        raise Exception("You cannot delete that question!")
+    if not exam.can_user_edit(request.user):
+        raise Exception("You change the approval status.")
 
     revision.is_approved = True
     revision.save()
+
+@csrf.csrf_exempt
+@decorators.post_only
+@decorators.ajax_only
+def mark_revision_pending(request, pk):
+    revision = get_object_or_404(Revision, pk=pk)
+    exam = revision.question.get_exam()
+
+    # PERMISSION CHECK
+    if not exam.can_user_edit(request.user):
+        raise Exception("You change the approval status.")
+
+    revision.is_approved = False
+    revision.save()
+
 
 @login_required
 def approve_question(request, slugs, exam_pk,pk):

@@ -49,7 +49,7 @@ p.question-text{
             </div>
     <div class="panel panel-flat">
     <div class="panel-heading">
-							<h4 class="panel-title"> Submitted Revision # {{ revision.pk }} :
+							<h4 class="panel-title"> Submitted revision #{{ revision.pk }}
                             </h4>
     </div>
                        <div class="panel-body">
@@ -71,110 +71,13 @@ p.question-text{
                        {% endif  %}
                 </div>
             </div>
-    <div class="panel panel-flat">
-                       <div class="panel-body">
-                           <div class="row">
-                               <div class="col-md-6">
-                               <button id='remove' data-pk="{{ revision.question.pk }}" data-url="{% url 'exams:remove_revision' revision.pk %}" style="float: left" type="button" class="btn btn-danger btn-rounded btn-sm"><i class=" icon-subtract position-left"></i> Remove </button>
-                               </div>
-                               <div class="col-md-6">
-                               <button id='approve' data-pk="{{ revision.question.pk }}" data-url="{% url 'exams:approve_revision' revision.pk %}"style="float: right" type="button" class="btn btn-primary btn-rounded btn-sm"><i class=" icon-add position-left"></i> Approve</button>
-                               </div>
-                           </div>
-                </div>
-            </div>
 
-
-
-</body>
-{% block customscript %}
-
-<div class="modal fade" id="confirm-delete-question-modal">
-  <div class="modal-dialog modal-sm">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title">Remove revision</h4>
-      </div>
-      <div class="modal-body">
-          Are you sure you want to remove the submitted revision?
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-        <button id="delete-question" type="button" class="btn btn-danger confirm">Confirm</button>
-      </div>
-    </div><!-- /.modal-content -->
-  </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
-
-
-<link rel="stylesheet" href="{% static 'css/jquery.dataTables.min.css' %}">
-	<link rel="stylesheet" href="{% static 'js/datatables/responsive/css/responsive.dataTables.min.css' %}">
-	<script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
-    <script src="{% static 'js/datatables/responsive/js/dataTables.responsive.min.js' %}"></script>
-<style type="text/css">
-th, td{
-    text-align: left;
-}
-tbody tr td{
-    cursor:pointer;
-}
-tbody tr td:last-child{
-    cursor:initial;
-}
-
-</style>
-<script src="{% static 'js/toastr.js' %}"></script>
-<script type="text/javascript">
-        $('#remove').click(function () {
-            var url = $(this).data('url');
-            var pk = $(this).data('pk');
-            $("#delete-question").data('url', url).data('pk', pk);
-            $("#confirm-delete-question-modal").modal('show');
-        });
-         var table =$("#revisions").DataTable();
-        $("#delete-question").click(function () {
-		        /* get some values from elements on the page: */
-		        var url = $(this).data('url');
-				var pk = $(this).data('pk');
-		        /* Send the data using post */
-		        var posting = $.post(url);
-		        posting.done(function (data) {
-		            if (data.success == 1) {
-		                // show success message (using toastr)
-                    row = table.row("tr[data-pk=" +  pk + "]");
-        						row.remove().draw(false);
-		                toastr.options.positionClass = "toast-top-left";
-		                toastr.info("Question was successfully deleted");
-
-						$("#confirm-delete-question-modal,#show-revision-modal").modal('hide');
-		            } else {
-		                toastr.error(data.message);
-		            }
-		        });
-		    });
-        $("#approve").click(function () {
-		        /* get some values from elements on the page: */
-		        var url = $(this).data('url');
-				var pk = $(this).data('pk');
-		        /* Send the data using post */
-		        var posting = $.post(url);
-		        posting.done(function (data) {
-		            if (data.success == 1) {
-		                // show success message (using toastr)
-                    row = table.row("tr[data-pk=" +  pk + "]");
-                    row.remove().draw(false);
-		                toastr.options.positionClass = "toast-top-left";
-		                toastr.info("Revision is now approved");
-		                $("#show-revision-modal").modal('hide');
-		                $("#confirm-delete-question-modal").modal('hide');
-		            } else {
-		                toastr.error(data.message);
-		            }
-		        });
-		    });
-
-{% include 'exams/modals/adjust_modal_size.js' %}
-</script>
-
-{% endblock %}
+ <div class="row">
+     <div class="col-md-6">
+         <button data-pk="{{ revision.pk }}" data-url="{% url 'exams:delete_revision' revision.pk %}" type="button" class="btn btn-danger btn-rounded btn-sm pull-left confirm-delete-revision"><i class=" icon-trash position-left"></i> Delete revision</button>
+     </div>
+     <div class="col-md-6">
+         <button data-pk="{{ revision.pk }}" data-url="{% url 'exams:mark_revision_approved' revision.pk %}" type="button" class="btn btn-primary btn-rounded btn-sm pull-right approve-revision"><i class=" icon-add position-left"></i> Approve revision</button>
+     </div>
+ </div>
+</div>
