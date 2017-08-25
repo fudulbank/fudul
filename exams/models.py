@@ -33,7 +33,6 @@ class ExamType(models.Model):
     name = models.CharField(max_length=100)
     # code_name is something more stable than 'name'
     code_name = models.CharField(max_length=50)
-    category = models.ForeignKey('Category')
 
     def __str__(self):
         return self.name
@@ -49,6 +48,7 @@ class Category(models.Model):
                                         related_name="children",
                                         on_delete=models.SET_NULL,
                                         default=None)
+    exam_types = models.ManyToManyField('ExamType')
     objects = managers.CategoryQuerySet.as_manager()
 
     def get_parent_categories(self):
@@ -122,7 +122,7 @@ class Exam(models.Model):
         exam_types = ExamType.objects.none()
         category = self.category
         while category:
-            exam_types |= category.examtype_set.all()
+            exam_types |= category.exam_types.all()
             category = category.parent_category
         return exam_types
 
