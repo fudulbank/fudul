@@ -99,8 +99,10 @@ class Category(models.Model):
         return slugs
 
     def __str__(self):
-        return self.name
-
+        parent_categories = self.get_parent_categories()
+        parent_categories.reverse()
+        names = [category.name for category in parent_categories]
+        return "/".join(names)
 
 class Exam(models.Model):
     name = models.CharField(max_length=100)
