@@ -143,45 +143,51 @@ class Exam(models.Model):
                                .filter(subjects__exam=self).distinct()
 
     def get_complete_questions(self):
-        pks = Revision.objects.per_exam(self)\
+        pks = Revision.objects.undeleted()\
+                              .per_exam(self)\
                               .filter(statuses__code_name='COMPLETE',
                                       is_last=True)\
                               .values_list('question__pk', flat=True)
-        questions = Question.objects.undeleted().filter(pk__in=pks)
+        questions = Question.objects.filter(pk__in=pks)
         return questions
 
     def get_incomplete_questions(self):
-        pks = Revision.objects.per_exam(self)\
+        pks = Revision.objects.undeleted()\
+                              .per_exam(self)\
                               .filter(is_last=True)\
                               .exclude(statuses__code_name='COMPLETE')\
                               .values_list('question__pk', flat=True)
-        questions = Question.objects.undeleted().filter(pk__in=pks)
+        questions = Question.objects.filter(pk__in=pks)
         return questions
 
     def get_approved_latest_revisions(self):
         return Revision.objects.select_related('question', 'submitter')\
+                               .undeleted()\
                                .per_exam(self)\
                                .filter(is_last=True, is_approved=True)
 
     def get_pending_latest_revisions(self):
         return Revision.objects.select_related('question', 'submitter')\
+                               .undeleted()\
                                .per_exam(self)\
                                .filter(is_last=True, is_approved=False)
 
     def get_approved_questions(self):
-        pks = Revision.objects.per_exam(self)\
+        pks = Revision.objects.undeleted()\
+                              .per_exam(self)\
                               .filter(is_approved=True)\
                               .values_list('question__pk', flat=True)
-        questions = Question.objects.undeleted().filter(pk__in=pks)
+        questions = Question.objects.filter(pk__in=pks)
         return questions
 
     def get_unsolved_questions(self):
-        pks = Revision.objects.per_exam(self)\
+        pks = Revision.objects.undeleted()\
+                              .per_exam(self)\
                               .filter(is_last=True)\
                               .exclude(choice__is_right=True)\
                               .distinct()\
                               .values_list('question__pk', flat=True)
-        questions = Question.objects.undeleted().filter(pk__in=pks)
+        questions = Question.objects.filter(pk__in=pks)
         return questions
 
     def get_targeted_questions(self,subjects,sources,exam_types):
