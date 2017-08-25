@@ -12,7 +12,7 @@
                         <tbody>
                         {% for question in questions %}
                             {% if question.get_latest_revision %}
-                            <tr data-url="{% url 'exams:show_question' question.get_latest_revision.pk %}" data-revision_pk="{{ question.get_latest_revision.pk }}">
+                            <tr data-url="{% url 'exams:show_question' question.get_latest_revision.pk %}" data-pk="{{ question.get_latest_revision.pk }}">
                             <td>{{ question.get_latest_revision.text|linebreaks|truncatewords:20 }}</td>
                             <td>{{ question.get_latest_revision.submitter }}</td>
                             <td>{{ question.get_latest_revision}}</td>

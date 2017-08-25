@@ -5,7 +5,7 @@
 <script src="{% static 'js/toastr.js' %}"></script>
 <script type="text/javascript">
 toastr.options.positionClass = "toast-top-left";
-$(function(){
+function initializeReview(){
     $confirmRevisionDeletion = $("#confirm-delete-revision-modal .submit-button")
     $('.confirm-delete-revision').click(function () {
         var url = $(this).data('url');
@@ -21,11 +21,13 @@ $(function(){
         var posting = $.post(url);
         posting.done(function (data) {
             if (data.success == 1) {
-                // show success message (using toastr)
-                row = $revision_table.row("tr[data-revision_pk=" +  pk + "]");
+                // The following applies in both list_revision and approve_user_contributions
+                var tables = $(".datatable").DataTable();
+                row = tables.row("tr[data-pk=" +  pk + "]");
                 row.remove().draw(false);
+                // show success message (using toastr)
                 toastr.info("Revision was successfully deleted.");
-    						$("#confirm-delete-revision-modal, #show-revision-modal").modal('hide');
+    						$("#show-revision-modal, #confirm-delete-revision-modal").modal('hide');
             } else {
                 toastr.error(data.message);
             }
@@ -40,6 +42,11 @@ $(function(){
         var posting = $.post(url);
         posting.done(function (data) {
             if (data.success == 1) {
+                // show success message (using toastr)
+                toastr.info("Revision is now marked as approved");
+
+                // The following applies in list_revision:
+                $revision_table = $("#revision-list").DataTable();
                 status_cell = $revision_table.cell(".status").node();
                 $status_cell = $(status_cell);
                 $status_cell.removeClass("text-danger")
@@ -47,10 +54,13 @@ $(function(){
                             .html("Yes");
                 $this.hide();
                 $this.closest('.btn-group').find(".pend-revision").show();
-                //row.remove().draw(false);
-                toastr.info("Revision is now approved");
-                $("#show-revision-modal").modal('hide');
-                $("#confirm-delete-revision-modal").modal('hide');
+
+                // The following applies in approve_user_contributions
+                $("#show-revision-modal, #confirm-delete-revision-modal").modal('hide');
+                $review_tables = $("#revisions, #questions").DataTable();
+                row = $review_tables.row("tr[data-pk=" +  pk + "]");
+                row.remove().draw(false);
+
             } else {
                 toastr.error(data.message);
             }
@@ -65,6 +75,9 @@ $(function(){
         var posting = $.post(url);
         posting.done(function (data) {
             if (data.success == 1) {
+                toastr.info("Revision is now marked as pending");
+
+                $revision_table = $("#revision-list").DataTable();
                 status_cell = $revision_table.cell(".status").node();
                 $status_cell = $(status_cell);
                 $status_cell.removeClass("text-success")
@@ -72,14 +85,12 @@ $(function(){
                             .html("No");
                 $this.hide();
                 $this.closest('.btn-group').find(".approve-revision").show();
-                //row.remove().draw(false);
-                toastr.info("Revision is now approved");
-                $("#show-revision-modal").modal('hide');
-                $("#confirm-delete-revision-modal").modal('hide');
             } else {
                 toastr.error(data.message);
             }
         });
     });
-});
+}
+
+$(initializeReview);
 </script>

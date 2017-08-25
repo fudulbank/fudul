@@ -8,11 +8,11 @@
 .panel-body b{
     margin-left: 3%;
 }
-th, td{
+#revision-list  th, td{
     text-align: left;
 }
 
-tbody{
+#revision-list tbody{
     cursor:pointer;
 }
 
@@ -40,14 +40,42 @@ tbody{
 <a href="{% url 'exams:submit_revision' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}"><button style="float: right;margin-right: 3%" class="btn btn-warning btn-rounded btn-xs"><i class="icon-pencil position-left"></i> Edit</button></a><a class="heading-elements-toggle"><i class="icon-more"></i></a>
 						</div>
         <div class="panel-body">
-        <p class="content-group-lg"><b>ID:</b>{{ question.pk }}
-            <b>Subject:</b> {% for subject in question.subjects.all %}{{ subject.name }} {% endfor %}
-            <b>Source:</b> {% for source in question.sources.all %}{{ source.name }} {% endfor %}
-            {% if question.get_latest_revision.figure %}<a href="{{ question.get_latest_revision.figure.url }}"><b>illustration</b></a>{% endif %}
-            <b>Exam Type:</b>{{ question.get_exam_type_display }}
-            <b> Status:</b> {% for status in question.get_latest_revision.statuses.all %}{{ status.name }} {% endfor %}
-        </p>
-  <table id="revisions" class="display datatable dt-responsive">
+
+  <table style="width: auto; margin-right: auto; margin-left: auto;" class="table table-condensed">
+    <tr>
+      <th>Subjects</th>
+      <td>
+        <ul>
+        {% for subject in question.subjects.all %}<li>{{ subject.name }}</li>
+        </ul>
+        {% endfor %}
+      </td>
+        <th>Sources</th>
+        <td>
+          <ul>
+          {% for source in question.sources.all %}<li>{{ source.name }}</li>
+          </ul>
+          {% endfor %}
+        </td>
+      </tr>
+      <tr>
+        <th>Exam types</th>
+        <td>
+          <ul>
+          {% for exam_type in question.exam_types.all %}<li>{{ exam_type.name }}</li>
+          </ul>
+          {% endfor %}
+        </td>
+        <th>Statuses</th>
+        <td>
+          <ul>
+          {% for status in question.statuses.all %}<li>{{ status.name }}</li>
+          </ul>
+          {% endfor %}
+        </td>
+      </tr>
+  </table>
+  <table id="revision-list" class="display datatable dt-responsive">
                         <thead>
                             <tr>
                                 <th>Submitter</th>
@@ -59,7 +87,7 @@ tbody{
                         </thead>
                         <tbody>
                         {% for revision in question.revision_set.undeleted.order_by_submission %}
-                            <tr data-url="{% url 'exams:show_question' revision.question.pk revision.pk %}" data-revision_pk="{{ revision.pk }}">
+                            <tr data-url="{% url 'exams:show_question' revision.question.pk revision.pk %}" data-pk="{{ revision.pk }}">
                             <td>{% get_user_representation revision.submitter %}</td>
                             <td data-order="{{ revision.submission_date|date:'U' }}">{{ revision.submission_date }}</td>
                             <td>
@@ -96,7 +124,7 @@ tbody{
 
 <script type="text/javascript">
     $(function () {
-        $revision_table = $("#revisions").DataTable({
+        $revision_table = $("#revision-list").DataTable({
 	            order: [[ 1, "desc" ]]
 	      });
         // initialize project edit modal
@@ -105,9 +133,9 @@ tbody{
           backdrop: 'static',
           show    : false,
         });
-        $('tbody').on('click','tr td:not(:last-child)',function () {
+        $('#revision-list tbody').on('click','tr td:not(:last-child)',function () {
 					  $row = $(this).closest('tr')
-            revision_pk =  $row.data("revision_pk");
+            revision_pk =  $row.data("pk");
             url = $row.data('url');
             title_part = $row.children('td:nth-child(2)').html();
 
