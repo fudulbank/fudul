@@ -38,6 +38,7 @@ function initializeReview(){
         $this = $(this);
         var url = $(this).data('url');
 				var pk = $(this).data('pk');
+        row_selector = "tr[data-pk=" +  pk + "]";
         /* Send the data using post */
         var posting = $.post(url);
         posting.done(function (data) {
@@ -47,7 +48,7 @@ function initializeReview(){
 
                 // The following applies in list_revision:
                 $revision_table = $("#revision-list").DataTable();
-                status_cell = $revision_table.cell(".status").node();
+                status_cell = $revision_table.cell(row_selector + " .status").node();
                 $status_cell = $(status_cell);
                 $status_cell.removeClass("text-danger")
                             .addClass("text-success")
@@ -58,7 +59,7 @@ function initializeReview(){
                 // The following applies in approve_user_contributions
                 $("#show-revision-modal, #confirm-delete-revision-modal").modal('hide');
                 $review_tables = $("#revisions, #questions").DataTable();
-                row = $review_tables.row("tr[data-pk=" +  pk + "]");
+                row = $review_tables.row(row_selector);
                 row.remove().draw(false);
 
             } else {
@@ -71,6 +72,7 @@ function initializeReview(){
         $this = $(this);
         var url = $(this).data('url');
 				var pk = $(this).data('pk');
+        row_selector = "tr[data-pk=" +  pk + "]";
         /* Send the data using post */
         var posting = $.post(url);
         posting.done(function (data) {
@@ -78,7 +80,7 @@ function initializeReview(){
                 toastr.info("Revision is now marked as pending");
 
                 $revision_table = $("#revision-list").DataTable();
-                status_cell = $revision_table.cell(".status").node();
+                status_cell = $revision_table.cell(row_selector + " .status").node();
                 $status_cell = $(status_cell);
                 $status_cell.removeClass("text-success")
                             .addClass("text-danger")
