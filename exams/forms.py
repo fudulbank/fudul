@@ -11,9 +11,16 @@ class QuestionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(QuestionForm, self).__init__(*args, **kwargs)
         exam = self.instance.exam
-        self.fields['subjects'].queryset = models.Subject.objects.filter(exam=exam)
-        self.fields['sources'].queryset = exam.get_sources()
 
+        # Only include 'subjects' field if the exam has subjects
+        subjects = models.Subject.objects.filter(exam=exam)
+        if subjects.exists():
+            self.fields['subjects'].queryset = models.Subject.objects.filter(exam=exam)
+        else:
+            del self.fields['subjects']
+
+        # Limit sources and exam_types
+        self.fields['sources'].queryset = exam.get_sources()
         self.fields['exam_types'].queryset = exam.exam_types.all()
 
     class Meta:
