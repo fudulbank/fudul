@@ -17,17 +17,20 @@ class QuestionQuerySet(models.QuerySet):
     def unsolved(self):
         return self.filter(~Q(revision__choice__is_right=True),
                            revision__is_deleted=False,
-                           revision__is_last=True)
+                           revision__is_last=True)\
+                   .distinct()
 
     def incomplete(self):
         return self.filter(~Q(revision__statuses__code_name='COMPLETE'),
                            revision__is_deleted=False,
-                           revision__is_last=True)
+                           revision__is_last=True)\
+                   .distinct()
 
     def complete(self):
         return self.filter(revision__statuses__code_name='COMPLETE',
                            revision__is_deleted=False,
-                           revision__is_last=True)
+                           revision__is_last=True)\
+                   .distinct()
 
     def order_global_sequence(self):
         return self.order_by('global_sequence')
