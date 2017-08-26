@@ -60,8 +60,10 @@ class ChoiceQuerySet(models.QuerySet):
         return self.order_by('text')
 
 class MetaInformationQuerySet(models.QuerySet):
-    def order_by_total_questions(self):
-        return self.annotate(total_questions=Count('question')).order_by('-total_questions')
+    def order_by_exam_questions(self, exam):
+        return self.filter(question__exam=exam)\
+                   .annotate(total_questions=Count('question'))\
+                   .order_by('-total_questions')
 
     def with_approved_questions(self):
         return self.filter(question__is_deleted=False,
@@ -71,11 +73,11 @@ class MetaInformationQuerySet(models.QuerySet):
                    .filter(question__count__gte=1)
 
 class SourceQuerySet(MetaInformationQuerySet):
-    def order_by_total_questions(self):
+    def order_by_exam_questions(self, exam):
         # Here, in addition to sorting by total question, we sort
         # alphabetically.
-        return self.annotate(total_questions=Count('question'))\
-                   .order_by('-total_questions', 'name')
+        qs = super(SourceQuerySet, self).order_by_exam_questions(exam)
+        return qs.order_by('-total_questions', 'name')
 
 class CategoryQuerySet(models.QuerySet):
     def get_from_slugs(self, slugs):
