@@ -4,7 +4,7 @@
        <strong>Available subjects:</strong>
        <ul>
        {% for subject in exam.subject_set.order_by_total_questions %}
-          <li>{{ subject.name }} ({{ subject.question_set.count }} questions)</li>
+          <li>{{ subject.name }} ({{ subject.question_set.distinct.count }} questions)</li>
        {% endfor %%}
        </ul>
       {% else %}
@@ -16,7 +16,7 @@
        <strong>Available sources:</strong>
        <ul>
        {% for source in exam.get_sources.order_by_total_questions %}
-          <li>{{ source.name }} ({{ source.question_set.count }} questions)</li>
+          <li>{{ source.name }} ({{ source.question_set.distinct.count }} questions)</li>
        {% endfor %%}
        </ul>
       {% else %}
