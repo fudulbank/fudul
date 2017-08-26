@@ -132,10 +132,6 @@ class Exam(models.Model):
 
         return False
 
-    def get_questions(self):
-        return Question.objects.undeleted()\
-                               .filter(subjects__exam=self).distinct()
-
     def get_complete_questions(self):
         pks = Revision.objects.undeleted()\
                               .per_exam(self)\
@@ -203,7 +199,8 @@ class Subject(models.Model):
 
 class Question(models.Model):
     sources = models.ManyToManyField(Source, blank=True)
-    subjects = models.ManyToManyField(Subject)
+    subjects = models.ManyToManyField(Subject, blank=True)
+    exam = models.ForeignKey(Exam)
     exam_types = models.ManyToManyField(ExamType)
     is_deleted = models.BooleanField(default=False)
     # `global_sequence` is a `pk` field that accounts for question

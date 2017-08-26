@@ -27,7 +27,7 @@
     </thead>
     <tbody>
        {% for exam in category.exams.all %}
-       {% with total_count=exam.get_questions.count %}
+       {% with total_count=exam.question_set.count %}
             <tr>
                 <td><a href="{% url 'exams:list_questions' exam.category.get_slugs exam.pk %}">{{ exam.name }}</a></td>
                 <td>{{ total_count }}</td>

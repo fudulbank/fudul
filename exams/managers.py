@@ -20,7 +20,7 @@ class RevisionQuerySet(models.QuerySet):
         return self.order_by('-pk')
 
     def per_exam(self, exam):
-        return self.filter(question__subjects__exam=exam).distinct()
+        return self.filter(question__exam=exam).distinct()
 
     def undeleted(self):
         return self.filter(is_deleted=False,

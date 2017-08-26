@@ -79,8 +79,9 @@ def add_question(request, slugs, pk):
     # if not exam.can_user_edit(request.user):
     #     raise PermissionDenied
     editor = exam.can_user_edit(request.user)
+    instance = Question(exam=exam) 
     context = {'exam': exam,
-               'questionform': forms.QuestionForm(exam=exam),
+               'questionform': forms.QuestionForm(instance=instance),
                'revisionform': forms.RevisionForm(),
                'revisionchoiceformset': forms.RevisionChoiceFormset(),
                'editor':editor}
@@ -92,8 +93,8 @@ class QuestionAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         exam_pk = self.forwarded.get('exam_pk')
         exam = Exam.objects.get(pk=exam_pk)
-        qs = exam.get_questions().order_by_submission().filter(parent_question__isnull=True)\
-                                                       .filter(child_question__isnull=True)
+        qs = exam.question_set.order_by_submission().filter(parent_question__isnull=True)\
+                                                    .filter(child_question__isnull=True)
         if self.q:
             qs = qs.filter(pk=self.q)
         return qs
@@ -135,19 +136,19 @@ def handle_question(request, exam_pk,question_pk=None):
                                      is_deleted=False)
         instance = question.get_latest_revision()
         questionform = forms.QuestionForm(request.POST,
-                                          exam=exam,
                                           instance=question)
         revisionform = forms.RevisionForm(request.POST,
                                           request.FILES,
                                           instance=instance)
     else:
-        instance = Revision(submitter=request.user, is_first=True,
-                            is_last=True)
+        question_instance = Question(exam=exam)
         questionform = forms.QuestionForm(request.POST,
-                                          exam=exam)
+                                          instance=question_instance)
+        revision_instance = Revision(submitter=request.user, is_first=True,
+                            is_last=True)
         revisionform = forms.RevisionForm(request.POST,
                                           request.FILES,
-                                          instance=instance)
+                                          instance=revision_instance)
     revisionchoiceformset = forms.RevisionChoiceFormset(request.POST)
 
     if questionform.is_valid() and revisionform.is_valid() and revisionchoiceformset.is_valid():
@@ -260,8 +261,7 @@ def submit_revision(request, slugs, exam_pk, pk):
 
     if request.method == 'POST':
         questionform = forms.QuestionForm(request.POST,
-                                          instance=question,
-                                          exam=exam)
+                                          instance=question)
         revisionform = forms.RevisionForm(request.POST,
                                           request.FILES,
                                           instance=latest_revision)
@@ -276,7 +276,7 @@ def submit_revision(request, slugs, exam_pk, pk):
                 reverse("exams:list_revisions", args=(exam.category.get_slugs(), exam.pk, question.pk)))
 
     elif request.method == 'GET':
-        questionform = forms.QuestionForm(instance=question, exam=exam)
+        questionform = forms.QuestionForm(instance=question)
         revisionform = forms.RevisionForm(instance=latest_revision)
         revisionchoiceformset = forms.RevisionChoiceFormset(instance=latest_revision)
     context['questionform'] = questionform
@@ -293,7 +293,7 @@ def list_question_per_status(request, slugs, exam_pk):
         raise Http404
 
     exam = get_object_or_404(Exam, pk=exam_pk)
-    question_pool = Question.objects.undeleted().filter(subjects__exam=exam).distinct()
+    question_pool = Question.objects.undeleted().filter(exam=exam).distinct()
     writing_error = question_pool.filter(statuses__code_name='WRITING_ERROR')
     unsloved = question_pool.filter(statuses__code_name='UNSOLVED')
     incomplete_answer = question_pool.filter(statuses__code_name='INCOMPLETE_ANSWERS')
@@ -678,7 +678,7 @@ def approve_question(request, slugs, exam_pk,pk):
     editor = exam.can_user_edit(request.user)
 
     context = {'exam': exam,
-               'questionform': forms.QuestionForm(exam=exam,instance=question),
+               'questionform': forms.QuestionForm(instance=question),
                'revisionform': forms.RevisionForm(instance=revision),
                'revisionchoiceformset': forms.RevisionChoiceFormset(instance=revision),
                'editor':editor,

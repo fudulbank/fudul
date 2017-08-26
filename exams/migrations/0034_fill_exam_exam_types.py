@@ -7,7 +7,6 @@ from django.db import migrations
 def add_exam_types(apps, schema_editor):
     Exam = apps.get_model('exams', 'Exam')
     ExamType = apps.get_model('exams', 'ExamType')
-    Category = apps.get_model('exams', 'Category')
 
     for exam in Exam.objects.all():
         exam_types = ExamType.objects.none()
