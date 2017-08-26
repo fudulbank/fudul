@@ -79,8 +79,9 @@ def add_question(request, slugs, pk):
     # if not exam.can_user_edit(request.user):
     #     raise PermissionDenied
     editor = exam.can_user_edit(request.user)
+    instance = Question(exam=exam)
     context = {'exam': exam,
-               'questionform': forms.QuestionForm(exam=exam),
+               'questionform': forms.QuestionForm(instance=instance),
                'revisionform': forms.RevisionForm(),
                'revisionchoiceformset': forms.RevisionChoiceFormset(),
                'editor':editor}
@@ -92,8 +93,9 @@ class QuestionAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         exam_pk = self.forwarded.get('exam_pk')
         exam = Exam.objects.get(pk=exam_pk)
-        qs = exam.get_questions().order_by_submission().filter(parent_question__isnull=True)\
-                                                       .filter(child_question__isnull=True)
+        qs = exam.question_set.undeleted()\
+                              .order_by_submission()\
+                              .filter(child_question__isnull=True)
         if self.q:
             qs = qs.filter(pk=self.q)
         return qs
@@ -131,23 +133,26 @@ def handle_question(request, exam_pk,question_pk=None):
     # if not exam.can_user_edit(request.user):
     #     raise PermissionDenied
     if question_pk :
-        question = get_object_or_404(Question, pk=question_pk)
+        question = get_object_or_404(Question, pk=question_pk,
+                                     is_deleted=False)
         instance = question.get_latest_revision()
         questionform = forms.QuestionForm(request.POST,
-                                          exam=exam,
                                           instance=question)
         revisionform = forms.RevisionForm(request.POST,
                                           request.FILES,
                                           instance=instance)
+        revisionchoiceformset = forms.RevisionChoiceFormset(request.POST,
+                                                            instance=instance,)
     else:
-        instance = Revision(submitter=request.user, is_first=True,
-                            is_last=True)
+        question_instance = Question(exam=exam)
         questionform = forms.QuestionForm(request.POST,
-                                          exam=exam)
+                                          instance=question_instance)
+        revision_instance = Revision(submitter=request.user, is_first=True,
+                            is_last=True)
         revisionform = forms.RevisionForm(request.POST,
                                           request.FILES,
-                                          instance=instance)
-    revisionchoiceformset = forms.RevisionChoiceFormset(request.POST)
+                                          instance=revision_instance)
+        revisionchoiceformset = forms.RevisionChoiceFormset(request.POST)
 
     if questionform.is_valid() and revisionform.is_valid() and revisionchoiceformset.is_valid():
         question = questionform.save()
@@ -156,10 +161,9 @@ def handle_question(request, exam_pk,question_pk=None):
         revision.save()
         revisionform.save_m2m()
 
-        if utils.test_revision_approval(revision, request.user):
-            revision.is_approved = True
-        else:
-            revision.is_approved = False
+        revision.is_approved = utils.test_revision_approval(revision)
+
+        revision.save()
 
         if teams.utils.is_editor(request.user):
             revision.is_contribution = False
@@ -167,8 +171,8 @@ def handle_question(request, exam_pk,question_pk=None):
             revision.is_contribution = True
 
         revision.save()
-
         revisionchoiceformset.instance = revision
+
         revisionchoiceformset.save()
 
         template = get_template('exams/partials/exam_stats.html')
@@ -209,7 +213,7 @@ def list_questions(request, slugs, pk):
 @login_required
 @decorators.ajax_only
 def show_question(request, pk, revision_pk=None):
-    question = get_object_or_404(Question, pk=pk)
+    question = get_object_or_404(Question, pk=pk, is_deleted=False)
     if revision_pk:
         revision = get_object_or_404(Revision, pk=revision_pk)
     else:
@@ -236,7 +240,8 @@ def list_revisions(request, slugs, exam_pk, pk):
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
 
-    question = get_object_or_404(Question, pk=pk)
+    question = get_object_or_404(Question, pk=pk,
+                                 is_deleted=False)
     context = {'question': question,
                'exam': exam}
     return render(request, 'exams/list_revisions.html', context)
@@ -249,7 +254,7 @@ def submit_revision(request, slugs, exam_pk, pk):
         raise Http404
 
     exam = get_object_or_404(Exam, pk=exam_pk)
-    question = get_object_or_404(Question, pk=pk)
+    question = get_object_or_404(Question, pk=pk, is_deleted=False)
     #TODO :latest approved revision
     latest_revision = question.get_latest_revision()
 
@@ -261,8 +266,7 @@ def submit_revision(request, slugs, exam_pk, pk):
 
     if request.method == 'POST':
         questionform = forms.QuestionForm(request.POST,
-                                          instance=question,
-                                          exam=exam)
+                                          instance=question)
         revisionform = forms.RevisionForm(request.POST,
                                           request.FILES,
                                           instance=latest_revision)
@@ -277,7 +281,7 @@ def submit_revision(request, slugs, exam_pk, pk):
                 reverse("exams:list_revisions", args=(exam.category.get_slugs(), exam.pk, question.pk)))
 
     elif request.method == 'GET':
-        questionform = forms.QuestionForm(instance=question, exam=exam)
+        questionform = forms.QuestionForm(instance=question)
         revisionform = forms.RevisionForm(instance=latest_revision)
         revisionchoiceformset = forms.RevisionChoiceFormset(instance=latest_revision)
     context['questionform'] = questionform
@@ -294,7 +298,7 @@ def list_question_per_status(request, slugs, exam_pk):
         raise Http404
 
     exam = get_object_or_404(Exam, pk=exam_pk)
-    question_pool = Question.objects.undeleted().filter(subjects__exam=exam).distinct()
+    question_pool = Question.objects.undeleted().filter(exam=exam).distinct()
     writing_error = question_pool.filter(statuses__code_name='WRITING_ERROR')
     unsloved = question_pool.filter(statuses__code_name='UNSOLVED')
     incomplete_answer = question_pool.filter(statuses__code_name='INCOMPLETE_ANSWERS')
@@ -315,7 +319,7 @@ def create_session(request, slugs, exam_pk):
     #TODO: filter by most recent
     sessions = Session.objects.filter(submitter= request.user)[:5]
 
-    question_count = exam.get_approved_questions().count()
+    question_count = exam.question_set.approved().count()
     editor = teams.utils.is_editor(request.user)
     context = {'exam': exam,
                'question_count': question_count,
@@ -385,7 +389,7 @@ def show_session_results(request, slugs, exam_pk, session_pk):
         raise Http404
 
     if not session.has_finished():
-        answers = [] 
+        answers = []
         for question in session.get_unused_questions():
             answer = Answer(session=session, question=question)
             answers.append(answer)
@@ -403,7 +407,8 @@ def toggle_marked(request):
     question_pk = request.POST.get('question_pk')
     session_pk = request.POST.get('session_pk')
     session = get_object_or_404(Session, pk=session_pk)
-    question = get_object_or_404(session.questions, pk=question_pk)
+    question = get_object_or_404(session.questions, pk=question_pk,
+                                 is_deleted=False)
 
     # PERMISSION CHECKS
     if not session.can_access(request.user):
@@ -427,7 +432,7 @@ def submit_answer(request):
     session_pk = request.POST.get('session_pk')
     choice_pk = request.POST.get('choice_pk')
     session = get_object_or_404(Session, pk=session_pk)
-    question = get_object_or_404(session.questions, pk=question_pk)
+    question = get_object_or_404(session.questions, pk=question_pk, is_deleted=False)
 
     # PERMISSION CHECKS
     if not session.can_access(request.user):
@@ -487,25 +492,33 @@ class SubjectQuestionCount(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         exam_pk = self.forwarded.get('exam_pk')
         exam = Exam.objects.get(pk=exam_pk)
-        qs = exam.subject_set.all()
+
+        # Make sure we only show subjects that actually have approved
+        # questions
+        qs = exam.subject_set.with_approved_questions()
+
         if self.q:
             qs = qs.filter(pk=self.q)
         return qs
 
     def get_result_label(self, item):
-        return "<strong>{}</strong> ({})".format(item.name, item.question_set.count())
+        return "<strong>{}</strong> ({})".format(item.name, item.question_set.approved().count())
 
 class ExamTypeQuestionCount(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         exam_pk = self.forwarded.get('exam_pk')
         exam = Exam.objects.get(pk=exam_pk)
-        qs = exam.get_exam_types()
+
+        # Make sure we only show exam types that actually have
+        # approved questions
+        qs = exam.exam_types.with_approved_questions()
+
         if self.q:
             qs = qs.filter(pk=self.q)
         return qs
 
     def get_result_label(self, item):
-        return "<strong>{}</strong> ({})".format(item.name, item.question_set.count())
+        return "<strong>{}</strong> ({})".format(item.name, item.question_set.approved().count())
 
 
 def show_category_indicators(request, category):
@@ -520,7 +533,8 @@ def show_category_indicators(request, category):
 @csrf.csrf_exempt
 def contribute_explanation(request):
     question_pk = request.GET.get('question_pk')
-    question = get_object_or_404(Question, pk=question_pk)
+    question = get_object_or_404(Question, pk=question_pk,
+                                 is_deleted=False)
     latest_revision = question.get_latest_revision()
 
     if request.method == 'GET':
@@ -546,13 +560,13 @@ def contribute_revision(request):
 
     if request.method == 'GET':
         revisionform = forms.RevisionForm(instance=latest_revision)
-        revisionchoiceformset = forms.RevisionChoiceFormset(instance=latest_revision)
+        revisionchoiceformset = forms.ContributedRevisionChoiceFormset(instance=latest_revision)
     elif request.method == 'POST':
         revisionform = forms.RevisionForm(request.POST,
                                           request.FILES,
                                           instance=latest_revision)
 
-        revisionchoiceformset = forms.RevisionChoiceFormset(request.POST,
+        revisionchoiceformset = forms.ContributedRevisionChoiceFormset(request.POST,
                                                             instance=latest_revision)
         if revisionform.is_valid() and revisionchoiceformset.is_valid():
             new_revision = revisionform.clone(question,request.user)
@@ -578,7 +592,7 @@ def approve_user_contributions(request,slugs,exam_pk):
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
     pks = utils.get_contributed_questions(exam).values_list('pk', flat=True)
-    revisions = Revision.objects.per_exam(exam).filter(is_contribution =True,is_deleted=False).exclude(question__pk__in=pks)
+    revisions = Revision.objects.per_exam(exam).filter(is_contribution=True,is_deleted=False,is_approved=False).exclude(question__pk__in=pks)
     contributed_questions = utils.get_contributed_questions(exam)
     number_of_contributions = Revision.objects.filter(submitter=request.user).count()
 
@@ -593,7 +607,8 @@ def show_revision_comparison(request, pk, revision_pk=None):
     question = get_object_or_404(Question, pk=pk)
 
     if revision_pk:
-        revision = get_object_or_404(Revision, pk=revision_pk)
+        revision = get_object_or_404(Revision, pk=revision_pk,
+                                     is_deleted=False)
     else:
         revision = question.get_latest_revision()
 
@@ -609,9 +624,10 @@ def show_revision_comparison(request, pk, revision_pk=None):
 @csrf.csrf_exempt
 @decorators.post_only
 @decorators.ajax_only
-def remove_revision(request, pk):
+def delete_revision(request, pk):
     revision = get_object_or_404(Revision, pk=pk)
-    exam = revision.question.subjects.first.exam
+    question = revision.question
+    exam = question.get_exam()
 
     # PERMISSION CHECK
     if not request.user.is_superuser and \
@@ -622,23 +638,42 @@ def remove_revision(request, pk):
     revision.is_deleted = True
     revision.save()
 
+    # If no undeleted revision remains, then mark the whole question
+    # as deleted as well.
+    if not question.revision_set.undeleted().count():
+        question.is_deleted = True
+        question.save()
+
     return {}
 
 @csrf.csrf_exempt
 @decorators.post_only
 @decorators.ajax_only
-def approve_revision (request, pk):
+def mark_revision_approved(request, pk):
     revision = get_object_or_404(Revision, pk=pk)
-    exam = revision.question.subjects.first.exam
+    exam = revision.question.get_exam()
 
     # PERMISSION CHECK
-    if not request.user.is_superuser and \
-            not exam.category.is_user_editor(request.user) and \
-            not revision.submitter == request.user:
-        raise Exception("You cannot delete that question!")
+    if not exam.can_user_edit(request.user):
+        raise Exception("You change the approval status.")
 
     revision.is_approved = True
     revision.save()
+
+@csrf.csrf_exempt
+@decorators.post_only
+@decorators.ajax_only
+def mark_revision_pending(request, pk):
+    revision = get_object_or_404(Revision, pk=pk)
+    exam = revision.question.get_exam()
+
+    # PERMISSION CHECK
+    if not exam.can_user_edit(request.user):
+        raise Exception("You change the approval status.")
+
+    revision.is_approved = False
+    revision.save()
+
 
 @login_required
 def approve_question(request, slugs, exam_pk,pk):
@@ -656,7 +691,7 @@ def approve_question(request, slugs, exam_pk,pk):
     editor = exam.can_user_edit(request.user)
 
     context = {'exam': exam,
-               'questionform': forms.QuestionForm(exam=exam,instance=question),
+               'questionform': forms.QuestionForm(instance=question),
                'revisionform': forms.RevisionForm(instance=revision),
                'revisionchoiceformset': forms.RevisionChoiceFormset(instance=revision),
                'editor':editor,
@@ -701,3 +736,8 @@ def show_my_performance_per_exam(request, exam_pk):
                'exam': exam}
 
     return render(request, "exams/show_my_performance_per_exam.html", context)
+
+@login_required
+def show_credits(request,pk):
+    exam = get_object_or_404(Exam, pk=pk)
+    return render(request, 'exams/partials/show_credits.html',{'exam':exam})

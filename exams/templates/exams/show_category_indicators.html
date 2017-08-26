@@ -1,4 +1,4 @@
-{% extends 'base.html' %}{% load staticfiles %}{% load bootstrap3 %}
+{% extends 'base.html' %}{% load staticfiles bootstrap3 %}
 {% block title %}Fudul | {{ category.name }} indicators{% endblock %}
 {% block breadcrumb %}
 
@@ -23,17 +23,19 @@
             <th>Incomplete (%)</th>
             <th>Has no right answer (%)</th>
             <th>Has pending latest revision (%)</th>
+            <th>Number of Created Sessions</th>
         </tr>
     </thead>
     <tbody>
        {% for exam in category.exams.all %}
-       {% with total_count=exam.get_questions.count %}
+       {% with total_count=exam.question_set.count %}
             <tr>
                 <td><a href="{% url 'exams:list_questions' exam.category.get_slugs exam.pk %}">{{ exam.name }}</a></td>
                 <td>{{ total_count }}</td>
                 <td>{{ exam.get_incomplete_questions.count }} ({% widthratio exam.get_incomplete_questions.count total_count 100 %}%)</td>
                 <td>{{ exam.get_unsolved_questions.count }} ({% widthratio exam.get_unsolved_questions.count total_count 100 %}%)</td>
                 <td>{{ exam.get_pending_latest_revisions.count }} ({% widthratio exam.get_pending_latest_revisions.count total_count 100 %}%)</td>
+                <td>{{ exam.get_number_of_created_sessions }}</td>
             </tr>
        {% endwith %}
        {% endfor %}

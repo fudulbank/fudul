@@ -1,4 +1,4 @@
-{% extends 'base.html' %}{% load staticfiles %}{% load bootstrap3 %}{% load teams_utlis %}
+{% extends 'base.html' %}{% load staticfiles bootstrap3 teams_utlis account_utils %}
 {% block title %}Fudul | User Contributions {% endblock %}
 
 
@@ -7,7 +7,7 @@
 
 {% block content %}
 <div class="row">
-   <div class="col-md-8">
+   <div class="col-md-12">
      <div class="panel panel-flat">
 						<div class="panel-heading">
                             <h1 class="panel-title">  Users Pending Revisions </h1>
@@ -24,10 +24,10 @@
                         </thead>
                         <tbody>
                         {% for revision in revisions%}
-                            <tr data-url="{% url 'exams:show_revision_comparison' revision.question.pk revision.pk %}" data-revision_pk="{{ revision.pk }}">
+                            <tr data-url="{% url 'exams:show_revision_comparison' revision.question.pk revision.pk %}" data-pk="{{ revision.pk }}">
                             <td>{{ revision.question.pk }}</td>
-                            <td>{{ revision.submitter }} {% if not number_of_contributions == 0 %}[{{ number_of_contributions }}]{% endif %}</td>
-                            <td data-order="{{ revision.submission_date|date:'U' }}">{{ revision.submission_date }}</td>
+                            <td>{% get_user_representation revision.submitter %} {% if not number_of_contributions == 0 %}[{{ number_of_contributions }}]{% endif %}</td>
+                            <td data-order="{{ revision.submission_date|date:'U'}}">{{ revision.submission_date }}</td>
                             <td>{% if revision.change_summary %}{{ revision.change_summary }}{% else %} No Summary {% endif %}</td>
                             </tr>
                         {% endfor %}
@@ -46,22 +46,24 @@
                                 <th>ID</th>
                                 <th>Submitter</th>
                                 <th>Date of Submission</th>
-                                <th>Right Answer?</th>
-                                <th>Explaination?</th>
+                                <th>Has Right Answer?</th>
+                                <th>Has Explaination?</th>
                                 <th>Edit</th>
                             </tr>
                         </thead>
                         <tbody>
                         {% for question in contributed_questions %}
+                        {% with latest_revision=question.get_latest_revision %}
 {#                            revision_set.get(is_first=True).submitter #}
                             <tr>
                                 <td>{{ question.pk }}</td>
-                            <td>{{ question.get_latest_revision.submitter }} {% if not number_of_contributions == 0 %}[{{ number_of_contributions }}]{% endif %}</td>
-                            <td data-order="{{ question.get_latest_revision.submission_date|date:'U' }}">{{ question.get_latest_revision.submission_date }}</td>
-                            <td>{% if question.get_latest_revision.has_right_answer %}Yes{% else %}No{% endif %}</td>
-                            <td>{% if question.get_latest_revision.explaination %}Yes {% else %} No {% endif %}</td>
+                                <td>{% get_user_representation latest_revision.submitter %} {% if not number_of_contributions == 0 %}[{{ number_of_contributions }}]{% endif %}</td>
+                                <td data-order="{{ latest_revision.submission_date|date:'U' }}">{{ latest_revision.submission_date }}</td>
+                                <td>{% if latest_revision.has_right_answer %}Yes{% else %}No{% endif %}</td>
+                                <td>{% if latest_revision.explaination %}Yes {% else %} No {% endif %}</td>
                                 <td><a href="{% url 'exams:approve_question' exam.category.get_slugs exam.pk question.pk %}"><button class="btn btn-primary btn-icon btn-rounded"><i class="icon-pencil"></i></button></a></td>
                             </tr>
+                        {% endwith %}
                         {% endfor %}
                         </tbody>
             </table>
@@ -77,13 +79,9 @@
     <script src="{% static 'js/datatables/responsive/js/dataTables.responsive.min.js' %}"></script>
 <script>
     $(function(){
-        tables =$("#revisions").dataTable({
+        review_tables = $("#revisions,#questions").DataTable({
             order: [[ 2, "desc" ]]
         });
-        $("#questions").dataTable({
-            order: [[ 2, "desc" ]]
-        });
-
     });
 </script>
     <script type="text/javascript">
@@ -95,22 +93,22 @@
           show    : false,
         });
         $('#revisions tbody').on('click','tr',function () {
-            revision_pk =  $(this).data("revision_pk");
+            revision_pk =  $(this).data("pk");
             url = $(this).data('url');
             title_part = $(this).children('td:nth-child(2)').html();
 
-            $("#show-revision-modal").modal('show');
+                $("#show-revision-modal").modal('show');
 
             $("#show-revision-modal .modal-title").html("Revision of" + title_part);
-            $("#show-revision-modal .modal-body").load(url);
+            $("#show-revision-modal .modal-body").load(url, initializeReview);
             $("#show-revision-modal .modal-header").addClass('bg-primary')
 
-        });
     });
 {% include 'exams/modals/adjust_modal_size.js' %}
 </script>
 {% with modal_id='show-revision-modal' no_footer=True %}
     {% include "exams/modals/common_edit_modal.html" %}
 {% endwith %}
+{% include 'exams/partials/initialize_revision_review.html' %}
 
 {% endblock %}

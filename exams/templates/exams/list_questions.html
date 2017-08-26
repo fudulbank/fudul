@@ -1,5 +1,23 @@
 {% extends 'base.html' %}{% load staticfiles %}
 {% block title %}Fudul | Question list of {{ exam.name }}{% endblock %}
+{% block head %}
+<style type="text/css">
+th, td, .action{
+    text-align: left;
+}
+
+.action.btn-block + .action.btn-block{
+	margin-top: 2px;
+}
+
+tbody tr td{
+    cursor:pointer;
+}
+tbody tr td:last-child{
+    cursor:initial;
+}
+</style>
+{% endblock %}
 {% block breadcrumb %}
 
 					<div class="breadcrumb-line">
@@ -33,11 +51,9 @@
 		                	</div>
 						</div>
         <div class="panel-body">
-        <table id="approved" class="display datatable dt-responsive">
 {% with revisions=exam.get_approved_latest_revisions.order_by_submission exam_pk=exam.pk category_slug=exam.category.get_slugs %}
-{% include 'exams/partials/question_table_content.html' %}
+{% include 'exams/partials/question_table.html' %}
 {% endwith %}
-            </table>
         </div>
     </div>
     <div class="panel panel-flat">
@@ -51,11 +67,9 @@
 		                	</div>
         </div>
         <div class="panel-body">
-            <table id="pending" class="display datatable dt-responsive">
 {% with revisions=exam.get_pending_latest_revisions.order_by_submission exam_pk=exam.pk category_slug=exam.category.get_slugs %}
-{% include 'exams/partials/question_table_content.html' %}
+{% include 'exams/partials/question_table.html' %}
 {% endwith %}
-            </table>
         </div>
     </div>
 
@@ -65,22 +79,11 @@
 	<link rel="stylesheet" href="{% static 'js/datatables/responsive/css/responsive.dataTables.min.css' %}">
 	<script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
     <script src="{% static 'js/datatables/responsive/js/dataTables.responsive.min.js' %}"></script>
-<style type="text/css">
-th, td{
-    text-align: left;
-}
-tbody tr td{
-    cursor:pointer;
-}
-tbody tr td:last-child{
-    cursor:initial;
-}
 
-</style>
 <script src="{% static 'js/toastr.js' %}"></script>
 <script>
     $(function () {
-        tables = $("#approved, #pending").DataTable({
+        tables = $(".datatable").DataTable({
 					  "columnDefs": [
 				    { "orderable": false, "targets": 5 }
 					],
@@ -101,39 +104,40 @@ tbody tr td:last-child{
             $("#show-question-modal .modal-body").load(url);
 
         });
-        $('tbody').on('click','button.confirm-delete-question',function () {
+				$deleteConfirmationButton = $("#confirm-delete-question-modal .submit-button")
+        $('tbody').on('click','.confirm-delete-question',function () {
             var url = $(this).data('url');
             var pk = $(this).data('pk');
-            $("#delete-question").data('url', url).data('pk', pk);
+            $deleteConfirmationButton.data('url', url).data('pk', pk);
             $("#confirm-delete-question-modal").modal('show');
         });
-		$("#delete-question").click(function () {
-		        /* get some values from elements on the page: */
-		        var url = $(this).data('url');
-						var pk = $(this).data('pk');
-		        /* Send the data using post */
-		        var posting = $.post(url);
-		        posting.done(function (data) {
-		            if (data.success == 1) {
-		                // show success message (using toastr)
-		                toastr.options.positionClass = "toast-top-left";
-		                toastr.info("Question was successfuly deleted");
+				$deleteConfirmationButton.click(function () {
+				        /* get some values from elements on the page: */
+				        var url = $(this).data('url');
+								var pk = $(this).data('pk');
+				        /* Send the data using post */
+				        var posting = $.post(url);
+				        posting.done(function (data) {
+				            if (data.success == 1) {
+				                // show success message (using toastr)
+				                toastr.options.positionClass = "toast-top-left";
+				                toastr.info("Question was successfuly deleted");
 
-										row = tables.row("tr[data-pk=" +  pk + "]");
-										row.remove().draw(false);
-										$("#confirm-delete-question-modal").modal('hide');
-		            } else {
-		                toastr.error(data.message);
-		            }
-		        });
-		    });
+												row = tables.row("tr[data-pk=" +  pk + "]");
+												row.remove().draw(false);
+												$("#confirm-delete-question-modal").modal('hide');
+				            } else {
+				                toastr.error(data.message);
+				            }
+				        });
+				    });
     });
 {% include 'exams/modals/adjust_modal_size.js' %}
 </script>
 {% with modal_id='show-question-modal' no_footer=True %}
     {% include "exams/modals/common_edit_modal.html" %}
 {% endwith %}
-{% with modal_id='confirm-delete-question-modal' is_small=True %}
+{% with modal_id='confirm-delete-question-modal' is_small=True modal_content="Are you sure you want to delete this question?" %}
     {% include "exams/modals/common_edit_modal.html" %}
 {% endwith %}
 {% endblock %}

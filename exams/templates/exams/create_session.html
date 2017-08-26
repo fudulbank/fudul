@@ -1,4 +1,4 @@
-{% extends 'base.html' %}{% load staticfiles %}{% load bootstrap3 %}{% load exam_utils %}
+{% extends 'base.html' %}{% load staticfiles bootstrap3 exam_utils %}
 {% block head %}
     <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery.tooltipster/4.2.5/js/tooltipster.bundle.min.js"></script>
     <link href="https://cdn.jsdelivr.net/jquery.tooltipster/4.2.5/css/tooltipster.bundle.min.css" rel="stylesheet" type="text/css">
@@ -66,7 +66,10 @@
    <div class="col-md-8">
      <div class="panel panel-flat">
 						<div class="panel-heading">
-							<h1 class="panel-title">{{ exam.name }} Session</h1>
+							<h1 class="panel-title"> {{ exam.name }} Session
+                            <div style="float: right;">
+                    <a id ='credits' data-url='{% url 'exams:show_credits' exam.pk %}' class="btn btn-primary btn-xs"><i class="  icon-medal-star position-left"></i> Credits</a>
+                        </div></h1>
 						</div>
         <div id="form-panel" class="panel-body">
             <script src="{% static 'bootstrap/bootstrap-toggle-master/js/bootstrap2-toggle.min.js'%}"></script>
@@ -87,6 +90,7 @@
 
 
     <div class="row">
+      {% if sessionform.subjects %}
             <div class="col-xs-6">
 
                 <div class="form-group has-feedback has-feedback-left">
@@ -107,7 +111,7 @@
                     </div>
                 </div>
             </div>
-
+      {% endif %}
             <div class="col-xs-6">
                 <div class="form-group has-feedback has-feedback-left">
                     <label class="control-label"><h5>Sources</h5></label>
@@ -126,12 +130,12 @@
                 </div>
             </div>
         </div>
-
+{% if sessionform.exam_types %}
     <div class="form-group has-feedback has-feedback-left">
         <label class="control-label"><h5>Exam type:</h5></label>
             {% bootstrap_field sessionform.exam_types show_label=False  %}
     </div>
-
+{% endif %}
     <label class="control-label"><h5>Number of Questions</h5></label>
     <div class="row">
     <div class="col-xs-8 col-sm-6">
@@ -172,6 +176,7 @@
            <div class="panel-body">
 
                <ul>
+                   {% if sessions %}
                    {% for session in sessions %}
 
 
@@ -198,6 +203,9 @@
 							</div>
 
                    {% endfor %}
+                                 {% else %}
+                       <h6> You don't have any previous sessions.</h6>
+                 {% endif %}
                </ul>
                <br>
 
@@ -239,10 +247,25 @@
 
         });
 
+                // initialize project edit modal
+        $('#show-credit-modal').modal({
+          keyboard: false,
+          backdrop: 'static',
+          show    : false,
+        });
+        $("#credits").click(function () {
+            var url = $(this).data('url');
+            $("#show-credit-modal").modal('show');
+            $("#show-credit-modal .modal-title").html("Some of the great contributors");
+            $("#show-credit-modal .modal-body").load(url);
 
+        });
     });
 
-
+{% include 'exams/modals/adjust_modal_size.js' %}
 </script>
+{% with modal_id='show-credit-modal' no_footer=True %}
+    {% include "exams/modals/common_edit_modal.html" %}
+{% endwith %}
 
 {% endblock %}

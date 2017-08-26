@@ -1,6 +1,9 @@
 {% load static exam_utils %}
 {% with latest_revision=question.get_latest_approved_revision was_solved=question|was_solved_in_session:session show_explanation=question|show_explanation:session %}
 <div class="question-body well-sm{% if question == current_question %} show{% endif %}" data-url="{{ question|get_session_url:session }}" data-question-sequence="{{ question_sequence }}" data-question-pk="{{ question.pk }}" data-is-marked="{% if question|is_question_marked:user %}true{% else %}false{% endif %}" data-was-solved="{% if was_solved %}true{% else %}false{% endif %}">
+  {% if latest_revision.figure %}
+     <img class="img-fluid center-block" src="{{ latest_revision.figure.url }}">
+  {% endif %}
     <p class="question-text">{{ latest_revision.text|linebreaksbr }}</p>
 
     <table>

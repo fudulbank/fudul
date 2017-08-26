@@ -7,7 +7,7 @@ from accounts.models import College, Batch
 from . import managers
 import accounts.utils
 import textwrap
-
+from ckeditor_uploader.fields import RichTextUploadingField
 
 class Source(models.Model):
     name = models.CharField(max_length=100)
@@ -33,7 +33,7 @@ class ExamType(models.Model):
     name = models.CharField(max_length=100)
     # code_name is something more stable than 'name'
     code_name = models.CharField(max_length=50)
-    category = models.ForeignKey('Category')
+    objects = managers.MetaInformationQuerySet.as_manager()
 
     def __str__(self):
         return self.name
@@ -100,8 +100,10 @@ class Category(models.Model):
         return slugs
 
     def __str__(self):
-        return self.name
-
+        parent_categories = self.get_parent_categories()
+        names = [category.name for category in parent_categories] + \
+                [self.name]
+        return "/".join(names)
 
 class Exam(models.Model):
     name = models.CharField(max_length=100)
@@ -109,6 +111,8 @@ class Exam(models.Model):
     submission_date = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
     batches_allowed_to_take = models.ForeignKey(Batch, null=True, blank=True)
+    exam_types = models.ManyToManyField('ExamType')
+    credits = RichTextUploadingField(default='')
 
     def get_sources(self):
         sources = Source.objects.none()
@@ -117,14 +121,6 @@ class Exam(models.Model):
             sources |= category.source_set.all()
             category = category.parent_category
         return sources
-
-    def get_exam_types(self):
-        exam_types = ExamType.objects.none()
-        category = self.category
-        while category:
-            exam_types |= category.examtype_set.all()
-            category = category.parent_category
-        return exam_types
 
     def can_user_edit(self, user):
         if user.is_superuser:
@@ -138,56 +134,20 @@ class Exam(models.Model):
 
         return False
 
-    def get_questions(self):
-        return Question.objects.undeleted()\
-                               .filter(subjects__exam=self).distinct()
-
-    def get_complete_questions(self):
-        pks = Revision.objects.per_exam(self)\
-                              .filter(statuses__code_name='COMPLETE',
-                                      is_last=True)\
-                              .values_list('question__pk', flat=True)
-        questions = Question.objects.undeleted().filter(pk__in=pks)
-        return questions
-
-    def get_incomplete_questions(self):
-        pks = Revision.objects.per_exam(self)\
-                              .filter(is_last=True)\
-                              .exclude(statuses__code_name='COMPLETE')\
-                              .values_list('question__pk', flat=True)
-        questions = Question.objects.undeleted().filter(pk__in=pks)
-        return questions
-
     def get_approved_latest_revisions(self):
         return Revision.objects.select_related('question', 'submitter')\
+                               .undeleted()\
                                .per_exam(self)\
                                .filter(is_last=True, is_approved=True)
 
     def get_pending_latest_revisions(self):
         return Revision.objects.select_related('question', 'submitter')\
+                               .undeleted()\
                                .per_exam(self)\
                                .filter(is_last=True, is_approved=False)
 
-    def get_approved_questions(self):
-        pks = Revision.objects.per_exam(self)\
-                              .filter(is_approved=True)\
-                              .values_list('question__pk', flat=True)
-        questions = Question.objects.undeleted().filter(pk__in=pks)
-        return questions
-
-    def get_unsolved_questions(self):
-        pks = Revision.objects.per_exam(self)\
-                              .filter(is_last=True)\
-                              .exclude(choice__is_right=True)\
-                              .distinct()\
-                              .values_list('question__pk', flat=True)
-        questions = Question.objects.undeleted().filter(pk__in=pks)
-        return questions
-
-    def get_targeted_questions(self,subjects,sources,exam_types):
-        pks = self.get_pending_latest_revisions().values_list('question__pk', flat=True)
-        questions = Question.objects.undeleted().filter(pk__in=pks,subjects=subjects,sources=sources,exam_types=exam_types)
-        return questions
+    def get_number_of_created_sessions(self):
+        return Session.objects.filter(exam=self).count()
 
     def get_user_answered_questions(self, user):
         return Question.objects.filter(answer__session__submitter=user).distinct()
@@ -207,7 +167,8 @@ class Subject(models.Model):
 
 class Question(models.Model):
     sources = models.ManyToManyField(Source, blank=True)
-    subjects = models.ManyToManyField(Subject)
+    subjects = models.ManyToManyField(Subject, blank=True)
+    exam = models.ForeignKey(Exam)
     exam_types = models.ManyToManyField(ExamType)
     is_deleted = models.BooleanField(default=False)
     # `global_sequence` is a `pk` field that accounts for question
@@ -297,13 +258,6 @@ class Question(models.Model):
         return tree
 
 
-    # pks = Revision.objects.per_exam(self) \
-    #     .filter(is_first=True, is_contribution=True, is_approved=False, is_last=True) \
-    #     .distinct() \
-    #     .values_list('question__pk', flat=True)
-    # questions = Question.objects.undeleted().filter(pk__in=pks)
-    #
-    # return questions
 
 
 class Revision(models.Model):
@@ -371,6 +325,8 @@ class Session(models.Model):
     exam_types = models.ManyToManyField(ExamType)
     submitter = models.ForeignKey(User)
     question_filter = models.CharField(max_length=20, choices=questions_choices, default=None)
+    submission_date = models.DateTimeField(auto_now_add=True)
+
 
     def get_score(self):
         if not self.number_of_questions ==0 :

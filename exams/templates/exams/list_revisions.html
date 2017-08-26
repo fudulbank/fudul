@@ -1,7 +1,24 @@
-{% extends 'base.html' %}{% load staticfiles %}
+{% extends 'base.html' %}{% load staticfiles account_utils %}
 {% block title %}Question #{{ question.pk }} revisions{% endblock %}
-{% block breadcrumb %}
+{% block head %}
+<style>
+.panel-body p{
+    margin-left: 5%;
+}
+.panel-body b{
+    margin-left: 3%;
+}
+#revision-list  th, td{
+    text-align: left;
+}
 
+#revision-list tbody{
+    cursor:pointer;
+}
+
+</style>
+{% endblock %}
+{% block breadcrumb %}
 					<div class="breadcrumb-line">
 						<ul class="breadcrumb">
 							<li><a href="{% url 'index' %}"><i class="icon-home2 position-left"></i> Fudul</a></li>
@@ -23,31 +40,73 @@
 <a href="{% url 'exams:submit_revision' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}"><button style="float: right;margin-right: 3%" class="btn btn-warning btn-rounded btn-xs"><i class="icon-pencil position-left"></i> Edit</button></a><a class="heading-elements-toggle"><i class="icon-more"></i></a>
 						</div>
         <div class="panel-body">
-        <p class="content-group-lg"><b>ID:</b>{{ question.pk }}
-            <b>Subject:</b>{% for subject in question.subjects.all %}{{ subject.name }}{% endfor %}
-            <b>Source:</b>{% for source in question.sources.all %}{{ source.name }}{% endfor %}
-            {% if question.get_latest_revision.figure %}<a href="{{ question.get_latest_revision.figure.url }}"><b>illustration</b></a>{% endif %}
-            <b>Exam Type:</b>{{ question.get_exam_type_display }}
-            <b> Status:</b> {% for status in question.get_latest_revision.statuses.all %}{{ status.name }} {% endfor %}
-        </p>
-  <table id="revisions" class="display datatable dt-responsive">
+
+  <table style="width: auto; margin-right: auto; margin-left: auto;" class="table table-condensed">
+    <tr>
+      <th>Subjects</th>
+      <td>
+        <ul>
+        {% for subject in question.subjects.all %}<li>{{ subject.name }}</li>
+        </ul>
+        {% endfor %}
+      </td>
+        <th>Sources</th>
+        <td>
+          <ul>
+          {% for source in question.sources.all %}<li>{{ source.name }}</li>
+          </ul>
+          {% endfor %}
+        </td>
+      </tr>
+      <tr>
+        <th>Exam types</th>
+        <td>
+          <ul>
+          {% for exam_type in question.exam_types.all %}<li>{{ exam_type.name }}</li>
+          </ul>
+          {% endfor %}
+        </td>
+        <th>Statuses</th>
+        <td>
+          <ul>
+          {% for status in question.statuses.all %}<li>{{ status.name }}</li>
+          </ul>
+          {% endfor %}
+        </td>
+      </tr>
+  </table>
+  <table id="revision-list" class="display datatable dt-responsive">
                         <thead>
                             <tr>
                                 <th>Submitter</th>
                                 <th>Date of Submission</th>
-                                <th>Status</th>
-                                <th>Approval</th>
+                                <th class="not-mobile">Status</th>
+                                <th>Is approved?</th>
+																<th class="always">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                        {% for revision in question.revision_set.order_by_submission %}
-                            <tr data-url="{% url 'exams:show_question' revision.question.pk revision.pk %}" data-revision_pk="{{ revision.pk }}">
-                            <td>{{ revision.submitter }}</td>
+                        {% for revision in question.revision_set.undeleted.order_by_submission %}
+                            <tr data-url="{% url 'exams:show_question' revision.question.pk revision.pk %}" data-pk="{{ revision.pk }}">
+                            <td>{% get_user_representation revision.submitter %}</td>
                             <td data-order="{{ revision.submission_date|date:'U' }}">{{ revision.submission_date }}</td>
                             <td>
                                 <ul>{% for status in revision.statuses.all %}<li>{{ status.name }}</li>{% endfor %}</ul>
                             </td>
-                            <td>{% if revision.is_approved %} Approved {% else %} Not Approved{% endif %}</td>
+                            <td class="status {% if revision.is_approved %}text-success{% else %}text-danger{% endif %}">{% if revision.is_approved %}Yes{% else %}No{% endif %}</td>
+														<td>
+															<div class="btn-group" role="group">
+																<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+																	Actions
+																	<span class="caret"></span>
+																</button>
+																<ul class="dropdown-menu">
+                                  <li><a{% if not revision.is_approved %} style="display: none;"{% endif %} data-pk="{{ revision.pk }}" data-url="{% url 'exams:mark_revision_pending' revision.pk %}" class="pend-revision"><i class="icon-database-time2"></i> Mark as pending</a></li>
+																	<li><a{% if revision.is_approved %} style="display: none;"{% endif %} data-pk="{{ revision.pk }}" data-url="{% url 'exams:mark_revision_approved' revision.pk %}" class="approve-revision"><i class="icon-checkmark2"></i> Approve</a></li>
+																	<li><a data-pk="{{ revision.pk }}" data-url="{% url 'exams:delete_revision' revision.pk %}" class="confirm-delete-revision"><i class="icon-cross2"></i> Delete</a></li>
+																</ul>
+															</div>
+														</td>
                             </tr>
                         {% endfor %}
                         </tbody>
@@ -55,51 +114,30 @@
         </div>
     </div>
 
-
 {% endblock %}
 {% block customscript %}
 	<link rel="stylesheet" href="{% static 'css/jquery.dataTables.min.css' %}">
 	<link rel="stylesheet" href="{% static 'js/datatables/responsive/css/responsive.dataTables.min.css' %}">
 	<script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
-    <script src="{% static 'js/datatables/responsive/js/dataTables.responsive.min.js' %}"></script>
-<style>
-.panel-body p{
-    margin-left: 5%;
-}
-.panel-body b{
-    margin-left: 3%;
-}
-th, td{
-    text-align: left;
-}
-
-tbody{
-    cursor:pointer;
-}
-
-</style>
-	<script>
-    $(function(){
-        $("#revisions").dataTable({
-            order: [[ 1, "desc" ]]
-        });
-
-    });
-</script>
+  <script src="{% static 'js/datatables/responsive/js/dataTables.responsive.min.js' %}"></script>
 <script src="{% static 'js/toastr.js' %}"></script>
 
 <script type="text/javascript">
     $(function () {
+        $revision_table = $("#revision-list").DataTable({
+	            order: [[ 1, "desc" ]]
+	      });
         // initialize project edit modal
         $('#show-revision-modal').modal({
           keyboard: false,
           backdrop: 'static',
           show    : false,
         });
-        $('tbody').on('click','tr',function () {
-            revision_pk =  $(this).data("revision_pk");
-            url = $(this).data('url');
-            title_part = $(this).children('td:nth-child(2)').html();
+        $('#revision-list tbody').on('click','tr td:not(:last-child)',function () {
+					  $row = $(this).closest('tr')
+            revision_pk =  $row.data("pk");
+            url = $row.data('url');
+            title_part = $row.children('td:nth-child(2)').html();
 
             $("#show-revision-modal").modal('show');
 
@@ -114,4 +152,7 @@ tbody{
 {% with modal_id='show-revision-modal' no_footer=True %}
     {% include "exams/modals/common_edit_modal.html" %}
 {% endwith %}
+
+{% include 'exams/partials/initialize_revision_review.html' %}
+
 {% endblock %}

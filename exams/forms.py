@@ -1,6 +1,6 @@
 from dal import autocomplete
 from django import forms
-from django.core.validators import MaxValueValidator
+from django.core.validators import MaxValueValidator,MinValueValidator
 from django.forms.models import inlineformset_factory
 from accounts.utils import get_user_college
 from . import models, utils
@@ -9,16 +9,20 @@ import teams.utils
 
 class QuestionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-        exam = kwargs.pop('exam')
         super(QuestionForm, self).__init__(*args, **kwargs)
-        self.fields['subjects'].queryset = models.Subject.objects.filter(exam=exam)
-        self.fields['sources'].queryset = exam.get_sources()
+        exam = self.instance.exam
 
-        exam_types = exam.get_exam_types()
-        if exam_types.exists():
-            self.fields['exam_types'].queryset = exam_types
+        # Only include 'subjects' field if the exam has subjects
+        subjects = models.Subject.objects.filter(exam=exam)
+        if subjects.exists():
+            self.fields['subjects'].queryset = models.Subject.objects.filter(exam=exam)
+            self.fields['subjects'].required = True
         else:
-            del self.fields['exam_types']
+            del self.fields['subjects']
+
+        # Limit sources and exam_types
+        self.fields['sources'].queryset = exam.get_sources()
+        self.fields['exam_types'].queryset = exam.exam_types.all()
 
     class Meta:
         model = models.Question
@@ -48,10 +52,7 @@ class RevisionForm(forms.ModelForm):
         question.revision_set.exclude(pk=new_revision.pk)\
                              .update(is_last=False)
 
-        if utils.test_revision_approval(new_revision, user):
-            new_revision.is_approved = True
-        else:
-            new_revision.is_approved = False
+        new_revision.is_approved = utils.test_revision_approval(new_revision)
 
         if teams.utils.is_editor(user):
             new_revision.is_contribution = False
@@ -96,31 +97,44 @@ RevisionChoiceFormset = inlineformset_factory(models.Revision,
                                               extra=4,
                                               fields=['text','is_right'])
 
+
+ContributedRevisionChoiceFormset = inlineformset_factory(models.Revision,
+                                              models.Choice,
+                                              formset=CustomRevisionChoiceFormset,
+                                              extra=0,
+                                              fields=['text','is_right'])
+
 class SessionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         exam = kwargs.pop('exam')
         super(SessionForm, self).__init__(*args, **kwargs)
 
         # Limit number of questions
-        total_questions = exam.get_approved_questions().count()
+        total_questions = exam.question_set.approved().count()
         total_question_validator = MaxValueValidator(total_questions)
         self.fields['number_of_questions'].validators.append(total_question_validator)
         self.fields['number_of_questions'].widget.attrs['max'] = total_questions
 
-        # Limit subjects and exams per exam
-        self.fields['subjects'].queryset = models.Subject.objects.filter(exam=exam)
-        self.fields['sources'].queryset = exam.get_sources().filter(parent_source__isnull=True)
-        # self.fields['question_filter']=forms.ChoiceField(choices=models.questions_choices)
+        self.fields['number_of_questions'].validators.append(MinValueValidator(1))
+        self.fields['number_of_questions'].widget.attrs['min'] = 1
 
-        exam_types = exam.get_exam_types()
-        if exam_types.exists():
-            self.fields['exam_types'].queryset = exam_types
+        # Limit subjects and exams per exam
+        subjects = models.Subject.objects.filter(exam=exam)
+        if subjects.exists():
+            self.fields['subjects'].queryset = models.Subject.objects.filter(exam=exam)
+        else:
+            del self.fields['subjects']
+        self.fields['sources'].queryset = exam.get_sources().filter(parent_source__isnull=True)
+
+        if exam.exam_types.exists():
+            self.fields['exam_types'].queryset = exam.exam_types.all()
         else:
             del self.fields['exam_types']
 
     def save(self, *args, **kwargs):
         session = super(SessionForm, self).save(*args, **kwargs)
-        question_pool = session.exam.get_approved_questions()\
+        question_pool = session.exam.question_set.approved()\
+                                    .filter(exam_types__in=session.exam_types.all())\
                                     .order_by('?')\
                                     .select_related('parent_question',
                                                     'child_question')
@@ -175,10 +189,10 @@ class SessionForm(forms.ModelForm):
                                                          forward=['exam_pk'],
                                                          attrs={'data-html': True}),
             'sources': autocomplete.ModelSelect2Multiple(),
-            # 'subjects': autocomplete.ModelSelect2Multiple(url='exams:subject_questions_count',
-            #                                              forward=['exam_pk'],
-            #                                              attrs={'data-html': True}),
-            'subjects': autocomplete.ModelSelect2Multiple(),
+            'subjects': autocomplete.ModelSelect2Multiple(url='exams:subject_questions_count',
+                                                         forward=['exam_pk'],
+                                                         attrs={'data-html': True}),
+            # 'subjects': autocomplete.ModelSelect2Multiple(),
             'question_filter':forms.RadioSelect(choices=models.questions_choices),
             'session_mode':forms.RadioSelect(choices=models.session_mode_choices)
             }

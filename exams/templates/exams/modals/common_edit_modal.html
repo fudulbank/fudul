@@ -5,7 +5,7 @@
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
         <h4 class="modal-title">{{ modal_title }}</h4>
       </div>
-      <div class="modal-body ativa-scroll">
+      <div class="modal-body{% if not is_small %} ativa-scroll{% endif %}">
         {% if modal_content %}
         {{ modal_content }}
         {% else %}
