@@ -22,7 +22,12 @@ class QuestionForm(forms.ModelForm):
 
         # Limit sources and exam_types
         self.fields['sources'].queryset = exam.get_sources()
-        self.fields['exam_types'].queryset = exam.exam_types.all()
+
+        if exam.exam_types.exists():
+            self.fields['exam_types'].queryset = exam.exam_types.all()
+            self.fields['exam_types'].required = True
+        else:
+            del self.fields['exam_types']
 
     class Meta:
         model = models.Question
@@ -120,6 +125,7 @@ class SessionForm(forms.ModelForm):
 
         if exam.exam_types.exists():
             self.fields['exam_types'].queryset = exam.exam_types.with_approved_questions()
+            self.fields['exam_types'].required = True
         else:
             del self.fields['exam_types']
 
