@@ -16,6 +16,7 @@ class QuestionForm(forms.ModelForm):
         subjects = models.Subject.objects.filter(exam=exam)
         if subjects.exists():
             self.fields['subjects'].queryset = models.Subject.objects.filter(exam=exam)
+            self.fields['subjects'].required = True
         else:
             del self.fields['subjects']
 
