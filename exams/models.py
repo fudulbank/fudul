@@ -33,6 +33,7 @@ class ExamType(models.Model):
     name = models.CharField(max_length=100)
     # code_name is something more stable than 'name'
     code_name = models.CharField(max_length=50)
+    objects = managers.MetaInformationQuerySet.as_manager()
 
     def __str__(self):
         return self.name
@@ -132,24 +133,6 @@ class Exam(models.Model):
 
         return False
 
-    def get_complete_questions(self):
-        pks = Revision.objects.undeleted()\
-                              .per_exam(self)\
-                              .filter(statuses__code_name='COMPLETE',
-                                      is_last=True)\
-                              .values_list('question__pk', flat=True)
-        questions = Question.objects.filter(pk__in=pks)
-        return questions
-
-    def get_incomplete_questions(self):
-        pks = Revision.objects.undeleted()\
-                              .per_exam(self)\
-                              .filter(is_last=True)\
-                              .exclude(statuses__code_name='COMPLETE')\
-                              .values_list('question__pk', flat=True)
-        questions = Question.objects.filter(pk__in=pks)
-        return questions
-
     def get_approved_latest_revisions(self):
         return Revision.objects.select_related('question', 'submitter')\
                                .undeleted()\
@@ -162,29 +145,6 @@ class Exam(models.Model):
                                .per_exam(self)\
                                .filter(is_last=True, is_approved=False)
 
-    def get_approved_questions(self):
-        pks = Revision.objects.undeleted()\
-                              .per_exam(self)\
-                              .filter(is_approved=True)\
-                              .values_list('question__pk', flat=True)
-        questions = Question.objects.filter(pk__in=pks)
-        return questions
-
-    def get_unsolved_questions(self):
-        pks = Revision.objects.undeleted()\
-                              .per_exam(self)\
-                              .filter(is_last=True)\
-                              .exclude(choice__is_right=True)\
-                              .distinct()\
-                              .values_list('question__pk', flat=True)
-        questions = Question.objects.filter(pk__in=pks)
-        return questions
-
-    def get_targeted_questions(self,subjects,sources,exam_types):
-        pks = self.get_pending_latest_revisions().values_list('question__pk', flat=True)
-        questions = Question.objects.undeleted().filter(pk__in=pks,subjects=subjects,sources=sources,exam_types=exam_types)
-        return questions
-
     def __str__(self):
         return self.name
 
@@ -193,7 +153,7 @@ class Subject(models.Model):
     exam = models.ForeignKey(Exam)
     submission_date = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
-    objects = managers.SubjectQuerySet.as_manager()
+    objects = managers.MetaInformationQuerySet.as_manager()
     def __str__(self):
         return self.name
 

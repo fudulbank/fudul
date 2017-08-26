@@ -1,10 +1,33 @@
 from django.db import models
+from django.db.models import Q, Count
 import accounts.utils
 
 class QuestionQuerySet(models.QuerySet):
     def unapproved(self):
-        return self.undeleted().exclude(revision__is_approved=True)\
+        return self.undeleted()\
+                   .exclude(revision__is_approved=True)\
                    .distinct()
+
+    def approved(self):
+        return self.undeleted()\
+                   .filter(revision__is_approved=True,
+                           revision__is_deleted=False)\
+                   .distinct()
+
+    def unsolved(self):
+        return self.filter(~Q(revision__choice__is_right=True),
+                           revision__is_deleted=False,
+                           revision__is_last=True)
+
+    def incomplete(self):
+        return self.filter(~Q(revision__statuses__code_name='COMPLETE'),
+                           revision__is_deleted=False,
+                           revision__is_last=True)
+
+    def complete(self):
+        return self.filter(revision__statuses__code_name='COMPLETE',
+                           revision__is_deleted=False,
+                           revision__is_last=True)
 
     def order_global_sequence(self):
         return self.order_by('global_sequence')
@@ -30,13 +53,23 @@ class ChoiceQuerySet(models.QuerySet):
     def order_by_alphabet(self):
         return self.order_by('text')
 
-class SubjectQuerySet(models.QuerySet):
+class MetaInformationQuerySet(models.QuerySet):
     def order_by_total_questions(self):
-        return self.annotate(total_questions=models.Count('question')).order_by('-total_questions')
+        return self.annotate(total_questions=Count('question')).order_by('-total_questions')
 
-class SourceQuerySet(models.QuerySet):
+    def with_approved_questions(self):
+        return self.filter(question__is_deleted=False,
+                           question__revision__is_approved=True,
+                           question__revision__is_deleted=False)\
+                   .annotate(Count('question'))\
+                   .filter(question__count__gte=1)
+
+class SourceQuerySet(MetaInformationQuerySet):
     def order_by_total_questions(self):
-        return self.annotate(total_questions=models.Count('question')).order_by('-total_questions', 'name')
+        # Here, in addition to sorting by total question, we sort
+        # alphabetically.
+        return self.annotate(total_questions=Count('question'))\
+                   .order_by('-total_questions', 'name')
 
 class CategoryQuerySet(models.QuerySet):
     def get_from_slugs(self, slugs):
