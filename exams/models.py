@@ -111,8 +111,8 @@ class Exam(models.Model):
     submission_date = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
     batches_allowed_to_take = models.ForeignKey(Batch, null=True, blank=True)
-    exam_types = models.ManyToManyField('ExamType')
     credits = RichTextUploadingField(default='')
+    exam_types = models.ManyToManyField('ExamType', blank=True)
 
     def get_sources(self):
         sources = Source.objects.none()
@@ -165,7 +165,7 @@ class Question(models.Model):
     sources = models.ManyToManyField(Source, blank=True)
     subjects = models.ManyToManyField(Subject, blank=True)
     exam = models.ForeignKey(Exam)
-    exam_types = models.ManyToManyField(ExamType)
+    exam_types = models.ManyToManyField(ExamType, blank=True)
     is_deleted = models.BooleanField(default=False)
     # `global_sequence` is a `pk` field that accounts for question
     # parents and children.  It is used to determine the sequence of
@@ -318,7 +318,7 @@ class Session(models.Model):
     subjects = models.ManyToManyField(Subject, blank=True)
     exam = models.ForeignKey(Exam)
     questions = models.ManyToManyField(Question, blank=True)
-    exam_types = models.ManyToManyField(ExamType)
+    exam_types = models.ManyToManyField(ExamType, blank=True)
     submitter = models.ForeignKey(User)
     question_filter = models.CharField(max_length=20, choices=questions_choices, default=None)
     submission_date = models.DateTimeField(auto_now_add=True)
