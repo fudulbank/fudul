@@ -111,13 +111,15 @@ class SessionForm(forms.ModelForm):
         # Limit subjects and exams per exam
         subjects = models.Subject.objects.filter(exam=exam)
         if subjects.exists():
-            self.fields['subjects'].queryset = models.Subject.objects.filter(exam=exam)
+            self.fields['subjects'].queryset = models.Subject.objects.filter(exam=exam)\
+                                                                     .with_approved_questions()
         else:
             del self.fields['subjects']
-        self.fields['sources'].queryset = exam.get_sources().filter(parent_source__isnull=True)
+        self.fields['sources'].queryset = exam.get_sources().filter(parent_source__isnull=True)\
+                                                            .with_approved_questions()
 
         if exam.exam_types.exists():
-            self.fields['exam_types'].queryset = exam.exam_types.all()
+            self.fields['exam_types'].queryset = exam.exam_types.with_approved_questions()
         else:
             del self.fields['exam_types']
 
