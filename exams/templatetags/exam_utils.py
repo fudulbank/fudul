@@ -1,5 +1,5 @@
 from django import template
-from exams import utils
+from exams import utils, models
 
 register = template.Library()
 
@@ -42,3 +42,21 @@ def is_editor(category, user):
 
     return False
 
+@register.filter
+def get_meta_exam_question_count(exam, meta):
+    if type(meta) is models.Source:
+        keyword = 'sources'
+    elif type(meta) is models.ExamType:
+        keyword = 'exam_types'
+    elif type(meta) is models.Subject:
+        keyword = 'subjects'
+
+    query = {keyword: meta}
+
+    return exam.question_set.filter(**query).distinct().count()
+
+@register.filter
+def order_by_exam_questions(meta_queryset, exam):
+    # 'meta_queryset' can be a queryset of any of: Source, Subject or
+    # ExamType.  All of which share the same Manager.
+    return meta_queryset.order_by_exam_questions(exam)
