@@ -23,7 +23,7 @@
        No sources available.
       {% endif %}
     </li>
-    <li><strong>{{ exam.get_questions.count }} questions in total:</strong>
+    <li><strong>{{ exam.question_set.count }} questions in total:</strong>
        <ul>
          <li>{{ exam.get_complete_questions.count }} complete.</li>
          <li>{{ exam.get_incomplete_questions.count }} incomplete.</li>

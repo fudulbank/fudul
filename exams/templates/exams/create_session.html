@@ -90,6 +90,7 @@
 
 
     <div class="row">
+      {% if sessionform.subjects %}
             <div class="col-xs-6">
 
                 <div class="form-group has-feedback has-feedback-left">
@@ -110,7 +111,7 @@
                     </div>
                 </div>
             </div>
-
+      {% endif %}
             <div class="col-xs-6">
                 <div class="form-group has-feedback has-feedback-left">
                     <label class="control-label"><h5>Sources</h5></label>

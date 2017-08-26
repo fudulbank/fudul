@@ -48,7 +48,6 @@ class Category(models.Model):
                                         related_name="children",
                                         on_delete=models.SET_NULL,
                                         default=None)
-    exam_types = models.ManyToManyField('ExamType')
     objects = managers.CategoryQuerySet.as_manager()
 
     def get_parent_categories(self):
@@ -100,8 +99,10 @@ class Category(models.Model):
         return slugs
 
     def __str__(self):
-        return self.name
-
+        parent_categories = self.get_parent_categories()
+        names = [category.name for category in parent_categories] + \
+                [self.name]
+        return "/".join(names)
 
 class Exam(models.Model):
     name = models.CharField(max_length=100)
@@ -109,6 +110,7 @@ class Exam(models.Model):
     submission_date = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
     batches_allowed_to_take = models.ForeignKey(Batch, null=True, blank=True)
+    exam_types = models.ManyToManyField('ExamType')
     credits = RichTextUploadingField(default='')
 
     def get_sources(self):
@@ -118,14 +120,6 @@ class Exam(models.Model):
             sources |= category.source_set.all()
             category = category.parent_category
         return sources
-
-    def get_exam_types(self):
-        exam_types = ExamType.objects.none()
-        category = self.category
-        while category:
-            exam_types |= category.exam_types.all()
-            category = category.parent_category
-        return exam_types
 
     def can_user_edit(self, user):
         if user.is_superuser:
@@ -138,10 +132,6 @@ class Exam(models.Model):
             category = category.parent_category
 
         return False
-
-    def get_questions(self):
-        return Question.objects.undeleted()\
-                               .filter(subjects__exam=self).distinct()
 
     def get_complete_questions(self):
         pks = Revision.objects.undeleted()\
@@ -213,7 +203,8 @@ class Subject(models.Model):
 
 class Question(models.Model):
     sources = models.ManyToManyField(Source, blank=True)
-    subjects = models.ManyToManyField(Subject)
+    subjects = models.ManyToManyField(Subject, blank=True)
+    exam = models.ForeignKey(Exam)
     exam_types = models.ManyToManyField(ExamType)
     is_deleted = models.BooleanField(default=False)
     # `global_sequence` is a `pk` field that accounts for question

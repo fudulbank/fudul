@@ -103,7 +103,7 @@
 																<ul class="dropdown-menu">
                                   <li><a{% if not revision.is_approved %} style="display: none;"{% endif %} data-pk="{{ revision.pk }}" data-url="{% url 'exams:mark_revision_pending' revision.pk %}" class="pend-revision"><i class="icon-database-time2"></i> Mark as pending</a></li>
 																	<li><a{% if revision.is_approved %} style="display: none;"{% endif %} data-pk="{{ revision.pk }}" data-url="{% url 'exams:mark_revision_approved' revision.pk %}" class="approve-revision"><i class="icon-checkmark2"></i> Approve</a></li>
-																	<li><a data-pk="{{ revision.pk }}" data-url="{% url 'exams:delete_revision' revision.pk %}" class="confirm-delete-revision"><i class="icon-trash"></i> Delete</a></li>
+																	<li><a data-pk="{{ revision.pk }}" data-url="{% url 'exams:delete_revision' revision.pk %}" class="confirm-delete-revision"><i class="icon-cross2"></i> Delete</a></li>
 																</ul>
 															</div>
 														</td>
