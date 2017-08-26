@@ -110,11 +110,12 @@ class SessionForm(forms.ModelForm):
         super(SessionForm, self).__init__(*args, **kwargs)
 
         # Limit number of questions
-        # total_questions = exam.get_approved_questions().count()
-        # total_question_validator = MaxValueValidator(total_questions)
-        # self.fields['number_of_questions'].validators.append(total_question_validator)
+        total_questions = exam.question_set.approved().count()
+        total_question_validator = MaxValueValidator(total_questions)
+        self.fields['number_of_questions'].validators.append(total_question_validator)
+        self.fields['number_of_questions'].widget.attrs['max'] = total_questions
+
         self.fields['number_of_questions'].validators.append(MinValueValidator(1))
-        # self.fields['number_of_questions'].widget.attrs['max'] = total_questions
         self.fields['number_of_questions'].widget.attrs['min'] = 1
 
         # Limit subjects and exams per exam
@@ -132,7 +133,7 @@ class SessionForm(forms.ModelForm):
 
     def save(self, *args, **kwargs):
         session = super(SessionForm, self).save(*args, **kwargs)
-        question_pool = session.exam.get_approved_questions()\
+        question_pool = session.exam.question_set.approved()\
                                     .filter(exam_types__in=session.exam_types.all())\
                                     .order_by('?')\
                                     .select_related('parent_question',

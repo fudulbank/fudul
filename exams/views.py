@@ -93,8 +93,9 @@ class QuestionAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         exam_pk = self.forwarded.get('exam_pk')
         exam = Exam.objects.get(pk=exam_pk)
-        qs = exam.question_set.order_by_submission().filter(parent_question__isnull=True)\
-                                                    .filter(child_question__isnull=True)
+        qs = exam.question_set.undeleted()\
+                              .order_by_submission()\
+                              .filter(child_question__isnull=True)
         if self.q:
             qs = qs.filter(pk=self.q)
         return qs
@@ -318,7 +319,7 @@ def create_session(request, slugs, exam_pk):
     #TODO: filter by most recent
     sessions = Session.objects.filter(submitter= request.user)[:5]
 
-    question_count = exam.get_approved_questions().count()
+    question_count = exam.question_set.approved().count()
     editor = teams.utils.is_editor(request.user)
     context = {'exam': exam,
                'question_count': question_count,
@@ -491,27 +492,33 @@ class SubjectQuestionCount(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         exam_pk = self.forwarded.get('exam_pk')
         exam = Exam.objects.get(pk=exam_pk)
-        qs = exam.subject_set.all()
+
+        # Make sure we only show subjects that actually have approved
+        # questions
+        qs = exam.subject_set.with_approved_questions()
+
         if self.q:
             qs = qs.filter(pk=self.q)
         return qs
 
     def get_result_label(self, item):
-        number_of_questions= item.question_set.filter(is_deleted=False,revision__is_approved=True).distinct().count()
-        return "<strong>{}</strong> ({})".format(item.name, number_of_questions)
+        return "<strong>{}</strong> ({})".format(item.name, item.question_set.approved().count())
 
 class ExamTypeQuestionCount(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         exam_pk = self.forwarded.get('exam_pk')
         exam = Exam.objects.get(pk=exam_pk)
-        qs = exam.exam_types.all()
+
+        # Make sure we only show exam types that actually have
+        # approved questions
+        qs = exam.exam_types.with_approved_questions()
+
         if self.q:
             qs = qs.filter(pk=self.q)
         return qs
 
     def get_result_label(self, item):
-        number_of_questions= item.question_set.filter(is_deleted=False,revision__is_approved=True).distinct().count()
-        return "<strong>{}</strong> ({})".format(item.name,number_of_questions)
+        return "<strong>{}</strong> ({})".format(item.name, item.question_set.approved().count())
 
 
 def show_category_indicators(request, category):
