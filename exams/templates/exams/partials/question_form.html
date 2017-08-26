@@ -28,6 +28,7 @@
 			{{ questionform.sources }}
 		</div>
 	</div>
+  {% if questionform.subjects %}
 	<div class="col-md-6">
 		<div class="form-group">
                         <label class="control-label"><i class="icon-list-unordered text-muted"></i> Subject</label>
@@ -35,6 +36,7 @@
 
 		</div>
 	</div>
+  {% endif %}
 	<div class="col-md-6">
 		<div class="form-group">
                         <label class="control-label"><i class="icon-list-unordered text-muted"></i> Parent question</label><a class="circle" data-placement="left" data-toggle="tooltip"  title="if you are adding a case questions you can use parent question field by typing the number of the question that should come before it."> ? </a>
