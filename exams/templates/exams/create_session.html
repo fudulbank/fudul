@@ -89,6 +89,7 @@
 
 
     <div class="row">
+      {% if sessionform.subjects %}
             <div class="col-xs-6">
 
                 <div class="form-group has-feedback has-feedback-left">
@@ -109,7 +110,7 @@
                     </div>
                 </div>
             </div>
-
+      {% endif %}
             <div class="col-xs-6">
                 <div class="form-group has-feedback has-feedback-left">
                     <label class="control-label"><h5>Sources</h5></label>
@@ -128,12 +129,12 @@
                 </div>
             </div>
         </div>
-
+{% if sessionform.exam_types %}
     <div class="form-group has-feedback has-feedback-left">
         <label class="control-label"><h5>Exam type:</h5></label>
             {% bootstrap_field sessionform.exam_types show_label=False  %}
     </div>
-
+{% endif %}
     <label class="control-label"><h5>Number of Questions</h5></label>
     <div class="row">
     <div class="col-xs-8 col-sm-6">

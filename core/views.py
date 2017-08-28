@@ -5,6 +5,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
 from . import utils
+from exams.models import Answer, Question 
 import accounts.utils
 
 
@@ -12,7 +13,11 @@ def show_index(request):
     if request.user.is_authenticated():
         return render(request, 'index.html')
     else:
-        return render(request, 'index_unauthenticated.html')
+        question_count = Question.objects.undeleted().count()
+        answer_count = Answer.objects.count()
+        context = {'question_count': question_count,
+                   'answer_count': answer_count}
+        return render(request, 'index_unauthenticated.html', context)
 
 class UserAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):

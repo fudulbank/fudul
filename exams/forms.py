@@ -9,14 +9,23 @@ import teams.utils
 
 class QuestionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-        exam = kwargs.pop('exam')
         super(QuestionForm, self).__init__(*args, **kwargs)
-        self.fields['subjects'].queryset = models.Subject.objects.filter(exam=exam)
+        exam = self.instance.exam
+
+        # Only include 'subjects' field if the exam has subjects
+        subjects = models.Subject.objects.filter(exam=exam)
+        if subjects.exists():
+            self.fields['subjects'].queryset = models.Subject.objects.filter(exam=exam)
+            self.fields['subjects'].required = True
+        else:
+            del self.fields['subjects']
+
+        # Limit sources and exam_types
         self.fields['sources'].queryset = exam.get_sources()
 
-        exam_types = exam.get_exam_types()
-        if exam_types.exists():
-            self.fields['exam_types'].queryset = exam_types
+        if exam.exam_types.exists():
+            self.fields['exam_types'].queryset = exam.exam_types.all()
+            self.fields['exam_types'].required = True
         else:
             del self.fields['exam_types']
 
@@ -106,28 +115,33 @@ class SessionForm(forms.ModelForm):
         super(SessionForm, self).__init__(*args, **kwargs)
 
         # Limit number of questions
-        # total_questions = exam.get_approved_questions().count()
-        # total_question_validator = MaxValueValidator(total_questions)
-        # self.fields['number_of_questions'].validators.append(total_question_validator)
+        total_questions = exam.question_set.approved().count()
+        total_question_validator = MaxValueValidator(total_questions)
+        self.fields['number_of_questions'].validators.append(total_question_validator)
+        self.fields['number_of_questions'].widget.attrs['max'] = total_questions
+
         self.fields['number_of_questions'].validators.append(MinValueValidator(1))
-        # self.fields['number_of_questions'].widget.attrs['max'] = total_questions
         self.fields['number_of_questions'].widget.attrs['min'] = 1
 
         # Limit subjects and exams per exam
-        self.fields['subjects'].queryset = models.Subject.objects.filter(exam=exam)
-        self.fields['sources'].queryset = exam.get_sources().filter(parent_source__isnull=True)
-        # self.fields['question_filter']=forms.ChoiceField(choices=models.questions_choices)
+        subjects = models.Subject.objects.filter(exam=exam)
+        if subjects.exists():
+            self.fields['subjects'].queryset = models.Subject.objects.filter(exam=exam)\
+                                                                     .with_approved_questions()
+        else:
+            del self.fields['subjects']
+        self.fields['sources'].queryset = exam.get_sources().filter(parent_source__isnull=True)\
+                                                            .with_approved_questions()
 
-        exam_types = exam.get_exam_types()
-        if exam_types.exists():
-            self.fields['exam_types'].queryset = exam_types
+        if exam.exam_types.exists():
+            self.fields['exam_types'].queryset = exam.exam_types.with_approved_questions()
+            self.fields['exam_types'].required = True
         else:
             del self.fields['exam_types']
 
     def save(self, *args, **kwargs):
         session = super(SessionForm, self).save(*args, **kwargs)
-        question_pool = session.exam.get_approved_questions()\
-                                    .filter(exam_types__in=session.exam_types.all())\
+        question_pool = session.exam.question_set.approved()\
                                     .order_by('?')\
                                     .select_related('parent_question',
                                                     'child_question')
@@ -137,6 +151,9 @@ class SessionForm(forms.ModelForm):
 
         if session.sources.exists():
             question_pool = question_pool.filter(sources__in=session.sources.all())
+
+        if session.exam_types.exists():
+            question_pool = question_pool.filter(exam_types__in=session.exam_types.all())
 
         if session.question_filter == 'UNUSED':
             question_pool = question_pool.exclude(answer__session__submitter=session.submitter)

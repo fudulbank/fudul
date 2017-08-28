@@ -1,0 +1,98 @@
+{% with modal_id='confirm-delete-revision-modal' is_small=True modal_title="Remove revision" modal_content="Are you sure you want to remove the submitted revision?" %}{% load static %}
+    {% include "exams/modals/common_edit_modal.html" %}
+{% endwith %}
+
+<script src="{% static 'js/toastr.js' %}"></script>
+<script type="text/javascript">
+toastr.options.positionClass = "toast-top-left";
+function initializeReview(){
+    $confirmRevisionDeletion = $("#confirm-delete-revision-modal .submit-button")
+    $('.confirm-delete-revision').click(function () {
+        var url = $(this).data('url');
+        var pk = $(this).data('pk');
+        $confirmRevisionDeletion.data('url', url).data('pk', pk);
+        $("#confirm-delete-revision-modal").modal('show');
+    });
+    $confirmRevisionDeletion.click(function () {
+        /* get some values from elements on the page: */
+        var url = $(this).data('url');
+				var pk = $(this).data('pk');
+        /* Send the data using post */
+        var posting = $.post(url);
+        posting.done(function (data) {
+            if (data.success == 1) {
+                // The following applies in both list_revision and approve_user_contributions
+                var tables = $(".datatable").DataTable();
+                row = tables.row("tr[data-pk=" +  pk + "]");
+                row.remove().draw(false);
+                // show success message (using toastr)
+                toastr.info("Revision was successfully deleted.");
+    						$("#show-revision-modal, #confirm-delete-revision-modal").modal('hide');
+            } else {
+                toastr.error(data.message);
+            }
+        });
+    });
+    $(".approve-revision").click(function () {
+        /* get some values from elements on the page: */
+        $this = $(this);
+        var url = $(this).data('url');
+				var pk = $(this).data('pk');
+        row_selector = "tr[data-pk=" +  pk + "]";
+        /* Send the data using post */
+        var posting = $.post(url);
+        posting.done(function (data) {
+            if (data.success == 1) {
+                // show success message (using toastr)
+                toastr.info("Revision is now marked as approved");
+
+                // The following applies in list_revision:
+                $revision_table = $("#revision-list").DataTable();
+                status_cell = $revision_table.cell(row_selector + " .status").node();
+                $status_cell = $(status_cell);
+                $status_cell.removeClass("text-danger")
+                            .addClass("text-success")
+                            .html("Yes");
+                $this.hide();
+                $this.closest('.btn-group').find(".pend-revision").show();
+
+                // The following applies in approve_user_contributions
+                $("#show-revision-modal, #confirm-delete-revision-modal").modal('hide');
+                $review_tables = $("#revisions, #questions").DataTable();
+                row = $review_tables.row(row_selector);
+                row.remove().draw(false);
+
+            } else {
+                toastr.error(data.message);
+            }
+        });
+    });
+    $(".pend-revision").click(function () {
+        /* get some values from elements on the page: */
+        $this = $(this);
+        var url = $(this).data('url');
+				var pk = $(this).data('pk');
+        row_selector = "tr[data-pk=" +  pk + "]";
+        /* Send the data using post */
+        var posting = $.post(url);
+        posting.done(function (data) {
+            if (data.success == 1) {
+                toastr.info("Revision is now marked as pending");
+
+                $revision_table = $("#revision-list").DataTable();
+                status_cell = $revision_table.cell(row_selector + " .status").node();
+                $status_cell = $(status_cell);
+                $status_cell.removeClass("text-success")
+                            .addClass("text-danger")
+                            .html("No");
+                $this.hide();
+                $this.closest('.btn-group').find(".approve-revision").show();
+            } else {
+                toastr.error(data.message);
+            }
+        });
+    });
+}
+
+$(initializeReview);
+</script>
