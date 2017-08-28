@@ -192,10 +192,6 @@ class Question(models.Model):
         else:
             return Answer.objects.filter(session=session, question=self).exists()
 
-    def get_exam(self):
-        if self.subjects.exists():
-            return self.subjects.first().exam
-
     def get_latest_approved_revision(self):
         return self.revision_set.filter(is_approved=True, is_deleted=False)\
                                 .order_by('-pk')\

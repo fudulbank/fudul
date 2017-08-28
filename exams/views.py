@@ -110,7 +110,7 @@ class QuestionAutocomplete(autocomplete.Select2QuerySetView):
 @decorators.ajax_only
 def delete_question(request, pk):
     question = get_object_or_404(Question, pk=pk)
-    exam = question.get_exam()
+    exam = question.exam
 
     # PERMISSION CHECK
     if not request.user.is_superuser and \
@@ -215,7 +215,7 @@ def show_question(request, pk, revision_pk=None):
     else:
         revision = question.get_latest_revision()
 
-    exam = question.get_exam()
+    exam = question.exam
 
     # PERMISSION CHECK
     if not exam.can_user_edit(request.user):
@@ -608,7 +608,7 @@ def show_revision_comparison(request, pk, revision_pk=None):
     else:
         revision = question.get_latest_revision()
 
-    exam = question.get_exam()
+    exam = question.exam
 
     # PERMISSION CHECK
     if not exam.can_user_edit(request.user):
@@ -623,7 +623,7 @@ def show_revision_comparison(request, pk, revision_pk=None):
 def delete_revision(request, pk):
     revision = get_object_or_404(Revision, pk=pk)
     question = revision.question
-    exam = question.get_exam()
+    exam = question.exam
 
     # PERMISSION CHECK
     if not request.user.is_superuser and \
@@ -647,7 +647,7 @@ def delete_revision(request, pk):
 @decorators.ajax_only
 def mark_revision_approved(request, pk):
     revision = get_object_or_404(Revision, pk=pk)
-    exam = revision.question.get_exam()
+    exam = revision.question.exam
 
     # PERMISSION CHECK
     if not exam.can_user_edit(request.user):
@@ -661,7 +661,7 @@ def mark_revision_approved(request, pk):
 @decorators.ajax_only
 def mark_revision_pending(request, pk):
     revision = get_object_or_404(Revision, pk=pk)
-    exam = revision.question.get_exam()
+    exam = revision.question.exam
 
     # PERMISSION CHECK
     if not exam.can_user_edit(request.user):
