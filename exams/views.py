@@ -361,7 +361,7 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
         raise Http404
 
     # PERMISSION CHECK
-    if not session.can_access(request.user):
+    if not session.can_user_access(request.user):
         raise PermissionDenied
 
     current_question = session.get_current_question(question_pk)
@@ -407,7 +407,7 @@ def toggle_marked(request):
                                  is_deleted=False)
 
     # PERMISSION CHECKS
-    if not session.can_access(request.user):
+    if not session.can_user_access(request.user):
         raise Exception("You cannot mark questions in this session.")
 
     if utils.is_question_marked(question, request.user):
@@ -431,7 +431,7 @@ def submit_answer(request):
     question = get_object_or_404(session.questions, pk=question_pk, is_deleted=False)
 
     # PERMISSION CHECKS
-    if not session.can_access(request.user):
+    if not session.can_user_access(request.user):
         raise Exception("You cannot submit answers in this session")
     if question.was_solved_in_session(session):
         raise Exception("Question #{} was previously solved in this session.".format(question_pk))
