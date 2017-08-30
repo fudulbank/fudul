@@ -263,6 +263,8 @@ class Revision(models.Model):
     figure = models.ImageField(upload_to="revision_images",
                                blank=True)
     explanation = models.TextField(default="", blank=True)
+    explanation_figure = models.ImageField(upload_to="explanation_images",
+                                           blank=True)
     is_approved = models.BooleanField(default=False)
     is_first = models.BooleanField(default=False)
     is_last = models.BooleanField(default=False)
@@ -334,26 +336,33 @@ class Session(models.Model):
         return not self.get_unused_questions().exists()
 
     def get_question_sequence(self, question):
-        return self.questions.filter(global_sequence__lte=question.pk).count()
+        return self.questions.approved()\
+                             .filter(global_sequence__lte=question.pk)\
+                             .count()
 
     def get_unused_questions(self):
-        return self.questions.exclude(answer__session=self)\
+        return self.questions.approved()\
+                             .exclude(answer__session=self)\
                              .order_by('global_sequence')\
                              .distinct()
 
     def has_question(self, question):
-        return self.questions.filter(pk=question.pk).exists()
+        return self.questions.approved()\
+                             .filter(pk=question.pk)\
+                             .exists()
 
     def get_current_question(self, question_pk=None):
         # If a question PK is given, show it.  Otheriwse show the first
         # session unused question.  Otherwise, show the first session
         # question.
         if question_pk:
-            current_question = get_object_or_404(self.questions, pk=question_pk)
+            current_question = get_object_or_404(self.questions.approved(), pk=question_pk)
         elif not self.has_finished():
             current_question = self.get_unused_questions().first()
         else:
-            current_question = self.questions.order_by('global_sequence').first()
+            current_question = self.questions.approved()\
+                                             .order_by('global_sequence')\
+                                             .first()
 
         return current_question
 
