@@ -91,7 +91,15 @@
 							<div class="media">
 								<div class="media-body text-center">
 									<span class="media-heading text-semibold">Welcome, {{ user.profile.first_name|default:user.username }}!</span>
-								</div>
+								<form type="get" action="{% url 'exams:search' %}" accept-charset="utf-8">
+                                    <div class="form-group has-feedback has-feedback-left">
+														<input  type="search" id="q" name="q"  class="form-control" placeholder="Search by ID or Text" >
+														<div class="form-control-feedback">
+															<i class="icon-search4 text-size-base"></i>
+														</div>
+									</div>                                </form>
+
+                                </div>
 
 							</div>
 						</div>

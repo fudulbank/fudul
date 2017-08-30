@@ -22,7 +22,7 @@ urlpatterns =[
     url(r'^ajax/examiners/(?P<pk>\d+)/credits$', views.show_credits, name='show_credits'),
     url(r'^tmep/end_session/$', TemplateView.as_view(template_name='exams/session_end.html'), name="session_end"),
     url(r'^previous_sessions/$', views.show_pevious_sessions, name='show_previous_sessions'),
-
+    url(r'^search/$', views.search, name='search'),
 
     url(r'^indicators/categories/$', views.list_meta_categories, {'indicators': True}, name='list_category_indicators'),
     url(r'^indicators/categories/(?P<slugs>[/\d\w\-]+)/$', views.show_category, {'indicators': True}, name='show_category_indicators'),

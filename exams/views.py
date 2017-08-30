@@ -13,7 +13,8 @@ from core import decorators
 from .models import Exam, Question, Category, Revision, Session, Choice, Answer
 from . import forms, utils
 import teams.utils
-
+from django.views.decorators.http import require_http_methods
+from django.db.models import Q
 
 @login_required
 def list_meta_categories(request, indicators=False):
@@ -718,3 +719,13 @@ def list_contributions(request,user_pk=None):
 
     return render(request, 'exams/list_contributions.html',{'revisions':revisions,'exams':exams})
 
+
+@require_http_methods(['GET'])
+def search(request):
+    q = request.GET.get('q')
+    #TODO:try to add choices to search
+    #what about questions that the user isnt allowed to see
+    if q:
+        revisions = Revision.objects.filter(is_last=True, is_approved=True).filter(Q(question__pk=q)| Q(text__icontains=q))
+        return render(request, 'exams/search_results.html', {'revisions': revisions, 'query': q})
+    return HttpResponse('Please submit a search term.')
