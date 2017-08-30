@@ -65,6 +65,9 @@ class Category(models.Model):
         if user.is_superuser:
             return True
 
+        if self.is_user_editor(user):
+            return True
+
         user_college = accounts.utils.get_user_college(user)
         if not user_college:
             return False
@@ -354,7 +357,7 @@ class Session(models.Model):
 
         return current_question
 
-    def can_access(self, user):
+    def can_user_access(self, user):
         return self.submitter == user or user.is_superuser
 
 class Answer(models.Model):
