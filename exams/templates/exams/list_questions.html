@@ -1,6 +1,7 @@
-{% extends 'base.html' %}{% load staticfiles %}
-{% block title %}Fudul | Question list of {{ exam.name }}{% endblock %}
+{% extends 'base_new.html' %}{% load staticfiles %}
+{% block title %}Fudul | {{ exam.name }}: List questions{% endblock %}
 {% block head %}
+<link rel="stylesheet" type="text/css" href="{% static 'stack/vendors/css/tables/datatable/dataTables.bootstrap4.min.css' %}">
 <style type="text/css">
 th, td, .action{
     text-align: left;
@@ -18,67 +19,57 @@ tbody tr td:last-child{
 }
 </style>
 {% endblock %}
-{% block breadcrumb %}
 
-					<div class="breadcrumb-line">
-						<ul class="breadcrumb">
-							<li><a href="{% url 'index' %}"><i class="icon-home2 position-left"></i> Fudul</a></li>
-                                                        <li><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
-                                                        {% for parent_category in exam.category.get_parent_categories %}
-							<li><a href="{% url 'exams:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
-                                                        {% endfor %}
-                                                        <li><a href="{% url 'exams:show_category' exam.category.get_slugs %}">{{ exam.category.name }}</a></li>
-                                                        <li><a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}">{{ exam.name }}</a></li>
-                                                        <li class="active">Question list</li>
-						</ul>
-					</div>
+{% block header_title %}
+<h1>{{ exam.name }}: List questions</h1>
+{% with is_list_active=True %}
+{% include 'exams/partials/exam_editor_buttons.html' %}
+{% endwith %}
 {% endblock %}
+
+{% block breadcrumb %}
+      <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
+			{% for parent_category in exam.category.get_parent_categories %}
+			<li class="breadcrumb-item"><a href="{% url 'exams:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
+			{% endfor %}
+			<li class="breadcrumb-item"><a href="{% url 'exams:show_category' exam.category.get_slugs %}">{{ exam.category.name }}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:create_session' exam.category.get_slugs exam.pk %}">{{ exam.name }}</a></li>
+      <li class="breadcrumb-item active">List</li>
+{% endblock %}
+
 {% block content %}
+    <div class="card">
+        <div class="card-header">
+					<h4 class="card-title">Approved questions</h4>
+          <div class="heading-elements">
 
-<div style="float: right;">
-<a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}" class="btn btn-primary btn-xs"><i class=" icon-file-plus position-left"></i> Add question</a>
-</div>
-<h1>Question list of {{ exam.name }}</h1>
-
-    <div class="panel panel-flat">
-    <div class="panel-heading">
-							<h5 class="panel-title">Approved questions<a class="heading-elements-toggle"><i class="icon-more"></i></a></h5>
-							<div class="heading-elements">
-								<ul class="icons-list">
-			                		<li><a data-action="collapse"></a></li>
-			                		<li><a data-action="close"></a></li>
-			                	</ul>
-		                	</div>
-						</div>
-        <div class="panel-body">
+          </div>
+    		</div>
+        <div class="card-body">
+          <div class="card-block">
 {% with revisions=exam.get_approved_latest_revisions.order_by_submission exam_pk=exam.pk category_slug=exam.category.get_slugs %}
 {% include 'exams/partials/question_table.html' %}
 {% endwith %}
+          </div>
         </div>
     </div>
-    <div class="panel panel-flat">
-        <div class="panel-heading">
-							<h5 class="panel-title">Pending questions<a class="heading-elements-toggle"><i class="icon-more"></i></a></h5>
-							<div class="heading-elements">
-								<ul class="icons-list">
-			                		<li><a data-action="collapse"></a></li>
-			                		<li><a data-action="close"></a></li>
-			                	</ul>
-		                	</div>
-        </div>
-        <div class="panel-body">
+    <div class="card">
+      <div class="card-header">
+						<h4 class="card-title">Pending questions</h4>
+      </div>
+      <div class="card-body">
+        <div class="card-block">
 {% with revisions=exam.get_pending_latest_revisions.order_by_submission exam_pk=exam.pk category_slug=exam.category.get_slugs %}
 {% include 'exams/partials/question_table.html' %}
 {% endwith %}
         </div>
+      </div>
     </div>
-
 {% endblock %}
 {% block customscript %}
-	<link rel="stylesheet" href="{% static 'css/jquery.dataTables.min.css' %}">
-	<link rel="stylesheet" href="{% static 'js/datatables/responsive/css/responsive.dataTables.min.css' %}">
-	<script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
-    <script src="{% static 'js/datatables/responsive/js/dataTables.responsive.min.js' %}"></script>
+<script src="{% static 'stack/vendors/js/tables/jquery.dataTables.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'stack/vendors/js/tables/datatable/dataTables.bootstrap4.min.js' %}" type="text/javascript"></script>
 
 <script src="{% static 'js/toastr.js' %}"></script>
 <script>

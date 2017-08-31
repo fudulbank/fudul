@@ -24,4 +24,3 @@ def get_search_queryset(queryset, search_fields, search_term):
             queryset = queryset.filter(statement)
 
     return queryset
-

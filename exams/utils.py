@@ -1,6 +1,7 @@
+from django.db.models import Count, Q
+from exams import models
 import teams.utils
-from exams.models import Question,Revision
-from django.db.models import Count
+
 
 def is_question_marked(question, user):
     return question.marking_users.filter(pk=user.pk).exists()
@@ -17,12 +18,43 @@ def test_revision_approval(revision):
 
 
 def get_only_one_revision_questions():
-    return Question.objects.annotate(num_revision=Count('revision')).filter(num_revision=1)
+    return models.Question.objects.annotate(num_revision=Count('revision')).filter(num_revision=1)
 
 def get_contributed_questions(exam):
-    pks = Revision.objects.per_exam(exam) \
-        .filter(is_contribution=True,is_deleted=False,is_approved=False) \
-        .values_list('question__pk', flat=True)
+    pks = models.Revision.objects.per_exam(exam)\
+                         .filter(is_contribution=True,
+                                 is_deleted=False,
+                                 is_approved=False)\
+                         .values_list('question__pk',
+                                      flat=True)
     questions = get_only_one_revision_questions().filter(pk__in=pks)
     return questions
 
+def get_deepest_category_level():
+    count = 1
+    level = 'parent_category__isnull'
+    kwargs = {level: False}
+    while models.Category.objects.filter(**kwargs).exists():
+        level  = 'parent_category__' + level
+        kwargs[level] = False
+        count += 1
+    return count
+
+def get_user_privileged_exams(user):
+    if user.is_superuser:
+        exams = models.Exam.objects.all()
+    elif teams.utils.is_editor(user):
+        deepest_category_level = get_deepest_category_level()
+        count = 1
+        level = 'category'
+        querys = Q()
+        while deepest_category_level >= count:
+            kwarg = {level + '__privileged_teams__members': user}
+            level  = level + '__parent_category'
+            querys |= Q(**kwarg)
+            count += 1
+        exams = models.Exam.objects.filter(querys)
+    else:
+        exams = models.Exam.objects.none()
+
+    return exams

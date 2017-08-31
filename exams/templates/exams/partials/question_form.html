@@ -1,46 +1,42 @@
 {% load bootstrap3 %}
         {% bootstrap_form_errors questionform %}
-        <form method="post" data-exam_pk='{{ exam.pk }}' enctype="multipart/form-data" id="add-question-form" action="post">
-	    {% csrf_token %}
+<form method="post" data-exam_pk='{{ exam.pk }}' enctype="multipart/form-data" id="add-question-form">
+    {% csrf_token %}
 
-<div class="row">
-
+  <div class="row">
 {% if questionform.exam_types %}
 	<div class="col-md-6">
 		<div class="form-group">
-                        <label class="control-label"><i class="icon-filter3 text-muted"></i> Exam type</label>
-            <div  id='exam-type'>
-			{% bootstrap_field questionform.exam_types show_label=False %}
-            </div>
+      <label class="control-label"><i class="icon-filter3 text-muted"></i> Exam type</label>
+      <div id='exam-type'>
+  			{% bootstrap_field questionform.exam_types show_label=False %}
+      </div>
 		</div>
 	</div>
 {% endif %}
 	<div class="col-md-6">
 		<div class="form-group">
-                        <label class="control-label"><i class="icon-stack-check text-muted"></i> Status</label> {% if question %}<small style="margin-left: 1%;color: red"> This question will be approved if you set status to complete.</small>{% endif %}<a data-placement="left" class="circle" data-toggle="tooltip" title="Before tagging a question as 'complete' make sure it has complete answers, and it should be solved."> ? </a>
-
-			{% bootstrap_field revisionform.statuses show_label=False  %}
-
+      <label class="control-label"><i class="icon-stack-check text-muted"></i> Status <a data-placement="left" class="circle" data-toggle="tooltip" title="Before tagging a question as 'complete' make sure it has complete answers, and it should be solved.">?</a></label> {% if question %}<small style="margin-left: 1%;color: red"> This question will be approved if you set status to complete.</small>{% endif %}
+			{{ revisionform.statuses }}
 		</div>
 	</div>
 	<div class="col-md-6">
 		<div class="form-group">
-                        <label class="control-label"><i class="icon-git-branch text-muted"></i> Source</label>
+      <label class="control-label"><i class="icon-git-branch text-muted"></i> Source<a class="circle" data-placement="left" data-toggle="tooltip"  title="PLACEHOLDER">?</a></label>
 			{{ questionform.sources }}
 		</div>
 	</div>
   {% if questionform.subjects %}
 	<div class="col-md-6">
 		<div class="form-group">
-                        <label class="control-label"><i class="icon-list-unordered text-muted"></i> Subject</label>
+      <label class="control-label"><i class="icon-list-unordered text-muted"></i> Subject<a class="circle" data-placement="left" data-toggle="tooltip"  title="PLACEHOLDER">?</a></label>
 			{{ questionform.subjects }}
-
 		</div>
 	</div>
   {% endif %}
 	<div class="col-md-6">
 		<div class="form-group">
-                        <label class="control-label"><i class="icon-list-unordered text-muted"></i> Parent question</label><a class="circle" data-placement="left" data-toggle="tooltip"  title="if you are adding a case questions you can use parent question field by typing the number of the question that should come before it."> ? </a>
+      <label class="control-label"><i class="icon-list-unordered text-muted"></i> Parent question <a class="circle" data-placement="left" data-toggle="tooltip"  title="if you are adding a case questions you can use parent question field by typing the number of the question that should come before it.">?</a></label>
 			{{ questionform.parent_question }}
 		</div>
 	</div>
@@ -121,8 +117,7 @@
 		</div>
                     {% endif %}
 <input name="exam_pk" type="hidden" value="{{ exam.pk }}">
-{{ questionform.media }}
-               <button type="submit" action ='submit' class="btn bg-primary btn-block btn-lg">Submit Question <i class="icon-circle-right2 position-right"></i></button>
+               <button type="submit" class="btn btn-primary float-sm-right"><i class="ft-check"></i> Submit Question <i class="icon-circle-right2 position-right"></i></button>
 
         </form>
 
@@ -137,24 +132,6 @@
     text-align: center;
     color: white;
     float: right;
-}
-.select2-selection--single{
-    padding: 0;
-}
-
-.select2-container--default .select2-selection--multiple .select2-selection__choice {
-    background-color: #0072d6;
-    color: #fff;
-    border-radius: 3px;
-    cursor: default;
-    float: left;
-    margin-right: 2px;
-    margin-top: 2px;
-    /*padding: 7px 12px;*/
-}
-
-.select2-container--default .select2-selection--multiple .select2-selection__choice__remove{
-    color: white;
 }
 </style>
 {% block customscript %}

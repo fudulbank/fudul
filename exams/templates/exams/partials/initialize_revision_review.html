@@ -54,7 +54,7 @@ function initializeReview(){
                             .addClass("text-success")
                             .html("Yes");
                 $this.hide();
-                $this.closest('.btn-group').find(".pend-revision").show();
+                $this.closest('.dropdown').find(".pend-revision").show();
 
                 // The following applies in approve_user_contributions
                 $("#show-revision-modal, #confirm-delete-revision-modal").modal('hide');
@@ -86,7 +86,7 @@ function initializeReview(){
                             .addClass("text-danger")
                             .html("No");
                 $this.hide();
-                $this.closest('.btn-group').find(".approve-revision").show();
+                $this.closest('.dropdown').find(".approve-revision").show();
             } else {
                 toastr.error(data.message);
             }

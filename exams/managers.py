@@ -52,6 +52,19 @@ class RevisionQuerySet(models.QuerySet):
         return self.filter(is_deleted=False,
                            question__is_deleted=False)
 
+class ExamQuerySet(models.QuerySet):
+    def with_approved_questions(self):
+        return self.filter(question__is_deleted=False,
+                           question__revision__is_deleted=False,
+                           question__revision__is_approved=True)
+
+class SessionQuerySet(models.QuerySet):
+    def with_approved_questions(self):
+        return self.filter(questions__is_deleted=False,
+                           questions__revision__is_deleted=False,
+                           questions__revision__is_approved=True)\
+                   .distinct()
+
 class ChoiceQuerySet(models.QuerySet):
     def order_by_alphabet(self):
         return self.order_by('text')

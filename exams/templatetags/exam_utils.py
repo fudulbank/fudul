@@ -60,3 +60,7 @@ def order_by_exam_questions(meta_queryset, exam):
     # 'meta_queryset' can be a queryset of any of: Source, Subject or
     # ExamType.  All of which share the same Manager.
     return meta_queryset.order_by_exam_questions(exam)
+
+@register.filter
+def was_ever_taken_by_user(exam, user):
+    return exam.session_set.filter(submitter=user).exists()

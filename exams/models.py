@@ -115,6 +115,7 @@ class Exam(models.Model):
     is_deleted = models.BooleanField(default=False)
     batches_allowed_to_take = models.ForeignKey(Batch, null=True, blank=True)
     exam_types = models.ManyToManyField('ExamType', blank=True)
+    objects = managers.ExamQuerySet.as_manager()
 
     def get_sources(self):
         sources = Source.objects.none()
@@ -325,6 +326,7 @@ class Session(models.Model):
     exam_types = models.ManyToManyField(ExamType, blank=True)
     submitter = models.ForeignKey(User)
     question_filter = models.CharField(max_length=20, choices=questions_choices, default=None)
+    objects = managers.SessionQuerySet.as_manager()
 
     def get_score(self):
         if not self.number_of_questions ==0 :

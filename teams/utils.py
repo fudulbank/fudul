@@ -1,3 +1,5 @@
+from exams.models import Exam
+
 def is_editor(user):
     if not user.is_authenticated():
         return False

@@ -26,9 +26,11 @@ def list_meta_categories(request, indicators=False):
         show_category_url = 'exams:show_category'
 
     subcategories = Category.objects.filter(parent_category__isnull=True).user_accessible(request.user)
-    context = {"subcategories": subcategories,
+    context = {'subcategories': subcategories,
                'show_category_url': show_category_url,
-               'indicators': indicators}
+               'indicators': indicators,
+               'is_browse_active': True, # To make sidebar 'active'
+    }
     return render(request, 'exams/show_category.html', context)
 
 
@@ -38,31 +40,45 @@ def show_category(request, slugs, indicators=False):
     if not category:
         raise Http404
 
-    if indicators:
-        show_category_url = 'exams:show_category_indicators'
-        exams = None
-    else:
-        show_category_url = 'exams:show_category'
-        exams = Exam.objects.filter(category=category)
+    context = {'category': category}
 
     # PERMISSION CHECK
-    if not category.can_user_access(request.user):
+    if not category.can_user_access(request.user) or\
+       indicators and not teams.utils.is_editor(request.user):
         raise PermissionDenied
     subcategories = category.children.user_accessible(request.user)
+
+    if indicators:
+        show_category_url = 'exams:show_category_indicators'
+        # To make sidebar 'active'
+        context['is_indicators_active'] = True
+        if subcategories.count() == 0:
+            return show_category_indicators(request, category)
+    else:
+        show_category_url = 'exams:show_category'
+        # To make sidebar 'active'
+        context['is_browse_active'] = True
+
+        # If user can edit, show them all the exams.  Otherwise, only
+        # show them exams with approved questions.
+        if category.is_user_editor(request.user):
+            exams = category.exams.all()
+        else:
+            exams = category.exams.with_approved_questions()
+
+        context['exams'] = exams
 
     # If this category has one child, just go to it!
     if subcategories.count() == 1:
         subcategory = subcategories.first()
         return HttpResponseRedirect(reverse(show_category_url,
                                             args=(subcategory.get_slugs(),)))
-    elif subcategories.count() == 0 and indicators:
-        return show_category_indicators(request, category)
 
-    context = {'category': category,
-               'show_category_url': show_category_url,
-               'exams': exams,
-               'subcategories': subcategories.order_by('name'),
-               'indicators': indicators}
+    context.update({
+        'show_category_url': show_category_url,
+        'subcategories': subcategories.order_by('name'),
+        'indicators': indicators,
+    })
 
     return render(request, "exams/show_category.html", context)
 
@@ -84,7 +100,9 @@ def add_question(request, slugs, pk):
                'questionform': forms.QuestionForm(instance=instance),
                'revisionform': forms.RevisionForm(),
                'revisionchoiceformset': forms.RevisionChoiceFormset(),
-               'editor':editor}
+               'editor':editor,
+               'is_browse_active': True, # To make sidebar 'active'
+    }
 
     return render(request, "exams/add_question.html", context)
 
@@ -202,7 +220,7 @@ def list_questions(request, slugs, pk):
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
 
-    context = {'exam': exam}
+    context = {'exam': exam, 'is_browse_active': True}
     return render(request, 'exams/list_questions.html', context)
 
 
@@ -239,6 +257,7 @@ def list_revisions(request, slugs, exam_pk, pk):
     question = get_object_or_404(Question, pk=pk,
                                  is_deleted=False)
     context = {'question': question,
+               'is_browse_active': True,
                'exam': exam}
     return render(request, 'exams/list_revisions.html', context)
 
@@ -306,21 +325,33 @@ def list_question_per_status(request, slugs, exam_pk):
 
 @login_required
 def create_session(request, slugs, exam_pk):
-
     category = Category.objects.get_from_slugs(slugs)
     if not category:
         raise Http404
-
     exam = get_object_or_404(Exam, pk=exam_pk, category=category)
-    #TODO: filter by most recent
-    sessions = Session.objects.filter(submitter= request.user)[:5]
+
+    # PERMISSION CHECK
+    if not category.can_user_access(request.user):
+        raise PermissionDenied
+
+    # If the exam has no approved questions, it doesn't exist for
+    # users.
+    if not exam.can_user_edit(request.user) and \
+       not exam.question_set.approved().exists():
+        raise Http404
+ 
+    latest_sessions = exam.session_set.with_approved_questions()\
+                                      .filter(submitter=request.user)\
+                                      .order_by('-pk')[:5]
 
     question_count = exam.question_set.approved().count()
     editor = teams.utils.is_editor(request.user)
     context = {'exam': exam,
                'question_count': question_count,
                'editor':editor,
-               'sessions':sessions}
+               'latest_sessions': latest_sessions,
+               'is_browse_active': True, # To make sidebar 'active'
+    }
 
     if request.method == 'GET':
         sessionform = forms.SessionForm(exam=exam)
@@ -355,7 +386,7 @@ def list_session_questions(request):
 @login_required
 def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     category = Category.objects.get_from_slugs(slugs)
-    session = get_object_or_404(Session, pk=session_pk)
+    session = get_object_or_404(Session.objects.with_approved_questions(), pk=session_pk)
 
     if not category:
         raise Http404
@@ -478,11 +509,11 @@ def submit_answer(request):
             'right_choice_pk': right_choice_pk,
             'explanation': explanation}
 
-def show_pevious_sessions(request):
+@login_required
+def list_previous_sessions(request):
+    sessions = Session.objects.filter(submitter= request.user)
 
-    sessions= Session.objects.filter(submitter= request.user)
-
-    return render(request, 'exams/show_previous_sessions.html',{'sesstions':sessions})
+    return render(request, 'exams/list_previous_sessions.html',{'sesstions':sessions})
 
 
 class SubjectQuestionCount(autocomplete.Select2QuerySetView):
@@ -519,10 +550,12 @@ class ExamTypeQuestionCount(autocomplete.Select2QuerySetView):
 
 
 def show_category_indicators(request, category):
-    if not request.user.is_superuser:
+    # PERMISSION CHECK
+    if not teams.utils.is_editor(request.user):
         raise PermissionDenied
 
-    context = {'category': category}
+    context = {'category': category,
+               'is_indicators_active': True}
     return render(request, 'exams/show_category_indicators.html', context)
 
 @login_required

@@ -1,9 +1,11 @@
-{% extends 'userena/base_userena.html' %}{% load i18n %}
-{% block title %}{% trans "Signed out" %}{% endblock %}
+{% extends 'userena/base_userena.html' %}
+{% block title %}Signed out{% endblock %}
+{% block subtitle %}You have been signed out{% endblock %}
+
 {% block content %}
-<div class="text-center">
-	<div class="icon-object border-success text-success"><i class="icon-reading"></i></div>
-	<h5 class="content-group">{% trans "You have been signed out" %}</h5>
-  <p>{% trans "You have been signed out. Till we meet again." %}</p>
+<div class="card-body collapse in">
+    <div class="card-block">
+			<p class="text-center">You have been signed out. Till we meet again.</p>
+    </div>
 </div>
 {% endblock %}

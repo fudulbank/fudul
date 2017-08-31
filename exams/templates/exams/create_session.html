@@ -1,14 +1,5 @@
-{% extends 'base.html' %}{% load staticfiles bootstrap3 exam_utils %}
+{% extends 'base_new.html' %}{% load staticfiles bootstrap3 exam_utils %}
 {% block head %}
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery.tooltipster/4.2.5/js/tooltipster.bundle.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/jquery.tooltipster/4.2.5/css/tooltipster.bundle.min.css" rel="stylesheet" type="text/css">
-    <script type="text/javascript">
-    $(function() {
-        $("#id_session_mode li:nth-child(1) label").tooltipster({content: "This shows the right answer with its explanation after submitting each question."})
-        $("#id_session_mode li:nth-child(2) label").tooltipster({content: "This hides the right answer and explanation, and only shows them at the end."})
-        $("#id_session_mode li:nth-child(3) label").tooltipster({content: "This turns off exam mode, and it will show questions with the explanation and right answer right away."})
-    });
-    </script>
     <style>
     .mode li
     {
@@ -17,16 +8,7 @@
         padding-right: 20px;
     }
 
-    .tooltip-content{
-      display: none;
-    }
-
-    .panel-body a {
-        color: white;
-        font-weight: bold;
-        margin-top: auto
-    }
-    .panel-body li a {
+    .card-body li a {
         font-weight: bold;
         margin-top: auto
     }
@@ -54,42 +36,50 @@
 
 {% block title %}Fudul | Start Sesstion in {{ exam.name }}{% endblock %}
 
-{% block sidepanel %}
 
+{% block header_title %}
+<h1>{{ exam.name }} Session</h1>
 {% endblock %}
 
 {% block breadcrumb %}
+      <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
+			{% for parent_category in exam.category.get_parent_categories %}
+			<li class="breadcrumb-item"><a href="{% url 'exams:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
+			{% endfor %}
+			<li class="breadcrumb-item"><a href="{% url 'exams:show_category' exam.category.get_slugs %}">{{ exam.category.name }}</a></li>
+      <li class="breadcrumb-item active">{{ exam.name }}</li>
 {% endblock %}
 
 {% block content %}
 <div class="row">
    <div class="col-md-8">
-     <div class="panel panel-flat">
-						<div class="panel-heading">
-							<h1 class="panel-title">{{ exam.name }} Session</h1>
-						</div>
-        <div id="form-panel" class="panel-body">
-            <script src="{% static 'bootstrap/bootstrap-toggle-master/js/bootstrap2-toggle.min.js'%}"></script>
-            <link rel="stylesheet" href="{% static 'bootstrap/bootstrap-toggle-master/css/bootstrap2-toggle.min.css' %}">
+     <div class="card">
+       <div class="card-header">
+         <h4 class="card-title">Start a new session</h4>
+         {% if category|is_editor:user %}
+         <div class="heading-elements">
+           {% include 'exams/partials/exam_editor_buttons.html' %}
+         </div>
+         {% endif %}
+       </div>
+       <div class="card-body">
+        <div id="form-panel" class="card-block">
+          {% bootstrap_form_errors sessionform %}
+          <form method="post" id="start-session-form">
+          {% csrf_token %}
+          <h5>Session mode:</h5>
+          <div id="session-mode" class='mode'>
+            {{ sessionform.session_mode }}
+          </div>
 
-{% bootstrap_form_errors sessionform %}
-<form method="post" id="start-session-form">
-{% csrf_token %}
-    <h5>Session mode:</h5>
-    <div id="session-mode" class='mode'>
-      {{ sessionform.session_mode }}
-    </div>
-
-    <h5> Type of Questions: </h5>
-    <div class='mode'>
-      {{ sessionform.question_filter }}
-    </div>
-
-
-    <div class="row">
-      {% if sessionform.subjects %}
+          <h5>Type of questions:</h5>
+          <div class='mode'>
+            {{ sessionform.question_filter }}
+          </div>
+          <div class="row">
+{% if sessionform.subjects %}
             <div class="col-xs-6">
-
                 <div class="form-group has-feedback has-feedback-left">
                     <label class="control-label"><h5>Subjects</h5></label>
                     <select id="subjects-select" class="alpaca-control form-control" name="">
@@ -130,98 +120,65 @@
 {% if sessionform.exam_types %}
     <div class="form-group has-feedback has-feedback-left">
         <label class="control-label"><h5>Exam type:</h5></label>
-            {% bootstrap_field sessionform.exam_types show_label=False  %}
+        {% bootstrap_field sessionform.exam_types show_label=False  %}
     </div>
 {% endif %}
-    <label class="control-label"><h5>Number of Questions</h5></label>
+    <label class="control-label"><h5>Number of questions</h5></label>
     <div class="row">
-    <div class="col-xs-8 col-sm-6">
-
-    <div class="col-xs-5 col-sm-4">
+        <div class="col-xs-8 col-sm-6">
+          <div class="col-xs-5 col-sm-4">
               <div class="form-group has-feedback has-feedback-left">
     {% bootstrap_field sessionform.number_of_questions show_label=False  %}
-                <div class="form-control-feedback">
-        <i class="icon-pencil text-muted"></i>
+              </div>
           </div>
+        <div style=" margin-top: 3%" class="col-xs-3 col-sm-2">
+        <strong>/ {{ question_count }} </strong>
+        </div>
+      </div>
     </div>
-    </div>
-
-    <div style=" margin-top: 3%" class="col-xs-3 col-sm-2">
-    <strong>/ {{ question_count }} </strong>
-    </div>
-    </div>
-    </div>
-          <button type="submit" class="btn bg-primary btn-block btn-lg">Start Session <i class="icon-circle-right2 position-right"></i></button>
-
-
+    <button type="submit" class="btn bg-primary btn-block btn-lg">Start Session <i class="icon-circle-right2 position-right"></i></button>
     <input name="exam_pk" type="hidden" value="{{ exam.pk }}">
-    {{ sessionform.media }}
-
     </form>
-     </div>
-        </div> <!--panel-->
-    </div><!--col-->
-    {% if editor %}
+  </div><!--card-block-->
+ </div><!--card-body-->
+</div> <!--card-->
+</div><!--col-->
     <div class="col-md-4">
-        <div id="exam-stats" class="panel panel-flat">
-        <div class="panel-heading">
-            <div style="margin-bottom: 20px;" class="text-right">
-                <a class="btn btn-primary" href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}">Add question <i class=" icon-file-plus position-left"></i></a>
-           </div>
-            <h5> Your latest sessions:</h5>
-        </div>
-           <div class="panel-body">
-
+        <div class="card">
+        		<div class="card-header">
+        			<h4 class="card-title">Latest sessions</h4>
+        		</div>
+        		<div class="card-body">
+              <div class="card-block">
+              {% if sessions %}
                <ul>
-                   {% if sessions %}
-                   {% for session in sessions %}
-
-
-
-                       <div class="panel panel-body">
-								<div class="media">
-									<div class="media-left">
-                                    {% if session.get_score %}
-                                    <a  {% if session.has_finished %}href=""{% else %} href="{% url 'exams:show_session' session.exam.category.get_slugs session.exam.pk session.pk %}">{% endif %}><button class="btn btn-primary btn-icon btn-rounded">{{ session.get_score }}%</button></a>
-                                    {% else %}
-                                     <button class="btn btn-primary btn-icon btn-rounded">0.0%</button>
-                                    {% endif %}
-									</div>
-
-									<div class="media-body">
-										<h6 class="media-heading">#{{ session.pk }}</h6>
-										<span class="text-muted"></span>
-									</div>
-
-									<div class="media-right media-middle">
-
-									</div>
-								</div>
-							</div>
-
-                   {% endfor %}
-                                 {% else %}
-                       <h6> You don't have any previous sessions.</h6>
-                 {% endif %}
+                 {% for session in latest_sessions %}
+                 <li>#<a href="{% url 'exams:show_session' exam.category.get_slugs exam.pk session.pk %}">{{ session.pk }}</a> ({{session.get_score}}%)</li>
+                 {% endfor %}
                </ul>
-               <br>
-
-           </div>
-        </div>
+             {% else %}
+             <div class="card-text">
+               <p> You don't have any previous sessions.</p>
+             </div>
+             {% endif %}
+           </div><!--card-block-->
+         </div><!--card-body-->
+        </div><!--card-->
     </div> <!--col-->
-    {% endif %}
 </div> <!--row-->
 
 {% endblock %}
 {% block customscript %}
 {{ sessionform.media }}
-        <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
     <script src="{% static 'js/jquery.formset.js' %}"></script>
     <script src="{% static 'js/jquery.autogrowtextarea.min.js' %}"></script>
     <script src="{% static 'js/toastr.js' %}"></script>
-    <script type="text/javascript">
+    <script>
     $(function() {
-
+        $("#id_session_mode li:nth-child(1) label").tooltip({title: "This shows the right answer with its explanation after submitting each question."})
+        $("#id_session_mode li:nth-child(2) label").tooltip({title: "This hides the right answer and explanation, and only shows them at the end."})
+        $("#id_session_mode li:nth-child(3) label").tooltip({title: "This turns off exam mode, and it will show questions with the explanation and right answer right away."})
 
         $('#subjects-select').change(function() {
             if ($('#subjects-select option[value=All]:checked').length) {
@@ -239,15 +196,8 @@
             } else {
                 $('#all-sources-options').show();
                 $('#all-sources-options select option').prop('selected', false);
-
             }
-
         });
-
-
     });
-
-
 </script>
-
 {% endblock %}
