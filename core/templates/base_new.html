@@ -241,7 +241,7 @@
           </li>
           <li class="{% if is_browse_active %}active {% endif %}nav-item"><a href="{% url 'exams:list_meta_categories' %}"><i class="ft-file-text"></i><span data-i18n="" class="menu-title">Browse exams</span></a></li>
           <li class="{% if is_previous_active %}active {% endif %}nav-item"><a href="{% url 'exams:list_previous_sessions' %}"><i class="ft-edit"></i><span data-i18n="" class="menu-title">Previous sessions</span><span class="tag tag tag-primary tag-pill float-xs-right mr-2">{{ user_session_count }}</span></a></li>
-          <li class="{% if is_performance_active %}active {% endif %}nav-item"><a href="#"><i class="ft-bar-chart-2"></i><span data-i18n="" class="menu-title">Performance</span></a></li>
+          <li class="{% if is_performance_active %}active {% endif %}nav-item"><a href="{% url 'exams:show_my_performance' %}"><i class="ft-bar-chart-2"></i><span data-i18n="" class="menu-title">Performance</span></a></li>
           <li class="{% if is_search_active %}active {% endif %}nav-item"><a href="#"><i class="ft-search"></i><span data-i18n="" class="menu-title">Search</span></a></li>
 
           {% if is_any_editor %}

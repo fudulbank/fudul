@@ -1,56 +1,59 @@
-{% extends 'base.html' %}{% load staticfiles bootstrap3 exam_utils %}
+{% extends 'base_new.html' %}{% load staticfiles exam_utils %}
 
 {% block title %}Fudul | My performance in {{ exam.name }} {% endblock %}
 
 {% block head %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chartist/0.11.0/chartist.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chartist/0.11.0/chartist.min.js"></script>
-<link rel="stylesheet" href="{% static 'css/jquery.dataTables.min.css' %}">
-<link rel="stylesheet" href="{% static 'js/datatables/responsive/css/responsive.dataTables.min.css' %}">
-<script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
-<script src="{% static 'js/datatables/responsive/js/dataTables.responsive.min.js' %}"></script>
+<link rel="stylesheet" type="text/css" href="{% static 'stack/vendors/css/tables/datatable/dataTables.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'stack/vendors/css/charts/chartist.css' %}">
+<script src="{% static 'stack/vendors/js/charts/chartist.min.js' %}"></script>
+{% endblock %}
 
+{% block header_title %}
+<h1>My performance in {{ exam.name }}</h1>
 {% endblock %}
 
 {% block breadcrumb %}
-<div class="breadcrumb-line">
-	<ul class="breadcrumb">
-		<li><a href="{% url 'index' %}"><i class="icon-home2 position-left"></i> Fudul</a></li>
-    <li><a href="{% url 'exams:show_my_performance' %}">My performance</a></li>
-    <li class="active">{{ exam.name }}</li>
-	</ul>
-</div>
+      <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:show_my_performance' %}">Performance</a></li>
+			<li class="breadcrumb-item active">{{ exam.name }}</li>
 {% endblock %}
 
 {% block content %}
-
-<h1>My performance in {{ exam.name }}</h1>
-<h2>{{ exam.name }} performance</h2>
-<div id="performance-chart"></div>
-<h2>Performance per subject</h2>
-<table class="datatable display dt-responsive">
-  <thead>
-    <tr>
-      <th>Subject</th>
-      <th>Correct answers</th>
-      <th>Incorrect answers</th>
-      <th class="not-mobile">Skipped answers</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for subject in exam.subject_set.all %}
-      <tr>
-        <td>{{ subject.name }}</td>
-        <td>{% get_user_answer_stats subject user 'correct' %} ({% get_user_answer_stats subject user 'correct' percent=True %}%)</td>
-        <td>{% get_user_answer_stats subject user 'incorrect' %} ({% get_user_answer_stats subject user 'incorrect' percent=True %}%)</td>
-        <td>{% get_user_answer_stats subject user 'skipped' %} ({% get_user_answer_stats subject user 'skipped' percent=True %}%)</td>
-      </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<div class="card">
+	<div class="card-body">
+		<div class="card-block">
+			<h2>{{ exam.name }} performance</h2>
+			<div id="performance-chart"></div>
+			<h2>Performance per subject</h2>
+			<table class="datatable table table-striped table-bordered dt-responsive">
+			  <thead>
+			    <tr>
+			      <th>Subject</th>
+			      <th>Correct answers</th>
+			      <th>Incorrect answers</th>
+			      <th class="not-mobile">Skipped answers</th>
+			    </tr>
+			  </thead>
+			  <tbody>
+			    {% for subject in exam.subject_set.all %}
+			      <tr>
+			        <td>{{ subject.name }}</td>
+			        <td>{% get_user_answer_stats subject user 'correct' %} ({% get_user_answer_stats subject user 'correct' percent=True %}%)</td>
+			        <td>{% get_user_answer_stats subject user 'incorrect' %} ({% get_user_answer_stats subject user 'incorrect' percent=True %}%)</td>
+			        <td>{% get_user_answer_stats subject user 'skipped' %} ({% get_user_answer_stats subject user 'skipped' percent=True %}%)</td>
+			      </tr>
+			    {% endfor %}
+			  </tbody>
+			</table>
+		</div><!--card-block-->
+	</div><!--card-body-->
+</div><!--card-->
+{% endblock %}
+{% block customscript %}
+<script src="{% static 'stack/vendors/js/tables/jquery.dataTables.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'stack/vendors/js/tables/datatable/dataTables.bootstrap4.min.js' %}" type="text/javascript"></script>
 
 {% include 'exams/partials/performance_chart.html' %}
-
 <script>
 $(function () {
     $("table.datatable").DataTable();
