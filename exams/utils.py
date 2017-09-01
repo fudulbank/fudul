@@ -14,6 +14,7 @@ def is_question_complete(question):
 def test_revision_approval(revision):
     return teams.utils.is_editor(revision.submitter) and \
            revision.statuses.filter(code_name='COMPLETE').exists() and \
+           revision.choice_set.filter(is_right=True).exists() and \
            revision.choice_set.count() >= 2
 
 
