@@ -255,7 +255,7 @@ def list_questions(request, slugs, pk, selector=None):
         return render(request, 'exams/list_questions_by_selector.html', context)
     else:
         context['statuses'] = Status.objects.all()
-        return render(request, 'exams/list_questions.html', context)
+        return render(request, 'exams/list_questions_index.html', context)
 
 @login_required
 @decorators.ajax_only
