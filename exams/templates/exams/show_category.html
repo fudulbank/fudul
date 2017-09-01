@@ -14,15 +14,19 @@
 
 {% block breadcrumb %}
       <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
-			{% if category and indicators %}
+			{% if indicators and category %}
       <li class="breadcrumb-item"><a href="{% url 'exams:list_category_indicators' %}">Category indicators</a></li>
-			{% elif category and not indicators %}
+			{% elif indicators and not category %}
+			<li class="breadcrumb-item active">Category indicators</li>
+			{% else %}
       <li class="breadcrumb-item"><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
 			{% endif %}
 			{% for parent_category in category.get_parent_categories %}
 			<li class="breadcrumb-item"><a href="{% url show_category_url parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
 			{% endfor %}
-			<li class="breadcrumb-item active">{% if category %}{{ category.name }}{% else %}Exams{% endif %}</li>
+			{% if category %}
+			<li class="breadcrumb-item active">{{ category.name }}</li>
+			{% endif %}
 {% endblock %}
 
 {% block content %}
