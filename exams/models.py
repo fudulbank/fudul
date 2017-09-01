@@ -150,9 +150,6 @@ class Exam(models.Model):
                                .per_exam(self)\
                                .filter(is_last=True, is_approved=False)
 
-    def get_number_of_created_sessions(self):
-        return Session.objects.filter(exam=self).count()
-
     def get_user_answered_questions(self, user):
         return Question.objects.filter(answer__session__submitter=user).distinct()
 

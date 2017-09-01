@@ -76,3 +76,10 @@ def get_user_answer_stats(target, user, result, percent=False):
 @register.filter
 def get_session_subjects(session):
     return session.subjects.distinct() | session.exam.subject_set.distinct()
+
+@register.filter
+def get_question_count_per_status(status, exam):
+    return models.Question.objects.undeleted()\
+                                  .filter(statuses=status, exam=exam)\
+                                  .distinct()\
+                                  .count()

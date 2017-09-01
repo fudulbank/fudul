@@ -26,8 +26,8 @@
 				    <thead>
 				        <tr>
 				            <th data-priority="1">Exam name</th>
-				            <th data-priority="1">Total</th>
 				            <th data-priority="5">Incomplete (%)</th>
+                    <th data-priority="1">Total questions</th>
 				            <th data-priority="4">Has no right answer (%)</th>
 				            <th data-priority="3">Has pending latest revision (%)</th>
 				            <th data-priority="2">Sessions</th>
@@ -35,14 +35,14 @@
 				    </thead>
 				    <tbody>
 				       {% for exam in category.exams.all %}
-				       {% with total_count=exam.question_set.count %}
+				       {% with total_count=exam.question_set.undeleted.count incomplete_count=exam.question_set.incomplete.count unsolved_count=exam.question_set.unsolved.count pending_count=exam.get_pending_latest_revisions.count %}
 				            <tr>
-				                <td><a href="{% url 'exams:list_questions' exam.category.get_slugs exam.pk %}">{{ exam.name }}</a></td>
-				                <td>{{ total_count }}</td>
-				                <td>{{ exam.question_set.incomplete.count }} ({% widthratio exam.get_incomplete_questions.count total_count 100 %}%)</td>
-				                <td>{{ exam.question_set.unsolved.count }} ({% widthratio exam.get_unsolved_questions.count total_count 100 %}%)</td>
-				                <td>{{ exam.get_pending_latest_revisions.count }} ({% widthratio exam.get_pending_latest_revisions.count total_count 100 %}%)</td>
-				                <td>{{ exam.get_number_of_created_sessions }}</td>
+				                <td><a href="{% url 'exams:create_session' exam.category.get_slugs exam.pk %}">{{ exam.name }}</a></td>
+				                <td><a href="{% url 'exams:list_questions' exam.category.get_slugs exam.pk %}">{{ total_count }}</a></td>
+				                <td>{{ incomplete_count }} ({% widthratio incomplete_count total_count 100 %}%)</td>
+				                <td>{{ unsolved_count }} ({% widthratio unsolved_count total_count 100 %}%)</td>
+				                <td>{{ pending_count }} ({% widthratio pending_count total_count 100 %}%)</td>
+				                <td>{{ exam.session_set.count }}</td>
 				            </tr>
 				       {% endwith %}
 				       {% endfor %}

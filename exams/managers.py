@@ -43,7 +43,9 @@ class QuestionQuerySet(models.QuerySet):
         return self.order_by('-pk')
 
     def undeleted(self):
-        return self.filter(is_deleted=False)
+        return self.annotate(revision_count=Count('revision'))\
+                   .filter(is_deleted=False)\
+                   .exclude(revision_count=0)
 
 class RevisionQuerySet(models.QuerySet):
     def order_by_submission(self):

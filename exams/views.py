@@ -10,7 +10,7 @@ from django.views.decorators import csrf
 from htmlmin.decorators import minified_response
 
 from core import decorators
-from .models import Exam, Question, Category, Revision, Session, Choice, Answer
+from .models import Exam, Question, Category, Revision, Session, Choice, Answer, Status
 from . import forms, utils
 import teams.utils
 from django.views.decorators.http import require_http_methods
@@ -214,7 +214,7 @@ def handle_question(request, exam_pk,question_pk=None):
 
 
 @login_required
-def list_questions(request, slugs, pk):
+def list_questions(request, slugs, pk, selector=None):
     category = Category.objects.get_from_slugs(slugs)
     if not category:
         raise Http404
@@ -225,9 +225,37 @@ def list_questions(request, slugs, pk):
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
 
-    context = {'exam': exam, 'is_browse_active': True}
-    return render(request, 'exams/list_questions.html', context)
+    context = {'exam': exam,
+               'is_browse_active': True}
 
+    if selector:
+        try:
+            status_pk = int(selector)
+        except ValueError:
+            if selector == 'no_answer':
+                questions = exam.question_set.unsolved()
+                context['list_name'] = "no right answers"
+            elif selector == 'approved':
+                latest_revision_pks = exam.get_approved_latest_revisions()\
+                                          .values_list('question__pk', flat=True)
+                questions = Question.objects.filter(pk__in=latest_revision_pks)
+                context['list_name'] = "approved latesting revision"                
+            elif selector == 'pending':
+                latest_revision_pks = exam.get_pending_latest_revisions()\
+                                          .values_list('question__pk', flat=True)
+                questions = Question.objects.filter(pk__in=latest_revision_pks)
+                context['list_name'] = "pending latesting revision"
+        else:
+            status = get_object_or_404(Status, pk=status_pk)
+            context['list_name'] = status.name
+            questions = exam.question_set.undeleted()\
+                                         .filter(statuses=status)
+
+        context['questions'] = questions
+        return render(request, 'exams/list_questions_by_selector.html', context)
+    else:
+        context['statuses'] = Status.objects.all()
+        return render(request, 'exams/list_questions.html', context)
 
 @login_required
 @decorators.ajax_only
@@ -246,7 +274,6 @@ def show_question(request, pk, revision_pk=None):
 
     context = {'revision': revision}
     return render(request, 'exams/partials/show_question.html', context)
-
 
 @login_required
 def list_revisions(request, slugs, exam_pk, pk):
@@ -309,24 +336,6 @@ def submit_revision(request, slugs, exam_pk, pk):
     context['revisionchoiceformset'] = revisionchoiceformset
 
     return render(request, 'exams/submit_revision.html', context)
-
-
-@login_required
-def list_question_per_status(request, slugs, exam_pk):
-    category = Category.objects.get_from_slugs(slugs)
-    if not category:
-        raise Http404
-
-    exam = get_object_or_404(Exam, pk=exam_pk)
-    question_pool = Question.objects.undeleted().filter(exam=exam).distinct()
-    writing_error = question_pool.filter(statuses__code_name='WRITING_ERROR')
-    unsloved = question_pool.filter(statuses__code_name='UNSOLVED')
-    incomplete_answer = question_pool.filter(statuses__code_name='INCOMPLETE_ANSWERS')
-    incomplete_question = question_pool.filter(statuses__code_name='INCOMPLETE_QUESTION')
-    context = {'writing_error': writing_error, 'unsloved': unsloved, 'incomplete_answer': incomplete_answer,
-               'incomplete_question': incomplete_question, 'exam': exam}
-    return render(request, 'exams/list_question_per_status.html', context)
-
 
 @login_required
 def create_session(request, slugs, exam_pk):
