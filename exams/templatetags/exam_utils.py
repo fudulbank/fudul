@@ -64,3 +64,9 @@ def order_by_exam_questions(meta_queryset, exam):
 @register.filter
 def was_ever_taken_by_user(exam, user):
     return exam.session_set.filter(submitter=user).exists()
+def get_user_answered_question_count(exam, user):
+    return exam.get_user_answered_questions(user).count()
+
+@register.simple_tag
+def get_user_answer_stats(target, user, result, percent=False):
+    return utils.get_user_answer_stats(target, user, result, percent)

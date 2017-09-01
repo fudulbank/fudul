@@ -95,7 +95,7 @@ def add_question(request, slugs, pk):
     # if not exam.can_user_edit(request.user):
     #     raise PermissionDenied
     editor = exam.can_user_edit(request.user)
-    instance = Question(exam=exam) 
+    instance = Question(exam=exam)
     context = {'exam': exam,
                'questionform': forms.QuestionForm(instance=instance),
                'revisionform': forms.RevisionForm(),
@@ -159,6 +159,8 @@ def handle_question(request, exam_pk,question_pk=None):
         revisionform = forms.RevisionForm(request.POST,
                                           request.FILES,
                                           instance=instance)
+        revisionchoiceformset = forms.RevisionChoiceFormset(request.POST,
+                                                            instance=instance,)
     else:
         question_instance = Question(exam=exam)
         questionform = forms.QuestionForm(request.POST,
@@ -168,7 +170,7 @@ def handle_question(request, exam_pk,question_pk=None):
         revisionform = forms.RevisionForm(request.POST,
                                           request.FILES,
                                           instance=revision_instance)
-    revisionchoiceformset = forms.RevisionChoiceFormset(request.POST)
+        revisionchoiceformset = forms.RevisionChoiceFormset(request.POST)
 
     if questionform.is_valid() and revisionform.is_valid() and revisionchoiceformset.is_valid():
         question = questionform.save()
@@ -179,14 +181,16 @@ def handle_question(request, exam_pk,question_pk=None):
 
         revision.is_approved = utils.test_revision_approval(revision)
 
+        revision.save()
+
         if teams.utils.is_editor(request.user):
             revision.is_contribution = False
         else:
             revision.is_contribution = True
 
         revision.save()
-
         revisionchoiceformset.instance = revision
+
         revisionchoiceformset.save()
 
         template = get_template('exams/partials/exam_stats.html')
@@ -416,7 +420,7 @@ def show_session_results(request, slugs, exam_pk, session_pk):
         raise Http404
 
     if not session.has_finished():
-        answers = [] 
+        answers = []
         for question in session.get_unused_questions():
             answer = Answer(session=session, question=question)
             answers.append(answer)
@@ -591,13 +595,13 @@ def contribute_revision(request):
 
     if request.method == 'GET':
         revisionform = forms.RevisionForm(instance=latest_revision)
-        revisionchoiceformset = forms.RevisionChoiceFormset(instance=latest_revision)
+        revisionchoiceformset = forms.ContributedRevisionChoiceFormset(instance=latest_revision)
     elif request.method == 'POST':
         revisionform = forms.RevisionForm(request.POST,
                                           request.FILES,
                                           instance=latest_revision)
 
-        revisionchoiceformset = forms.RevisionChoiceFormset(request.POST,
+        revisionchoiceformset = forms.ContributedRevisionChoiceFormset(request.POST,
                                                             instance=latest_revision)
         if revisionform.is_valid() and revisionchoiceformset.is_valid():
             new_revision = revisionform.clone(question,request.user)
@@ -623,7 +627,7 @@ def approve_user_contributions(request,slugs,exam_pk):
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
     pks = utils.get_contributed_questions(exam).values_list('pk', flat=True)
-    revisions = Revision.objects.per_exam(exam).filter(is_contribution =True,is_deleted=False,is_approved=False).exclude(question__pk__in=pks)
+    revisions = Revision.objects.per_exam(exam).filter(is_contribution=True,is_deleted=False,is_approved=False).exclude(question__pk__in=pks)
     contributed_questions = utils.get_contributed_questions(exam)
     number_of_contributions = Revision.objects.filter(submitter=request.user).count()
 
@@ -730,3 +734,45 @@ def approve_question(request, slugs, exam_pk,pk):
 
     return render(request, "exams/add_question.html", context)
 
+@login_required
+def show_my_performance(request):
+    answer_pool = Answer.objects.filter(session__submitter=request.user)
+    total_answers = answer_pool.count()
+    correct_answers = answer_pool.filter(choice__is_right=True).count()
+    incorrect_answers = answer_pool.filter(choice__is_right=False).count()
+    skipped_answers = answer_pool.filter(choice__isnull=True).count()
+
+    # Only get exams which the user has taken
+    exams = Exam.objects.filter(session__submitter=request.user).distinct()
+
+    context = {'correct_answers': correct_answers,
+               'incorrect_answers': incorrect_answers,
+               'skipped_answers': skipped_answers,
+               'exams': exams}
+
+    return render(request, "exams/show_my_performance.html", context)
+
+@login_required
+def show_my_performance_per_exam(request, exam_pk):
+    user_exams = Exam.objects.filter(session__submitter=request.user).distinct()
+    exam = get_object_or_404(user_exams, pk=exam_pk)
+    correct_answers =  utils.get_user_answer_stats(target=exam,
+                                                   user=request.user,
+                                                   result='correct')
+    incorrect_answers =  utils.get_user_answer_stats(target=exam,
+                                                     user=request.user,
+                                                     result='incorrect')
+    skipped_answers =  utils.get_user_answer_stats(target=exam,
+                                                   user=request.user,
+                                                   result='correct')
+    context = {'correct_answers': correct_answers,
+               'incorrect_answers': incorrect_answers,
+               'skipped_answers': skipped_answers,
+               'exam': exam}
+
+    return render(request, "exams/show_my_performance_per_exam.html", context)
+
+@login_required
+def show_credits(request,pk):
+    exam = get_object_or_404(Exam, pk=pk)
+    return render(request, 'exams/partials/show_credits.html',{'exam':exam})

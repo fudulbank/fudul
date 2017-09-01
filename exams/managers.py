@@ -15,19 +15,22 @@ class QuestionQuerySet(models.QuerySet):
                    .distinct()
 
     def unsolved(self):
-        return self.filter(~Q(revision__choice__is_right=True),
+        return self.undeleted()\
+                   .filter(~Q(revision__choice__is_right=True),
                            revision__is_deleted=False,
                            revision__is_last=True)\
                    .distinct()
 
     def incomplete(self):
-        return self.filter(~Q(revision__statuses__code_name='COMPLETE'),
+        return self.undeleted()\
+                   .filter(~Q(revision__statuses__code_name='COMPLETE'),
                            revision__is_deleted=False,
                            revision__is_last=True)\
                    .distinct()
 
     def complete(self):
-        return self.filter(revision__statuses__code_name='COMPLETE',
+        return self.undeleted()\
+                   .filter(revision__statuses__code_name='COMPLETE',
                            revision__is_deleted=False,
                            revision__is_last=True)\
                    .distinct()

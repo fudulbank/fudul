@@ -117,6 +117,9 @@
                                 <a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}"><i class="icon-pen-plus"></i> <span>Add Question</span></a>
                             </li>
                             <li>
+                                <a href="{% url 'exams:list_questions' exam.category.get_slugs exam.pk %}"><i class="icon-list2 position-right"></i><span>List questions</span> </a>
+                            </li>
+                            <li>
                                <a href="{% url 'exams:approve_user_contributions' exam.category.get_slugs exam.pk %}"><i class="icon-file-plus"></i> <span>User contributions</span></a>
                             </li>
                              {% else %}
@@ -132,6 +135,9 @@
                                 {% block sidepanel %}
                                 {% endblock %}
 {% if user.is_superuser %}
+								<li>
+									<a href="{% url 'exams:show_my_performance' %}"><i class="icon-chart"></i> <span>My performance</span></a>
+								</li>
 								<li>
 									<a href="{% url 'exams:list_category_indicators' %}"><i class="icon-pie-chart2"></i> <span>Category indicators</span></a>
 								</li>

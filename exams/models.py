@@ -7,7 +7,7 @@ from accounts.models import College, Batch
 from . import managers
 import accounts.utils
 import textwrap
-
+from ckeditor_uploader.fields import RichTextUploadingField
 
 class Source(models.Model):
     name = models.CharField(max_length=100)
@@ -115,6 +115,7 @@ class Exam(models.Model):
     is_deleted = models.BooleanField(default=False)
     batches_allowed_to_take = models.ForeignKey(Batch, null=True, blank=True)
     exam_types = models.ManyToManyField('ExamType', blank=True)
+    credits = RichTextUploadingField(default='')
     objects = managers.ExamQuerySet.as_manager()
 
     def get_sources(self):
@@ -149,6 +150,12 @@ class Exam(models.Model):
                                .per_exam(self)\
                                .filter(is_last=True, is_approved=False)
 
+    def get_number_of_created_sessions(self):
+        return Session.objects.filter(exam=self).count()
+
+    def get_user_answered_questions(self, user):
+        return Question.objects.filter(answer__session__submitter=user).distinct()
+
     def __str__(self):
         return self.name
 
@@ -158,6 +165,7 @@ class Subject(models.Model):
     submission_date = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
     objects = managers.MetaInformationQuerySet.as_manager()
+
     def __str__(self):
         return self.name
 
@@ -250,13 +258,6 @@ class Question(models.Model):
         return tree
 
 
-    # pks = Revision.objects.per_exam(self) \
-    #     .filter(is_first=True, is_contribution=True, is_approved=False, is_last=True) \
-    #     .distinct() \
-    #     .values_list('question__pk', flat=True)
-    # questions = Question.objects.undeleted().filter(pk__in=pks)
-    #
-    # return questions
 
 
 class Revision(models.Model):
@@ -326,6 +327,8 @@ class Session(models.Model):
     exam_types = models.ManyToManyField(ExamType, blank=True)
     submitter = models.ForeignKey(User)
     question_filter = models.CharField(max_length=20, choices=questions_choices, default=None)
+    submission_date = models.DateTimeField(auto_now_add=True)
+
     objects = managers.SessionQuerySet.as_manager()
 
     def get_score(self):

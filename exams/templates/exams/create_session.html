@@ -56,7 +56,7 @@
    <div class="col-md-8">
      <div class="card">
        <div class="card-header">
-         <h4 class="card-title">Start a new session</h4>
+         <h4 class="card-title">Start a new session (<a id ='credits' data-url='{% url 'exams:show_credits' exam.pk %}' class="btn btn-primary btn-xs"><i class="  icon-medal-star position-left"></i> Credits</a>)</h4>
          {% if category|is_editor:user %}
          <div class="heading-elements">
            {% include 'exams/partials/exam_editor_buttons.html' %}
@@ -198,6 +198,24 @@
                 $('#all-sources-options select option').prop('selected', false);
             }
         });
+
+                // initialize project edit modal
+        $('#show-credit-modal').modal({
+          keyboard: false,
+          backdrop: 'static',
+          show    : false,
+        });
+        $("#credits").click(function () {
+            var url = $(this).data('url');
+            $("#show-credit-modal").modal('show');
+            $("#show-credit-modal .modal-title").html("Some of the great contributors");
+            $("#show-credit-modal .modal-body").load(url);
+
+        });
     });
 </script>
+{% with modal_id='show-credit-modal' no_footer=True %}
+    {% include "exams/modals/common_edit_modal.html" %}
+{% endwith %}
+
 {% endblock %}

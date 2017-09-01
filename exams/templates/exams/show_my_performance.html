@@ -1,0 +1,60 @@
+{% extends 'base.html' %}{% load staticfiles bootstrap3 exam_utils %}
+
+{% block title %}Fudul | My performance {% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chartist/0.11.0/chartist.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartist/0.11.0/chartist.min.js"></script>
+<link rel="stylesheet" href="{% static 'css/jquery.dataTables.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/datatables/responsive/css/responsive.dataTables.min.css' %}">
+<script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'js/datatables/responsive/js/dataTables.responsive.min.js' %}"></script>
+
+{% endblock %}
+
+{% block breadcrumb %}
+<div class="breadcrumb-line">
+	<ul class="breadcrumb">
+		<li><a href="{% url 'index' %}"><i class="icon-home2 position-left"></i> Fudul</a></li>
+    <li class="active">My performance</li>
+	</ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<h1>My performance</h1>
+<h2>Overall performance</h2>
+<div id="performance-chart"></div>
+<h2>Performance per exam</h2>
+<table class="datatable display dt-responsive">
+  <thead>
+    <tr>
+      <th>Exam</th>
+      <th class="not-mobile"># questions answered</th>
+      <th>Correct answers</th>
+      <th>Incorrect answers</th>
+      <th class="not-mobile">Skipped answers</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for exam in exams %}
+      <tr>
+        <td><a href="{% url 'exams:show_my_performance_per_exam' exam.pk %}">{{ exam.name }}</a></td>
+        <td>{{ exam|get_user_answered_question_count:user }}</td>
+        <td>{% get_user_answer_stats exam user 'correct' %} ({% get_user_answer_stats exam user 'correct' percent=True %}%)</td>
+        <td>{% get_user_answer_stats exam user 'incorrect' %} ({% get_user_answer_stats exam user 'incorrect' percent=True %}%)</td>
+        <td>{% get_user_answer_stats exam user 'skipped' %} ({% get_user_answer_stats exam user 'skipped' percent=True %}%)</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% include 'exams/partials/performance_chart.html' %}
+
+<script>
+$(function () {
+    $("table.datatable").DataTable();
+});
+</script>
+
+{% endblock %}

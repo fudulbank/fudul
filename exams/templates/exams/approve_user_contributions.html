@@ -110,13 +110,12 @@
             url = $(this).data('url');
             title_part = $(this).children('td:nth-child(2)').html();
 
-            $("#show-revision-modal").modal('show');
+                $("#show-revision-modal").modal('show');
 
             $("#show-revision-modal .modal-title").html("Revision of" + title_part);
             $("#show-revision-modal .modal-body").load(url, initializeReview);
             $("#show-revision-modal .modal-header").addClass('bg-primary')
 
-        });
     });
 </script>
 {% with modal_id='show-revision-modal' no_footer=True %}

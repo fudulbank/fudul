@@ -19,14 +19,17 @@ urlpatterns =[
     url(r'^ajax/examiners/list$', views.list_session_questions, name='list_session_questions'),
     url(r'^ajax/examiners/explain$', views.contribute_explanation, name='contribute_explanation'),
     url(r'^ajax/examiners/edit$', views.contribute_revision, name='contribute_revision'),
+    url(r'^ajax/examiners/(?P<pk>\d+)/credits$', views.show_credits, name='show_credits'),
     url(r'^tmep/end_session/$', TemplateView.as_view(template_name='exams/session_end.html'), name="session_end"),
     url(r'^previous/$', views.list_previous_sessions, name='list_previous_sessions'),
 
+    url(r'^performance/$', views.show_my_performance, name='show_my_performance'),
+    url(r'^performance/(?P<exam_pk>\d+)/$', views.show_my_performance_per_exam, name='show_my_performance_per_exam'),
 
     url(r'^indicators/categories/$', views.list_meta_categories, {'indicators': True}, name='list_category_indicators'),
     url(r'^indicators/categories/(?P<slugs>[/\d\w\-]+)/$', views.show_category, {'indicators': True}, name='show_category_indicators'),
 
-    url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/(?P<pk>\d+)/control/approve/$', views.approve_question, name='approve_question'),
+    url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/(?P<pk>\d+)/control/approve$', views.approve_question, name='approve_question'),
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<pk>\d+)/control/add/$', views.add_question, name='add_question'),
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<pk>\d+)/control/list/$', views.list_questions, name='list_questions'),
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/questions/(?P<pk>\d+)/$', views.list_revisions, name='list_revisions'),

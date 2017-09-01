@@ -58,3 +58,24 @@ def get_user_privileged_exams(user):
         exams = models.Exam.objects.none()
 
     return exams
+
+def get_user_answer_stats(target, user, result, percent=False):
+    answer_pool = models.Answer.objects.filter(session__submitter=user)\
+                                       .distinct()
+    if type(target) is models.Exam:
+        answer_pool = answer_pool.filter(session__exam=target)
+    elif type(target) is models.Subject:
+        answer_pool = answer_pool.filter(question__subjects=target)
+
+    if result == 'correct':
+        count = answer_pool.filter(choice__is_right=True).count()
+    elif result == 'incorrect':
+        count = answer_pool.filter(choice__is_right=False).count()
+    elif result == 'skipped':
+        count = answer_pool.filter(choice__isnull=True).count()
+
+    if percent:
+        total = answer_pool.count()
+        return "%.0f" % (count / total * 100)
+    else:
+        return count
