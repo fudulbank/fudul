@@ -5,6 +5,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
 from . import utils
+from .models import CoreMember
 from exams.models import Answer, Question 
 import accounts.utils
 
@@ -34,3 +35,7 @@ class UserAutocomplete(autocomplete.Select2QuerySetView):
 
     def get_result_label(self, item):
         return accounts.utils.get_user_representation(item)
+
+def show_about(request):
+    team = CoreMember.objects.order_by('?')
+    return render(request, 'about.html', {'team': team})
