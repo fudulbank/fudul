@@ -333,13 +333,17 @@ class Session(models.Model):
 
     def get_score(self):
         if not self.number_of_questions ==0 :
-            total = self.questions.approved().count()
+            total = self.get_total_question_count()
             correct = self.get_correct_answer_count()
             return round(correct / total * 100, 2)
 
+    def get_total_question_count(self):
+        return self.questions.approved().count()
+        
     def get_correct_answer_count(self):
         return self.answer_set.of_undeleted_questions()\
                               .filter(choice__is_right=True)\
+                              .distinct()\
                               .count()
 
     def has_finished(self):

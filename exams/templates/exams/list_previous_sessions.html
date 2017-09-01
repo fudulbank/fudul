@@ -43,7 +43,7 @@ tr td:last-child{
           <tr>
               <td>{{ session.pk }}</td>
               <td><a href="{% url 'exams:create_session' session.exam.category.get_slugs session.exam.pk %}">{{ session.exam.name }}</a></td>
-              <td>{{ session.questions.approved.count }}</td>
+              <td>{{ session.get_total_question_count }}</td>
               <td>
           {% if session.subjects.count == 1 %}
               {{ session.subjects.first.name }}
@@ -54,13 +54,15 @@ tr td:last-child{
           {% endif %}
               </td>
               <td>{{ session.get_session_mode_display }}</td>
+              <td>
           {% if session.session_mode == 'SOLVED' %}
-              <td>N/A</td>
+              <span data-toggle="tooltip" title="Solved questions have no scores.">N/A<span>
           {% elif session.has_finished %}
-              <td>{{ session.get_score }}%</td>
+              <span data-toggle="tooltip" title="{{ session.get_correct_answer_count }} out of {{ session.get_total_question_count }} questions were answered correctly.">{{ session.get_score }}%</span>
           {% else %}
-              <td><span data-toggle="tooltip" title="{{ session.get_unused_questions.count }} out of {{ session.questions.approved.count}} remaining">Ongoing</span></td>
+              <span data-toggle="tooltip" title="{{ session.get_unused_questions.count }} out of {{ session.get_total_question_count }} questions remaining.">Ongoing</span>
           {% endif %}
+              </td>
               <td>
           {% if session.session_mode != 'SOLVED' and not session.has_finished %}
                   <a class="btn btn-sm btn-primary" href="{% url 'exams:show_session' session.exam.category.get_slugs session.exam.pk session.pk %}"><i class="ft-play"></i> Resume</a>
