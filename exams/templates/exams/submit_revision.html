@@ -61,5 +61,7 @@
         });
         });
     </script>
-
+{% with category_pk=revision.question.exam.category.pk  parent_category_pk=revision.question.exam.category.parent_category.pk %}
+  {% include 'exams/partials/dynamic_sidebar.html' %}
+{% endwith %}
 {% endblock %}

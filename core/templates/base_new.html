@@ -244,10 +244,19 @@
             <ul class="menu-content">
               {% for meta_category in meta_categories %}
                   {% if meta_category.children.exists %}
-                      <li class="has-sub" data-category-pk="{{ meta_category.pk }}"><a href="#" class="menu-item">{{ meta_category.name }}</a>
+                      <li class="has-sub" data-category-pk="{{ meta_category.pk }}"><a href="{% url 'exams:show_category' meta_category.get_slugs %}" class="menu-item">{{ meta_category.name }}</a>
                         <ul class="menu-content">
                           {% for child_category in meta_category.children.all %}
+                          {% if child_category.children.exists %}
+                          <li class="has-sub" data-category-pk="{{ child_category.pk }}"><a href="{% url 'exams:show_category' child_category.get_slugs %}" class="menu-item">{{ child_category.name }}</a>
+                            <ul class="menu-content">
+                              {% for grandchild_category in child_category.children.all %}
+                              <li data-category-pk="{{ grandchild_category.pk }}"><a href="{% url 'exams:show_category' grandchild_category.get_slugs %}" class="menu-item">{{ grandchild_category.name }}</a></li>
+                              {% endfor %}
+                            </ul>
+                          {% else %}
                           <li data-category-pk="{{ child_category.pk }}"><a href="{% url 'exams:show_category' child_category.get_slugs %}" class="menu-item">{{ child_category.name }}</a></li>
+                          {% endif %}
                           {% endfor %}
                         </ul>
                       </li>

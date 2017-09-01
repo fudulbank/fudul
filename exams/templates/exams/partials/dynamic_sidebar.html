@@ -1,0 +1,15 @@
+<script>
+$(function(){
+	// If the element happens to be in the sidebar, mark it as open and
+	// active.  Otherwise, look for its parent.  Also, make sure that
+	// all of its parents are marked as such.
+	category_pk = {{ category_pk }};
+	parent_category_pk = {{ parent_category_pk }};
+	list_item = $('#main-menu-navigation li[data-category-pk=' + category_pk + ']')
+	if (!list_item.length){
+		list_item = $('#main-menu-navigation li[data-category-pk=' + parent_category_pk + ']')
+	}
+	list_item.addClass('open active');
+	list_item.parents('#main-menu-navigation li.has-sub').addClass('open');
+});
+</script>

@@ -127,5 +127,7 @@
     {% include "exams/modals/common_edit_modal.html" %}
 {% endwith %}
 {% include 'exams/partials/initialize_revision_review.html' %}
-
+{% with category_pk=exam.category.pk  parent_category_pk=exam.category.parent_category.pk %}
+  {% include 'exams/partials/dynamic_sidebar.html' %}
+{% endwith %}
 {% endblock %}

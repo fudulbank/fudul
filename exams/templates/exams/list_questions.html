@@ -132,4 +132,7 @@ tbody tr td:last-child{
 {% with modal_id='confirm-delete-question-modal' is_small=True modal_content="Are you sure you want to delete this question?" %}
     {% include "exams/modals/common_edit_modal.html" %}
 {% endwith %}
+{% with category_pk=exam.category.pk  parent_category_pk=exam.category.parent_category.pk %}
+  {% include 'exams/partials/dynamic_sidebar.html' %}
+{% endwith %}
 {% endblock %}
