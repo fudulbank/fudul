@@ -1,8 +1,14 @@
-{% extends 'base_new.html' %}{% load staticfiles bootstrap3 %}
+{% extends 'base_new.html' %}{% load exam_utils staticfiles bootstrap3 %}
 
 {% block title %}Fudul | Previous sessions {% endblock %}
 
 {% block head %}
+<style>
+tr td:last-child{
+  text-align: center;
+}
+</style>
+
 <link rel="stylesheet" type="text/css" href="{% static 'stack/vendors/css/tables/datatable/dataTables.bootstrap4.min.css' %}">
 {% endblock %}
 
@@ -20,7 +26,6 @@
 <div class="card">
   <div class="card-body">
     <div class="card-block">
-      <p class="alert alert-success"><i class="ft-info"></i> Note that solved sesssions are <strong>not</strong> shown here.</p>
        <table class="table table-striped table-bordered datatable dt-responsive">
           <thead>
             <tr>
@@ -39,22 +44,30 @@
               <td>{{ session.pk }}</td>
               <td><a href="{% url 'exams:create_session' session.exam.category.get_slugs session.exam.pk %}">{{ session.exam.name }}</a></td>
               <td>{{ session.questions.approved.count }}</td>
+              <td>
           {% if session.subjects.count == 1 %}
-              <td>{{ session.subjects.first.name }}</td>
+              {{ session.subjects.first.name }}
+          {% elif not session.exam.subject_set.exists %}
+              <span data-toggle="tooltip" title="{{ session.exam.name }} has no sub-subjects">N/A</span>
           {% else %}
-              <td>Multiple</td>
+              <span data-toggle="tooltip" data-html="true" title="<ul>{% for subject in session|get_session_subjects %}<li>{{ subject.name }}</li>{% endfor %}</ul>">Multiple</span>
           {% endif %}
+              </td>
               <td>{{ session.get_session_mode_display }}</td>
-          {% if session.has_finished %}
+          {% if session.session_mode == 'SOLVED' %}
+              <td>N/A</td>
+          {% elif session.has_finished %}
               <td>{{ session.get_score }}%</td>
           {% else %}
-              <td>Ongoing</td>
+              <td><span data-toggle="tooltip" title="{{ session.get_unused_questions.count }} out of {{ session.questions.approved.count}} remaining">Ongoing</span></td>
           {% endif %}
-          {% if not session.has_finished %}
-                  <td> <a href="{% url 'exams:show_session' session.exam.category.get_slugs session.exam.pk session.pk %}">Resume</a></td>
+              <td>
+          {% if session.session_mode != 'SOLVED' and not session.has_finished %}
+                  <a class="btn btn-sm btn-primary" href="{% url 'exams:show_session' session.exam.category.get_slugs session.exam.pk session.pk %}"><i class="ft-play"></i> Resume</a>
           {% else %}
-                  <td><a href="{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}">View results</a></td>
+                  <a class="btn btn-sm btn-primary" href="{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}"><i class="ft-list"></i> View results</a>
           {% endif %}
+              </td>
             </tr>
 
           {% endfor %}
@@ -72,6 +85,7 @@
 
     <script>
     $(function () {
+        $('[data-toggle="tooltip"]').tooltip()
         $(".datatable").DataTable({
             "order": [[ 2, "desc" ]]
         });

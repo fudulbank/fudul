@@ -517,8 +517,7 @@ def submit_answer(request):
 @login_required
 def list_previous_sessions(request):
     sessions = Session.objects.filter(submitter=request.user)\
-                              .with_approved_questions()\
-                              .nonsolved()
+                              .with_approved_questions()
 
     context = {'sesstions':sessions,
                'is_previous_active': True}

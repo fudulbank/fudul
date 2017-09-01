@@ -72,3 +72,7 @@ def get_user_answered_question_count(exam, user):
 @register.simple_tag
 def get_user_answer_stats(target, user, result, percent=False):
     return utils.get_user_answer_stats(target, user, result, percent)
+
+@register.filter
+def get_session_subjects(session):
+    return session.subjects.distinct() | session.exam.subject_set.distinct()
