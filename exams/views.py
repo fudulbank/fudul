@@ -13,7 +13,8 @@ from core import decorators
 from .models import Exam, Question, Category, Revision, Session, Choice, Answer
 from . import forms, utils
 import teams.utils
-
+from django.views.decorators.http import require_http_methods
+from django.db.models import Q
 
 @login_required
 def list_meta_categories(request, indicators=False):
@@ -777,3 +778,27 @@ def show_my_performance_per_exam(request, exam_pk):
 def show_credits(request,pk):
     exam = get_object_or_404(Exam, pk=pk)
     return render(request, 'exams/partials/show_credits.html',{'exam':exam})
+
+
+@login_required
+def list_contributions(request,user_pk=None):
+    if user_pk:
+        user = get_object_or_404(User,pk=user_pk)
+    else:
+        user = request.user
+
+    revisions = Revision.objects.filter(submitter=user)
+    exams = Exam.objects.all()
+
+    return render(request, 'exams/list_contributions.html',{'revisions':revisions,'exams':exams})
+
+
+@require_http_methods(['GET'])
+def search(request):
+    q = request.GET.get('q')
+    #TODO:try to add choices to search
+    #what about questions that the user isnt allowed to see
+    if q:
+        revisions = Revision.objects.filter(is_last=True, is_approved=True).filter(Q(question__pk=q)| Q(text__icontains=q))
+        return render(request, 'exams/search_results.html', {'revisions': revisions, 'query': q})
+    return HttpResponse('Please submit a search term.')

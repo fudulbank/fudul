@@ -143,7 +143,6 @@ class SessionForm(forms.ModelForm):
     def save(self, *args, **kwargs):
         session = super(SessionForm, self).save(*args, **kwargs)
         question_pool = session.exam.question_set.approved()\
-                                    .filter(exam_types__in=session.exam_types.all())\
                                     .order_by('?')\
                                     .select_related('parent_question',
                                                     'child_question')
@@ -153,6 +152,9 @@ class SessionForm(forms.ModelForm):
 
         if session.sources.exists():
             question_pool = question_pool.filter(sources__in=session.sources.all())
+
+        if session.exam_types.exists():
+            question_pool = question_pool.filter(exam_types__in=session.exam_types.all())
 
         if session.question_filter == 'UNUSED':
             question_pool = question_pool.exclude(answer__session__submitter=session.submitter)

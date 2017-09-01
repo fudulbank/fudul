@@ -208,7 +208,7 @@
         $("#credits").click(function () {
             var url = $(this).data('url');
             $("#show-credit-modal").modal('show');
-            $("#show-credit-modal .modal-title").html("Some of the great contributors");
+            $("#show-credit-modal .modal-title").attr("display",'none');
             $("#show-credit-modal .modal-body").load(url);
 
         });
