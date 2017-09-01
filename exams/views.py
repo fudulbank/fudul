@@ -520,9 +520,11 @@ def list_previous_sessions(request):
                               .with_approved_questions()\
                               .nonsolved()
 
-    return render(request, 'exams/list_previous_sessions.html',
-                  {'sesstions':sessions})
+    context = {'sesstions':sessions,
+               'is_previous_active': True}
 
+    return render(request, 'exams/list_previous_sessions.html',
+                  context)
 
 class SubjectQuestionCount(autocomplete.Select2QuerySetView):
     def get_queryset(self):
