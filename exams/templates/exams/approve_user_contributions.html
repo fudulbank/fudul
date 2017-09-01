@@ -1,6 +1,10 @@
 {% extends 'base_new.html' %}{% load staticfiles account_utils %}
 {% block title %}Fudul | {{ exam.name }}: Pending contributions{% endblock %}
 
+{% block head %}
+<link rel="stylesheet" type="text/css" href="{% static 'stack/vendors/css/tables/datatable/dataTables.bootstrap4.min.css' %}">
+{% endblock %}
+
 {% block header_title %}
 <h1>{{ exam.name }}: Pending contributions</h1>
 {% with is_review_active=True %}
@@ -31,10 +35,10 @@
              <table id="revisions" class="table table-striped table-bordered datatable dt-responsive">
               <thead>
                   <tr>
-                      <th>Question #</th>
-                      <th>Submitter</th>
-                      <th>Date of Submission</th>
-                      <th>Change Summary</th>
+                      <th data-priority="1">Question #</th>
+                      <th data-priority="2">Submitter</th>
+                      <th data-priority="4">Date of Submission</th>
+                      <th data-priority="3">Change Summary</th>
                   </tr>
               </thead>
               <tbody>
@@ -60,12 +64,12 @@
             <table id="questions" class="table table-striped table-bordered datatable dt-responsive">
               <thead>
                   <tr>
-                      <th>ID</th>
-                      <th>Submitter</th>
-                      <th>Date of Submission</th>
-                      <th>Right Answer?</th>
-                      <th>Explaination?</th>
-                      <th>Edit</th>
+                      <th data-priority="1">Question #</th>
+                      <th data-priority="2">Submitter</th>
+                      <th data-priority="4">Date of Submission</th>
+                      <th data-priority="5">Right Answer?</th>
+                      <th data-priority="5">Explaination?</th>
+                      <th data-priority="3">Edit</th>
                   </tr>
               </thead>
               <tbody>
@@ -116,7 +120,7 @@
             $("#show-revision-modal .modal-title").html("Revision of" + title_part);
             $("#show-revision-modal .modal-body").load(url, initializeReview);
             $("#show-revision-modal .modal-header").addClass('bg-primary')
-
+          });
     });
 </script>
 {% with modal_id='show-revision-modal' no_footer=True %}
