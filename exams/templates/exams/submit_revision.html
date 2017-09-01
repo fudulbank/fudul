@@ -39,6 +39,7 @@
     <script src="{% static 'js/jquery.autogrowtextarea.min.js' %}"></script>
     <script type="text/javascript">
     $(function(){
+        $('[data-toggle="tooltip"]').tooltip();
         $('#exam-type select').change(function() {
         if ($('#exam-type select option[value=OSPE]:checked').length) {
             $('#figure').show();
