@@ -56,10 +56,13 @@
    <div class="col-md-8">
      <div class="card">
        <div class="card-header">
-         <h4 class="card-title">Start a new session (<a id ='credits' data-url='{% url 'exams:show_credits' exam.pk %}' class="btn btn-primary btn-xs"><i class="  icon-medal-star position-left"></i> Credits</a>)</h4>
+         <h4 class="card-title">Start a new session</h4>
          {% if category|is_editor:user %}
          <div class="heading-elements">
            {% include 'exams/partials/exam_editor_buttons.html' %}
+           {% if exam.credits %}
+           <a id ='credits' data-url='{% url 'exams:show_credits' exam.pk %}' class="btn btn-primary btn-sm"><i class="icon-medal-star position-left"></i> Credits</a>
+           {% endif %}
          </div>
          {% endif %}
        </div>
@@ -136,7 +139,7 @@
         </div>
       </div>
     </div>
-    <button type="submit" class="btn bg-primary btn-block btn-lg">Start Session <i class="icon-circle-right2 position-right"></i></button>
+    <button type="submit" class="btn btn-primary btn-block btn-lg">Start Session <i class="icon-circle-right2 position-right"></i></button>
     <input name="exam_pk" type="hidden" value="{{ exam.pk }}">
     </form>
   </div><!--card-block-->
