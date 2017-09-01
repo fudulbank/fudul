@@ -23,7 +23,7 @@
 {% endblock %}
 
 {% block content %}
-{% with category_slug=exam.category.get_slugs %}
+{% with category_slug=exam.category.get_slugs total_count=exam.question_set.undeleted.count %}
     <div class="card">
         <div class="card-header">
 					<h4 class="card-title">Questions per editor-specificied status</h4>
@@ -39,10 +39,12 @@
               </thead>
               <tbody>
                 {% for status in statuses %}
+                {% with status_count=status|get_question_count_per_status:exam %}
                 <tr>
-                  <td>{{ status.name }}</td>
-                  <td><a href="{% url 'exams:list_questions_by_selector' category_slug exam.pk status.pk %}">{{ status|get_question_count_per_status:exam }}</a></td>
+                  <td><a href="{% url 'exams:list_questions_by_selector' category_slug exam.pk status.pk %}">{{ status.name }}</a></td>
+                  <td>{{ status_count }} ({% widthratio status_count total_count 100 %}%)</td>
                 </tr>
+                {% endwith %}
                 {% endfor %}
               </tbody>
             </table>
@@ -56,6 +58,7 @@
       <div class="card-body">
         <div class="card-block">
           <table class="table table-striped table-bordered datatable dt-responsive">
+            {% with approved_count=exam.get_approved_latest_revisions.count pending_count=exam.get_pending_latest_revisions.count unsolved_count=exam.question_set.unsolved.count %}
             <thead>
               <tr>
                 <th>Characteristics</th>
@@ -64,18 +67,19 @@
             </thead>
             <tbody>
               <tr>
-                <td>With approved latest revisions</td>
-                <td><a href="{% url 'exams:list_questions_by_selector' category_slug exam.pk 'approved' %}">{{ exam.get_approved_latest_revisions.count }}</a></td>
+                <td><a href="{% url 'exams:list_questions_by_selector' category_slug exam.pk 'approved' %}">With approved latest revisions</a></td>
+                <td>{{ exam.get_approved_latest_revisions.count }} ({% widthratio approved_count total_count 100 %}%)</td>
               </tr>
               <tr>
-                <td>With pending latest revisions</td>
-                <td><a href="{% url 'exams:list_questions_by_selector' category_slug exam.pk 'pending' %}">{{ exam.get_pending_latest_revisions.count }}</a></td>
+                <td><a href="{% url 'exams:list_questions_by_selector' category_slug exam.pk 'pending' %}">With pending latest revisions</a></td>
+                <td>{{ exam.get_pending_latest_revisions.count }} ({% widthratio pending_count total_count 100 %}%)</td>
               </tr>
               <tr>
-                <td>With no right answers</td>
-                <td><a href="{% url 'exams:list_questions_by_selector' category_slug exam.pk 'no_answer' %}">{{ exam.question_set.unsolved.count }}</a></td>
+                <td><a href="{% url 'exams:list_questions_by_selector' category_slug exam.pk 'no_answer' %}">With no right answers</a></td>
+                <td>{{ unsolved_count }} ({% widthratio unsolved_count total_count 100 %}%)</td>
               </tr>
             </tbody>
+            {% endwith %}
           </table>
         </div>
       </div>
