@@ -2,6 +2,7 @@ from django.db import models
 from django.db.models import Q, Count
 import accounts.utils
 
+
 class QuestionQuerySet(models.QuerySet):
     def unapproved(self):
         return self.undeleted()\
@@ -68,6 +69,9 @@ class SessionQuerySet(models.QuerySet):
                            questions__revision__is_approved=True)\
                    .distinct()
 
+    def nonsolved(self):
+        return self.exclude(session_mode='SOLVED')
+
 class ChoiceQuerySet(models.QuerySet):
     def order_by_alphabet(self):
         return self.order_by('text')
@@ -131,3 +135,6 @@ class CategoryQuerySet(models.QuerySet):
 
         return universally_accessible_categories | self.filter(pk__in=pks)
 
+class AnswerQuerySet(models.QuerySet):
+    def of_undeleted_questions(self):
+        return self.filter(question__is_deleted=False)

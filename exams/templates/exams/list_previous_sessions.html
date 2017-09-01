@@ -20,14 +20,16 @@
 <div class="card">
   <div class="card-body">
     <div class="card-block">
+      <p class="alert alert-success"><i class="ft-info"></i> Note that solved sesssions are <strong>not</strong> shown here.</p>
        <table class="table table-striped table-bordered datatable dt-responsive">
           <thead>
             <tr>
-              <th data-priority="5">ID</th>
+              <th data-priority="6">ID</th>
               <th data-priority="1">Exam</th>
               <th data-priority="4"># questions</th>
-              <th data-priority="2">Score</th>
               <th data-priority="4">Subjects</th>
+              <th data-priority="5">Mode</th>
+              <th data-priority="2">Score</th>
               <th data-priority="3">Action</th>
             </tr>
           </thead>
@@ -37,15 +39,16 @@
               <td>{{ session.pk }}</td>
               <td><a href="{% url 'exams:create_session' session.exam.category.get_slugs session.exam.pk %}">{{ session.exam.name }}</a></td>
               <td>{{ session.questions.approved.count }}</td>
-          {% if session.has_finished %}
-              <td>{{ session.get_score }}%</td>
-          {% else %}
-              <td>Ongoing</td>
-          {% endif %}
           {% if session.subjects.count == 1 %}
               <td>{{ session.subjects.first.name }}</td>
           {% else %}
               <td>Multiple</td>
+          {% endif %}
+              <td>{{ session.get_session_mode_display }}</td>
+          {% if session.has_finished %}
+              <td>{{ session.get_score }}%</td>
+          {% else %}
+              <td>Ongoing</td>
           {% endif %}
           {% if not session.has_finished %}
                   <td> <a href="{% url 'exams:show_session' session.exam.category.get_slugs session.exam.pk session.pk %}">Resume</a></td>
