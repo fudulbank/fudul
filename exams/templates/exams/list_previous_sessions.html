@@ -36,7 +36,7 @@
           <tr>
               <td>{{ session.pk }}</td>
               <td><a href="{% url 'exams:create_session' session.exam.category.get_slugs session.exam.pk %}">{{ session.exam.name }}</a></td>
-              <td>{{ session.questions.count }}</td>
+              <td>{{ session.questions.approved.count }}</td>
           {% if session.has_finished %}
               <td>{{ session.get_score }}%</td>
           {% else %}
