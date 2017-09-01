@@ -773,7 +773,8 @@ def show_my_performance_per_exam(request, exam_pk):
     context = {'correct_answers': correct_answers,
                'incorrect_answers': incorrect_answers,
                'skipped_answers': skipped_answers,
-               'exam': exam}
+               'exam': exam,
+               'is_performance_active': True}
 
     return render(request, "exams/show_my_performance_per_exam.html", context)
 
