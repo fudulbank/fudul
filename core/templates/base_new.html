@@ -237,12 +237,33 @@
     <div data-scroll-to-active="true" class="main-menu menu-fixed menu-light menu-accordion">
       <div class="main-menu-content">
         <ul id="main-menu-navigation" data-menu="menu-navigation" class="navigation navigation-main">
+
           <li class=" navigation-header"><span>Exams</span><i data-toggle="tooltip" data-placement="right" data-original-title="General" class=" ft-minus"></i>
           </li>
-          <li class="{% if is_browse_active %}active {% endif %}nav-item"><a href="{% url 'exams:list_meta_categories' %}"><i class="ft-file-text"></i><span data-i18n="" class="menu-title">Browse exams</span></a></li>
+          <li class="nav-item has-sub{% if is_browse_active %} open{% endif %}"><a href="#"><i class="ft-align-left"></i><span data-i18n="" class="menu-title">Browse exams</span></a>
+            <ul class="menu-content">
+              {% for meta_category in meta_categories %}
+                  {% if meta_category.children.exists %}
+                      <li class="has-sub"><a href="#" class="menu-item">{{ meta_category.name }}</a>
+                        <ul class="menu-content">
+                          {% for child_category in meta_category.children.all %}
+                          <li><a href="{% url 'exams:show_category' child_category.get_slugs %}" class="menu-item">{{ child_category.name }}</a></li>
+                          {% endfor %}
+                        </ul>
+                      </li>
+                  {% else %}
+                      <li><a href="{% url 'exams:show_category' meta_category.get_slugs %}" class="menu-item">{{ meta_category.name }}</a>
+                  {% endif %}
+              {% endfor %}
+            </ul>
+          </li>
+
           <li class="{% if is_previous_active %}active {% endif %}nav-item"><a href="{% url 'exams:list_previous_sessions' %}"><i class="ft-edit"></i><span data-i18n="" class="menu-title">Previous sessions</span><span class="tag tag tag-primary tag-pill float-xs-right mr-2">{{ user_session_count }}</span></a></li>
           <li class="{% if is_performance_active %}active {% endif %}nav-item"><a href="{% url 'exams:show_my_performance' %}"><i class="ft-bar-chart-2"></i><span data-i18n="" class="menu-title">Performance</span></a></li>
           <li class="{% if is_search_active %}active {% endif %}nav-item"><a href="{% url 'exams:search' %}"><i class="ft-search"></i><span data-i18n="" class="menu-title">Search</span></a></li>
+
+
+
 
           {% if is_any_editor %}
           <li class=" navigation-header"><span>Editors</span><i data-toggle="tooltip" data-placement="right" data-original-title="Editors" class=" ft-minus"></i>

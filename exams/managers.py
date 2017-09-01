@@ -93,6 +93,10 @@ class SourceQuerySet(MetaInformationQuerySet):
         return qs.order_by('-total_questions', 'name')
 
 class CategoryQuerySet(models.QuerySet):
+    def meta(self):
+        return self.filter(Q(exams__isnull=False) | Q(children__isnull=False),
+                           parent_category__isnull=True)
+
     def get_from_slugs(self, slugs):
         slug_list = [slug for slug in slugs.split('/') if slug]
         last_slug = slug_list.pop(-1)

@@ -26,7 +26,7 @@ def list_meta_categories(request, indicators=False):
     else:
         show_category_url = 'exams:show_category'
 
-    subcategories = Category.objects.filter(parent_category__isnull=True).user_accessible(request.user)
+    subcategories = Category.objects.meta().user_accessible(request.user)
     context = {'subcategories': subcategories,
                'show_category_url': show_category_url,
                'indicators': indicators,
