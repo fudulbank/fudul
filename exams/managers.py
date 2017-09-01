@@ -80,16 +80,19 @@ class ChoiceQuerySet(models.QuerySet):
 
 class MetaInformationQuerySet(models.QuerySet):
     def order_by_exam_questions(self, exam):
-        return self.filter(question__exam=exam)\
+        return self.filter(question__exam=exam,
+                           question__is_deleted=False)\
                    .annotate(total_questions=Count('question'))\
                    .order_by('-total_questions')
+
+    def with_undeleted_questions(self):
+        return self.filter(question__is_deleted=False,
+                           question__revision__is_deleted=False)
 
     def with_approved_questions(self):
         return self.filter(question__is_deleted=False,
                            question__revision__is_approved=True,
-                           question__revision__is_deleted=False)\
-                   .annotate(Count('question'))\
-                   .filter(question__count__gte=1)
+                           question__revision__is_deleted=False)
 
 class SourceQuerySet(MetaInformationQuerySet):
     def order_by_exam_questions(self, exam):

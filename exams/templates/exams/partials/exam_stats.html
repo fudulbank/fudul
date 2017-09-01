@@ -9,27 +9,31 @@
      </ul>
   </li>
     <li>
-      {% if exam.subject_set.exists %}
-       <strong>Submitted subjects:</strong>
+      {% with subject_qs=exam.subject_set.with_undeleted_questions|order_by_exam_questions:exam %}
+      {% if subject_qs.exists %}
+       <strong>Specified subjects:</strong>
        <ul>
-       {% for subject in exam.subject_set|order_by_exam_questions:exam %}
+       {% for subject in subject_qs %}
           <li>{{ subject.name }} ({{ subject.question_set.distinct.count }} questions)</li>
        {% endfor %%}
        </ul>
       {% else %}
-       No subjects available.
+       No subjects were specified.
       {% endif %}
+      {% endwith %}
     </li>
     <li>
-      {% if exam.get_sources.exists %}
-       <strong>Submitted sources:</strong>
+      {% with source_qs=exam.get_sources.with_undeleted_questions|order_by_exam_questions:exam %}
+      {% if source_qs %}
+       <strong>Specified sources:</strong>
        <ul>
-       {% for source in exam.get_sources|order_by_exam_questions:exam %}
+       {% for source in source_qs %}
           <li>{{ source.name }} ({{ exam|get_meta_exam_question_count:source }} questions)</li>
        {% endfor %%}
        </ul>
       {% else %}
-       No sources available.
+       No sources were specified.
       {% endif %}
+      {% endwith %}
     </li>
 </ul>
