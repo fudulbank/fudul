@@ -516,9 +516,11 @@ def submit_answer(request):
 
 @login_required
 def list_previous_sessions(request):
-    sessions = Session.objects.filter(submitter= request.user)
+    sessions = Session.objects.filter(submitter=request.user)\
+                              .with_approved_questions()
 
-    return render(request, 'exams/list_previous_sessions.html',{'sesstions':sessions})
+    return render(request, 'exams/list_previous_sessions.html',
+                  {'sesstions':sessions})
 
 
 class SubjectQuestionCount(autocomplete.Select2QuerySetView):
