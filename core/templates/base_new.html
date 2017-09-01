@@ -59,6 +59,7 @@
           <div id="navbar-mobile" class="collapse navbar-toggleable-sm">
             <ul class="nav navbar-nav">
               <li class="nav-item hidden-sm-down"><a href="#" class="nav-link nav-menu-main menu-toggle hidden-xs"><i class="ft-menu"></i></a></li>
+              <!--
               <li class="dropdown nav-item mega-dropdown"><a href="#" data-toggle="dropdown" class="dropdown-toggle nav-link">Mega</a>
                 <ul class="mega-dropdown-menu dropdown-menu row">
                   <li class="col-md-2">
@@ -160,6 +161,7 @@
                   </li>
                 </ul>
               </li>
+              -->
               <li class="nav-item hidden-sm-down"><a href="#" class="nav-link nav-link-expand"><i class="ficon ft-maximize"></i></a></li>
               <li class="nav-item nav-search"><a href="#" class="nav-link nav-link-search"><i class="ficon ft-search"></i></a>
                 <div class="search-input">
@@ -168,6 +170,7 @@
               </li>
             </ul>
             <ul class="nav navbar-nav float-xs-right">
+              <!--
               <li class="dropdown dropdown-notification nav-item"><a href="#" data-toggle="dropdown" class="nav-link nav-link-label"><i class="ficon ft-bell"></i><span class="tag tag-pill tag-default tag-danger tag-default tag-up">5</span></a>
                 <ul class="dropdown-menu dropdown-menu-media dropdown-menu-right">
                   <li class="dropdown-menu-header">
@@ -215,6 +218,7 @@
                   <li class="dropdown-menu-footer"><a href="javascript:void(0)" class="dropdown-item text-muted text-xs-center">Read all notifications</a></li>
                 </ul>
               </li>
+            -->
               <li class="dropdown dropdown-user nav-item"><a href="#" data-toggle="dropdown" class="dropdown-toggle nav-link dropdown-user-link"><span class="avatar avatar-online"><img src="{% static 'img/logo-monkey.png' %}" alt="avatar"><i></i></span><span class="user-name">{{ user.profile.first_name|default:user.username }}</span></a>
                 <div class="dropdown-menu dropdown-menu-right">
                    <a href="{% url 'userena_profile_edit' user.username %}" class="dropdown-item"><i class="ft-user"></i> Edit Profile</a>
