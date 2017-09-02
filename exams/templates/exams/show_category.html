@@ -5,7 +5,7 @@
 {% block header_title %}
 	{% if category %}
 	<h1>{{ category.name }}</h1>
-	{% elif indicators %}
+	{% elif is_indicators_active %}
 	<h1>Category indicators</h1>
 	{% else %}
 	<h1>Explore exams</h1>
@@ -14,9 +14,9 @@
 
 {% block breadcrumb %}
       <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
-			{% if indicators and category %}
+			{% if is_indicators_active and category %}
       <li class="breadcrumb-item"><a href="{% url 'exams:list_category_indicators' %}">Category indicators</a></li>
-			{% elif indicators and not category %}
+			{% elif is_indicators_active and not category %}
 			<li class="breadcrumb-item active">Category indicators</li>
 			{% else %}
       <li class="breadcrumb-item"><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
@@ -30,7 +30,7 @@
 {% endblock %}
 
 {% block content %}
-{% if not indicators and exams.exists %}
+{% if not is_indicators_active and exams.exists %}
 {% for exam in exams %}
 <div class="col-xl-4 col-md-6 col-sm-12">
 	<div class="card">
@@ -79,7 +79,7 @@
 
 
 {% block customscript %}
-{% if not indicators %}
+{% if not is_browse_active %}
 	{% with category_pk=category.pk  parent_category_pk=category.parent_category.pk %}
 		{% include 'exams/partials/dynamic_sidebar.html' %}
 	{% endwith %}

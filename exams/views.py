@@ -29,8 +29,8 @@ def list_meta_categories(request, indicators=False):
     subcategories = Category.objects.meta().user_accessible(request.user)
     context = {'subcategories': subcategories,
                'show_category_url': show_category_url,
-               'indicators': indicators,
-               'is_browse_active': True, # To make sidebar 'active'
+               'is_indicators_active': indicators,
+               'is_browse_active': not indicators,
     }
     return render(request, 'exams/show_category.html', context)
 
@@ -41,7 +41,8 @@ def show_category(request, slugs, indicators=False):
     if not category:
         raise Http404
 
-    context = {'category': category}
+    context = {'category': category,
+               'is_indicators_active': indicators}
 
     # PERMISSION CHECK
     if not category.can_user_access(request.user) or\
@@ -51,8 +52,6 @@ def show_category(request, slugs, indicators=False):
 
     if indicators:
         show_category_url = 'exams:show_category_indicators'
-        # To make sidebar 'active'
-        context['is_indicators_active'] = True
         if subcategories.count() == 0:
             return show_category_indicators(request, category)
     else:
@@ -78,7 +77,6 @@ def show_category(request, slugs, indicators=False):
     context.update({
         'show_category_url': show_category_url,
         'subcategories': subcategories.order_by('name'),
-        'indicators': indicators,
     })
 
     return render(request, "exams/show_category.html", context)
