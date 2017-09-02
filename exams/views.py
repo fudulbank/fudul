@@ -795,6 +795,6 @@ def search(request):
     #TODO:try to add choices to search
     #what about questions that the user isnt allowed to see
     if q:
-        revisions = Revision.objects.filter(is_last=True, is_approved=True).filter(Q(question__pk=q)| Q(text__icontains=q))
+        revisions = Revision.objects.filter(is_last=True, is_approved=True).filter(Q(question__pk__icontains=q)| Q(text__icontains=q))
         return render(request, 'exams/search_results.html', {'revisions': revisions, 'query': q})
     return HttpResponse('Please submit a search term.')
