@@ -291,7 +291,7 @@
 
           <li class=" navigation-header"><span>About</span><i data-toggle="tooltip" data-placement="right" data-original-title="About" class=" ft-minus"></i>
           <li class="{% if is_about_active %}active {% endif %}nav-item"><a href="{% url 'about' %}"><i class="ft-info"></i><span data-i18n="" class="menu-title">About Fudul</span></a></li>
-          <li class="{% if is_join_active %}active {% endif %}nav-item"><a href="#"><i class="ft-heart"></i><span data-i18n="" class="menu-title">Join the team</span></a></li>
+          <li class="nav-item"><a href="{% url 'about' %}#reach-out"><i class="ft-heart"></i><span data-i18n="" class="menu-title">Join the team</span></a></li>
         </ul>
       </div>
     </div>
