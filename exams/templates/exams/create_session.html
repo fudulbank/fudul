@@ -86,7 +86,6 @@
                 <div class="form-group has-feedback has-feedback-left">
                     <label class="control-label"><h5>Subjects</h5></label>
                     <select id="subjects-select" class="alpaca-control form-control" name="">
-                    <option value="">------</option>
                     <option value="All">All</option>
                     <option value="Custom">Custom</option>
                     </select>
@@ -106,7 +105,6 @@
                 <div class="form-group has-feedback has-feedback-left">
                     <label class="control-label"><h5>Sources</h5></label>
                     <select id="sources-select" class="alpaca-control form-control" name="">
-                    <option value="">------</option>
                     <option value="All">All</option>
                     <option value="Custom">Custom</option>
                     </select>
@@ -147,16 +145,20 @@
 </div> <!--card-->
 </div><!--col-->
     <div class="col-md-4">
-        <div class="card">
+        <div id="uncompleted-sessions" class="card">
         		<div class="card-header">
-        			<h4 class="card-title">Latest sessions</h4>
+        			<h4 class="card-title">uncompleted sessions</h4>
         		</div>
         		<div class="card-body">
               <div class="card-block">
-              {% if sessions %}
+              {% if latest_sessions %}
                <ul>
                  {% for session in latest_sessions %}
-                 <li>#<a href="{% url 'exams:show_session' exam.category.get_slugs exam.pk session.pk %}">{{ session.pk }}</a> ({{session.get_score}}%)</li>
+                     <div id="uncompleted-sessions-list">
+                     {% if not session.has_finished %}
+                         <li>#<a href="{% url 'exams:show_session' exam.category.get_slugs exam.pk session.pk %}">{{ session.pk }}</a> <br>{% if not session.session_mode == 'SOLVED'%}{{ session.get_unused_questions.count }}/{{ session.get_total_question_count }} are left {% endif %}<strong>Subjects:</strong>{% if session.subjects.count == 1 %}{{ session.subjects.first.name }}{% elif not session.exam.subject_set.exists %} {{ session.exam.name }}{% else %} Multiple {% endif %}</li>
+                     {% endif %}
+                     </div>
                  {% endfor %}
                </ul>
              {% else %}
@@ -183,6 +185,10 @@
         $("#id_session_mode li:nth-child(2) label").tooltip({title: "This hides the right answer and explanation, and only shows them at the end."})
         $("#id_session_mode li:nth-child(3) label").tooltip({title: "This turns off exam mode, and it will show questions with the explanation and right answer right away."})
 
+        if ($('#subjects-select option[value=All]:checked').length) {
+        $('#all-subjects-options').hide();
+        $('#all-subjects-options select option').prop('selected', true);
+        }
         $('#subjects-select').change(function() {
             if ($('#subjects-select option[value=All]:checked').length) {
                 $('#all-subjects-options').hide();
@@ -192,6 +198,10 @@
                 $('#all-subjects-options select option').prop('selected', false);
             }
         });
+        if ($('#sources-select option[value=All]:checked').length) {
+                $('#all-sources-options').hide();
+                $('#all-sources-options select option').prop('selected', true);
+        }
         $('#sources-select').change(function() {
             if ($('#sources-select option[value=All]:checked').length) {
                 $('#all-sources-options').hide();
@@ -215,6 +225,12 @@
             $("#show-credit-modal .modal-body").load(url);
 
         });
+        if( !$.trim( $('#uncompleted-sessions-list').html() ).length ) {
+            console.log('its empty');
+            $('#uncompleted-sessions').hide();
+
+        };
+
     });
 </script>
 {% with modal_id='show-credit-modal' no_footer=True %}

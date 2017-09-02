@@ -353,10 +353,10 @@ def create_session(request, slugs, exam_pk):
     if not exam.can_user_edit(request.user) and \
        not exam.question_set.approved().exists():
         raise Http404
- 
+
     latest_sessions = exam.session_set.with_approved_questions()\
                                       .filter(submitter=request.user)\
-                                      .order_by('-pk')[:5]
+                                      .order_by('-pk')[:10]
 
     question_count = exam.question_set.approved().count()
     editor = teams.utils.is_editor(request.user)
@@ -534,37 +534,6 @@ def list_previous_sessions(request):
     return render(request, 'exams/list_previous_sessions.html',
                   context)
 
-class SubjectQuestionCount(autocomplete.Select2QuerySetView):
-    def get_queryset(self):
-        exam_pk = self.forwarded.get('exam_pk')
-        exam = Exam.objects.get(pk=exam_pk)
-
-        # Make sure we only show subjects that actually have approved
-        # questions
-        qs = exam.subject_set.with_approved_questions()
-
-        if self.q:
-            qs = qs.filter(pk=self.q)
-        return qs
-
-    def get_result_label(self, item):
-        return "<strong>{}</strong> ({})".format(item.name, item.question_set.approved().count())
-
-class ExamTypeQuestionCount(autocomplete.Select2QuerySetView):
-    def get_queryset(self):
-        exam_pk = self.forwarded.get('exam_pk')
-        exam = Exam.objects.get(pk=exam_pk)
-
-        # Make sure we only show exam types that actually have
-        # approved questions
-        qs = exam.exam_types.with_approved_questions()
-
-        if self.q:
-            qs = qs.filter(pk=self.q)
-        return qs
-
-    def get_result_label(self, item):
-        return "<strong>{}</strong> ({})".format(item.name, item.question_set.approved().count())
 
 
 def show_category_indicators(request, category):

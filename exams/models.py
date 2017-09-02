@@ -36,7 +36,7 @@ class ExamType(models.Model):
     objects = managers.MetaInformationQuerySet.as_manager()
 
     def __str__(self):
-        return self.name
+        return "{} ({})".format(self.name, self.question_set.approved().count())
 
 
 class Category(models.Model):
@@ -153,6 +153,7 @@ class Exam(models.Model):
     def get_user_answered_questions(self, user):
         return Question.objects.filter(answer__session__submitter=user).distinct()
 
+
     def __str__(self):
         return self.name
 
@@ -164,7 +165,7 @@ class Subject(models.Model):
     objects = managers.MetaInformationQuerySet.as_manager()
 
     def __str__(self):
-        return self.name
+        return "{} ({})".format(self.name, self.question_set.approved().count())
 
 class Question(models.Model):
     sources = models.ManyToManyField(Source, blank=True)
@@ -336,6 +337,10 @@ class Session(models.Model):
 
     def get_total_question_count(self):
         return self.questions.approved().count()
+
+    def get_used_questions_count(self):
+        return self.answer_set.distinct() \
+            .count()
         
     def get_correct_answer_count(self):
         return self.answer_set.of_undeleted_questions()\
@@ -345,6 +350,7 @@ class Session(models.Model):
 
     def has_finished(self):
         return not self.get_unused_questions().exists()
+
 
     def get_question_sequence(self, question):
         return self.questions.approved()\

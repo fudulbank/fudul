@@ -128,14 +128,14 @@ class SessionForm(forms.ModelForm):
         subjects = models.Subject.objects.filter(exam=exam)
         if subjects.exists():
             self.fields['subjects'].queryset = models.Subject.objects.filter(exam=exam)\
-                                                                     .with_approved_questions()
+                                                                     .with_approved_questions().distinct()
         else:
             del self.fields['subjects']
         self.fields['sources'].queryset = exam.get_sources().filter(parent_source__isnull=True)\
-                                                            .with_approved_questions()
+                                                            .with_approved_questions().distinct()
 
         if exam.exam_types.exists():
-            self.fields['exam_types'].queryset = exam.exam_types.with_approved_questions()
+            self.fields['exam_types'].queryset = exam.exam_types.with_approved_questions().distinct()
             self.fields['exam_types'].required = True
         else:
             del self.fields['exam_types']
@@ -196,14 +196,9 @@ class SessionForm(forms.ModelForm):
         model = models.Session
         fields = ['session_mode', 'number_of_questions','exam_types', 'sources','subjects','question_filter']
         widgets = {
-            'exam_types': autocomplete.ModelSelect2Multiple(url='exams:exam_type_questions_count',
-                                                         forward=['exam_pk'],
-                                                         attrs={'data-html': True}),
+            'exam_types': autocomplete.ModelSelect2Multiple(),
             'sources': autocomplete.ModelSelect2Multiple(),
-            'subjects': autocomplete.ModelSelect2Multiple(url='exams:subject_questions_count',
-                                                         forward=['exam_pk'],
-                                                         attrs={'data-html': True}),
-            # 'subjects': autocomplete.ModelSelect2Multiple(),
+            'subjects': autocomplete.ModelSelect2Multiple(),
             'question_filter':forms.RadioSelect(choices=models.questions_choices),
             'session_mode':forms.RadioSelect(choices=models.session_mode_choices)
             }
