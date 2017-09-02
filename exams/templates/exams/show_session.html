@@ -193,13 +193,30 @@
     .explanation-container{
       margin-top: 20px;
     }
+    .brand-logo{
+      vertical-align: sub;
+    }
+    .brand-text{
+      display: inline;
+      padding-left: 10px;
+      color: #1B2942;
+      font-family: "Montserrat", Georgia, "Times New Roman", Times, serif;
+      letter-spacing: 1px;
+      font-size: 1.74rem;
+      font-weight: 500;
+    }
   </style>
     </head>
     <body class="{% if session.has_finished %}finished{% else %}unfinished{% endif %}">
     <div class="container-fluid" id="container">
         <div class="row top-info align-items-center">
+            <div class ="col-sm-3 text-sm-left text-center">
+              <a href="/" class="navbar-brand">
+                <img alt="stack admin logo" src="{% static 'img/logo-monkey.png' %}" class="img-fluid brand-logo">
+                <h2 class="brand-text">Fudul</h2></a>
+            </div>
             <div class="ml-auto col-sm-6 text-center"> {{ session.exam.name }} <span class="separator">•</span> Session id: <span id="session-pk">{{ session.pk }}</span> ({{ session.get_session_mode_display }})<br> Question id: <span id="question-pk">{{ current_question.pk }}</span> </div>
-            <div class="col-sm-3 top-question-id"><span id="question-sequence">{{ current_question_sequence }}</span> of <span id="question-total">{{ session.questions.approved.count }}</span></div>
+            <div class="col-sm-3 top-question-id my-2 mb-sm-0"><span id="question-sequence">{{ current_question_sequence }}</span> of <span id="question-total">{{ session.questions.approved.count }}</span></div>
         </div>
         <div class="row top-options text-left align-items-center">
           <div class="col-sm-6 text-left">
