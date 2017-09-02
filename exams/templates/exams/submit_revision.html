@@ -25,10 +25,7 @@
 <div class="card">
 	<div class="card-body">
 		<div class="card-block">
-<form action="{% url 'exams:submit_revision' exam.category.get_slugs exam.pk revision.question.pk %}" method="post" class="form">
-{% csrf_token %}
 {% include 'exams/partials/question_form.html' %}
-</form>
 		</div>
 	</div>
 </div>
