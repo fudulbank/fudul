@@ -126,14 +126,19 @@ class SessionForm(forms.ModelForm):
         self.fields['number_of_questions'].widget.attrs['min'] = 1
 
         # Limit subjects and exams per exam
-        subjects = models.Subject.objects.filter(exam=exam)
+        subjects = models.Subject.objects.filter(exam=exam)\
+                                         .with_approved_questions()
         if subjects.exists():
-            self.fields['subjects'].queryset = models.Subject.objects.filter(exam=exam)\
-                                                                     .with_approved_questions()
+            self.fields['subjects'].queryset = subjects              
         else:
             del self.fields['subjects']
-        self.fields['sources'].queryset = exam.get_sources().filter(parent_source__isnull=True)\
-                                                            .with_approved_questions()
+
+        sources = exam.get_sources().filter(parent_source__isnull=True)\
+                                    .with_approved_questions()
+        if sources.exists():
+            self.fields['sources'].queryset = sources
+        else:
+            del self.fields['sources']
 
         if exam.exam_types.exists():
             self.fields['exam_types'].queryset = exam.exam_types.with_approved_questions()
