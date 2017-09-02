@@ -92,7 +92,7 @@
 <script src="{% static 'stack/vendors/js/tables/datatable/dataTables.responsive.min.js' %}" type="text/javascript"></script>
 <script>
     $(function () {
-        tables = $(".datatable").DataTable({order: [[1, 'desc']]});
+        tables = $(".datatable").DataTable({searching: false, paging: false, info: false, order: [[1, 'desc']]});
     });
 </script>
 
