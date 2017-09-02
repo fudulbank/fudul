@@ -291,7 +291,6 @@
 
           <li class=" navigation-header"><span>About</span><i data-toggle="tooltip" data-placement="right" data-original-title="About" class=" ft-minus"></i>
           <li class="{% if is_about_active %}active {% endif %}nav-item"><a href="{% url 'about' %}"><i class="ft-info"></i><span data-i18n="" class="menu-title">About Fudul</span></a></li>
-          <li class="nav-item"><a href="{% url 'about' %}#reach-out"><i class="ft-heart"></i><span data-i18n="" class="menu-title">Join the team</span></a></li>
         </ul>
       </div>
     </div>
@@ -320,7 +319,7 @@
 
 
     <footer class="footer footer-static footer-light navbar-border">
-      <p class="clearfix blue-grey lighten-2 text-sm-center mb-0 px-2 font-small-3"><span class="float-md-right d-xs-block d-md-inline-block">Copying is an act of <i class="ft-heart pink"></i>. Please copy and share. </span></p>
+      <p class="clearfix blue-grey lighten-2 text-sm-center mb-0 px-2 font-small-3"><span class="float-md-left d-xs-block d-md-inline-block"><a href="{% url 'about' %}">About</a></span><span class="float-md-right d-xs-block d-md-inline-block">Copying is an act of <i class="ft-heart pink"></i>. Please copy and share. </span></p>
     </footer>
 
     <!-- BEGIN VENDOR JS-->
