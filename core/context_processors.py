@@ -8,6 +8,7 @@ def universal_context(request):
         is_any_editor = teams.utils.is_editor(request.user)
         user_session_count = Session.objects\
                                     .filter(submitter=request.user)\
+                                    .with_approved_questions()\
                                     .count()
         privileged_exams = exams.utils.get_user_privileged_exams(request.user)
         pending_revision_count = Revision.objects.undeleted()\
