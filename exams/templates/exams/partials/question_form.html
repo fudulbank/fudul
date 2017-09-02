@@ -1,4 +1,21 @@
 {% load bootstrap3 %}
+<style>
+.select2-container .select2-search--inline {
+	/*workaround to fix the difference in height between used and unused select2-multiple fields*/
+    padding-top: 1px;
+}
+.circle {
+   width: 20px;
+   height: 20px;
+   background: lightblue;
+   -moz-border-radius: 10px;
+   -webkit-border-radius: 10px;
+   border-radius: 10px;
+    text-align: center;
+    color: white;
+    float: right;
+}
+</style>
         {% bootstrap_form_errors questionform %}
 <form method="post" data-exam_pk='{{ exam.pk }}' enctype="multipart/form-data" id="add-question-form">
     {% csrf_token %}
@@ -120,17 +137,3 @@
                <button type="submit" class="btn btn-primary float-sm-right"><i class="ft-check"></i> Submit Question <i class="icon-circle-right2 position-right"></i></button>
 
         </form>
-
-<style>
-.circle {
-   width: 20px;
-   height: 20px;
-   background: lightblue;
-   -moz-border-radius: 10px;
-   -webkit-border-radius: 10px;
-   border-radius: 10px;
-    text-align: center;
-    color: white;
-    float: right;
-}
-</style>
