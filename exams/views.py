@@ -539,7 +539,7 @@ def list_previous_sessions(request):
     sessions = Session.objects.filter(submitter=request.user)\
                               .with_approved_questions()
 
-    context = {'sesstions':sessions,
+    context = {'sessions':sessions,
                'is_previous_active': True}
 
     return render(request, 'exams/list_previous_sessions.html',
