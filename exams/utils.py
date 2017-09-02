@@ -67,6 +67,8 @@ def get_user_answer_stats(target, user, result, percent=False):
         answer_pool = answer_pool.filter(session__exam=target)
     elif type(target) is models.Subject:
         answer_pool = answer_pool.filter(question__subjects=target)
+    elif type(target) is models.Session:
+        answer_pool = answer_pool.filter(session=target)
 
     if result == 'correct':
         count = answer_pool.filter(choice__is_right=True).count()
