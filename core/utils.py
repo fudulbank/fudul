@@ -1,5 +1,6 @@
 from django.db import models
 import operator
+import math
 
 BASIC_SEARCH_FIELDS = ['user__pk', 'user__username', 'user__email',
                        'user__profile__first_name',
@@ -24,3 +25,6 @@ def get_search_queryset(queryset, search_fields, search_term):
             queryset = queryset.filter(statement)
 
     return queryset
+
+def round_to(number, cut_off):
+    return math.floor(number / cut_off) * cut_off
