@@ -17,8 +17,6 @@
 {% endblock %}
 {% block content %}
 <h1>Editing question #{{ revision.question.pk }}</h1>
-<form action="{% url 'exams:submit_revision' exam.category.get_slugs exam.pk revision.question.pk %}" method="post" class="form">
-{% csrf_token %}
 {% include 'exams/partials/question_form.html' %}
 
 {% endblock %}

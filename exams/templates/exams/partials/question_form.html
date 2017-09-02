@@ -1,6 +1,6 @@
 {% load bootstrap3 %}
         {% bootstrap_form_errors questionform %}
-        <form method="post" data-exam_pk='{{ exam.pk }}' enctype="multipart/form-data" id="add-question-form" action="post">
+        <form method="post" data-exam_pk='{{ exam.pk }}' enctype="multipart/form-data" id="add-question-form">
 	    {% csrf_token %}
 
 <div class="row">
