@@ -174,7 +174,7 @@
       display: none;
     }
 
-    body.unfinished #results, body.finished #exit{
+    body.unfinished #results, body.finished #end{
       display: none;
     }
 
@@ -243,7 +243,7 @@
         <div id="footer" class="row text-center">
           <div class="col-sm-6 text-left">
            <a id="results" class="float-left float-sm-none option" href="{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}"><i class="icon-list3"></i> Results</a>
-           <div id="exit" class="float-left float-sm-none option"><i class="icon-exit3"></i> Exit</div>
+           <div id="end" class="float-left float-sm-none option"><i class="icon-exit3"></i> End</div>
            <div id="contributors" class="float-right float-sm-none option" data-tooltip-content="#tooltip-body"><i class="icon-stars"></i> Contributors</div>
           </div>
           <div class="col-sm-6 text-right">
@@ -373,11 +373,11 @@
 
         if (sequence == total){
           $("#next").css('cursor', 'not-allowed');
-          $(".unfinished #exit").hide();
+          $(".unfinished #end").hide();
           $(".unfinished #results").css('display', 'inline-block');
         } else {
           $("#next").css('cursor', 'pointer');
-          $(".unfinished #exit").css('display', 'inline-block');
+          $(".unfinished #end").css('display', 'inline-block');
           $(".unfinished #results").hide();
         }
 
@@ -473,9 +473,9 @@
         updateFooterMargins();
         $(window).resize(updateFooterMargins);
 
-        $("#exit").click(function(){
-          $("#confirm-exit-modal a.submit-button").prop("href", "{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}");
-          $("#confirm-exit-modal").modal('show');
+        $("#end").click(function(){
+          $("#confirm-end-modal a.submit-button").prop("href", "{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}");
+          $("#confirm-end-modal").modal('show');
         });
         $('#submit').click(submitChoice);
         $('#previous, #next').click(navigate);
@@ -507,7 +507,7 @@
 
         </script>
 
-        {% with modal_id='confirm-exit-modal' is_small=True confirm_link=True modal_content="<i class='text-danger icon-exit3'></i> Are you sure you want to exit this session, and mark unsubmitted questions as unsolved?" %}
+        {% with modal_id='confirm-end-modal' is_small=True confirm_link=True modal_title="End session" modal_content="<i class='text-danger icon-exit3'></i> Are you sure you want to end this session, and mark unsubmitted questions as unsolved?" %}
             {% include "exams/modals/common_modal_v4.html" %}
         {% endwith %}
 
