@@ -15,6 +15,7 @@ from . import forms, utils
 import teams.utils
 from django.views.decorators.http import require_http_methods
 from django.db.models import Q
+# from reversion.helpers import genericpath
 
 @login_required
 def list_meta_categories(request, indicators=False):
@@ -351,10 +352,10 @@ def create_session(request, slugs, exam_pk):
     if not exam.can_user_edit(request.user) and \
        not exam.question_set.approved().exists():
         raise Http404
- 
+
     latest_sessions = exam.session_set.with_approved_questions()\
                                       .filter(submitter=request.user)\
-                                      .order_by('-pk')[:5]
+                                      .order_by('-pk')[:10]
 
     question_count = exam.question_set.approved().count()
     editor = teams.utils.is_editor(request.user)
@@ -365,6 +366,11 @@ def create_session(request, slugs, exam_pk):
                'is_browse_active': True, # To make sidebar 'active'
     }
 
+    if 'alert' in request.COOKIES.keys():
+        alert = request.COOKIES['alert']
+        context['alert'] = alert
+        del request.COOKIES['alert']
+
     if request.method == 'GET':
         sessionform = forms.SessionForm(exam=exam)
     elif request.method == 'POST':
@@ -374,8 +380,15 @@ def create_session(request, slugs, exam_pk):
         if sessionform.is_valid():
             # Question allocation happens in SessionForm.save()
             session = sessionform.save()
-            return HttpResponseRedirect(reverse("exams:show_session",
-                                                args=(session.exam.category.get_slugs(),session.exam.pk,session.pk)))
+            if session.questions.count() < 1:
+                response = HttpResponseRedirect(reverse("exams:create_session",
+                                                    args=(
+                                                    session.exam.category.get_slugs(), session.exam.pk)))
+                response.set_cookie("alert", "Sorry, we don't have enough questions for your specific request, please try other options.",max_age=3)
+                return response
+            else:
+                return HttpResponseRedirect(reverse("exams:show_session",
+                                                    args=(session.exam.category.get_slugs(),session.exam.pk,session.pk)))
     context['sessionform'] = sessionform
 
     return render(request, "exams/create_session.html", context)
@@ -532,37 +545,6 @@ def list_previous_sessions(request):
     return render(request, 'exams/list_previous_sessions.html',
                   context)
 
-class SubjectQuestionCount(autocomplete.Select2QuerySetView):
-    def get_queryset(self):
-        exam_pk = self.forwarded.get('exam_pk')
-        exam = Exam.objects.get(pk=exam_pk)
-
-        # Make sure we only show subjects that actually have approved
-        # questions
-        qs = exam.subject_set.with_approved_questions()
-
-        if self.q:
-            qs = qs.filter(pk=self.q)
-        return qs
-
-    def get_result_label(self, item):
-        return "<strong>{}</strong> ({})".format(item.name, item.question_set.approved().count())
-
-class ExamTypeQuestionCount(autocomplete.Select2QuerySetView):
-    def get_queryset(self):
-        exam_pk = self.forwarded.get('exam_pk')
-        exam = Exam.objects.get(pk=exam_pk)
-
-        # Make sure we only show exam types that actually have
-        # approved questions
-        qs = exam.exam_types.with_approved_questions()
-
-        if self.q:
-            qs = qs.filter(pk=self.q)
-        return qs
-
-    def get_result_label(self, item):
-        return "<strong>{}</strong> ({})".format(item.name, item.question_set.approved().count())
 
 
 def show_category_indicators(request, category):
@@ -811,6 +793,6 @@ def search(request):
     #TODO:try to add choices to search
     #what about questions that the user isnt allowed to see
     if q:
-        revisions = Revision.objects.filter(is_last=True, is_approved=True).filter(Q(question__pk=q)| Q(text__icontains=q))
+        revisions = Revision.objects.filter(is_last=True, is_approved=True).filter(Q(question__pk__icontains=q)| Q(text__icontains=q))
         return render(request, 'exams/search_results.html', {'revisions': revisions, 'query': q})
     return HttpResponse('Please submit a search term.')

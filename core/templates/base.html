@@ -117,7 +117,7 @@
 									<a href="{% url 'exams:list_meta_categories' %}"><i class="icon-stack-check"></i> <span>Explore exams!</span></a>
 								</li>
                             <li>
-									<a href="{% url 'exams:show_previous_sessions' %}"><i class="icon-drawer3"></i> <span>Previous sessions</span></a>
+									<a href="{% url 'exams:list_previous_sessions' %}"><i class="icon-drawer3"></i> <span>Previous sessions</span></a>
 								</li>
                             {% if exam %}
                                 {% if exam.category|is_editor:user %}

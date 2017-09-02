@@ -174,7 +174,9 @@
               <li class="nav-item hidden-sm-down"><a href="#" class="nav-link nav-link-expand"><i class="ficon ft-maximize"></i></a></li>
               <li class="nav-item nav-search"><a href="#" class="nav-link nav-link-search"><i class="ficon ft-search"></i></a>
                 <div class="search-input">
-                  <input type="text" placeholder="Search Fudul..." class="input">
+                  <form type="get" action="{% url 'exams:search' %}" accept-charset="utf-8">
+                    <input  type="search" id="q" name="q"  type="text" placeholder="Search by ID or Text" class="input">
+                  </form>
                 </div>
               </li>
             </ul>
