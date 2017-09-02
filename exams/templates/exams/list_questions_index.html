@@ -30,7 +30,7 @@
     		</div>
         <div class="card-body">
           <div class="card-block">
-            <table class="table table-striped table-bordered datatable dt-responsive">
+            <table style="width: 100%" class="table table-striped table-bordered datatable dt-responsive">
               <thead>
                 <tr>
                   <th>Status</th>
@@ -57,7 +57,7 @@
       </div>
       <div class="card-body">
         <div class="card-block">
-          <table class="table table-striped table-bordered datatable dt-responsive">
+          <table style="width: 100%" class="table table-striped table-bordered datatable dt-responsive">
             {% with approved_count=exam.get_approved_latest_revisions.count pending_count=exam.get_pending_latest_revisions.count unsolved_count=exam.question_set.unsolved.count %}
             <thead>
               <tr>
