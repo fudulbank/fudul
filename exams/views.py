@@ -15,6 +15,7 @@ from . import forms, utils
 import teams.utils
 from django.views.decorators.http import require_http_methods
 from django.db.models import Q
+# from reversion.helpers import genericpath
 
 @login_required
 def list_meta_categories(request, indicators=False):
@@ -367,6 +368,11 @@ def create_session(request, slugs, exam_pk):
                'is_browse_active': True, # To make sidebar 'active'
     }
 
+    if 'alert' in request.COOKIES.keys():
+        alert = request.COOKIES['alert']
+        context['alert'] = alert
+        del request.COOKIES['alert']
+
     if request.method == 'GET':
         sessionform = forms.SessionForm(exam=exam)
     elif request.method == 'POST':
@@ -376,8 +382,15 @@ def create_session(request, slugs, exam_pk):
         if sessionform.is_valid():
             # Question allocation happens in SessionForm.save()
             session = sessionform.save()
-            return HttpResponseRedirect(reverse("exams:show_session",
-                                                args=(session.exam.category.get_slugs(),session.exam.pk,session.pk)))
+            if session.questions.count() < 1:
+                response = HttpResponseRedirect(reverse("exams:create_session",
+                                                    args=(
+                                                    session.exam.category.get_slugs(), session.exam.pk)))
+                response.set_cookie("alert", "Sorry, we don't have enough questions for your specific request, please try other options.",max_age=3)
+                return response
+            else:
+                return HttpResponseRedirect(reverse("exams:show_session",
+                                                    args=(session.exam.category.get_slugs(),session.exam.pk,session.pk)))
     context['sessionform'] = sessionform
 
     return render(request, "exams/create_session.html", context)

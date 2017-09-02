@@ -55,6 +55,11 @@
 {% block content %}
 <div class="row">
    <div class="col-md-8">
+
+       {% if alert %}
+           <div style="background-color: lightyellow" class="card"><div class="card-body"><div class="card-block"> <i class="ft-alert-triangle"></i>{{ alert }}</div></div></div>
+        {% endif %}
+
      <div class="card">
        <div class="card-header">
          <h4 class="card-title">Start a new session</h4>
