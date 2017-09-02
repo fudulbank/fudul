@@ -79,7 +79,7 @@
 
 
 {% block customscript %}
-{% if not is_browse_active %}
+{% if is_browse_active %}
 	{% with category_pk=category.pk  parent_category_pk=category.parent_category.pk %}
 		{% include 'exams/partials/dynamic_sidebar.html' %}
 	{% endwith %}
