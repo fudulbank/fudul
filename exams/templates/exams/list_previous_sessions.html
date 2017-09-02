@@ -58,11 +58,11 @@ tr td:last-child{
           {% endif %}
               </td>
               <td>{{ session.get_session_mode_display }}</td>
-              <td class="text-xs-center font-small-2">
+              <td class="text-xs-center">
           {% if session.session_mode == 'SOLVED' %}
               <span data-toggle="tooltip" title="Solved questions have no scores.">N/A<span>
           {% elif session.has_finished %}
-              {{ session.get_score }}%
+              <span class="font-small-2">{{ session.get_score }}%</span>
               <progress  data-toggle="tooltip" title="{{ session.get_correct_answer_count }} out of {{ session.get_total_question_count }} questions were answered correctly." class="progress progress-sm progress-success mb-0" value="{{ session.get_score }}" max="100"></progress>
           {% else %}
               <span data-toggle="tooltip" title="{{ session.get_unused_questions.count }} out of {{ session.get_total_question_count }} questions remaining.">Ongoing</span>
