@@ -156,7 +156,7 @@
         		</div>
         		<div class="card-body">
               <div class="card-block">
-              {% if sessions %}
+              {% if latest_sessions %}
                <ul>
                  {% for session in latest_sessions %}
                  <li>#<a href="{% url 'exams:show_session' exam.category.get_slugs exam.pk session.pk %}">{{ session.pk }}</a> ({{session.get_score}}%)</li>
