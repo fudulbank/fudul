@@ -3,6 +3,7 @@
 
 {% block head %}
 <link rel="stylesheet" type="text/css" href="{% static 'stack/vendors/css/tables/datatable/dataTables.bootstrap4.min.css' %}">
+
 {% endblock %}
 
 {% block header_title %}
@@ -31,6 +32,7 @@
 				            <th data-priority="4">Has no right answer (%)</th>
 				            <th data-priority="3">Has pending latest revision (%)</th>
 				            <th data-priority="2">Sessions</th>
+                            <th data-priority="6">Percentage of correct submitted answers</th>
 				        </tr>
 				    </thead>
 				    <tbody>
@@ -43,6 +45,7 @@
 				                <td>{{ unsolved_count }} ({% widthratio unsolved_count total_count 100 %}%)</td>
 				                <td>{{ pending_count }} ({% widthratio pending_count total_count 100 %}%)</td>
 				                <td>{{ exam.session_set.count }}</td>
+                                <td>{{ exam.get_percentage_of_correct_submitted_answers }}%</td>
 				            </tr>
 				       {% endwith %}
 				       {% endfor %}

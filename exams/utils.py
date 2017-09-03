@@ -78,6 +78,8 @@ def get_user_answer_stats(target, user, result, percent=False):
         count = answer_pool.filter(choice__isnull=True).count()
 
     if percent:
+        # Eror: Division by zero
+
         total = answer_pool.count()
         return "%.0f" % (count / total * 100)
     else:

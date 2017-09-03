@@ -223,31 +223,3 @@ class ExplanationForm(RevisionForm):
         model = models.Revision
         fields = ['explanation', 'explanation_figure']
 
-
-
-# class DisabledRevisionForm(RevisionForm):
-#     def __init__(self, *args, **kwargs):
-#         # Fields to keep enabled.
-#         self.enabled_fields = ['statuses']
-#         # If an instance is passed, then store it in the instance variable.
-#         # This will be used to disable the fields.
-#         self.instance = kwargs.get('instance', None)
-#
-#         # Initialize the form
-#         super(DisabledRevisionForm, self).__init__(*args, **kwargs)
-#
-#         # Make sure that an instance is passed (i.e. the form is being
-#         # edited).
-#         if self.instance:
-#             for field in self.fields:
-#                 if not field in self.enabled_fields:
-#                     self.fields[field].widget.attrs['readonly'] = 'readonly'
-#
-#     def clean(self):
-#         cleaned_data = super(DisabledRevisionForm, self).clean()
-#         if self.instance:
-#             for field in cleaned_data:
-#                 if not field in self.enabled_fields:
-#                     cleaned_data[field] = getattr(self.instance, field)
-#
-#         return cleaned_data

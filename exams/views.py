@@ -687,6 +687,7 @@ def mark_revision_approved(request, pk):
         raise Exception("You change the approval status.")
 
     revision.is_approved = True
+    revision.approved_by= request.user
     revision.save()
 
 @csrf.csrf_exempt
@@ -701,6 +702,7 @@ def mark_revision_pending(request, pk):
         raise Exception("You change the approval status.")
 
     revision.is_approved = False
+    revision.approved_by= request.user
     revision.save()
 
 
@@ -796,3 +798,12 @@ def search(request):
         revisions = Revision.objects.filter(is_last=True, is_approved=True).filter(Q(question__pk__icontains=q)| Q(text__icontains=q))
         return render(request, 'exams/search_results.html', {'revisions': revisions, 'query': q})
     return HttpResponse('Please submit a search term.')
+
+
+# qs = User.objects.filter(is_active=True)
+#
+# if self.q:
+#     search_fields = [field.replace('user__', '') for field in utils.BASIC_SEARCH_FIELDS]
+#     qs = utils.get_search_queryset(qs, search_fields, self.q)
+#
+# return qs

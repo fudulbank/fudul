@@ -153,6 +153,13 @@ class Exam(models.Model):
     def get_user_answered_questions(self, user):
         return Question.objects.filter(answer__session__submitter=user).distinct()
 
+    def get_percentage_of_correct_submitted_answers(self):
+        submitted_answers = Answer.objects.filter(session__exam=self,choice__isnull=False).count()
+        if not submitted_answers == 0:
+            return Answer.objects.filter(session__exam=self,choice__is_right=True).count()/submitted_answers* 100
+        else:
+            return 0
+
 
     def __str__(self):
         return self.name
@@ -278,6 +285,9 @@ class Revision(models.Model):
     reference = models.TextField(default="", blank=True)
     change_summary = models.TextField(default="", blank=True)
     is_contribution = models.BooleanField(default=False)
+    #NOTE:colud be a model instead
+    approved_by = models.ForeignKey(User,related_name="approved_revision",null=True, blank=True)
+
 
     def has_right_answer(self):
         return self.choice_set.filter(is_right=True).exists()
@@ -385,6 +395,7 @@ class Session(models.Model):
 
     def can_user_access(self, user):
         return self.submitter == user or user.is_superuser
+
 
 class Answer(models.Model):
     session = models.ForeignKey(Session)

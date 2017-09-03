@@ -7,7 +7,9 @@
         list-style-type: none;
         padding-right: 20px;
     }
-
+    .card-block li{
+         list-style-type: none;
+    }
     .card-body li a {
         font-weight: bold;
         margin-top: auto
@@ -31,6 +33,7 @@
         margin-top: 3%;
         margin-bottom: 2%;
     }
+
     /*to show the number of total questions next to the number_of_questions field*/
     #id_number_of_questions{
         display: inline-block;
@@ -153,30 +156,29 @@
 </div> <!--card-->
 </div><!--col-->
     <div class="col-md-4">
-        <div id="uncompleted-sessions" class="card">
-        		<div class="card-header">
-        			<h4 class="card-title">uncompleted sessions</h4>
-        		</div>
-        		<div class="card-body">
-              <div class="card-block">
-              {% if latest_sessions %}
-               <ul>
-                 {% for session in latest_sessions %}
-                     <div id="uncompleted-sessions-list">
-                     {% if not session.has_finished %}
-                         <li>#<a href="{% url 'exams:show_session' exam.category.get_slugs exam.pk session.pk %}">{{ session.pk }}</a> <br>{% if not session.session_mode == 'SOLVED'%}{{ session.get_unused_questions.count }}/{{ session.get_total_question_count }} are left {% endif %}<strong>Subjects:</strong>{% if session.subjects.count == 1 %}{{ session.subjects.first.name }}{% elif not session.exam.subject_set.exists %} {{ session.exam.name }}{% else %} Multiple {% endif %}</li>
-                     {% endif %}
-                     </div>
-                 {% endfor %}
-               </ul>
-             {% else %}
-             <div class="card-text">
-               <p> You don't have any previous sessions.</p>
-             </div>
-             {% endif %}
-           </div><!--card-block-->
-         </div><!--card-body-->
-        </div><!--card-->
+			<div id='session-list-div' class="card" style="display: none; height: 80px">
+				<div class="card-body">
+					<div class="card-block">
+						<h4 class="card-title">uncompleted sessions</h4>
+{#						<p class="card-text"></p>#}
+					</div>
+					<ul class="list-group list-group-flush">
+                        {% for session in latest_sessions %}
+                            <div id="session-list">
+                            {% if not session.has_finished %}
+						<li class="list-group-item">
+							<a  href="{% url 'exams:show_session' exam.category.get_slugs exam.pk session.pk %}" ><span class="tag tag-default tag-pill bg-primary float-xs-right">{{ session.pk }}</span></a>
+							{% if not session.session_mode == 'SOLVED'%}({{ session.get_unused_questions.count }}/{{ session.get_total_question_count }}) {% endif %}<strong>Subjects:</strong>{% if session.subjects.count == 1 %}{{ session.subjects.first.name }}{% elif not session.exam.subject_set.exists %} {{ session.exam.name }}{% else %} Multiple {% endif %}
+						</li>
+                            {% endif %}
+                            </div>
+                        {% endfor %}
+					</ul>
+					<div class="card-block">
+
+					</div>
+				</div>
+			</div>
     </div> <!--col-->
 </div> <!--row-->
 
@@ -233,10 +235,8 @@
             $("#show-credit-modal .modal-body").load(url);
 
         });
-        if( !$.trim( $('#uncompleted-sessions-list').html() ).length ) {
-            console.log('its empty');
-            $('#uncompleted-sessions').hide();
-
+        if( $.trim( $('#session-list').html() ).length ) {
+            $('#session-list-div').show();
         };
 
     });

@@ -10,6 +10,7 @@
     }
 </style>
 {% for exam in exams %}
+<div id="all-div">
 <div id="exams-panel" class="panel panel-flat border-top-info border-bottom-info">
     <div class="panel-heading">
                          <div class="panel-title" ><a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}"><h5>{{ exam.name }}</h5></a> <a class="heading-elements-toggle"></a></div>
@@ -54,13 +55,19 @@
 
     </div>
  </div>
+    </div>
     {% endfor %}
 {% endblock %}
 {% block customscript %}
     <script type="text/javascript">
     $(function(){
-        $(".border-bottom-info").find('div.panel-body:empty').parent().addClass('hide' +
-            '');
+        $('.panel-body').each(function() {
+            var div= $(this);
+            if (!$.trim($(div).html()).length) {
+                $(div).parent().hide();
+            }
+        });
+
 
     });
     </script>
