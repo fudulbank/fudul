@@ -166,14 +166,9 @@ class SessionForm(forms.ModelForm):
             question_pool = question_pool.filter(exam_types__in=session.exam_types.all())
 
         if session.question_filter == 'UNUSED':
-            question_pool = question_pool.exclude(answer__session__submitter=session.submitter)
+            question_pool = question_pool.unused_by_user(session.submitter)
         elif session.question_filter == 'INCORRECT':
-            pks = models.Answer.objects.filter(session__exam=session.exam,
-                                               session__submitter=session.submitter,
-                                               choice__is_right=False)\
-                                       .distinct()\
-                                       .values_list('question__pk')
-            question_pool = question_pool.filter(pk__in=pks)
+            question_pool = question_pool.incorrect_by_user(session.submitter)
         elif session.question_filter == 'MARKED':
             question_pool = question_pool.filter(marking_users=session.submitter)
 

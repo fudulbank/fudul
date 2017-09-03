@@ -66,12 +66,12 @@ def was_ever_taken_by_user(exam, user):
     return exam.session_set.filter(submitter=user).exists()
 
 @register.filter
-def get_user_answered_question_count(exam, user):
-    return exam.get_user_answered_questions(user).count()
+def get_used_question_count_per_user(exam, user):
+    return exam.question_set.approved().used_by_user(user).count()
 
 @register.simple_tag
-def get_user_answer_stats(target, user, result, percent=False):
-    return utils.get_user_answer_stats(target, user, result, percent)
+def get_user_question_stats(target, user, result, percent=False):
+    return utils.get_user_question_stats(target, user, result, percent)
 
 @register.filter
 def get_session_subjects(session):

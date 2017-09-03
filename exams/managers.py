@@ -9,6 +9,38 @@ class QuestionQuerySet(models.QuerySet):
                    .exclude(revision__is_approved=True)\
                    .distinct()
 
+    def used_by_user(self, user):
+        return self.filter(answer__session__submitter=user)\
+                   .distinct()
+
+    def unused_by_user(self, user):
+        return self.exclude(answer__session__submitter=user)\
+                   .distinct()
+
+    def correct_by_user(self, user):
+        # As a general rule, we will show statistics that are in favor
+        # of the user.  For example, if a question has one correct
+        # answer, then the user got it (regardless of whether it has
+        # other incorrect/skipped answers).
+        return self.used_by_user(user)\
+                   .filter(answer__choice__is_right=True)\
+                   .distinct()
+
+    def incorrect_by_user(self, user):
+        # See the note in 'self.correct_by_user()'
+        return self.used_by_user(user)\
+                   .exclude(answer__choice__is_right=True)\
+                   .filter(answer__choice__is_right=False)\
+                   .distinct()
+
+    def skipped_by_user(self, user):
+        # See the note in 'self.correct_by_user()'
+        return self.used_by_user(user)\
+                   .exclude(answer__choice__is_right=True)\
+                   .exclude(answer__choice__is_right=False)\
+                   .filter(answer__choice__isnull=True)\
+                   .distinct()
+
     def approved(self):
         return self.undeleted()\
                    .filter(revision__is_approved=True,

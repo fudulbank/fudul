@@ -732,18 +732,26 @@ def approve_question(request, slugs, exam_pk,pk):
 
 @login_required
 def show_my_performance(request):
-    answer_pool = Answer.objects.filter(session__submitter=request.user)
-    total_answers = answer_pool.count()
-    correct_answers = answer_pool.filter(choice__is_right=True).count()
-    incorrect_answers = answer_pool.filter(choice__is_right=False).count()
-    skipped_answers = answer_pool.filter(choice__isnull=True).count()
+    total_questions = Question.objects.approved()\
+                                      .used_by_user(request.user)\
+                                      .count()
+    correct_questions = Question.objects.approved()\
+                                        .correct_by_user(request.user)\
+                                        .count()
+    incorrect_questions = Question.objects.approved()\
+                                          .incorrect_by_user(request.user)\
+                                          .count()
+    skipped_questions = Question.objects.approved()\
+                                        .skipped_by_user(request.user)\
+                                        .count()
 
     # Only get exams which the user has taken
-    exams = Exam.objects.filter(session__submitter=request.user).distinct()
+    exams = Exam.objects.filter(session__submitter=request.user,
+                                session__answer__isnull=False).distinct()
 
-    context = {'correct_answers': correct_answers,
-               'incorrect_answers': incorrect_answers,
-               'skipped_answers': skipped_answers,
+    context = {'correct_questions': correct_questions,
+               'incorrect_questions': incorrect_questions,
+               'skipped_questions': skipped_questions,
                'exams': exams,
                'is_performance_active': True}
 
@@ -753,18 +761,18 @@ def show_my_performance(request):
 def show_my_performance_per_exam(request, exam_pk):
     user_exams = Exam.objects.filter(session__submitter=request.user).distinct()
     exam = get_object_or_404(user_exams, pk=exam_pk)
-    correct_answers =  utils.get_user_answer_stats(target=exam,
-                                                   user=request.user,
-                                                   result='correct')
-    incorrect_answers =  utils.get_user_answer_stats(target=exam,
-                                                     user=request.user,
-                                                     result='incorrect')
-    skipped_answers =  utils.get_user_answer_stats(target=exam,
-                                                   user=request.user,
-                                                   result='correct')
-    context = {'correct_answers': correct_answers,
-               'incorrect_answers': incorrect_answers,
-               'skipped_answers': skipped_answers,
+    correct_questions =  utils.get_user_question_stats(target=exam,
+                                                       user=request.user,
+                                                       result='correct')
+    incorrect_questions =  utils.get_user_question_stats(target=exam,
+                                                         user=request.user,
+                                                         result='incorrect')
+    skipped_questions =  utils.get_user_question_stats(target=exam,
+                                                       user=request.user,
+                                                       result='correct')
+    context = {'correct_questions': correct_questions,
+               'incorrect_questions': incorrect_questions,
+               'skipped_questions': skipped_questions,
                'exam': exam,
                'is_performance_active': True}
 

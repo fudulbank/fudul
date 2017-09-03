@@ -150,9 +150,6 @@ class Exam(models.Model):
                                .per_exam(self)\
                                .filter(is_last=True, is_approved=False)
 
-    def get_user_answered_questions(self, user):
-        return Question.objects.filter(answer__session__submitter=user).distinct()
-
     def get_percentage_of_correct_submitted_answers(self):
         submitted_answers = Answer.objects.filter(session__exam=self,choice__isnull=False).count()
         if not submitted_answers == 0:

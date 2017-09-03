@@ -36,10 +36,10 @@
     {% for exam in exams %}
       <tr>
         <td><a href="{% url 'exams:show_my_performance_per_exam' exam.pk %}">{{ exam.name }}</a></td>
-        <td>{{ exam|get_user_answered_question_count:user }}</td>
-        <td>{% get_user_answer_stats exam user 'correct' %} ({% get_user_answer_stats exam user 'correct' percent=True %}%)</td>
-        <td>{% get_user_answer_stats exam user 'incorrect' %} ({% get_user_answer_stats exam user 'incorrect' percent=True %}%)</td>
-        <td>{% get_user_answer_stats exam user 'skipped' %} ({% get_user_answer_stats exam user 'skipped' percent=True %}%)</td>
+        <td>{{ exam|get_used_question_count_per_user:user }}</td>
+        <td>{% get_user_question_stats exam user 'correct' %} ({% get_user_question_stats exam user 'correct' percent=True %}%)</td>
+        <td>{% get_user_question_stats exam user 'incorrect' %} ({% get_user_question_stats exam user 'incorrect' percent=True %}%)</td>
+        <td>{% get_user_question_stats exam user 'skipped' %} ({% get_user_question_stats exam user 'skipped' percent=True %}%)</td>
       </tr>
     {% endfor %}
   </tbody>

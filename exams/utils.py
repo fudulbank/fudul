@@ -60,27 +60,43 @@ def get_user_privileged_exams(user):
 
     return exams
 
-def get_user_answer_stats(target, user, result, percent=False):
-    answer_pool = models.Answer.objects.filter(session__submitter=user)\
-                                       .distinct()
+def get_user_question_stats(target, user, result, percent=False):
+    # Target can either be an exam, subject or session.
+    #
+    # Here, two rules kick in:
+    #
+    # 1) We will display the statistics of questions rather than
+    #    answers since it's possible for the same question to have
+    #    multiple user answer (i.e. by being part of different
+    #    sessions).
+    #
+    # 2) As a general rule, we will show statistics that are in favor
+    #    of the user.  For example, if a question has one correct
+    #    answer, then the user got it (regardless of whether it has
+    #    other incorrect/skipped answers).
+    question_pool = models.Question.objects.approved()
+
     if type(target) is models.Exam:
-        answer_pool = answer_pool.filter(session__exam=target)
+        question_pool = question_pool.filter(answer__session__exam=target)
     elif type(target) is models.Subject:
-        answer_pool = answer_pool.filter(question__subjects=target)
+        question_pool = question_pool.filter(subjects=target)
     elif type(target) is models.Session:
-        answer_pool = answer_pool.filter(session=target)
+        question_pool = question_pool.filter(answer__session=target)
 
     if result == 'correct':
-        count = answer_pool.filter(choice__is_right=True).count()
+        count = question_pool.correct_by_user(user)\
+                             .count()
     elif result == 'incorrect':
-        count = answer_pool.filter(choice__is_right=False).count()
+        count = question_pool.incorrect_by_user(user)\
+                             .count()
     elif result == 'skipped':
-        count = answer_pool.filter(choice__isnull=True).count()
+        count = question_pool.skipped_by_user(user)\
+                             .count()
 
     if percent:
-        # Eror: Division by zero
-
-        total = answer_pool.count()
+        total = question_pool.count()
+        if not total:
+            return 0
         return "%.0f" % (count / total * 100)
     else:
         return count
