@@ -30,9 +30,9 @@
 			  <thead>
 			    <tr>
 			      <th class="all">Subject</th>
-			      <th class="all">Correct answers</th>
-			      <th>Incorrect answers</th>
-			      <th>Skipped answers</th>
+			      <th data-toggle="tooltip" title="Questions that were correctly answered by you at least one time." class="all">Correct</th>
+			      <th data-toggle="tooltip" title="Questions that were incorrectly answered by you and never answed correctly.">Incorrect</th>
+			      <th data-toggle="tooltip" title="Questions that were never answered by you.">Skipped</th>
 			    </tr>
 			  </thead>
 			  <tbody>
@@ -68,6 +68,7 @@
 {% include 'exams/partials/performance_chart.html' %}
 <script>
 $(function () {
+    $('[data-toggle="tooltip"]').tooltip()
     $("table.datatable").DataTable();
 });
 </script>
