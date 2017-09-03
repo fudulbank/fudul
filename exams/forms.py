@@ -75,7 +75,7 @@ class RevisionForm(forms.ModelForm):
                   'figure', 'is_approved', 'statuses','reference',
                   'change_summary','is_contribution']
         widgets = {
-            'statuses': autocomplete.ModelSelect2Multiple(),
+            'statuses': autocomplete.ModelSelect2Multiple(attrs={'data-width': '100%'}),
         }
 
 class ChoiceForms(forms.ModelForm):
@@ -124,19 +124,27 @@ class SessionForm(forms.ModelForm):
 
         self.fields['number_of_questions'].validators.append(MinValueValidator(1))
         self.fields['number_of_questions'].widget.attrs['min'] = 1
+        # This widget should be big enough to contain 5 digits.
+        self.fields['number_of_questions'].widget.attrs['style'] = 'width: 5rem;'
+        self.fields['number_of_questions'].widget.attrs['placeholder'] = ''
 
         # Limit subjects and exams per exam
-        subjects = models.Subject.objects.filter(exam=exam)
+        subjects = models.Subject.objects.filter(exam=exam)\
+                                         .with_approved_questions().distinct()
         if subjects.exists():
-            self.fields['subjects'].queryset = models.Subject.objects.filter(exam=exam)\
-                                                                     .with_approved_questions()
+            self.fields['subjects'].queryset = subjects
         else:
             del self.fields['subjects']
-        self.fields['sources'].queryset = exam.get_sources().filter(parent_source__isnull=True)\
-                                                            .with_approved_questions()
+
+        sources = exam.get_sources().filter(parent_source__isnull=True)\
+                                    .with_approved_questions().distinct()
+        if sources.exists():
+            self.fields['sources'].queryset = sources
+        else:
+            del self.fields['sources']
 
         if exam.exam_types.exists():
-            self.fields['exam_types'].queryset = exam.exam_types.with_approved_questions()
+            self.fields['exam_types'].queryset = exam.exam_types.with_approved_questions().distinct()
             self.fields['exam_types'].required = True
         else:
             del self.fields['exam_types']
@@ -195,7 +203,8 @@ class SessionForm(forms.ModelForm):
 
     class Meta:
         model = models.Session
-        fields = ['session_mode', 'number_of_questions','exam_types', 'sources','subjects','question_filter']
+        fields = ['session_mode', 'number_of_questions','exam_types',
+                  'sources', 'subjects', 'question_filter']
         widgets = {
             'exam_types': autocomplete.ModelSelect2Multiple(),
             'sources': autocomplete.ModelSelect2Multiple(),
