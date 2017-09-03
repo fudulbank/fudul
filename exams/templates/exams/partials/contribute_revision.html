@@ -1,4 +1,5 @@
 {% load bootstrap3 static exam_utils %}
+
     <div class="panel panel-flat">
      <div class="panel-body">
         <form method="post"  enctype="multipart/form-data" id="modify-revision-form" action="post">
@@ -107,6 +108,26 @@
 .select2-container--default .select2-selection--multiple .select2-selection__choice__remove{
     color: white;
 }
+#choice_formset div.checkbox label {
+display:inline-block;
+}
+#choice_formset div.checkbox label > input + span {
+    cursor: pointer;
+}
+#choice_formset div.checkbox label span {
+    float: left;
+}
+
+#choice_formset div.checkbox label > input {
+    position: absolute;
+    visibility: hidden;
+    width: 32px;
+    height: 32px;
+}
+#choice_formset div.checkbox label > input:checked + span:before {
+    content: url("{% static 'images/success(1).png' %}");
+    display:block;
+}
 </style>
 {% block customscript %}
      <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
@@ -130,6 +151,8 @@
     $('#choice_formset input[type=checkbox]').change(function(){
             $('#choice_formset input[type=checkbox]').not(this).prop('checked', false);
         });
+    $('#choice_formset div.checkbox label').append( "<span></span>" );
+
     $(function() {
         $("form#modify-revision-form").submit(function (event) {
         /* stop form from submitting normally */

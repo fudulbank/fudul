@@ -1,6 +1,9 @@
-{% extends 'base.html' %}{% load staticfiles %}
+{% extends 'base_new.html' %}{% load staticfiles %}
+
 {% block title %}Fudul | Session #{{ session.pk }} results{% endblock %}
+
 {% block head %}
+
 <style type="text/css">
 th, td{
     text-align: left;
@@ -14,37 +17,35 @@ tbody tr td:last-child{
 </style>
 {% endblock %}
 {% block breadcrumb %}
-
-					<div class="breadcrumb-line">
-						<ul class="breadcrumb">
-							<li><a href="{% url 'index' %}"><i class="icon-home2 position-left"></i> Fudul</a></li>
-                                                        <li><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
-                                                        {% for parent_category in session.exam.category.get_parent_categories %}
-							<li><a href="{% url 'exams:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
-                                                        {% endfor %}
-                                                        <li><a href="{% url 'exams:show_category' session.exam.category.get_slugs %}">{{ session.exam.category.name }}</a></li>
-                                                        <li><a href="{% url 'exams:create_session' session.exam.category.get_slugs session.exam.pk %}">{{ session.exam.name }}</a></li>
-                                                        <li class="active">Session #{{ session.pk }} results</li>
-						</ul>
-					</div>
+      <li class="breadcrumb-item"><a href="{% url 'index' %}">Fudul</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
+        {% for parent_category in session.exam.category.get_parent_categories %}
+            <li class="breadcrumb-item"><a href="{% url 'exams:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
+        {% endfor %}
+      <li class="breadcrumb-item"><a href="{% url 'exams:show_category' session.exam.category.get_slugs %}">{{ session.exam.category.name }}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:list_meta_categories' %}">{{ session.exam.name }}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:create_session' session.exam.category.get_slugs session.exam.pk %}">{{ session.exam.name }}</a></li>
+      <li class="breadcrumb-item active">Session #{{ session.pk }} results</li>
 {% endblock %}
 {% block content %}
 
 <h1>Session #<a href="{% url 'exams:show_session' session.exam.category.get_slugs session.exam.pk session.pk %}">{{ session.pk }}</a> results</h1>
 
 
-    <div class="panel panel-flat">
-    <div class="panel-heading">
-							<h5 class="panel-title">Session questions<a class="heading-elements-toggle"><i class="icon-more"></i></a></h5>
-							<div class="heading-elements">
-								<ul class="icons-list">
-			                		<li><a data-action="collapse"></a></li>
-			                		<li><a data-action="close"></a></li>
-			                	</ul>
-		                	</div>
+    <div class="card">
+    <div class="card-header">
+							<h5 class="card-title">Session questions</h5>
+                                <a class="heading-elements-toggle"><i class="icon-more"></i></a>
+{#							<div class="heading-elements">#}
+{#								<ul class="icons-list">#}
+{#			                		<li><a data-action="collapse"></a></li>#}
+{#			                		<li><a data-action="close"></a></li>#}
+{#			                	</ul>#}
+{#		                	</div>#}
 						</div>
-        <div class="panel-body">
-        <table class="display datatable dt-responsive">
+        <div class="card-body">
+        <div class="card-block">
+        <table  style="width: 100%" class="table table-striped table-bordered datatable dt-responsive">
           <thead>
               <tr>
                 <th></th>
@@ -57,7 +58,7 @@ tbody tr td:last-child{
           <tbody>
           {% for answer in session.answer_set.all %}
             <tr>
-              {% if not answer.choice %}<td data-order="skipped"><i title="Skipped" class="icon-question4 text-orange-400"></i>{% elif answer.choice.is_right %}<td data-order="correct"><i title="Correct" class="icon-plus-circle2 text-success-400"></i>{% elif not answer.choice.is_right %}<td title="Incorrect" data-order="incorrect"><i class="icon-cancel-circle2 text-danger-400"></i>{% endif %}</td>
+              {% if not answer.choice %}<td data-order="skipped"><i title="Skipped" style="color: orange" class="fa fa-question-circle"></i>{% elif answer.choice.is_right %}<td data-order="correct"><i title="Correct" style="color: green"  class="fa fa-plus-circle "></i>{% elif not answer.choice.is_right %}<td title="Incorrect" data-order="incorrect"><i style="color: red" class="fa fa-times-circle"></i>{% endif %}</td>
               <td><a href="{% url 'exams:show_session' session.exam.category.get_slugs session.exam.pk session.pk answer.question.pk %}">{{ answer.question.pk }}</a></td>
               <td>{{ answer.question.get_latest_approved_revision.text|linebreaks|truncatewords:20 }}</td>
               <td>
@@ -68,6 +69,7 @@ tbody tr td:last-child{
           {% endfor %}
           </tbody>
         </table>
+        </div>
         </div>
     </div>
 {% endblock %}

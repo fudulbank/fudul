@@ -1,4 +1,4 @@
-{% load bootstrap3 %}
+{% load staticfiles bootstrap3 %}
 <style>
 .select2-container .select2-search--inline {
 	/*workaround to fix the difference in height between used and unused select2-multiple fields*/
@@ -15,7 +15,26 @@
     color: white;
     float: right;
 }
+#choice_formset div.checkbox label {
+    display:inline-block;
+}
+#choice_formset div.checkbox label > input + span {
+    cursor: pointer;
+}
+#choice_formset div.checkbox label span {
+    float: left;
+}
 
+#choice_formset div.checkbox label > input {
+    position: absolute;
+    visibility: hidden;
+    width: 32px;
+    height: 32px;
+}
+#choice_formset div.checkbox label > input:checked + span:before {
+    content: url("{% static 'images/success(1).png' %}");
+    display:block;
+}
 </style>
         {% bootstrap_form_errors questionform %}
 <form method="post" data-exam_pk='{{ exam.pk }}' enctype="multipart/form-data" id="add-question-form">

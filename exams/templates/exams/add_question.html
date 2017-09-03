@@ -20,32 +20,7 @@
 {% endblock %}
 
 {% block content %}
-<style>
-{#*{#}
-{#    margin:0;#}
-{#    padding:0;#}
-{# }#}
-#choice_formset div.checkbox label {
-    display:inline-block;
-}
-#choice_formset div.checkbox label > input + span {
-    cursor: pointer;
-}
-#choice_formset div.checkbox label span {
-    float: left;
-}
 
-#choice_formset div.checkbox label > input {
-    position: absolute;
-    visibility: hidden;
-    width: 32px;
-    height: 32px;
-}
-#choice_formset div.checkbox label > input:checked + span:before {
-    content: url("{% static 'images/success(1).png' %}");
-    display:block;
-}
-</style>
 <div class="row">
    <div class="col-md-8">
 {% if not exam.category|is_editor:user %}
@@ -146,7 +121,6 @@
             deleteCssClass: 'delete-row btn btn-xs btn-danger',
         });
         $('#choice_formset div.checkbox label').append( "<span></span>" );
-
     </script>
 
 {% with category_pk=exam.category.pk  parent_category_pk=exam.category.parent_category.pk %}
