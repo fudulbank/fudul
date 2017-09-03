@@ -18,7 +18,7 @@
 		<div class="card-block">
 <h1>My performance</h1>
 <h2>Overall performance</h2>
-<div class="chart-container" style="height: 300px; width: 400px; max-width: 100%;">
+<div class="chart-container mb-2" style="height: 300px; width: 400px; max-width: 100%;">
     <canvas id="performance-chart">
 </div>
 <h2>Performance per exam</h2>
@@ -60,7 +60,7 @@
 <script>
 $(function () {
     $('[data-toggle="tooltip"]').tooltip()
-    $("table.datatable").DataTable();
+    $("table.datatable").DataTable({paging: false, info: false});
 });
 </script>
 
