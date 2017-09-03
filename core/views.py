@@ -7,14 +7,24 @@ import math
 
 from . import utils
 from .models import CoreMember
-from exams.models import Answer, Question, Session
 from exams import models as exams_models
 import accounts.utils
-
+import teams.utils
 
 def show_index(request):
     if request.user.is_authenticated():
-        return render(request, 'index.html')
+        latest_sessions = exams_models.Session.objects.filter(submitter=request.user)\
+                                                      .with_approved_questions()\
+                                                      .order_by('-pk')[:8]
+        context = {'latest_sessions': latest_sessions}
+        if teams.utils.is_editor(request.user):
+            revision_pool = exams_models.Revision.objects.undeleted()\
+                                                         .filter(submitter=request.user)
+            added_question_count = revision_pool.filter(is_first=True).count()
+            context['added_question_count'] = added_question_count
+            edited_question_count = revision_pool.exclude(is_first=True).count()
+            context['edited_question_count'] = edited_question_count
+        return render(request, 'index.html', context)
     else:
         question_count = exams_models.Question.objects.undeleted().count()
         answer_count = exams_models.Answer.objects.count()

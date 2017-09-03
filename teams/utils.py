@@ -5,7 +5,8 @@ def is_editor(user):
         return False
 
     if user.is_superuser or \
-       user.team_memberships.exists():
+       user.team_memberships.exclude(categories__isnull=True)\
+                            .exists():
         return True
     else:
         return False
