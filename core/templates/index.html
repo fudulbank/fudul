@@ -10,6 +10,10 @@
 .tooltip ul{
   text-align: left;
 }
+
+#intro a{
+	color: inherit;
+}
 </style>
 {% endblock %}
 
@@ -18,6 +22,38 @@
 {% endblock %}
 
 {% block content %}
+
+
+<div id="intro" class="card">
+	<div class="card-body">
+		<div class="card-block">
+			<p>Fudul is the comprehensive, collective, free-of-charge <strong>question bank</strong> built by and for examiners.</p>
+		</div>
+		<div class="row">
+			<div class="col-xs-12 col-sm-6">
+				<div class="card height-150 text-xs-center">
+					<div class="card-body">
+						<i class="font-large-3 ft-list"></i>
+						<div class="card-block">
+							<h4 class="card-title"><a href="{% url 'exams:list_meta_categories' %}">Explore exams</a></h4>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xs-12 col-sm-6">
+				<div class="card height-150 text-xs-center">
+					<div class="card-body">
+						<i class="font-large-3 ft-bar-chart-2"></i>
+						<div class="card-block">
+							<h4 class="card-title"><a href="{% url 'exams:show_my_performance' %}">Performance</a></h4>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
 
 <div class="row">
 
