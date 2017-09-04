@@ -1,4 +1,4 @@
-{% extends 'base.html' %}{% load staticfiles %}
+{% extends 'base_new.html' %}{% load staticfiles %}
 {% block title %}Fudul | Search for {{ query }}{% endblock %}
 {% block head %}
 <style type="text/css">
@@ -65,8 +65,9 @@ a:hover {
     <p>Found <strong>{{ revisions|length }}</strong> questions{{ revisions|pluralize }}.</p>
 
 {% for revision in revisions %}
-    <div class="panel panel-flat">
-   <div class="panel-body">
+    <div class="card">
+   <div class="card-body">
+   <div class="card-block">
     {% if revision.figure %}
        <img class="img-responsive center-block" src="{{ revision.figure.url }}">
     {% endif %}
@@ -80,6 +81,7 @@ a:hover {
     {% if revision.explanation %}<b>Explanation:</b><br>{{ revision.explanation| urlize }} {% endif %}
     {% if revision.reference %}<br><b>Reference:</b><br>{{ revision.reference| urlize }} {% endif %}
   </div>
+   </div>
 </div>
     {% endfor %}
 {% else %}
