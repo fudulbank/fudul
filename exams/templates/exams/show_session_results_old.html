@@ -1,89 +1,131 @@
 {% extends 'base.html' %}{% load staticfiles %}
-{% block title %}Fudul | Session #{{ session.pk }} results{% endblock %}
+{% block title %}Fudul | Search for {{ query }}{% endblock %}
 {% block head %}
 <style type="text/css">
-th, td{
-    text-align: left;
+.img-responsive {
+    padding: 0;
+    max-width: 100%;
+    max-height: 100%;
+    width: 100%;
+    height: 100%;
+    margin-right: 20%;
 }
-tbody tr td{
-    cursor:pointer;
+li.is-right{
+    font-weight: 800;
 }
-tbody tr td:last-child{
-    cursor:initial;
+p.question-text{
+    font-size: medium;
+    font-weight: 800;
 }
+p.question-info{
+    font-weight: bolder;
+}
+#content div {
+    display:none;}
+
+.totop {
+    position: fixed;
+    bottom: 10px;
+    left: 20px;
+}
+.totop a {
+    display: none;
+}
+a, a:visited {
+    color: #33739E;
+    text-decoration: none;
+    display: block;
+    margin: 10px 0;
+}
+.highlight{
+    background-color: yellow;
+}
+a:hover {
+    text-decoration: none;
+}
+#loadMore {
+    font-weight: bolder;
+}
+#loadMore:hover {
+    background-color: #fff;
+    color: #33739E;
+}
+
 </style>
 {% endblock %}
 {% block breadcrumb %}
 
-					<div class="breadcrumb-line">
-						<ul class="breadcrumb">
-							<li><a href="{% url 'index' %}"><i class="icon-home2 position-left"></i> Fudul</a></li>
-                                                        <li><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
-                                                        {% for parent_category in session.exam.category.get_parent_categories %}
-							<li><a href="{% url 'exams:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
-                                                        {% endfor %}
-                                                        <li><a href="{% url 'exams:show_category' session.exam.category.get_slugs %}">{{ session.exam.category.name }}</a></li>
-                                                        <li><a href="{% url 'exams:create_session' session.exam.category.get_slugs session.exam.pk %}">{{ session.exam.name }}</a></li>
-                                                        <li class="active">Session #{{ session.pk }} results</li>
-						</ul>
-					</div>
 {% endblock %}
 {% block content %}
+<div id="content">
 
-<h1>Session #<a href="{% url 'exams:show_session' session.exam.category.get_slugs session.exam.pk session.pk %}">{{ session.pk }}</a> results</h1>
+    <p>You searched for: <strong>{{ query }}</strong></p>
 
+{% if revisions %}
+    <p>Found <strong>{{ revisions|length }}</strong> questions{{ revisions|pluralize }}.</p>
 
+{% for revision in revisions %}
     <div class="panel panel-flat">
-    <div class="panel-heading">
-							<h5 class="panel-title">Session questions<a class="heading-elements-toggle"><i class="icon-more"></i></a></h5>
-							<div class="heading-elements">
-								<ul class="icons-list">
-			                		<li><a data-action="collapse"></a></li>
-			                		<li><a data-action="close"></a></li>
-			                	</ul>
-		                	</div>
-						</div>
-        <div class="panel-body">
-        <table class="display datatable dt-responsive">
-          <thead>
-              <tr>
-                <th></th>
-                <th>ID</th>
-                <th>Text</th>
-                <th>Subjects</th>
-                <th>Correct others (%)</th>
-              </tr>
-          </thead>
-          <tbody>
-          {% for answer in session.answer_set.all %}
-            <tr>
-              {% if not answer.choice %}<td data-order="skipped"><i title="Skipped" class="icon-question4 text-orange-400"></i>{% elif answer.choice.is_right %}<td data-order="correct"><i title="Correct" class="icon-plus-circle2 text-success-400"></i>{% elif not answer.choice.is_right %}<td title="Incorrect" data-order="incorrect"><i class="icon-cancel-circle2 text-danger-400"></i>{% endif %}</td>
-              <td><a href="{% url 'exams:show_session' session.exam.category.get_slugs session.exam.pk session.pk answer.question.pk %}">{{ answer.question.pk }}</a></td>
-              <td>{{ answer.question.get_latest_approved_revision.text|linebreaks|truncatewords:20 }}</td>
-              <td>
-                 <ul>{% for subject in answer.question.subjects.all %}<li>{{ subject.name }}</li>{% endfor %}</ul>
-              </td>
-              <td>{{ answer.question.get_correct_others }}%</td>
-            </tr>
-          {% endfor %}
-          </tbody>
-        </table>
-        </div>
-    </div>
+   <div class="panel-body">
+    {% if revision.figure %}
+       <img class="img-responsive center-block" src="{{ revision.figure.url }}">
+    {% endif %}
+    <p class="question-info">Q#{{ revision.question.pk }} - {{ revision.question.subjects.first.exam.name }}</p>
+    <p class="question-text">{{ revision.text|linebreaksbr }}</p>
+    <ol type="A">
+     {% for choice in revision.choice_set.order_by_alphabet %}
+       <li {% if choice.is_right %}class="is-right text-success-800"{% endif %}>{{ choice.text|linebreaksbr }}</li>
+     {% endfor %}
+    </ol>
+    {% if revision.explanation %}<b>Explanation:</b><br>{{ revision.explanation| urlize }} {% endif %}
+    {% if revision.reference %}<br><b>Reference:</b><br>{{ revision.reference| urlize }} {% endif %}
+  </div>
+</div>
+    {% endfor %}
+{% else %}
+<p>No Revision matched your search criteria.</p>
+
+{% endif %}
+</div>
+    <a class="btn bg-primary btn-block btn-lg" id="loadMore">Load More</a>
+    <p class="totop">
+    <a href="#top"><i class=" icon-arrow-up7"></i> Back to top</a>
+</p>
 {% endblock %}
 {% block customscript %}
-	<link rel="stylesheet" href="{% static 'css/jquery.dataTables.min.css' %}">
-	<link rel="stylesheet" href="{% static 'js/datatables/responsive/css/responsive.dataTables.min.css' %}">
-	<script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
-  <script src="{% static 'js/datatables/responsive/js/dataTables.responsive.min.js' %}"></script>
-<script>
+    <script type="text/javascript">
     $(function () {
-        $("table.datatable").DataTable({
-            "columnDefs": [
-            { "orderable": false, "targets": 2 }
-          ],
-            "order": [[ 1, "asc" ]]
+        $("#content div").slice(0, 8).show();
+            $("#loadMore").on('click', function (e) {
+            e.preventDefault();
+            $("#content div:hidden").slice(0, 4).slideDown();
+            if ($("#content div:hidden").length == 0) {
+                $("#loadMore").fadeOut('slow');
+            }
+            $('html,body').animate({
+                scrollTop: $(this).offset().top
+            }, 1500);
         });
     });
-</script>
+
+    $('a[href=#top]').click(function () {
+        $('body,html').animate({
+            scrollTop: 0
+        }, 600);
+        return false;
+    });
+
+    $(window).scroll(function () {
+        if ($(this).scrollTop() > 50) {
+            $('.totop a').fadeIn();
+        } else {
+            $('.totop a').fadeOut();
+        }
+    });
+
+
+
+
+
+    </script>
 {% endblock %}
