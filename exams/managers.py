@@ -136,7 +136,8 @@ class SourceQuerySet(MetaInformationQuerySet):
 class CategoryQuerySet(models.QuerySet):
     def meta(self):
         return self.filter(Q(exams__isnull=False) | Q(children__isnull=False),
-                           parent_category__isnull=True)
+                           parent_category__isnull=True)\
+                   .distinct()
 
     def get_from_slugs(self, slugs):
         slug_list = [slug for slug in slugs.split('/') if slug]
