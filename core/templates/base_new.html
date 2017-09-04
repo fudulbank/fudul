@@ -172,12 +172,12 @@
               </li>
               -->
               <li class="nav-item hidden-sm-down"><a href="#" class="nav-link nav-link-expand"><i class="ficon ft-maximize"></i></a></li>
-              <li class="nav-item nav-search"><a href="#" class="nav-link nav-link-search"><i class="ficon ft-search"></i></a>
-                <div class="search-input">
-                  <form type="get" action="{% url 'exams:search' %}" accept-charset="utf-8">
-                    <input  type="search" id="q" name="q"  type="text" placeholder="Search by ID or Text" class="input">
-                  </form>
-                </div>
+{#              <li class="nav-item nav-search"><a href="#" class="nav-link nav-link-search"><i class="ficon ft-search"></i></a>#}
+{#                <div class="search-input">#}
+{#                  <form type="get" action="{% url 'exams:search' %}" accept-charset="utf-8">#}
+{#                    <input  type="search" id="q" name="q"  type="text" placeholder="Search by ID or Text" class="input">#}
+{#                  </form>#}
+{#                </div>#}
               </li>
             </ul>
             <ul class="nav navbar-nav float-xs-right">
@@ -283,7 +283,7 @@
 
           <li class="{% if is_previous_active %}active {% endif %}nav-item"><a href="{% url 'exams:list_previous_sessions' %}"><i class="ft-edit"></i><span data-i18n="" class="menu-title">Previous sessions</span><span class="tag tag tag-primary tag-pill float-xs-right mr-2">{{ user_session_count }}</span></a></li>
           <li class="{% if is_performance_active %}active {% endif %}nav-item"><a href="{% url 'exams:show_my_performance' %}"><i class="ft-bar-chart-2"></i><span data-i18n="" class="menu-title">Performance</span></a></li>
-          <li class="{% if is_search_active %}active {% endif %}nav-item"><a href="{% url 'exams:search' %}"><i class="ft-search"></i><span data-i18n="" class="menu-title">Search</span></a></li>
+{#          <li class="{% if is_search_active %}active {% endif %}nav-item"><a href="{% url 'exams:search' %}"><i class="ft-search"></i><span data-i18n="" class="menu-title">Search</span></a></li>#}
 
 
 
