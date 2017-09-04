@@ -10,10 +10,12 @@ from django.views.decorators import csrf
 from htmlmin.decorators import minified_response
 
 from core import decorators
-from .models import Exam, Question, Category, Revision, Session, Choice, Answer
+from .models import Exam, Question, Category, Revision, Session, Choice, Answer, Status
 from . import forms, utils
 import teams.utils
-
+from django.views.decorators.http import require_http_methods
+from django.db.models import Q
+# from reversion.helpers import genericpath
 
 @login_required
 def list_meta_categories(request, indicators=False):
@@ -25,10 +27,12 @@ def list_meta_categories(request, indicators=False):
     else:
         show_category_url = 'exams:show_category'
 
-    subcategories = Category.objects.filter(parent_category__isnull=True).user_accessible(request.user)
-    context = {"subcategories": subcategories,
+    subcategories = Category.objects.meta().user_accessible(request.user)
+    context = {'subcategories': subcategories,
                'show_category_url': show_category_url,
-               'indicators': indicators}
+               'is_indicators_active': indicators,
+               'is_browse_active': not indicators,
+    }
     return render(request, 'exams/show_category.html', context)
 
 
@@ -38,31 +42,43 @@ def show_category(request, slugs, indicators=False):
     if not category:
         raise Http404
 
-    if indicators:
-        show_category_url = 'exams:show_category_indicators'
-        exams = None
-    else:
-        show_category_url = 'exams:show_category'
-        exams = Exam.objects.filter(category=category)
+    context = {'category': category,
+               'is_indicators_active': indicators}
 
     # PERMISSION CHECK
-    if not category.can_user_access(request.user):
+    if not category.can_user_access(request.user) or\
+       indicators and not teams.utils.is_editor(request.user):
         raise PermissionDenied
     subcategories = category.children.user_accessible(request.user)
+
+    if indicators:
+        show_category_url = 'exams:show_category_indicators'
+        if subcategories.count() == 0:
+            return show_category_indicators(request, category)
+    else:
+        show_category_url = 'exams:show_category'
+        # To make sidebar 'active'
+        context['is_browse_active'] = True
+
+        # If user can edit, show them all the exams.  Otherwise, only
+        # show them exams with approved questions.
+        if category.is_user_editor(request.user):
+            exams = category.exams.all()
+        else:
+            exams = category.exams.with_approved_questions()
+
+        context['exams'] = exams
 
     # If this category has one child, just go to it!
     if subcategories.count() == 1:
         subcategory = subcategories.first()
         return HttpResponseRedirect(reverse(show_category_url,
                                             args=(subcategory.get_slugs(),)))
-    elif subcategories.count() == 0 and indicators:
-        return show_category_indicators(request, category)
 
-    context = {'category': category,
-               'show_category_url': show_category_url,
-               'exams': exams,
-               'subcategories': subcategories.order_by('name'),
-               'indicators': indicators}
+    context.update({
+        'show_category_url': show_category_url,
+        'subcategories': subcategories.order_by('name'),
+    })
 
     return render(request, "exams/show_category.html", context)
 
@@ -79,12 +95,14 @@ def add_question(request, slugs, pk):
     # if not exam.can_user_edit(request.user):
     #     raise PermissionDenied
     editor = exam.can_user_edit(request.user)
-    instance = Question(exam=exam) 
+    instance = Question(exam=exam)
     context = {'exam': exam,
                'questionform': forms.QuestionForm(instance=instance),
                'revisionform': forms.RevisionForm(),
                'revisionchoiceformset': forms.RevisionChoiceFormset(),
-               'editor':editor}
+               'editor':editor,
+               'is_browse_active': True, # To make sidebar 'active'
+    }
 
     return render(request, "exams/add_question.html", context)
 
@@ -141,6 +159,8 @@ def handle_question(request, exam_pk,question_pk=None):
         revisionform = forms.RevisionForm(request.POST,
                                           request.FILES,
                                           instance=instance)
+        revisionchoiceformset = forms.RevisionChoiceFormset(request.POST,
+                                                            instance=instance,)
     else:
         question_instance = Question(exam=exam)
         questionform = forms.QuestionForm(request.POST,
@@ -150,7 +170,7 @@ def handle_question(request, exam_pk,question_pk=None):
         revisionform = forms.RevisionForm(request.POST,
                                           request.FILES,
                                           instance=revision_instance)
-    revisionchoiceformset = forms.RevisionChoiceFormset(request.POST)
+        revisionchoiceformset = forms.RevisionChoiceFormset(request.POST)
 
     if questionform.is_valid() and revisionform.is_valid() and revisionchoiceformset.is_valid():
         question = questionform.save()
@@ -161,14 +181,16 @@ def handle_question(request, exam_pk,question_pk=None):
 
         revision.is_approved = utils.test_revision_approval(revision)
 
+        revision.save()
+
         if teams.utils.is_editor(request.user):
             revision.is_contribution = False
         else:
             revision.is_contribution = True
 
         revision.save()
-
         revisionchoiceformset.instance = revision
+
         revisionchoiceformset.save()
 
         template = get_template('exams/partials/exam_stats.html')
@@ -191,7 +213,7 @@ def handle_question(request, exam_pk,question_pk=None):
 
 
 @login_required
-def list_questions(request, slugs, pk):
+def list_questions(request, slugs, pk, selector=None):
     category = Category.objects.get_from_slugs(slugs)
     if not category:
         raise Http404
@@ -202,9 +224,37 @@ def list_questions(request, slugs, pk):
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
 
-    context = {'exam': exam}
-    return render(request, 'exams/list_questions.html', context)
+    context = {'exam': exam,
+               'is_browse_active': True}
 
+    if selector:
+        try:
+            status_pk = int(selector)
+        except ValueError:
+            if selector == 'no_answer':
+                questions = exam.question_set.unsolved()
+                context['list_name'] = "no right answers"
+            elif selector == 'approved':
+                latest_revision_pks = exam.get_approved_latest_revisions()\
+                                          .values_list('question__pk', flat=True)
+                questions = Question.objects.filter(pk__in=latest_revision_pks)
+                context['list_name'] = "approved latesting revision"                
+            elif selector == 'pending':
+                latest_revision_pks = exam.get_pending_latest_revisions()\
+                                          .values_list('question__pk', flat=True)
+                questions = Question.objects.filter(pk__in=latest_revision_pks)
+                context['list_name'] = "pending latesting revision"
+        else:
+            status = get_object_or_404(Status, pk=status_pk)
+            context['list_name'] = status.name
+            questions = exam.question_set.undeleted()\
+                                         .filter(statuses=status)
+
+        context['questions'] = questions
+        return render(request, 'exams/list_questions_by_selector.html', context)
+    else:
+        context['statuses'] = Status.objects.all()
+        return render(request, 'exams/list_questions_index.html', context)
 
 @login_required
 @decorators.ajax_only
@@ -224,7 +274,6 @@ def show_question(request, pk, revision_pk=None):
     context = {'revision': revision}
     return render(request, 'exams/partials/show_question.html', context)
 
-
 @login_required
 def list_revisions(request, slugs, exam_pk, pk):
     category = Category.objects.get_from_slugs(slugs)
@@ -239,6 +288,7 @@ def list_revisions(request, slugs, exam_pk, pk):
     question = get_object_or_404(Question, pk=pk,
                                  is_deleted=False)
     context = {'question': question,
+               'is_browse_active': True,
                'exam': exam}
     return render(request, 'exams/list_revisions.html', context)
 
@@ -286,41 +336,40 @@ def submit_revision(request, slugs, exam_pk, pk):
 
     return render(request, 'exams/submit_revision.html', context)
 
-
-@login_required
-def list_question_per_status(request, slugs, exam_pk):
-    category = Category.objects.get_from_slugs(slugs)
-    if not category:
-        raise Http404
-
-    exam = get_object_or_404(Exam, pk=exam_pk)
-    question_pool = Question.objects.undeleted().filter(exam=exam).distinct()
-    writing_error = question_pool.filter(statuses__code_name='WRITING_ERROR')
-    unsloved = question_pool.filter(statuses__code_name='UNSOLVED')
-    incomplete_answer = question_pool.filter(statuses__code_name='INCOMPLETE_ANSWERS')
-    incomplete_question = question_pool.filter(statuses__code_name='INCOMPLETE_QUESTION')
-    context = {'writing_error': writing_error, 'unsloved': unsloved, 'incomplete_answer': incomplete_answer,
-               'incomplete_question': incomplete_question, 'exam': exam}
-    return render(request, 'exams/list_question_per_status.html', context)
-
-
 @login_required
 def create_session(request, slugs, exam_pk):
-
     category = Category.objects.get_from_slugs(slugs)
     if not category:
         raise Http404
-
     exam = get_object_or_404(Exam, pk=exam_pk, category=category)
-    #TODO: filter by most recent
-    sessions = Session.objects.filter(submitter= request.user)[:5]
+
+    # PERMISSION CHECK
+    if not category.can_user_access(request.user):
+        raise PermissionDenied
+
+    # If the exam has no approved questions, it doesn't exist for
+    # users.
+    if not exam.can_user_edit(request.user) and \
+       not exam.question_set.approved().exists():
+        raise Http404
+
+    latest_sessions = exam.session_set.with_approved_questions()\
+                                      .filter(submitter=request.user)\
+                                      .order_by('-pk')[:10]
 
     question_count = exam.question_set.approved().count()
     editor = teams.utils.is_editor(request.user)
     context = {'exam': exam,
                'question_count': question_count,
                'editor':editor,
-               'sessions':sessions}
+               'latest_sessions': latest_sessions,
+               'is_browse_active': True, # To make sidebar 'active'
+    }
+
+    if 'alert' in request.COOKIES.keys():
+        alert = request.COOKIES['alert']
+        context['alert'] = alert
+        del request.COOKIES['alert']
 
     if request.method == 'GET':
         sessionform = forms.SessionForm(exam=exam)
@@ -331,8 +380,15 @@ def create_session(request, slugs, exam_pk):
         if sessionform.is_valid():
             # Question allocation happens in SessionForm.save()
             session = sessionform.save()
-            return HttpResponseRedirect(reverse("exams:show_session",
-                                                args=(session.exam.category.get_slugs(),session.exam.pk,session.pk)))
+            if session.questions.count() < 1:
+                response = HttpResponseRedirect(reverse("exams:create_session",
+                                                    args=(
+                                                    session.exam.category.get_slugs(), session.exam.pk)))
+                response.set_cookie("alert", "Sorry, we don't have enough questions for your specific request, please try other options.",max_age=3)
+                return response
+            else:
+                return HttpResponseRedirect(reverse("exams:show_session",
+                                                    args=(session.exam.category.get_slugs(),session.exam.pk,session.pk)))
     context['sessionform'] = sessionform
 
     return render(request, "exams/create_session.html", context)
@@ -355,7 +411,7 @@ def list_session_questions(request):
 @login_required
 def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     category = Category.objects.get_from_slugs(slugs)
-    session = get_object_or_404(Session, pk=session_pk)
+    session = get_object_or_404(Session.objects.with_approved_questions(), pk=session_pk)
 
     if not category:
         raise Http404
@@ -385,7 +441,7 @@ def show_session_results(request, slugs, exam_pk, session_pk):
         raise Http404
 
     if not session.has_finished():
-        answers = [] 
+        answers = []
         for question in session.get_unused_questions():
             answer = Answer(session=session, question=question)
             answers.append(answer)
@@ -478,51 +534,26 @@ def submit_answer(request):
             'right_choice_pk': right_choice_pk,
             'explanation': explanation}
 
-def show_pevious_sessions(request):
+@login_required
+def list_previous_sessions(request):
+    sessions = Session.objects.filter(submitter=request.user)\
+                              .with_approved_questions()
 
-    sessions= Session.objects.filter(submitter= request.user)
+    context = {'sessions':sessions,
+               'is_previous_active': True}
 
-    return render(request, 'exams/show_previous_sessions.html',{'sesstions':sessions})
+    return render(request, 'exams/list_previous_sessions.html',
+                  context)
 
-
-class SubjectQuestionCount(autocomplete.Select2QuerySetView):
-    def get_queryset(self):
-        exam_pk = self.forwarded.get('exam_pk')
-        exam = Exam.objects.get(pk=exam_pk)
-
-        # Make sure we only show subjects that actually have approved
-        # questions
-        qs = exam.subject_set.with_approved_questions()
-
-        if self.q:
-            qs = qs.filter(pk=self.q)
-        return qs
-
-    def get_result_label(self, item):
-        return "<strong>{}</strong> ({})".format(item.name, item.question_set.approved().count())
-
-class ExamTypeQuestionCount(autocomplete.Select2QuerySetView):
-    def get_queryset(self):
-        exam_pk = self.forwarded.get('exam_pk')
-        exam = Exam.objects.get(pk=exam_pk)
-
-        # Make sure we only show exam types that actually have
-        # approved questions
-        qs = exam.exam_types.with_approved_questions()
-
-        if self.q:
-            qs = qs.filter(pk=self.q)
-        return qs
-
-    def get_result_label(self, item):
-        return "<strong>{}</strong> ({})".format(item.name, item.question_set.approved().count())
 
 
 def show_category_indicators(request, category):
-    if not request.user.is_superuser:
+    # PERMISSION CHECK
+    if not teams.utils.is_editor(request.user):
         raise PermissionDenied
 
-    context = {'category': category}
+    context = {'category': category,
+               'is_indicators_active': True}
     return render(request, 'exams/show_category_indicators.html', context)
 
 @login_required
@@ -558,13 +589,13 @@ def contribute_revision(request):
 
     if request.method == 'GET':
         revisionform = forms.RevisionForm(instance=latest_revision)
-        revisionchoiceformset = forms.RevisionChoiceFormset(instance=latest_revision)
+        revisionchoiceformset = forms.ContributedRevisionChoiceFormset(instance=latest_revision)
     elif request.method == 'POST':
         revisionform = forms.RevisionForm(request.POST,
                                           request.FILES,
                                           instance=latest_revision)
 
-        revisionchoiceformset = forms.RevisionChoiceFormset(request.POST,
+        revisionchoiceformset = forms.ContributedRevisionChoiceFormset(request.POST,
                                                             instance=latest_revision)
         if revisionform.is_valid() and revisionchoiceformset.is_valid():
             new_revision = revisionform.clone(question,request.user)
@@ -590,7 +621,7 @@ def approve_user_contributions(request,slugs,exam_pk):
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
     pks = utils.get_contributed_questions(exam).values_list('pk', flat=True)
-    revisions = Revision.objects.per_exam(exam).filter(is_contribution =True,is_deleted=False,is_approved=False).exclude(question__pk__in=pks)
+    revisions = Revision.objects.per_exam(exam).filter(is_contribution=True,is_deleted=False,is_approved=False).exclude(question__pk__in=pks)
     contributed_questions = utils.get_contributed_questions(exam)
     number_of_contributions = Revision.objects.filter(submitter=request.user).count()
 
@@ -656,6 +687,7 @@ def mark_revision_approved(request, pk):
         raise Exception("You change the approval status.")
 
     revision.is_approved = True
+    revision.approved_by= request.user
     revision.save()
 
 @csrf.csrf_exempt
@@ -670,6 +702,7 @@ def mark_revision_pending(request, pk):
         raise Exception("You change the approval status.")
 
     revision.is_approved = False
+    revision.approved_by= request.user
     revision.save()
 
 
@@ -697,3 +730,88 @@ def approve_question(request, slugs, exam_pk,pk):
 
     return render(request, "exams/add_question.html", context)
 
+@login_required
+def show_my_performance(request):
+    total_questions = Question.objects.approved()\
+                                      .used_by_user(request.user)\
+                                      .count()
+    correct_questions = Question.objects.approved()\
+                                        .correct_by_user(request.user)\
+                                        .count()
+    incorrect_questions = Question.objects.approved()\
+                                          .incorrect_by_user(request.user)\
+                                          .count()
+    skipped_questions = Question.objects.approved()\
+                                        .skipped_by_user(request.user)\
+                                        .count()
+
+    # Only get exams which the user has taken
+    exams = Exam.objects.filter(session__submitter=request.user,
+                                session__answer__isnull=False).distinct()
+
+    context = {'correct_questions': correct_questions,
+               'incorrect_questions': incorrect_questions,
+               'skipped_questions': skipped_questions,
+               'exams': exams,
+               'is_performance_active': True}
+
+    return render(request, "exams/show_my_performance.html", context)
+
+@login_required
+def show_my_performance_per_exam(request, exam_pk):
+    user_exams = Exam.objects.filter(session__submitter=request.user).distinct()
+    exam = get_object_or_404(user_exams, pk=exam_pk)
+    correct_questions =  utils.get_user_question_stats(target=exam,
+                                                       user=request.user,
+                                                       result='correct')
+    incorrect_questions =  utils.get_user_question_stats(target=exam,
+                                                         user=request.user,
+                                                         result='incorrect')
+    skipped_questions =  utils.get_user_question_stats(target=exam,
+                                                       user=request.user,
+                                                       result='correct')
+    context = {'correct_questions': correct_questions,
+               'incorrect_questions': incorrect_questions,
+               'skipped_questions': skipped_questions,
+               'exam': exam,
+               'is_performance_active': True}
+
+    return render(request, "exams/show_my_performance_per_exam.html", context)
+
+@login_required
+def show_credits(request,pk):
+    exam = get_object_or_404(Exam, pk=pk)
+    return render(request, 'exams/partials/show_credits.html',{'exam':exam})
+
+
+@login_required
+def list_contributions(request,user_pk=None):
+    if user_pk:
+        user = get_object_or_404(User,pk=user_pk)
+    else:
+        user = request.user
+
+    revisions = Revision.objects.filter(submitter=user)
+    exams = Exam.objects.all()
+
+    return render(request, 'exams/list_contributions.html',{'revisions':revisions,'exams':exams})
+
+
+@require_http_methods(['GET'])
+def search(request):
+    q = request.GET.get('q')
+    #TODO:try to add choices to search
+    #what about questions that the user isnt allowed to see
+    if q:
+        revisions = Revision.objects.filter(is_last=True, is_approved=True).filter(Q(question__pk__icontains=q)| Q(text__icontains=q))
+        return render(request, 'exams/search_results.html', {'revisions': revisions, 'query': q})
+    return HttpResponse('Please submit a search term.')
+
+
+# qs = User.objects.filter(is_active=True)
+#
+# if self.q:
+#     search_fields = [field.replace('user__', '') for field in utils.BASIC_SEARCH_FIELDS]
+#     qs = utils.get_search_queryset(qs, search_fields, self.q)
+#
+# return qs

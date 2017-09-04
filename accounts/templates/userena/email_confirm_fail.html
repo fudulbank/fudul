@@ -1,10 +1,12 @@
-{% extends 'userena/base_userena.html' %}{% load i18n %}
-{% block title %}{% trans "Email verification failed." %}{% endblock %}
+{% extends 'userena/base_userena.html' %}
+{% block title %}Email verification failed{% endblock %}
+{% block subtitle %}Your email could not be verified...{% endblock %}
+
 {% block content %}
-<div class="text-center">
-	<div class="icon-object border-success text-success"><i class="icon-alert"></i></div>
-	<h5 class="content-group">{% trans "Your email could not be verified..." %}</h5>
-  <p>{% trans "Your email could not be verified..." %}</p>
-  <p>{% trans "You could try changing it again in your account settings." %}</p>
+<div class="card-body collapse in">
+    <div class="card-block text-center">
+		  <p>Your email could not be verified...</p>
+		  <p>You could try changing it again in your account settings.</p>
+    </div>
 </div>
 {% endblock %}

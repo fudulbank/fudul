@@ -1,23 +1,17 @@
 {% load bootstrap3 static exam_utils %}
+
     <div class="panel panel-flat">
      <div class="panel-body">
         <form method="post"  enctype="multipart/form-data" id="modify-revision-form" action="post">
 	    {% csrf_token %}
-    <div class="row">
 
         {% bootstrap_form_errors revisionform %}
         <div style="display: none">
         {% bootstrap_field revisionform.statuses %}
-    </div>
-	<div class="col-md-6">
-		<div class="form-group" id="figure">
-                        <label class="control-label"><i class="icon-image2 text-muted"></i> Corresponding figure</label>
-			<div style="margin-left: 10%">{% bootstrap_field revisionform.figure show_label=False %}</div>
+		{% bootstrap_field revisionform.figure show_label=False %}
+        </div>
 
-		</div>
-	</div>
-    </div>
-
+        <strong class="help-block"> </strong>
         <div class="form-group has-feedback has-feedback-left">
             <label class="control-label">Question Text</label>
 
@@ -114,6 +108,26 @@
 .select2-container--default .select2-selection--multiple .select2-selection__choice__remove{
     color: white;
 }
+#choice_formset div.checkbox label {
+display:inline-block;
+}
+#choice_formset div.checkbox label > input + span {
+    cursor: pointer;
+}
+#choice_formset div.checkbox label span {
+    float: left;
+}
+
+#choice_formset div.checkbox label > input {
+    position: absolute;
+    visibility: hidden;
+    width: 32px;
+    height: 32px;
+}
+#choice_formset div.checkbox label > input:checked + span:before {
+    content: url("{% static 'images/success(1).png' %}");
+    display:block;
+}
 </style>
 {% block customscript %}
      <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
@@ -134,6 +148,11 @@
             addCssClass: 'add-row btn btn-xs btn-primary',
             deleteCssClass: 'delete-row btn btn-xs btn-danger',
     });
+    $('#choice_formset input[type=checkbox]').change(function(){
+            $('#choice_formset input[type=checkbox]').not(this).prop('checked', false);
+        });
+    $('#choice_formset div.checkbox label').append( "<span></span>" );
+
     $(function() {
         $("form#modify-revision-form").submit(function (event) {
         /* stop form from submitting normally */

@@ -1,24 +1,22 @@
-{% extends 'userena/base_userena.html' %}{% load i18n %}{% load bootstrap3 %}
+{% extends 'userena/base_userena.html' %}{% load bootstrap3 %}
 {% block title %}Change email{% endblock %}
+{% block subtitle %}Change your email{% endblock %}
 {% block content %}
-<div class="text-center">
-	<div class="icon-object border-success text-success"><i class="icon-reading"></i></div>
-	<h5 class="content-group">{% blocktrans with user.username as username %}Account &raquo; {{ username }}{% endblocktrans %}</h5>
+<div class="card-body collapse in">
+    <div class="card-block">
+        <form method="post" class="form-horizontal form-simple" novalidate>
+          {% csrf_token %}
+            <fieldset class="form-group position-relative has-icon-left mb-0">
+                {% bootstrap_form form show_label=False %}
+            </fieldset>
+            <button type="submit" class="btn btn-primary btn-lg btn-block"><i class="ft-edit"></i> Change email</button>
+        </form>
+    </div>
 </div>
-<form action="" method="post">
-  <ul id="box-nav">
-    <li class="first"><a href="{% url 'userena_profile_detail' user.username %}"><span>{% trans 'View profile' %}</span></a></li>
-    <li><a href="{% url 'userena_profile_edit' user.username %}">{% trans "Edit profile" %}</a></li>
-    <li><a href="{% url 'userena_password_change' user.username %}">{% trans "Change password" %}</a></li>
-    <li class="last selected"><a href="{% url 'userena_email_change' user.username %}">{% trans "Change email" %}</a></li>
-  </ul>
-  {% csrf_token %}
-  <div class="text-center">
-    {% bootstrap_form form show_label=False %}
-    <div class="form-group">
-			<button type="submit" class="btn btn-primary btn-block">{% trans "Change email" %} <i class="icon-circle-right2 position-right"></i></button>
-		</div>
-  </div>
-</form>
-
+<div class="card-footer">
+    <div class="">
+        <p class="float-sm-left text-xs-center m-0"><a href="{% url 'userena_password_change' user.username %}">Change password</a></p>
+        <p class="float-sm-right text-xs-center m-0"><a href="{% url 'userena_profile_edit' user.username %}">Edit profile</a></p>
+    </div>
+</div>
 {% endblock %}

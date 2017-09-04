@@ -1,0 +1,31 @@
+<script>
+$(function () {
+  var ctx = $('#performance-chart'),
+  chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    responsiveAnimationDuration: 500
+  },
+  chartData = {
+    labels: ['Correct', 'Incorrect', 'Skipped'],
+    datasets: [
+      {
+        label: 'My First dataset',
+        data: [{{ correct_questions }}, {{ incorrect_questions }}, {{ skipped_questions }}],
+        backgroundColor: [
+          '#16D39A',
+          '#FF4558',
+          '#FFE87C'
+        ]
+      }
+    ]
+  },
+  config = {
+    type: 'pie',
+    options: chartOptions,
+    data: chartData
+  };
+  new Chart(ctx, config)
+});
+
+</script>

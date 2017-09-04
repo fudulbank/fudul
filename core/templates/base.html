@@ -90,8 +90,16 @@
 						<div class="category-content">
 							<div class="media">
 								<div class="media-body text-center">
-									<span class="media-heading text-semibold">Welcome, {{ user.profile.first_name|default:user.username }}!</</span>
-								</div>
+									<span class="media-heading text-semibold">Welcome, {{ user.profile.first_name|default:user.username }}!</span>
+								<form type="get" action="{% url 'exams:search' %}" accept-charset="utf-8">
+                                    <div class="form-group has-feedback has-feedback-left">
+														<input  type="search" id="q" name="q"  class="form-control" placeholder="Search by ID or Text" >
+														<div class="form-control-feedback">
+															<i class="icon-search4 text-size-base"></i>
+														</div>
+									</div>                                </form>
+
+                                </div>
 
 							</div>
 						</div>
@@ -109,21 +117,33 @@
 									<a href="{% url 'exams:list_meta_categories' %}"><i class="icon-stack-check"></i> <span>Explore exams!</span></a>
 								</li>
                             <li>
-									<a href="{% url 'exams:show_previous_sessions' %}"><i class="icon-drawer3"></i> <span>Previous sessions</span></a>
+									<a href="{% url 'exams:list_previous_sessions' %}"><i class="icon-drawer3"></i> <span>Previous sessions</span></a>
 								</li>
                             {% if exam %}
                                 {% if exam.category|is_editor:user %}
-                            <li>
-                                <a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}"><i class="icon-pen-plus"></i> <span>Add Question</span></a>
-                            </li>
-                            <li>
-                               <a href="{% url 'exams:approve_user_contributions' exam.category.get_slugs exam.pk %}"><i class="icon-file-plus"></i> <span>User contributions</span></a>
-                            </li>
-                             {% else %}
-                            <li>
+                                    <li>
+									<a class="has-ul"><i class="icon-puzzle2"></i> <span>Questions and Revisions</span></a>
+									<ul class="hidden-ul">
+                                    <li>
+                                        <a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}"><i class="icon-pen-plus"></i> <span>Add Question</span></a>
+                                    </li>
+                                    <li>
+                                        <a href="{% url 'exams:list_questions' exam.category.get_slugs exam.pk %}"><i class="icon-list2 position-right"></i><span>List questions</span> </a>
+                                    </li>
+                                    <li>
+                                       <a href="{% url 'exams:approve_user_contributions' exam.category.get_slugs exam.pk %}"><i class="icon-file-plus"></i> <span>User contributions</span></a>
+                                    </li>
+									</ul>
+								</li>
+
+                                     {% else %}
+                                    <li>
                                 <a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}"><i class="icon-database-add"></i> <span>Submit A Question</span></a>
                             </li>
                             {% endif %}
+                            <li>
+                                <a href="{% url 'exams:list_contributions' %}"><i class="icon-file-plus"></i> <span>My contributions</span></a>
+                            </li>
                             <li>
                             <a href="{% url 'exams:create_session' exam.category.get_slugs exam.pk %}"><i class="icon-pencil3"></i>Start Session</a>
                             </li>
@@ -132,6 +152,9 @@
                                 {% block sidepanel %}
                                 {% endblock %}
 {% if user.is_superuser %}
+								<li>
+									<a href="{% url 'exams:show_my_performance' %}"><i class="icon-chart"></i> <span>My performance</span></a>
+								</li>
 								<li>
 									<a href="{% url 'exams:list_category_indicators' %}"><i class="icon-pie-chart2"></i> <span>Category indicators</span></a>
 								</li>

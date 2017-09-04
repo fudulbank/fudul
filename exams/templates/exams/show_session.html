@@ -18,10 +18,12 @@
         }
         </script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/pace.min.js"></script>
+        <link rel="shortcut icon" href="{% static 'img/logo-monkey.png' %}">
       	<link href="{% static 'limitless/assets/css/icons/icomoon/styles.css' %}" rel="stylesheet" type="text/css">
         <link href="https://cdn.jsdelivr.net/jquery.tooltipster/4.2.5/css/tooltipster.bundle.min.css" rel="stylesheet" type="text/css">
         <link href="https://cdn.jsdelivr.net/jquery.tooltipster/4.2.5/css/plugins/tooltipster/sideTip/themes/tooltipster-sideTip-shadow.min.css" rel="stylesheet" type="text/css">
-        <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Montserrat:300,300i,400,400i,500,500i%7COpen+Sans:300,300i,400,400i,600,600i,700,700i" rel="stylesheet">
+
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/themes/black/pace-theme-loading-bar.min.css" rel="stylesheet" type="text/css">
         {% include 'partials/piwik.html' %}
@@ -33,10 +35,9 @@
     body{
         background: #fff;
         font-size: 17px;
-        font-family: Arial,Verdana,Helvetica;
         line-height: 1.8em;
-        font-family: Roboto, "Helvetica Neue", Helvetica, Arial, Lucida, sans-serif;
-        font-weight: 300;
+        font-family: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-weight: 400;
     }
 
     .top-info{
@@ -173,7 +174,7 @@
       display: none;
     }
 
-    body.unfinished #results, body.finished #exit{
+    body.unfinished #results, body.finished #end{
       display: none;
     }
 
@@ -192,18 +193,36 @@
     .explanation-container{
       margin-top: 20px;
     }
+    .brand-logo{
+      vertical-align: sub;
+    }
+    .brand-text{
+      display: inline;
+      padding-left: 10px;
+      color: #1B2942;
+      font-family: "Montserrat", Georgia, "Times New Roman", Times, serif;
+      letter-spacing: 1px;
+      font-size: 1.74rem;
+      font-weight: 500;
+    }
   </style>
     </head>
     <body class="{% if session.has_finished %}finished{% else %}unfinished{% endif %}">
     <div class="container-fluid" id="container">
         <div class="row top-info align-items-center">
+            <div class ="col-sm-3 text-sm-left text-center">
+              <a href="/" class="navbar-brand">
+                <img alt="stack admin logo" src="{% static 'img/logo-monkey.png' %}" class="img-fluid brand-logo">
+                <h2 class="brand-text">Fudul</h2></a>
+            </div>
             <div class="ml-auto col-sm-6 text-center"> {{ session.exam.name }} <span class="separator">•</span> Session id: <span id="session-pk">{{ session.pk }}</span> ({{ session.get_session_mode_display }})<br> Question id: <span id="question-pk">{{ current_question.pk }}</span> </div>
-            <div class="col-sm-3 top-question-id"><span id="question-sequence">{{ current_question_sequence }}</span> of <span id="question-total">{{ session.questions.approved.count }}</span></div>
+            <div class="col-sm-3 top-question-id my-2 mb-sm-0"><span id="question-sequence">{{ current_question_sequence }}</span> of <span id="question-total">{{ session.questions.approved.count }}</span></div>
         </div>
         <div class="row top-options text-left align-items-center">
           <div class="col-sm-6 text-left">
                <div class="option" id="contribute">
-                  <i class="icon-pencil"></i> Edit
+                   <a data-placement="left" data-toggle="tooltip" title=" If you have any improvements on the question you can help us with, please submit it here.Your edits will be quickly available to public."> <i class="icon-pencil"></i> Edit</a>
+
                </div>
           </div>
           <div class="col-sm-6 text-right">
@@ -224,7 +243,7 @@
         <div id="footer" class="row text-center">
           <div class="col-sm-6 text-left">
            <a id="results" class="float-left float-sm-none option" href="{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}"><i class="icon-list3"></i> Results</a>
-           <div id="exit" class="float-left float-sm-none option"><i class="icon-exit3"></i> Exit</div>
+           <div id="end" class="float-left float-sm-none option"><i class="icon-exit3"></i> End</div>
            <div id="contributors" class="float-right float-sm-none option" data-tooltip-content="#tooltip-body"><i class="icon-stars"></i> Contributors</div>
           </div>
           <div class="col-sm-6 text-right">
@@ -354,11 +373,11 @@
 
         if (sequence == total){
           $("#next").css('cursor', 'not-allowed');
-          $(".unfinished #exit").hide();
+          $(".unfinished #end").hide();
           $(".unfinished #results").css('display', 'inline-block');
         } else {
           $("#next").css('cursor', 'pointer');
-          $(".unfinished #exit").css('display', 'inline-block');
+          $(".unfinished #end").css('display', 'inline-block');
           $(".unfinished #results").hide();
         }
 
@@ -454,9 +473,9 @@
         updateFooterMargins();
         $(window).resize(updateFooterMargins);
 
-        $("#exit").click(function(){
-          $("#confirm-exit-modal a.submit-button").prop("href", "{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}");
-          $("#confirm-exit-modal").modal('show');
+        $("#end").click(function(){
+          $("#confirm-end-modal a.submit-button").prop("href", "{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}");
+          $("#confirm-end-modal").modal('show');
         });
         $('#submit').click(submitChoice);
         $('#previous, #next').click(navigate);
@@ -488,7 +507,7 @@
 
         </script>
 
-        {% with modal_id='confirm-exit-modal' is_small=True confirm_link=True modal_content="<i class='text-danger icon-exit3'></i> Are you sure you want to exit this session, and mark unsubmitted questions as unsolved?" %}
+        {% with modal_id='confirm-end-modal' is_small=True confirm_link=True modal_title="End session" modal_content="<i class='text-danger icon-exit3'></i> Are you sure you want to end this session, and mark unsubmitted questions as unsolved?" %}
             {% include "exams/modals/common_modal_v4.html" %}
         {% endwith %}
 

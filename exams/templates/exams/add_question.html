@@ -1,65 +1,49 @@
-{% extends 'base.html' %}{% load staticfiles bootstrap3 exam_utils %}
-{% block title %}Fudul | Add questions to {{ exam.name }}{% endblock %}
-{% block sidepanel %}
+{% extends 'base_new.html' %}{% load staticfiles bootstrap3 exam_utils %}
+{% block title %}Fudul | {{ exam.name }}: Add questions{% endblock %}
 
+{% block header_title %}
+<h1>{{ exam.name }}: Add questions</h1>
+{% with is_add_active=True %}
+{% include 'exams/partials/exam_editor_buttons.html' %}
+{% endwith %}
 {% endblock %}
+
 {% block breadcrumb %}
-
-					<div class="breadcrumb-line">
-						<ul class="breadcrumb">
-							<li><a href="{% url 'index' %}"><i class="icon-home2 position-left"></i> Fudul</a></li>
-                                                        <li><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
-                                                        {% for parent_category in exam.category.get_parent_categories %}
-							<li><a href="{% url 'exams:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
-                                                        {% endfor %}
-                                                        <li><a href="{% url 'exams:show_category' exam.category.get_slugs %}">{{ exam.category.name }}</a></li>
-                                                        <li>{{ exam.name }}</li>
-                                                        <li class="active">Adding question</li>
-						</ul>
-					</div>
+      <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
+			{% for parent_category in exam.category.get_parent_categories %}
+			<li class="breadcrumb-item"><a href="{% url 'exams:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
+			{% endfor %}
+			<li class="breadcrumb-item"><a href="{% url 'exams:show_category' exam.category.get_slugs %}">{{ exam.category.name }}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:create_session' exam.category.get_slugs exam.pk %}">{{ exam.name }}</a></li>
+			<li class="breadcrumb-item">Add</li>
 {% endblock %}
+
 {% block content %}
-
-<style>
-
-.panel-body a {
-    color: white;
-    font-weight: bold;
-    margin-top: auto
-}
-.panel-body li a {
-    color: blue !important;
-    font-weight: bold;
-    margin-top: auto
-}
-</style>
 
 <div class="row">
    <div class="col-md-8">
-       {% if not exam.category|is_editor:user %}
-    <div class="panel panel-flat">
-    <div id="form-panel" style="background-color: lightgoldenrodyellow" class="panel-body">
-        <i class="icon-warning22"></i> This page is for user's contributions. <strong>If you are an editor, ask to be given the right access. </strong>
-    </div>
-    </div>
-    {% endif %}
-    <div class="panel panel-flat">
-						<div class="panel-heading">
-							<h1 class="panel-title">{% if editor %}Add {% else %} Submit{% endif %} questions to {{ exam.name }}</h1>
+{% if not exam.category|is_editor:user %}
+  <p class="alert alert-warning"><i class="icon-warning22"></i> This page is for user's contributions. <strong>If you are an editor, ask to be given the right access. </strong></p>
+{% endif %}
+    <div class="card">
+						<div class="card-header">
+							<h1 class="card-title">{% if editor %}Add {% else %} Submit{% endif %} questions to {{ exam.name }}</h1>
 						</div>
-        <div id="form-panel" class="panel-body">
+        <div id="form-panel" class="card-body">
+					<div class="card-block">
 {% include 'exams/partials/question_form.html' %}
-        </div>
-
-    </div> <!--panel-->
+					</div><!--card-block-->
+        </div><!--card-body-->
+    </div> <!--card-->
 </div> <!--col-->
 {% if editor %}
 <div class="col-md-4">
-    <div id="exam-stats" class="panel panel-flat">
-       <div class="panel-heading">
-           <h1 class="panel-title">{{ exam.name }} statistics</h1>
+    <div id="exam-stats" class="card">
+       <div class="card-header">
+           <h2 class="card-title">{{ exam.name }} statistics</h2>
        </div>
-       <div class="panel-body">
+       <div class="card-body">
 {% include 'exams/partials/exam_stats.html' %}
        </div>
     </div>
@@ -68,6 +52,8 @@
 </div> <!--row-->
 {% endblock %}
 {% block customscript %}
+{{ questionform.media }}
+
     <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
     <script src="{% static 'js/jquery.formset.js' %}"></script>
     <script src="{% static 'js/jquery.autogrowtextarea.min.js' %}"></script>
@@ -75,6 +61,7 @@
     <script type="text/javascript">
 
     $(function(){
+        $('[data-toggle="tooltip"]').tooltip();
 
         $("form#add-question-form").submit(function (event) {
         /* stop form from submitting normally */
@@ -108,7 +95,7 @@
                         {% if question %}
                                             window.location.href = data.show_url;
                         {% else %}
-												$("#exam-stats .panel-body").html(data.stat_html);
+												$("#exam-stats .card-body").html(data.stat_html);
                         {% endif %}
                     } else {
                         toastr.warning("There was an issue! " + data.message);
@@ -133,7 +120,11 @@
             addCssClass: 'add-row btn btn-xs btn-primary',
             deleteCssClass: 'delete-row btn btn-xs btn-danger',
         });
-
+        $('#choice_formset div.checkbox label').append( "<span></span>" );
     </script>
+
+{% with category_pk=exam.category.pk  parent_category_pk=exam.category.parent_category.pk %}
+  {% include 'exams/partials/dynamic_sidebar.html' %}
+{% endwith %}
 
 {% endblock %}

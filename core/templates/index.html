@@ -1,23 +1,149 @@
-{% extends 'base.html' %}{% load admin_urls %}
-{% block title %}Fudul | Home page{% endblock %}
-{% block breadcrumb %}
+{% extends 'base_new.html' %}{% load staticfiles teams_utlis account_utils %}
+{% block title %}Fudul{% endblock %}
 
-					<div class="breadcrumb-line">
-						<ul class="breadcrumb">
-							<li class="active"><i class="icon-home2 position-left"></i> Home</li>
-						</ul>
-					</div>
+{% block header_title %}
+	<h1>Welcome to Fudul, {{ user.profile.first_name|default:user.username }}!</h1>
 {% endblock %}
+
+{% block head %}
+<style>
+.tooltip ul{
+  text-align: left;
+}
+
+#intro a{
+	color: inherit;
+}
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+      <li class="breadcrumb-item active">Home page</li>
+{% endblock %}
+
 {% block content %}
-<div class="text-center">
-<p style="font-size: 1.3em" class="text-center">Welcome to <em>Fudul</em>, the comprehensive, collective, free-of-charge <strong>question bank</strong> built by students!</p>
 
-<a href="{% url 'exams:list_meta_categories' %}" class="btn btn-primary btn-float btn-float-lg"><i class="icon-stack-check"></i> Explore exams</a>
 
-{% if user.is_superuser %}
-<a href="{% url 'admin:index' %}" class="btn btn-primary btn-float btn-float-lg"><i class="icon-shield2"></i> Superuser admin</a>
-{% endif %}
-<a href="{% url 'editor_admin:index' %}" class="btn btn-primary btn-float btn-float-lg"><i class="icon-power2"></i> Editor Admin</a>
-<a href="{% url 'about' %}" class="btn btn-primary btn-float btn-float-lg"><i class="icon-info3"></i> About <em>Fudul</em></a>
+<div id="intro" class="card">
+	<div class="card-body">
+		<div class="card-block">
+			<p>Fudul is the comprehensive, collective, free-of-charge <strong>question bank</strong> built by and for examiners.</p>
+		</div>
+		<div class="row">
+			<div class="col-xs-12 col-sm-6">
+				<div class="card height-150 text-xs-center">
+					<div class="card-body">
+						<i class="font-large-3 ft-list"></i>
+						<div class="card-block">
+							<h4 class="card-title"><a href="{% url 'exams:list_meta_categories' %}">Explore exams</a></h4>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xs-12 col-sm-6">
+				<div class="card height-150 text-xs-center">
+					<div class="card-body">
+						<i class="font-large-3 ft-bar-chart-2"></i>
+						<div class="card-block">
+							<h4 class="card-title"><a href="{% url 'exams:show_my_performance' %}">Performance</a></h4>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
+
+
+<div class="row">
+
+  <div class="col-md-5 col-xs-12">
+       <div class="card">
+           <div class="card-header">
+               <h4 class="card-title">Latest sessions</h4>
+							 <div class="heading-elements">
+				 				<a href="{% url 'exams:list_previous_sessions' %}" class="btn btn-sm btn-secondary"><i class="ft-list"></i> All</a>
+					 		 </div>
+           </div>
+           <div class="card-body">
+               <div class="card-block">
+                   <div class="position-relative vertical-scroll height-300">
+										 {% if latest_sessions.exists %}
+                     {% include 'partials/latest_session_table.html' %}
+										 {% else %}
+										 <p>
+										 {% endif %}
+                   </div>
+               </div>
+           </div>
+       </div>
+   </div>
+	 {% if user|is_editor %}
+	 <div class="col-md-7 col-xs-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Editing access</h4>
+            </div>
+            <div class="card-body">
+                <div class="card-block">
+									  {% if not user.is_superuser %}
+										<p>You have a <strong>superuser</strong> access.  You can do everything. Literally.  <a href="{% url 'exams:list_meta_categories' %}">Go ahead</a>!</p>
+										{% else %}
+									  {% with categories=user|get_user_privileged_categories %}
+									  You are part of the editing team!  You can edit exams under{% if categories.count == 1 %}
+										<a href="{% url 'exams:show_category' categories.first.get_slugs %}">{{ categories.first.name }}</a>.{% else %}:
+										<ul>
+											{% for category in categories %}
+											<li><a href="{% url 'exams:show_category' category.get_slugs %}">{{ category.name }}</a></li>
+											{% endfor %}
+										</ul>
+										{% endif %}
+										{% endwith %}
+										{% endif %}
+								</div><!--card-block-->
+								<div class="card-block">
+									<div class="row">
+										<div class="col-xs-12 col-sm-8 offset-sm-2 col-md-6 offset-md-0">
+											<div class="card border-primary">
+							            <div class="card-body">
+							                <div class="media">
+							                    <div class="p-2 text-xs-center media-left media-middle">
+							                        <i class="ft-file-plus font-large-2"></i>
+							                    </div>
+							                    <div class="p-2 media-body">
+																			<p class="h4 text-bold-400">{{ added_question_count }}</p>
+																			<p class="h6 text-muted">questions added</p>
+							                    </div>
+							                </div>
+							            </div>
+							        </div><!--card-->
+										</div><!--col-->
+										<div class="col-xs-12 col-sm-8 offset-sm-2 col-md-6 offset-md-0">
+											<div class="card border-primary">
+							            <div class="card-body">
+							                <div class="media">
+							                    <div class="p-2 text-xs-center media-left media-middle">
+							                        <i class="ft-edit font-large-2"></i>
+							                    </div>
+							                    <div class="p-2 media-body">
+																			<p class="h4 text-bold-400">{{ edited_question_count }}</p>
+																			<p class="h6 text-muted">questions edited</p>
+							                    </div>
+							                </div>
+							            </div>
+							        </div><!--card-->
+										</div><!--col-->
+									</div><!--row-->
+								</div><!--card-block-->
+            </div><!--card-body-->
+        </div>
+    </div>
+   {% endif %}
+
+</div>
+{% endblock %}
+
+
+{% block customscript %}
+    <script src="{% static 'stack/js/scripts/ui/scrollable.min.js' %}" type="text/javascript"></script>
 {% endblock %}

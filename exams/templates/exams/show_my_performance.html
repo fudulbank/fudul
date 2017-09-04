@@ -1,0 +1,67 @@
+{% extends 'base_new.html' %}{% load staticfiles exam_utils %}
+
+{% block title %}Fudul | My performance {% endblock %}
+
+{% block head %}
+<link rel="stylesheet" type="text/css" href="{% static 'stack/vendors/css/tables/datatable/dataTables.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'stack/vendors/css/charts/chartist.css' %}">
+
+{% endblock %}
+{% block breadcrumb %}
+      <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
+      <li class="breadcrumb-item active">Performance</li>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+	<div class="card-body">
+		<div class="card-block">
+<h1>My performance</h1>
+<h2>Overall performance</h2>
+<div class="chart-container mb-2" style="height: 300px; width: 400px; max-width: 100%;">
+    <canvas id="performance-chart">
+</div>
+<h2>Performance per exam</h2>
+<table style="width: 100%;" class="datatable table table-striped table-bordered dt-responsive">
+  <thead>
+    <tr>
+      <th class="all">Exam</th>
+      <th># questions answered</th>
+      <th data-toggle="tooltip" title="Questions that were correctly answered by you at least one time." class="all">Correct</th>
+      <th data-toggle="tooltip" title="Questions that were incorrectly answered by you and never answed correctly.">Incorrect</th>
+      <th data-toggle="tooltip" title="Questions that were shown, skipped and never answered by you.">Skipped</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for exam in exams %}
+      <tr>
+        <td><a href="{% url 'exams:show_my_performance_per_exam' exam.pk %}">{{ exam.name }}</a></td>
+        <td>{{ exam|get_used_question_count_per_user:user }}</td>
+        <td>{% get_user_question_stats exam user 'correct' %} ({% get_user_question_stats exam user 'correct' percent=True %}%)</td>
+        <td>{% get_user_question_stats exam user 'incorrect' %} ({% get_user_question_stats exam user 'incorrect' percent=True %}%)</td>
+        <td>{% get_user_question_stats exam user 'skipped' %} ({% get_user_question_stats exam user 'skipped' percent=True %}%)</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+		</div><!--card-block-->
+	</div><!--card-body-->
+</div><!--card-->
+{% endblock %}
+{% block customscript %}
+<script src="{% static 'stack/vendors/js/tables/jquery.dataTables.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'stack/vendors/js/tables/datatable/dataTables.bootstrap4.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'stack/vendors/js/tables/datatable/dataTables.responsive.min.js' %}" type="text/javascript"></script>
+<!--<script src="{% static 'stack/vendors/js/charts/chart.min.js' %}"></script>-->
+<script src="http://www.chartjs.org/dist/2.6.0/Chart.bundle.js"></script>
+
+{% include 'exams/partials/performance_chart.html' %}
+
+<script>
+$(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+    $("table.datatable").DataTable({paging: false, info: false});
+});
+</script>
+
+{% endblock %}

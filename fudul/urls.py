@@ -11,6 +11,7 @@ urlpatterns = [
     url(r'^exams/admin/', include(editor_site.urls)),
     url(r'^exams/', include('exams.urls', namespace="exams")),
     url(r'', include('core.urls')),
+    url(r'^ckeditor/', include('ckeditor_uploader.urls')),
 ]
 
 if settings.DEBUG:

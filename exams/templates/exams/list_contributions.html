@@ -1,0 +1,74 @@
+{% extends 'base.html' %}{% load staticfiles %}
+{% block title %}Fudul | Contributions{% endblock %}
+{% block breadcrumb %}
+
+{% endblock %}
+{% block content %}
+<style>
+    .hide {
+        display:none;
+    }
+</style>
+{% for exam in exams %}
+<div id="all-div">
+<div id="exams-panel" class="panel panel-flat border-top-info border-bottom-info">
+    <div class="panel-heading">
+                         <div class="panel-title" ><a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}"><h5>{{ exam.name }}</h5></a> <a class="heading-elements-toggle"></a></div>
+                                <div class="heading-elements">
+								<ul class="icons-list">
+			                		<li><a data-action="collapse" class="rotate-180" ></a></li>
+			                		<li><a data-action="close"></a></li>
+			                	</ul>
+                                </div>
+
+    </div>
+    <div class="panel-body">
+            {% for revision in revisions %}
+                {% if revision.question.subjects.first.exam == exam %}
+            <div {% if revision.is_approved %} class="panel panel-success panel-bordered panel-collapsed" {% else %}class="panel panel-flat panel-collapsed" {% endif %}>
+             <div class="panel-heading">
+                 <div class="panel-title" ><a href="{% url 'exams:list_revisions' revision.question.subjects.first.exam.category.get_slugs revision.question.subjects.first.exam.pk revision.question.pk %}"><strong>{{ revision.pk }}:</strong>{{ revision.question.subjects.first.exam }}{{ revision.text|truncatewords:10 }}</a> <a class="heading-elements-toggle"></a></div>
+                                <div class="heading-elements">
+								<ul class="icons-list">
+			                		<li><a data-action="collapse" class="rotate-180" ></a></li>
+			                		<li><a data-action="close"></a></li>
+			                	</ul>
+		                	</div>
+             </div>
+                       <div class="panel-body">
+                       {% if revision.figure %}
+                           <img class="img-responsive center-block"  src="{{ revision.figure.url }}">
+                       {% endif %}
+       <p class="question-text">{{ revision.text|linebreaksbr }}</p>
+            <ul>
+                       {% for choice in revision.choice_set.order_by_alphabet %}
+                               <li {% if choice.is_right %}class="is-answer text-success-800"{% endif %}>{{ choice.text|linebreaksbr }}</li>
+                           {% endfor %}
+            </ul>
+                       {% if revision.explanation %}<b> Explanation :</b><br>{{ revision.explanation| urlize }} {% endif %}
+        {% if revision.reference %}<br><b> Reference:</b><br>{{ revision.reference| urlize }} {% endif %}
+                </div>
+            </div>
+
+                {% endif %}
+        {% endfor %}
+
+    </div>
+ </div>
+    </div>
+    {% endfor %}
+{% endblock %}
+{% block customscript %}
+    <script type="text/javascript">
+    $(function(){
+        $('.panel-body').each(function() {
+            var div= $(this);
+            if (!$.trim($(div).html()).length) {
+                $(div).parent().hide();
+            }
+        });
+
+
+    });
+    </script>
+{% endblock %}

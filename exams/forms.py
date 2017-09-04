@@ -1,6 +1,6 @@
 from dal import autocomplete
 from django import forms
-from django.core.validators import MaxValueValidator
+from django.core.validators import MaxValueValidator,MinValueValidator
 from django.forms.models import inlineformset_factory
 from accounts.utils import get_user_college
 from . import models, utils
@@ -33,12 +33,13 @@ class QuestionForm(forms.ModelForm):
         model = models.Question
         fields = ['sources', 'subjects','exam_types', 'parent_question']
         widgets = {
-            'exam_types': autocomplete.ModelSelect2Multiple(),
+            'exam_types': autocomplete.ModelSelect2Multiple(attrs={'data-width': '100%'}),
             'parent_question': autocomplete.ModelSelect2(url='exams:autocomplete_questions',
                                                          forward=['exam_pk'],
-                                                         attrs={'data-html': True}),
-            'sources': autocomplete.ModelSelect2Multiple(),
-            'subjects': autocomplete.ModelSelect2Multiple()
+                                                         attrs={'data-html': True,
+                                                                'data-width': '100%'}),
+            'sources': autocomplete.ModelSelect2Multiple(attrs={'data-width': '100%'}),
+            'subjects': autocomplete.ModelSelect2Multiple(attrs={'data-width': '100%'})
         }
 
 class RevisionForm(forms.ModelForm):
@@ -74,7 +75,7 @@ class RevisionForm(forms.ModelForm):
                   'figure', 'is_approved', 'statuses','reference',
                   'change_summary','is_contribution']
         widgets = {
-            'statuses': autocomplete.ModelSelect2Multiple(),
+            'statuses': autocomplete.ModelSelect2Multiple(attrs={'data-width': '100%'}),
         }
 
 class ChoiceForms(forms.ModelForm):
@@ -103,6 +104,13 @@ RevisionChoiceFormset = inlineformset_factory(models.Revision,
                                               extra=4,
                                               fields=['text','is_right'])
 
+
+ContributedRevisionChoiceFormset = inlineformset_factory(models.Revision,
+                                              models.Choice,
+                                              formset=CustomRevisionChoiceFormset,
+                                              extra=0,
+                                              fields=['text','is_right'])
+
 class SessionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         exam = kwargs.pop('exam')
@@ -114,18 +122,29 @@ class SessionForm(forms.ModelForm):
         self.fields['number_of_questions'].validators.append(total_question_validator)
         self.fields['number_of_questions'].widget.attrs['max'] = total_questions
 
+        self.fields['number_of_questions'].validators.append(MinValueValidator(1))
+        self.fields['number_of_questions'].widget.attrs['min'] = 1
+        # This widget should be big enough to contain 5 digits.
+        self.fields['number_of_questions'].widget.attrs['style'] = 'width: 5rem;'
+        self.fields['number_of_questions'].widget.attrs['placeholder'] = ''
+
         # Limit subjects and exams per exam
-        subjects = models.Subject.objects.filter(exam=exam)
+        subjects = models.Subject.objects.filter(exam=exam)\
+                                         .with_approved_questions().distinct()
         if subjects.exists():
-            self.fields['subjects'].queryset = models.Subject.objects.filter(exam=exam)\
-                                                                     .with_approved_questions()
+            self.fields['subjects'].queryset = subjects
         else:
             del self.fields['subjects']
-        self.fields['sources'].queryset = exam.get_sources().filter(parent_source__isnull=True)\
-                                                            .with_approved_questions()
+
+        sources = exam.get_sources().filter(parent_source__isnull=True)\
+                                    .with_approved_questions().distinct()
+        if sources.exists():
+            self.fields['sources'].queryset = sources
+        else:
+            del self.fields['sources']
 
         if exam.exam_types.exists():
-            self.fields['exam_types'].queryset = exam.exam_types.with_approved_questions()
+            self.fields['exam_types'].queryset = exam.exam_types.with_approved_questions().distinct()
             self.fields['exam_types'].required = True
         else:
             del self.fields['exam_types']
@@ -143,15 +162,13 @@ class SessionForm(forms.ModelForm):
         if session.sources.exists():
             question_pool = question_pool.filter(sources__in=session.sources.all())
 
+        if session.exam_types.exists():
+            question_pool = question_pool.filter(exam_types__in=session.exam_types.all())
+
         if session.question_filter == 'UNUSED':
-            question_pool = question_pool.exclude(answer__session__submitter=session.submitter)
+            question_pool = question_pool.unused_by_user(session.submitter)
         elif session.question_filter == 'INCORRECT':
-            pks = models.Answer.objects.filter(session__exam=session.exam,
-                                               session__submitter=session.submitter,
-                                               choice__is_right=False)\
-                                       .distinct()\
-                                       .values_list('question__pk')
-            question_pool = question_pool.filter(pk__in=pks)
+            question_pool = question_pool.incorrect_by_user(session.submitter)
         elif session.question_filter == 'MARKED':
             question_pool = question_pool.filter(marking_users=session.submitter)
 
@@ -181,15 +198,11 @@ class SessionForm(forms.ModelForm):
 
     class Meta:
         model = models.Session
-        fields = ['session_mode', 'number_of_questions','exam_types', 'sources','subjects','question_filter']
+        fields = ['session_mode', 'number_of_questions','exam_types',
+                  'sources', 'subjects', 'question_filter']
         widgets = {
-            'exam_types': autocomplete.ModelSelect2Multiple(url='exams:exam_type_questions_count',
-                                                         forward=['exam_pk'],
-                                                         attrs={'data-html': True}),
+            'exam_types': autocomplete.ModelSelect2Multiple(),
             'sources': autocomplete.ModelSelect2Multiple(),
-            # 'subjects': autocomplete.ModelSelect2Multiple(url='exams:subject_questions_count',
-            #                                              forward=['exam_pk'],
-            #                                              attrs={'data-html': True}),
             'subjects': autocomplete.ModelSelect2Multiple(),
             'question_filter':forms.RadioSelect(choices=models.questions_choices),
             'session_mode':forms.RadioSelect(choices=models.session_mode_choices)
@@ -205,31 +218,3 @@ class ExplanationForm(RevisionForm):
         model = models.Revision
         fields = ['explanation', 'explanation_figure']
 
-
-
-# class DisabledRevisionForm(RevisionForm):
-#     def __init__(self, *args, **kwargs):
-#         # Fields to keep enabled.
-#         self.enabled_fields = ['statuses']
-#         # If an instance is passed, then store it in the instance variable.
-#         # This will be used to disable the fields.
-#         self.instance = kwargs.get('instance', None)
-#
-#         # Initialize the form
-#         super(DisabledRevisionForm, self).__init__(*args, **kwargs)
-#
-#         # Make sure that an instance is passed (i.e. the form is being
-#         # edited).
-#         if self.instance:
-#             for field in self.fields:
-#                 if not field in self.enabled_fields:
-#                     self.fields[field].widget.attrs['readonly'] = 'readonly'
-#
-#     def clean(self):
-#         cleaned_data = super(DisabledRevisionForm, self).clean()
-#         if self.instance:
-#             for field in cleaned_data:
-#                 if not field in self.enabled_fields:
-#                     cleaned_data[field] = getattr(self.instance, field)
-#
-#         return cleaned_data

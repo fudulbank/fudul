@@ -1,6 +1,8 @@
 from django.core.exceptions import ObjectDoesNotExist
 
 def get_user_representation(user, with_email=True, with_nickname=False):
+    if not user:
+        return
     if hasattr(user, 'profile'):
         full_name = user.profile.get_full_name()
     elif user.is_superuser:

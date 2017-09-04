@@ -1,73 +1,87 @@
-{% extends 'base.html' %}
+{% extends 'base_new.html' %}{% load exam_utils %}
 {% block title %}Fudul | {% if category %}{{ category.name }}{% else %}Exlpore exams{% endif %}
 {% endblock %}
-{% block breadcrumb %}
 
-					<div class="breadcrumb-line">
-						<ul class="breadcrumb">
-							<li><a href="{% url 'index' %}"><i class="icon-home2 position-left"></i> Fudul</a></li>
-{% if category and indicators %}
-                                                        <li><a href="{% url 'exams:list_category_indicators' %}">Category indicators</a></li>
-{% elif category and not indicators %}
-                                                        <li><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
-{% endif %}
-                                                        {% for parent_category in category.get_parent_categories %}
-							<li><a href="{% url show_category_url parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
-                                                        {% endfor %}
-                                                        <li class="active">{% if category %}{{ category.name }}{% else %}Exams{% endif %}</li>
-						</ul>
-					</div>
+{% block header_title %}
+	{% if category %}
+	<h1>{{ category.name }}</h1>
+	{% elif is_indicators_active %}
+	<h1>Category indicators</h1>
+	{% else %}
+	<h1>Explore exams</h1>
+	{% endif %}
 {% endblock %}
+
+{% block breadcrumb %}
+      <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
+			{% if is_indicators_active and category %}
+      <li class="breadcrumb-item"><a href="{% url 'exams:list_category_indicators' %}">Category indicators</a></li>
+			{% elif is_indicators_active and not category %}
+			<li class="breadcrumb-item active">Category indicators</li>
+			{% else %}
+      <li class="breadcrumb-item"><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
+			{% endif %}
+			{% for parent_category in category.get_parent_categories %}
+			<li class="breadcrumb-item"><a href="{% url show_category_url parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
+			{% endfor %}
+			{% if category %}
+			<li class="breadcrumb-item active">{{ category.name }}</li>
+			{% endif %}
+{% endblock %}
+
 {% block content %}
-{% if category %}
+{% if not is_indicators_active and exams.exists %}
+{% for exam in exams %}
+<div class="col-xl-4 col-md-6 col-sm-12">
+	<div class="card">
+		<div class="card-header">
+			<h4 class="card-title"><a href="{% url 'exams:create_session' category.get_slugs exam.pk %}">{{ exam.name }}</a></h4>
+			{% if category|is_editor:user %}
+			<div class="heading-elements">
+				{% include 'exams/partials/exam_editor_buttons.html' %}
+			</div>
+			{% endif %}
 
-<h1>{{ category.name }}</h1>
-{% else %}
-<div class="text-center">
-{% if indicators %}
-<h1>Category indicators</h1>
-	<div class="icon-object border-primary text-primary"><i class="icon-pie-chart2"></i></div>
-{% else %}
-<h1>Explore exams</h1>
-	<div class="icon-object border-primary text-primary"><i class="icon-stack-check"></i></div>
-{% endif %}
-
+		</div>
+		<div class="card-body">
+			<div class="card-block text-muted">
+				<div class="card-text">
+						<span>{{ exam.question_set.approved.count }} questions</span>
+						{% if not exam|was_ever_taken_by_user:user %}
+						<span class="float-xs-right">
+							<span class="tag tag-warning">New!</span>
+						</span>
+						{% endif %}
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
+{% endfor %}
 {% endif %}
-<style>
-.panel-body a {
-    color: white;
-    font-size: medium;
-    font-weight: bold;
-    margin-top: auto
-}
-</style>
-{% if not indicators and exams.exists %}
-            {% for exam in exams %}
-                    <div class="row">
-                        <div class="col-lg-4">
-                            <div class="panel bg-primary-600">
-                                <div class="panel-body">
-                                    <a href="{% url 'exams:create_session' category.get_slugs exam.pk %}">{{ exam.name }}</a>
-                </div>
-            </div>
-        </div>
-    </div>
-            {% endfor %}
-{% elif subcategories.exists %}
-
+{% if subcategories.exists %}
 {% for subcategory in subcategories %}
-    <div class="row">
-        <div class="col-lg-4">
-            <div class="panel bg-primary-600">
-                <div class="panel-body">
-                    <a href="{% url show_category_url subcategory.get_slugs %}">{{ subcategory.name }}</a>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endfor %}
-{% else %}
+<div class="col-xl-4 col-md-6 col-sm-12">
+	<div class="card">
+		<div class="card-body">
+			<div class="card-block">
+				<h4 class="card-title"><a href="{% url show_category_url subcategory.get_slugs %}">{{ subcategory.name }}</a></h4>
+			</div>
+		</div>
+	</div>
+</div>
+{% endfor %}
+{% endif %}
+{% if not subcategories.exists and not exams.exists %}
    <p>No subdivisions!</p>
+{% endif %}
+{% endblock %}
+
+
+{% block customscript %}
+{% if is_browse_active %}
+	{% with category_pk=category.pk  parent_category_pk=category.parent_category.pk %}
+		{% include 'exams/partials/dynamic_sidebar.html' %}
+	{% endwith %}
 {% endif %}
 {% endblock %}

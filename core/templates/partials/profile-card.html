@@ -1,0 +1,17 @@
+<div class="card profile-card-with-cover">
+    <div class="card-body">
+        <div class="card-img-top img-fluid bg-cover height-150" style="background: url('{{ member.background.url }}') 0 40%;"></div>
+        <div class="card-profile-image">
+            <img src="{{ member.image.url }}" class="rounded-circle img-border box-shadow-1 img-fluid" alt="Card image">
+        </div>
+        <div class="profile-card-with-cover-content text-xs-center">
+            <div class="my-2">
+                <h4 class="card-title">{{ member.name }}</h4>
+                <p>{{ member.role }}</p>
+            </div>
+            <div class="card-block">
+                <a href="{{ member.twitter }}" class="{% if not member.twitter %}disabled {% endif %}btn btn-social btn-min-width pr-1 mb-1 btn-twitter"><span class="ft-twitter"></span> <span class="pl-1">Follow</span></a>
+            </div>
+        </div>
+    </div>
+</div>

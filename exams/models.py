@@ -7,7 +7,7 @@ from accounts.models import College, Batch
 from . import managers
 import accounts.utils
 import textwrap
-
+from ckeditor_uploader.fields import RichTextUploadingField
 
 class Source(models.Model):
     name = models.CharField(max_length=100)
@@ -36,7 +36,7 @@ class ExamType(models.Model):
     objects = managers.MetaInformationQuerySet.as_manager()
 
     def __str__(self):
-        return self.name
+        return "{} ({})".format(self.name, self.question_set.approved().count())
 
 
 class Category(models.Model):
@@ -115,6 +115,8 @@ class Exam(models.Model):
     is_deleted = models.BooleanField(default=False)
     batches_allowed_to_take = models.ForeignKey(Batch, null=True, blank=True)
     exam_types = models.ManyToManyField('ExamType', blank=True)
+    credits = RichTextUploadingField(default='')
+    objects = managers.ExamQuerySet.as_manager()
 
     def get_sources(self):
         sources = Source.objects.none()
@@ -148,6 +150,14 @@ class Exam(models.Model):
                                .per_exam(self)\
                                .filter(is_last=True, is_approved=False)
 
+    def get_percentage_of_correct_submitted_answers(self):
+        submitted_answers = Answer.objects.filter(session__exam=self,choice__isnull=False).count()
+        if not submitted_answers == 0:
+            return Answer.objects.filter(session__exam=self,choice__is_right=True).count()/submitted_answers* 100
+        else:
+            return 0
+
+
     def __str__(self):
         return self.name
 
@@ -157,8 +167,9 @@ class Subject(models.Model):
     submission_date = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
     objects = managers.MetaInformationQuerySet.as_manager()
+
     def __str__(self):
-        return self.name
+        return "{} ({})".format(self.name, self.question_set.approved().count())
 
 class Question(models.Model):
     sources = models.ManyToManyField(Source, blank=True)
@@ -249,13 +260,6 @@ class Question(models.Model):
         return tree
 
 
-    # pks = Revision.objects.per_exam(self) \
-    #     .filter(is_first=True, is_contribution=True, is_approved=False, is_last=True) \
-    #     .distinct() \
-    #     .values_list('question__pk', flat=True)
-    # questions = Question.objects.undeleted().filter(pk__in=pks)
-    #
-    # return questions
 
 
 class Revision(models.Model):
@@ -278,6 +282,9 @@ class Revision(models.Model):
     reference = models.TextField(default="", blank=True)
     change_summary = models.TextField(default="", blank=True)
     is_contribution = models.BooleanField(default=False)
+    #NOTE:colud be a model instead
+    approved_by = models.ForeignKey(User,related_name="approved_revision",null=True, blank=True)
+
 
     def has_right_answer(self):
         return self.choice_set.filter(is_right=True).exists()
@@ -325,16 +332,32 @@ class Session(models.Model):
     exam_types = models.ManyToManyField(ExamType, blank=True)
     submitter = models.ForeignKey(User)
     question_filter = models.CharField(max_length=20, choices=questions_choices, default=None)
+    submission_date = models.DateTimeField(auto_now_add=True)
+
+    objects = managers.SessionQuerySet.as_manager()
 
     def get_score(self):
         if not self.number_of_questions ==0 :
-            return round(self.get_correct_answer_count() / self.number_of_questions * 100, 2)
+            total = self.get_total_question_count()
+            correct = self.get_correct_answer_count()
+            return round(correct / total * 100, 2)
 
+    def get_total_question_count(self):
+        return self.questions.approved().count()
+
+    def get_used_questions_count(self):
+        return self.answer_set.distinct() \
+            .count()
+        
     def get_correct_answer_count(self):
-        return self.answer_set.filter(choice__is_right=True).count()
+        return self.answer_set.of_undeleted_questions()\
+                              .filter(choice__is_right=True)\
+                              .distinct()\
+                              .count()
 
     def has_finished(self):
         return not self.get_unused_questions().exists()
+
 
     def get_question_sequence(self, question):
         return self.questions.approved()\
@@ -370,8 +393,10 @@ class Session(models.Model):
     def can_user_access(self, user):
         return self.submitter == user or user.is_superuser
 
+
 class Answer(models.Model):
     session = models.ForeignKey(Session)
     question = models.ForeignKey(Question)
     choice = models.ForeignKey(Choice,null=True)
     is_marked = models.BooleanField("is marked ?", default=False)
+    objects = managers.AnswerQuerySet.as_manager()
