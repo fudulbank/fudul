@@ -91,7 +91,7 @@
             </div>
             <div class="card-body">
                 <div class="card-block">
-									  {% if not user.is_superuser %}
+									  {% if user.is_superuser %}
 										<p>You have a <strong>superuser</strong> access.  You can do everything. Literally.  <a href="{% url 'exams:list_meta_categories' %}">Go ahead</a>!</p>
 										{% else %}
 									  {% with categories=user|get_user_privileged_categories %}
