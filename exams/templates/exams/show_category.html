@@ -33,7 +33,7 @@
 {% if not is_indicators_active and exams.exists %}
 {% for exam in exams %}
 <div class="col-xl-4 col-md-6 col-sm-12">
-	<div class="card">
+	<div class="card height-150">
 		<div class="card-header">
 			<h4 class="card-title"><a href="{% url 'exams:create_session' category.get_slugs exam.pk %}">{{ exam.name }}</a></h4>
 			{% if category|is_editor:user %}
@@ -62,7 +62,7 @@
 {% if subcategories.exists %}
 {% for subcategory in subcategories %}
 <div class="col-xl-4 col-md-6 col-sm-12">
-	<div class="card">
+	<div class="card height-150">
 		<div class="card-body">
 			<div class="card-block">
 				<h4 class="card-title"><a href="{% url show_category_url subcategory.get_slugs %}">{{ subcategory.name }}</a></h4>
