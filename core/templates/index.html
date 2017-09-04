@@ -61,19 +61,24 @@
        <div class="card">
            <div class="card-header">
                <h4 class="card-title">Latest sessions</h4>
-							 <div class="heading-elements">
-				 				<a href="{% url 'exams:list_previous_sessions' %}" class="btn btn-sm btn-secondary"><i class="ft-list"></i> All</a>
-					 		 </div>
+							 {% if latest_sessions.exists %}
+								 <div class="heading-elements">
+					 				<a href="{% url 'exams:list_previous_sessions' %}" class="btn btn-sm btn-secondary"><i class="ft-list"></i> All</a>
+						 		 </div>
+							 {% endif %}
            </div>
            <div class="card-body">
                <div class="card-block">
-                   <div class="position-relative vertical-scroll height-300">
-										 {% if latest_sessions.exists %}
+								 {% if latest_sessions.exists %}
+									 <div class="position-relative vertical-scroll height-300">
                      {% include 'partials/latest_session_table.html' %}
-										 {% else %}
-										 <p>
-										 {% endif %}
-                   </div>
+									 </div>
+								 {% else %}
+									 <div class="card-text">
+										 <p>You haven't created any exams yet!  You can start by <strong><a href="{% url 'exams:list_meta_categories' %}">exploring the exams</a></strong> and creating one.</p>
+									 </div>
+									{% endif %}
+
                </div>
            </div>
        </div>
