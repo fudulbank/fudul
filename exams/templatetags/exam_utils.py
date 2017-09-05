@@ -44,16 +44,7 @@ def is_editor(category, user):
 
 @register.filter
 def get_meta_exam_question_count(exam, meta):
-    if type(meta) is models.Source:
-        keyword = 'sources'
-    elif type(meta) is models.ExamType:
-        keyword = 'exam_types'
-    elif type(meta) is models.Subject:
-        keyword = 'subjects'
-
-    query = {keyword: meta}
-
-    return exam.question_set.filter(**query).distinct().count()
+    return utils.get_meta_exam_question_count(exam, meta)
 
 @register.filter
 def order_by_exam_questions(meta_queryset, exam):

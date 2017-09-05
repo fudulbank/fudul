@@ -36,7 +36,7 @@ class ExamType(models.Model):
     objects = managers.MetaInformationQuerySet.as_manager()
 
     def __str__(self):
-        return "{} ({})".format(self.name, self.question_set.approved().count())
+        return self.name
 
 
 class Category(models.Model):
@@ -169,7 +169,7 @@ class Subject(models.Model):
     objects = managers.MetaInformationQuerySet.as_manager()
 
     def __str__(self):
-        return "{} ({})".format(self.name, self.question_set.approved().count())
+        return self.name
 
 class Question(models.Model):
     sources = models.ManyToManyField(Source, blank=True)
