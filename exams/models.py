@@ -115,7 +115,7 @@ class Exam(models.Model):
     is_deleted = models.BooleanField(default=False)
     batches_allowed_to_take = models.ForeignKey(Batch, null=True, blank=True)
     exam_types = models.ManyToManyField('ExamType', blank=True)
-    credits = RichTextUploadingField(default='')
+    credits = RichTextUploadingField(default='', blank=True)
     objects = managers.ExamQuerySet.as_manager()
 
     def get_sources(self):
