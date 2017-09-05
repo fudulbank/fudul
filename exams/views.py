@@ -175,11 +175,7 @@ def handle_question(request, exam_pk,question_pk=None):
         question = questionform.save()
         revision = revisionform.save(commit=False)
         revision.question = question
-        if teams.utils.is_editor(request.user):
-            revision.is_contribution = False
-        else:
-            revision.is_contribution = True
-
+        revision.is_contribution = not teams.utils.is_editor(request.user)
         revision.save()
         revisionform.save_m2m()
 
@@ -320,6 +316,12 @@ def submit_revision(request, slugs, exam_pk, pk):
             question = questionform.save()
             new_revision = revisionform.clone(question, request.user)
             revisionchoiceformset.clone(new_revision)
+
+            # This test relies on choices, so the choices have to be saved
+            # before.
+            new_revision.is_approved = utils.test_revision_approval(new_revision)
+            new_revision.save()
+
             return HttpResponseRedirect(
                 reverse("exams:list_revisions", args=(exam.category.get_slugs(), exam.pk, question.pk)))
 

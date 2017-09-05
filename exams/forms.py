@@ -76,6 +76,7 @@ class RevisionForm(forms.ModelForm):
         # than modifying the pre-existing one
         new_revision.pk = None
         new_revision.submitter = user
+        new_revision.is_contribution = not teams.utils.is_editor(user)
         new_revision.save()
         self.save_m2m()
 
@@ -83,15 +84,6 @@ class RevisionForm(forms.ModelForm):
         # is_last=False
         question.revision_set.exclude(pk=new_revision.pk)\
                              .update(is_last=False)
-
-        new_revision.is_approved = utils.test_revision_approval(new_revision)
-
-        if teams.utils.is_editor(user):
-            new_revision.is_contribution = False
-        else:
-            new_revision.is_contribution = True
-
-        new_revision.save()
 
         return new_revision
 
