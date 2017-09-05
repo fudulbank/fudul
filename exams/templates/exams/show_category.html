@@ -18,8 +18,10 @@
       <li class="breadcrumb-item"><a href="{% url 'exams:list_category_indicators' %}">Category indicators</a></li>
 			{% elif is_indicators_active and not category %}
 			<li class="breadcrumb-item active">Category indicators</li>
-			{% else %}
+			{% elif category %}
       <li class="breadcrumb-item"><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
+			{% else %}
+			<li class="breadcrumb-item active">Exams</li>
 			{% endif %}
 			{% for parent_category in category.get_parent_categories %}
 			<li class="breadcrumb-item"><a href="{% url show_category_url parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
