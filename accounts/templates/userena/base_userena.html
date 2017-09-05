@@ -1,6 +1,6 @@
-{% load static %}
-<!DOCTYPE html>
+<!DOCTYPE html>{% load static %}
 <html lang="en" data-textdirection="ltr" class="loading">
+{% include 'partials/call_out.html' %}
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -30,9 +30,7 @@
     <link rel="stylesheet" type="text/css" href="{% static 'stack/css/core/menu/menu-types/vertical-overlay-menu.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'stack/css/pages/login-register.css' %}">
     <!-- END Page Level CSS-->
-    <!-- BEGIN Custom CSS-->
-    <link rel="stylesheet" type="text/css" href="../../../assets/css/style.css">
-    <!-- END Custom CSS-->
+{% include 'partials/piwik.html' %}
   </head>
   <body data-open="click" data-menu="vertical-menu" data-col="1-column" class="vertical-layout vertical-menu 1-column   menu-expanded blank-page blank-page">
     <!-- ////////////////////////////////////////////////////////////////////////////-->

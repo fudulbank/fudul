@@ -100,3 +100,20 @@ def get_user_question_stats(target, user, result, percent=False):
         return "%.0f" % (count / total * 100)
     else:
         return count
+
+def get_meta_exam_question_count(exam, meta, approved_only=False):
+    if type(meta) is models.Source:
+        keyword = 'sources'
+    elif type(meta) is models.ExamType:
+        keyword = 'exam_types'
+    elif type(meta) is models.Subject:
+        keyword = 'subjects'
+
+    query = {keyword: meta}
+
+    if approved_only:
+        question_pool = exam.question_set.approved()
+    else:
+        question_pool = exam.question_set
+        
+    return question_pool.filter(**query).distinct().count()

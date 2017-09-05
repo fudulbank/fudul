@@ -93,8 +93,8 @@ class RevisionQuerySet(models.QuerySet):
 class ExamQuerySet(models.QuerySet):
     def with_approved_questions(self):
         return self.filter(question__is_deleted=False,
-                           question__revision__is_deleted=False,
-                           question__revision__is_approved=True)
+                           question__revision__is_approved=True,
+                           question__revision__is_deleted=False)
 
 class SessionQuerySet(models.QuerySet):
     def with_approved_questions(self):
@@ -112,8 +112,7 @@ class ChoiceQuerySet(models.QuerySet):
 
 class MetaInformationQuerySet(models.QuerySet):
     def order_by_exam_questions(self, exam):
-        return self.filter(question__exam=exam,
-                           question__is_deleted=False)\
+        return self.with_approved_questions(exam)\
                    .annotate(total_questions=Count('question'))\
                    .order_by('-total_questions')
 
@@ -121,10 +120,14 @@ class MetaInformationQuerySet(models.QuerySet):
         return self.filter(question__is_deleted=False,
                            question__revision__is_deleted=False)
 
-    def with_approved_questions(self):
-        return self.filter(question__is_deleted=False,
-                           question__revision__is_approved=True,
-                           question__revision__is_deleted=False)
+    def with_approved_questions(self, exam=None):
+        kwargs = {'question__is_deleted': False,
+                  'question__revision__is_deleted': False,
+                  'question__revision__is_approved': True}
+
+        if exam:
+            kwargs['question__exam'] = exam
+        return self.filter(**kwargs).distinct()
 
 class SourceQuerySet(MetaInformationQuerySet):
     def order_by_exam_questions(self, exam):

@@ -5,8 +5,8 @@ from django.conf.urls.static import static
 from exams.admin import editor_site
 
 urlpatterns = [
-    url(r'^admin/', admin.site.urls),
     url(r'^admin/', include('loginas.urls')),
+    url(r'^admin/', admin.site.urls),
     url(r'^accounts/', include('accounts.urls')),
     url(r'^exams/admin/', include(editor_site.urls)),
     url(r'^exams/', include('exams.urls', namespace="exams")),

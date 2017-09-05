@@ -6,7 +6,22 @@ from accounts.utils import get_user_college
 from . import models, utils
 import teams.utils
 
+class MetaChoiceField(forms.ModelMultipleChoiceField):
+    def __init__(self, *args, **kwargs):
+        self.exam = kwargs.pop('exam')
+        self.form_type = kwargs.pop('form_type')
+        super(MetaChoiceField, self).__init__(*args, **kwargs)
 
+    def label_from_instance(self, obj):
+        approved_only = self.form_type == 'session'
+        count = utils.get_meta_exam_question_count(self.exam, obj,
+                                                   approved_only=approved_only)
+
+        return "{} ({})".format(str(obj), count)
+
+# shared widgets for exam_types, sources and subjects in QuestionForm and SessionForm
+select2_widget = autocomplete.ModelSelect2Multiple(attrs={'data-width': '100%'})
+    
 class QuestionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(QuestionForm, self).__init__(*args, **kwargs)
@@ -15,17 +30,30 @@ class QuestionForm(forms.ModelForm):
         # Only include 'subjects' field if the exam has subjects
         subjects = models.Subject.objects.filter(exam=exam)
         if subjects.exists():
-            self.fields['subjects'].queryset = models.Subject.objects.filter(exam=exam)
-            self.fields['subjects'].required = True
+            self.fields['subjects'] = MetaChoiceField(required=True,
+                                                      form_type='question',
+                                                      exam=exam,
+                                                      queryset=subjects,
+                                                      widget=select2_widget)
         else:
             del self.fields['subjects']
 
-        # Limit sources and exam_types
-        self.fields['sources'].queryset = exam.get_sources()
+        sources = exam.get_sources()
+        if sources.exists():
+            self.fields['sources'] = MetaChoiceField(required=True,
+                                                     form_type='question',
+                                                     exam=exam,
+                                                     queryset=sources,
+                                                     widget=select2_widget)
+        else:
+            del self.fields['sources']
 
         if exam.exam_types.exists():
-            self.fields['exam_types'].queryset = exam.exam_types.all()
-            self.fields['exam_types'].required = True
+            self.fields['exam_types'] = MetaChoiceField(required=True,
+                                                        form_type='question',
+                                                        exam=exam,
+                                                        queryset=exam.exam_types.all(),
+                                                        widget=select2_widget)
         else:
             del self.fields['exam_types']
 
@@ -33,13 +61,10 @@ class QuestionForm(forms.ModelForm):
         model = models.Question
         fields = ['sources', 'subjects','exam_types', 'parent_question']
         widgets = {
-            'exam_types': autocomplete.ModelSelect2Multiple(attrs={'data-width': '100%'}),
             'parent_question': autocomplete.ModelSelect2(url='exams:autocomplete_questions',
                                                          forward=['exam_pk'],
                                                          attrs={'data-html': True,
                                                                 'data-width': '100%'}),
-            'sources': autocomplete.ModelSelect2Multiple(attrs={'data-width': '100%'}),
-            'subjects': autocomplete.ModelSelect2Multiple(attrs={'data-width': '100%'})
         }
 
 class RevisionForm(forms.ModelForm):
@@ -125,27 +150,40 @@ class SessionForm(forms.ModelForm):
         self.fields['number_of_questions'].validators.append(MinValueValidator(1))
         self.fields['number_of_questions'].widget.attrs['min'] = 1
         # This widget should be big enough to contain 5 digits.
-        self.fields['number_of_questions'].widget.attrs['style'] = 'width: 5rem;'
+        self.fields['number_of_questions'].widget.attrs['style'] = 'width: 5em;'
         self.fields['number_of_questions'].widget.attrs['placeholder'] = ''
 
         # Limit subjects and exams per exam
         subjects = models.Subject.objects.filter(exam=exam)\
-                                         .with_approved_questions().distinct()
+                                         .with_approved_questions()\
+                                         .distinct()
         if subjects.exists():
-            self.fields['subjects'].queryset = subjects
+            self.fields['subjects'] = MetaChoiceField(exam=exam,
+                                                      form_type='session',
+                                                      queryset=subjects,
+                                                      widget=select2_widget)
         else:
             del self.fields['subjects']
 
         sources = exam.get_sources().filter(parent_source__isnull=True)\
-                                    .with_approved_questions().distinct()
+                                    .with_approved_questions(exam)\
+                                    .distinct()
         if sources.exists():
-            self.fields['sources'].queryset = sources
+            self.fields['sources'] = MetaChoiceField(exam=exam,
+                                                     form_type='session',
+                                                     queryset=sources,
+                                                     widget=select2_widget)
         else:
             del self.fields['sources']
 
-        if exam.exam_types.exists():
-            self.fields['exam_types'].queryset = exam.exam_types.with_approved_questions().distinct()
-            self.fields['exam_types'].required = True
+        exam_types = exam.exam_types.with_approved_questions(exam)\
+                                    .distinct()
+        if exam_types.exists():
+            self.fields['exam_types'] = MetaChoiceField(required=True,
+                                                        form_type='session',
+                                                        exam=exam,
+                                                        queryset=exam_types,
+                                                        widget=select2_widget)
         else:
             del self.fields['exam_types']
 
@@ -201,9 +239,6 @@ class SessionForm(forms.ModelForm):
         fields = ['session_mode', 'number_of_questions','exam_types',
                   'sources', 'subjects', 'question_filter']
         widgets = {
-            'exam_types': autocomplete.ModelSelect2Multiple(),
-            'sources': autocomplete.ModelSelect2Multiple(),
-            'subjects': autocomplete.ModelSelect2Multiple(),
             'question_filter':forms.RadioSelect(choices=models.questions_choices),
             'session_mode':forms.RadioSelect(choices=models.session_mode_choices)
             }
