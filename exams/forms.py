@@ -155,7 +155,8 @@ class SessionForm(forms.ModelForm):
 
         # Limit subjects and exams per exam
         subjects = models.Subject.objects.filter(exam=exam)\
-                                         .with_approved_questions().distinct()
+                                         .with_approved_questions()\
+                                         .distinct()
         if subjects.exists():
             self.fields['subjects'] = MetaChoiceField(exam=exam,
                                                       form_type='session',
@@ -165,7 +166,8 @@ class SessionForm(forms.ModelForm):
             del self.fields['subjects']
 
         sources = exam.get_sources().filter(parent_source__isnull=True)\
-                                    .with_approved_questions().distinct()
+                                    .with_approved_questions(exam)\
+                                    .distinct()
         if sources.exists():
             self.fields['sources'] = MetaChoiceField(exam=exam,
                                                      form_type='session',
@@ -174,7 +176,7 @@ class SessionForm(forms.ModelForm):
         else:
             del self.fields['sources']
 
-        exam_types = exam.exam_types.with_approved_questions()\
+        exam_types = exam.exam_types.with_approved_questions(exam)\
                                     .distinct()
         if exam_types.exists():
             self.fields['exam_types'] = MetaChoiceField(required=True,
