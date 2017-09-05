@@ -14,8 +14,9 @@ class MetaChoiceField(forms.ModelMultipleChoiceField):
 
     def label_from_instance(self, obj):
         approved_only = self.form_type == 'session'
-        count = utils.get_meta_exam_question_count(self.exam, obj,
-                                                   approved_only=approved_only)
+        count = utils.get_exam_question_count_per_meta(self.exam,
+                                                       meta=obj,
+                                                       approved_only=approved_only)
 
         return "{} ({})".format(str(obj), count)
 

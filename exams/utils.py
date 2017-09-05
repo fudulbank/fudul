@@ -101,7 +101,7 @@ def get_user_question_stats(target, user, result, percent=False):
     else:
         return count
 
-def get_meta_exam_question_count(exam, meta, approved_only=False):
+def get_exam_question_count_per_meta(exam, meta, approved_only=False):
     if type(meta) is models.Source:
         keyword = 'sources'
     elif type(meta) is models.ExamType:

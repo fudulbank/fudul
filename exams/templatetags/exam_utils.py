@@ -43,8 +43,8 @@ def is_editor(category, user):
     return False
 
 @register.filter
-def get_meta_exam_question_count(exam, meta):
-    return utils.get_meta_exam_question_count(exam, meta)
+def get_exam_question_count_per_meta(exam, meta):
+    return utils.get_exam_question_count_per_meta(exam, meta)
 
 @register.filter
 def order_by_exam_questions(meta_queryset, exam):
