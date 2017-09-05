@@ -31,10 +31,15 @@
     width: 32px;
     height: 32px;
 }
+
+/*FIXME*/
+/*
 #choice_formset div.checkbox label > input:checked + span:before {
     content: url("{% static 'images/success(1).png' %}");
     display:block;
 }
+
+*/
 </style>
         {% bootstrap_form_errors questionform %}
 <form method="post" data-exam_pk='{{ exam.pk }}' enctype="multipart/form-data" id="add-question-form">
