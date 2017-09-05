@@ -71,6 +71,6 @@ def get_session_subjects(session):
 @register.filter
 def get_question_count_per_status(status, exam):
     return models.Question.objects.undeleted()\
-                                  .filter(statuses=status, exam=exam)\
+                                  .filter(revision__statuses=status, exam=exam)\
                                   .distinct()\
                                   .count()

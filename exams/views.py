@@ -245,7 +245,7 @@ def list_questions(request, slugs, pk, selector=None):
             status = get_object_or_404(Status, pk=status_pk)
             context['list_name'] = status.name
             questions = exam.question_set.undeleted()\
-                                         .filter(statuses=status)
+                                         .filter(revision__statuses=status)
 
         context['questions'] = questions
         return render(request, 'exams/list_questions_by_selector.html', context)
