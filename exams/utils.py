@@ -77,7 +77,7 @@ def get_user_question_stats(target, user, result, percent=False):
     question_pool = models.Question.objects.approved()
 
     if type(target) is models.Exam:
-        question_pool = question_pool.filter(answer__session__exam=target)
+        question_pool = question_pool.filter(exam=target)
     elif type(target) is models.Subject:
         question_pool = question_pool.filter(subjects=target)
     elif type(target) is models.Session:
