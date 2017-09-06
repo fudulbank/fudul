@@ -35,7 +35,6 @@ def list_meta_categories(request, indicators=False):
     }
     return render(request, 'exams/show_category.html', context)
 
-
 @login_required
 def show_category(request, slugs, indicators=False):
     category = Category.objects.get_from_slugs(slugs)
@@ -122,7 +121,7 @@ class QuestionAutocomplete(autocomplete.Select2QuerySetView):
         text_preview = str(item)
         return "<strong>{}</strong>: {}".format(item.pk, text_preview)
 
-
+@login_required
 @csrf.csrf_exempt
 @decorators.post_only
 @decorators.ajax_only
@@ -141,7 +140,7 @@ def delete_question(request, pk):
 
     return {}
 
-
+@login_required
 @decorators.post_only
 @decorators.ajax_only
 def handle_question(request, exam_pk,question_pk=None):
@@ -165,8 +164,8 @@ def handle_question(request, exam_pk,question_pk=None):
         question_instance = Question(exam=exam)
         questionform = forms.QuestionForm(request.POST,
                                           instance=question_instance)
-        revision_instance = Revision(submitter=request.user, is_first=True,
-                            is_last=True)
+        revision_instance = Revision(submitter=request.user,
+                                     is_first=True, is_last=True)
         revisionform = forms.RevisionForm(request.POST,
                                           request.FILES,
                                           instance=revision_instance)
@@ -176,22 +175,17 @@ def handle_question(request, exam_pk,question_pk=None):
         question = questionform.save()
         revision = revisionform.save(commit=False)
         revision.question = question
+        revision.is_contribution = not teams.utils.is_editor(request.user)
         revision.save()
         revisionform.save_m2m()
 
-        revision.is_approved = utils.test_revision_approval(revision)
-
-        revision.save()
-
-        if teams.utils.is_editor(request.user):
-            revision.is_contribution = False
-        else:
-            revision.is_contribution = True
-
-        revision.save()
         revisionchoiceformset.instance = revision
-
         revisionchoiceformset.save()
+
+        # This test relies on choices, so the choices have to be saved
+        # before.
+        revision.is_approved = utils.test_revision_approval(revision)
+        revision.save()
 
         template = get_template('exams/partials/exam_stats.html')
         context = {'exam': exam}
@@ -210,7 +204,6 @@ def handle_question(request, exam_pk,question_pk=None):
                'revisionchoiceformset': revisionchoiceformset}
 
     return render(request, "exams/partials/question_form.html", context)
-
 
 @login_required
 def list_questions(request, slugs, pk, selector=None):
@@ -248,7 +241,8 @@ def list_questions(request, slugs, pk, selector=None):
             status = get_object_or_404(Status, pk=status_pk)
             context['list_name'] = status.name
             questions = exam.question_set.undeleted()\
-                                         .filter(statuses=status)
+                                         .filter(revision__is_last=True,
+                                                 revision__statuses=status)
 
         context['questions'] = questions
         return render(request, 'exams/list_questions_by_selector.html', context)
@@ -323,6 +317,12 @@ def submit_revision(request, slugs, exam_pk, pk):
             question = questionform.save()
             new_revision = revisionform.clone(question, request.user)
             revisionchoiceformset.clone(new_revision)
+
+            # This test relies on choices, so the choices have to be saved
+            # before.
+            new_revision.is_approved = utils.test_revision_approval(new_revision)
+            new_revision.save()
+
             return HttpResponseRedirect(
                 reverse("exams:list_revisions", args=(exam.category.get_slugs(), exam.pk, question.pk)))
 

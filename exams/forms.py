@@ -14,8 +14,9 @@ class MetaChoiceField(forms.ModelMultipleChoiceField):
 
     def label_from_instance(self, obj):
         approved_only = self.form_type == 'session'
-        count = utils.get_meta_exam_question_count(self.exam, obj,
-                                                   approved_only=approved_only)
+        count = utils.get_exam_question_count_per_meta(self.exam,
+                                                       meta=obj,
+                                                       approved_only=approved_only)
 
         return "{} ({})".format(str(obj), count)
 
@@ -75,6 +76,7 @@ class RevisionForm(forms.ModelForm):
         # than modifying the pre-existing one
         new_revision.pk = None
         new_revision.submitter = user
+        new_revision.is_contribution = not teams.utils.is_editor(user)
         new_revision.save()
         self.save_m2m()
 
@@ -82,15 +84,6 @@ class RevisionForm(forms.ModelForm):
         # is_last=False
         question.revision_set.exclude(pk=new_revision.pk)\
                              .update(is_last=False)
-
-        new_revision.is_approved = utils.test_revision_approval(new_revision)
-
-        if teams.utils.is_editor(user):
-            new_revision.is_contribution = False
-        else:
-            new_revision.is_contribution = True
-
-        new_revision.save()
 
         return new_revision
 
@@ -159,6 +152,7 @@ class SessionForm(forms.ModelForm):
                                          .distinct()
         if subjects.exists():
             self.fields['subjects'] = MetaChoiceField(exam=exam,
+                                                      required=False,
                                                       form_type='session',
                                                       queryset=subjects,
                                                       widget=select2_widget)
@@ -170,6 +164,7 @@ class SessionForm(forms.ModelForm):
                                     .distinct()
         if sources.exists():
             self.fields['sources'] = MetaChoiceField(exam=exam,
+                                                     required=False,
                                                      form_type='session',
                                                      queryset=sources,
                                                      widget=select2_widget)

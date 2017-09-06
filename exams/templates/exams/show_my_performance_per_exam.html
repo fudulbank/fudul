@@ -25,6 +25,7 @@
 			<div class="chart-container mb-2" style="height: 300px; width: 400px; max-width: 100%;">
 				<canvas id="performance-chart">
 			</div>
+{% if exam.subject_set.exists %}
 			<h2>Performance per subject</h2>
 			<table style="width: 100%;" class="datatable table table-striped table-bordered dt-responsive">
 			  <thead>
@@ -55,6 +56,7 @@
 			    {% endfor %}
 			  </tbody>
 			</table>
+{% endif %}
 		</div><!--card-block-->
 	</div><!--card-body-->
 </div><!--card-->

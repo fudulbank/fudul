@@ -28,7 +28,7 @@
        <strong>Specified sources:</strong>
        <ul>
        {% for source in source_qs %}
-          <li>{{ source.name }} ({{ exam|get_meta_exam_question_count:source }} questions)</li>
+          <li>{{ source.name }} ({{ exam|get_exam_question_count_per_meta:source }} questions)</li>
        {% endfor %%}
        </ul>
       {% else %}

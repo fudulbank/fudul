@@ -41,10 +41,12 @@
 				            <tr>
 				                <td><a href="{% url 'exams:create_session' exam.category.get_slugs exam.pk %}">{{ exam.name }}</a></td>
 				                <td><a href="{% url 'exams:list_questions' exam.category.get_slugs exam.pk %}">{{ total_count }}</a></td>
-				                <td>{{ incomplete_count }} ({% widthratio incomplete_count total_count 100 %}%)</td>
-				                <td>{{ unsolved_count }} ({% widthratio unsolved_count total_count 100 %}%)</td>
-				                <td>{{ pending_count }} ({% widthratio pending_count total_count 100 %}%)</td>
-				                <td>{{ exam.session_set.count }}</td>
+				                <td data-order="{{ incomplete_count }}">{{ incomplete_count }} ({% widthratio incomplete_count total_count 100 %}%)</td>
+				                <td data-order="{{ unsolved_count }}">{{ unsolved_count }} ({% widthratio unsolved_count total_count 100 %}%)</td>
+                        <td data-order="{{ pending_count }}">{{ pending_count }} ({% widthratio pending_count total_count 100 %}%)</td>
+                        {% with session_count=exam.session_set.count %}
+    				                <td data-order="{{ session_count }}">{{ session_count }}</td>
+                        {% endwith %}
                         <td>{{ exam.get_percentage_of_correct_submitted_answers }}%</td>
 				            </tr>
 				       {% endwith %}
@@ -61,7 +63,9 @@
 <script src="{% static 'stack/vendors/js/tables/datatable/dataTables.responsive.min.js' %}" type="text/javascript"></script>
   <script type="text/javascript">
     $(function(){
-       $('.datatable').dataTable({searching: false, info: false, order: [[1, 'desc']]});
+       $('.datatable').dataTable({searching: false,
+                                  info: false,
+                                  order: [[1, 'desc']]});
     });
     </script>
 

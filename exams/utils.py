@@ -77,7 +77,7 @@ def get_user_question_stats(target, user, result, percent=False):
     question_pool = models.Question.objects.approved()
 
     if type(target) is models.Exam:
-        question_pool = question_pool.filter(answer__session__exam=target)
+        question_pool = question_pool.filter(exam=target)
     elif type(target) is models.Subject:
         question_pool = question_pool.filter(subjects=target)
     elif type(target) is models.Session:
@@ -101,7 +101,7 @@ def get_user_question_stats(target, user, result, percent=False):
     else:
         return count
 
-def get_meta_exam_question_count(exam, meta, approved_only=False):
+def get_exam_question_count_per_meta(exam, meta, approved_only=False):
     if type(meta) is models.Source:
         keyword = 'sources'
     elif type(meta) is models.ExamType:

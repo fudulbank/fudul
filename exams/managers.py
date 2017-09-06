@@ -22,23 +22,23 @@ class QuestionQuerySet(models.QuerySet):
         # of the user.  For example, if a question has one correct
         # answer, then the user got it (regardless of whether it has
         # other incorrect/skipped answers).
-        return self.used_by_user(user)\
-                   .filter(answer__choice__is_right=True)\
+        return self.filter(answer__choice__is_right=True,
+                           answer__session__submitter=user)\
                    .distinct()
 
     def incorrect_by_user(self, user):
         # See the note in 'self.correct_by_user()'
-        return self.used_by_user(user)\
-                   .exclude(answer__choice__is_right=True)\
-                   .filter(answer__choice__is_right=False)\
+        return self.exclude(answer__choice__is_right=True)\
+                   .filter(answer__choice__is_right=False,
+                           answer__session__submitter=user)\
                    .distinct()
 
     def skipped_by_user(self, user):
         # See the note in 'self.correct_by_user()'
-        return self.used_by_user(user)\
-                   .exclude(answer__choice__is_right=True)\
+        return self.exclude(answer__choice__is_right=True)\
                    .exclude(answer__choice__is_right=False)\
-                   .filter(answer__choice__isnull=True)\
+                   .filter(answer__choice__isnull=True,
+                           answer__session__submitter=user)\
                    .distinct()
 
     def approved(self):
