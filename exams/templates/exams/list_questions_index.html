@@ -42,7 +42,7 @@
                 {% with status_count=status|get_question_count_per_status:exam %}
                 <tr>
                   <td><a href="{% url 'exams:list_questions_by_selector' category_slug exam.pk status.pk %}">{{ status.name }}</a></td>
-                  <td>{{ status_count }} ({% widthratio status_count total_count 100 %}%)</td>
+                  <td data-order="{{ status_count }}">{{ status_count }} ({% widthratio status_count total_count 100 %}%)</td>
                 </tr>
                 {% endwith %}
                 {% endfor %}
@@ -68,15 +68,15 @@
             <tbody>
               <tr>
                 <td><a href="{% url 'exams:list_questions_by_selector' category_slug exam.pk 'approved' %}">With approved latest revisions</a></td>
-                <td>{{ exam.get_approved_latest_revisions.count }} ({% widthratio approved_count total_count 100 %}%)</td>
+                <td data-order="{{ approved_count }}">{{ approved_count }} ({% widthratio approved_count total_count 100 %}%)</td>
               </tr>
               <tr>
                 <td><a href="{% url 'exams:list_questions_by_selector' category_slug exam.pk 'pending' %}">With pending latest revisions</a></td>
-                <td>{{ exam.get_pending_latest_revisions.count }} ({% widthratio pending_count total_count 100 %}%)</td>
+                <td data-order="{{ pending_count }}">{{ pending_count }} ({% widthratio pending_count total_count 100 %}%)</td>
               </tr>
               <tr>
                 <td><a href="{% url 'exams:list_questions_by_selector' category_slug exam.pk 'no_answer' %}">With no right answers</a></td>
-                <td>{{ unsolved_count }} ({% widthratio unsolved_count total_count 100 %}%)</td>
+                <td data-order="{{ unsolved_count }}">{{ unsolved_count }} ({% widthratio unsolved_count total_count 100 %}%)</td>
               </tr>
             </tbody>
             {% endwith %}
