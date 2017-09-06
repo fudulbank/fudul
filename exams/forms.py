@@ -152,6 +152,7 @@ class SessionForm(forms.ModelForm):
                                          .distinct()
         if subjects.exists():
             self.fields['subjects'] = MetaChoiceField(exam=exam,
+                                                      required=False,
                                                       form_type='session',
                                                       queryset=subjects,
                                                       widget=select2_widget)
@@ -163,6 +164,7 @@ class SessionForm(forms.ModelForm):
                                     .distinct()
         if sources.exists():
             self.fields['sources'] = MetaChoiceField(exam=exam,
+                                                     required=False,
                                                      form_type='session',
                                                      queryset=sources,
                                                      widget=select2_widget)
