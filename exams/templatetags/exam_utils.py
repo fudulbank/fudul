@@ -74,3 +74,6 @@ def get_question_count_per_status(status, exam):
                                   .filter(revision__statuses=status, exam=exam)\
                                   .distinct()\
                                   .count()
+@register.filter
+def get_exam_question_count_per_meta (exam, meta, approved_only=False):
+    return utils.get_exam_question_count_per_meta(exam, meta, approved_only)
