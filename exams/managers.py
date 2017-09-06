@@ -56,14 +56,14 @@ class QuestionQuerySet(models.QuerySet):
 
     def incomplete(self):
         return self.undeleted()\
-                   .filter(~Q(revision__statuses__code_name='COMPLETE'),
+                   .filter(~Q(statuses__code_name='COMPLETE'),
                            revision__is_deleted=False,
                            revision__is_last=True)\
                    .distinct()
 
     def complete(self):
         return self.undeleted()\
-                   .filter(revision__statuses__code_name='COMPLETE',
+                   .filter(statuses__code_name='COMPLETE',
                            revision__is_deleted=False,
                            revision__is_last=True)\
                    .distinct()
