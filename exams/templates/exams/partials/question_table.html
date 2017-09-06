@@ -15,7 +15,7 @@
     <td>{{ question.pk }}</td>
     <td> {{ latest_revision.text|truncatewords:20|linebreaksbr }}</td>
     <td>
-       <ul>{% for status in latest_revision.statuses.all %}<li>{{ status.name }}</li>{% endfor %}</ul>
+       <ul>{% for status in question.statuses.all %}<li>{{ status.name }}</li>{% endfor %}</ul>
     </td>
     <td data-order="{{ latest_revision.submission_date|date:'U' }}">{{ latest_revision.submission_date }}</td>
     <td>

@@ -15,26 +15,26 @@
     color: white;
     float: right;
 }
-#choice_formset div.checkbox label {
-    display:inline-block;
-}
-#choice_formset div.checkbox label > input + span {
-    cursor: pointer;
-}
-#choice_formset div.checkbox label span {
-    float: left;
-}
-
-#choice_formset div.checkbox label > input {
-    position: absolute;
-    visibility: hidden;
-    width: 32px;
-    height: 32px;
-}
-#choice_formset div.checkbox label > input:checked + span:before {
-    content: url("{% static 'images/success(1).png' %}");
-    display:block;
-}
+{##choice_formset div.checkbox label {#}
+{#    display:inline-block;#}
+{# }#}
+{##choice_formset div.checkbox label > input + span {#}
+{#    cursor: pointer;#}
+{# }#}
+{##choice_formset div.checkbox label span {#}
+{#    float: left;#}
+{# }#}
+{##}
+{##choice_formset div.checkbox label > input {#}
+{#    position: absolute;#}
+{#    visibility: hidden;#}
+{#    width: 32px;#}
+{#    height: 32px;#}
+{# }#}
+{##choice_formset div.checkbox label > input:checked + span:before {#}
+{#    content: url("{% static 'images/success(1).png' %}");#}
+{#    display:block;#}
+{# }#}
 </style>
         {% bootstrap_form_errors questionform %}
 <form method="post" data-exam_pk='{{ exam.pk }}' enctype="multipart/form-data" id="add-question-form">
@@ -54,7 +54,7 @@
 	<div class="col-md-6">
 		<div class="form-group">
       <label class="control-label"><i class="icon-stack-check text-muted"></i> Status <a data-placement="left" class="circle" data-toggle="tooltip" title="Before tagging a question as 'complete' make sure it has complete answers, and it should be solved.">?</a></label> {% if question %}<small style="margin-left: 1%;color: red"> This question will be approved if you set status to complete.</small>{% endif %}
-			{{ revisionform.statuses }}
+			{{ questionform.statuses }}
 		</div>
 	</div>
 	<div class="col-md-6">

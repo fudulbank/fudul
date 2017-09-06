@@ -31,7 +31,7 @@ class QuestionForm(forms.ModelForm):
 
     class Meta:
         model = models.Question
-        fields = ['sources', 'subjects','exam_types', 'parent_question']
+        fields = ['sources', 'subjects','exam_types', 'parent_question','statuses']
         widgets = {
             'exam_types': autocomplete.ModelSelect2Multiple(attrs={'data-width': '100%'}),
             'parent_question': autocomplete.ModelSelect2(url='exams:autocomplete_questions',
@@ -39,7 +39,8 @@ class QuestionForm(forms.ModelForm):
                                                          attrs={'data-html': True,
                                                                 'data-width': '100%'}),
             'sources': autocomplete.ModelSelect2Multiple(attrs={'data-width': '100%'}),
-            'subjects': autocomplete.ModelSelect2Multiple(attrs={'data-width': '100%'})
+            'subjects': autocomplete.ModelSelect2Multiple(attrs={'data-width': '100%'}),
+            'statuses': autocomplete.ModelSelect2Multiple(attrs={'data-width': '100%'})
         }
 
 class RevisionForm(forms.ModelForm):
@@ -72,11 +73,9 @@ class RevisionForm(forms.ModelForm):
     class Meta:
         model = models.Revision
         fields = ['text', 'explanation', 'explanation_figure',
-                  'figure', 'is_approved', 'statuses','reference',
+                  'figure', 'is_approved','reference',
                   'change_summary','is_contribution']
-        widgets = {
-            'statuses': autocomplete.ModelSelect2Multiple(attrs={'data-width': '100%'}),
-        }
+
 
 class ChoiceForms(forms.ModelForm):
     class Meta:
