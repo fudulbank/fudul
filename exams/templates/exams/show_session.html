@@ -415,7 +415,7 @@
         // Disable interactions after submission
         $(".question-text, .question-choice, .choice-text, .highlight").off();
 
-        $checkedChoice = $('.question-choice:checked');
+        $checkedChoice = $('.question-body.show .question-choice:checked');
         // Do we have a choice, or was it skipped?
         if ($checkedChoice.length) {
             // We store choice pk at the row.
