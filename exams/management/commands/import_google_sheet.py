@@ -40,7 +40,7 @@ class Command(BaseCommand):
             if options['sequence'] and \
                options['sequence'] > sequence:
                 continue
-            text = row[1]
+            text = row[1].strip()
             if not text:
                 continue
             choices = [models.Choice(text=choice.strip()) for choice in row[2:7] if choice.strip()]
