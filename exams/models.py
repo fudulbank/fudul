@@ -300,7 +300,7 @@ class Revision(models.Model):
 
 
 class Choice(models.Model):
-    text = models.CharField(max_length=200)
+    text = models.CharField(max_length=255)
     is_right = models.BooleanField("Right answer?", default=False)
     revision = models.ForeignKey(Revision, on_delete=models.CASCADE,null=True)
     objects = managers.ChoiceQuerySet.as_manager()
