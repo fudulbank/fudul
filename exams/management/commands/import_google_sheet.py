@@ -13,6 +13,8 @@ class Command(BaseCommand):
                             type=str)
         parser.add_argument('--sequence', dest='sequence',
                             type=int, default=None)
+        parser.add_argument('--disapproved', dest='is_disapproved',
+                            action='store_true', default=False)
 
     def handle(self, *args, **options):
         csv_file = open(options['csv_path'])
@@ -51,7 +53,8 @@ class Command(BaseCommand):
                     answer_index = ascii_uppercase.index(row[7])
                     print("Right answer is %s (%s)"  % (row[7], choices[answer_index].text))
                     choices[answer_index].is_right = True
-                    is_approved = True
+                    if not options['is_disapproved']:
+                        is_approved = True
                 except (IndexError, ValueError):
                     # If the no proper right asnwer was specified, or
                     # if the chosen answer falls outside the range of
