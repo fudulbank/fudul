@@ -69,11 +69,5 @@ def get_session_subjects(session):
     return session.subjects.distinct() | session.exam.subject_set.distinct()
 
 @register.filter
-def get_question_count_per_status(status, exam):
-    return models.Question.objects.undeleted()\
-                                  .filter(statuses=status, exam=exam)\
-                                  .distinct()\
-                                  .count()
-@register.filter
-def get_exam_question_count_per_meta (exam, meta, approved_only=False):
+def get_exam_question_count_per_meta(exam, meta, approved_only=False):
     return utils.get_exam_question_count_per_meta(exam, meta, approved_only)

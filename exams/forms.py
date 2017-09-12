@@ -20,10 +20,24 @@ class MetaChoiceField(forms.ModelMultipleChoiceField):
 
         return "{} ({})".format(str(obj), count)
 
+class StatusChoiceField(forms.ModelMultipleChoiceField):
+    def label_from_instance(self, obj):
+        if obj.is_blocker:
+            blocker_str = "blocker"
+            css_class = "text-danger"
+        else:
+            blocker_str = "nonblocker"
+            css_class = "text-success"
+        return "{} <strong class='{}'>({})</strong>".format(obj.name, css_class, blocker_str)
+
 # shared widgets for exam_types, sources and subjects in QuestionForm and SessionForm
 select2_widget = autocomplete.ModelSelect2Multiple(attrs={'data-width': '100%'})
     
 class QuestionForm(forms.ModelForm):
+    issues = StatusChoiceField(widget=autocomplete.ModelSelect2Multiple(attrs={'data-width': '100%', 'data-html': 'true'}),
+                               queryset=models.Issue.objects.all(),
+                               required=False)
+
     def __init__(self, *args, **kwargs):
         super(QuestionForm, self).__init__(*args, **kwargs)
         exam = self.instance.exam
@@ -60,15 +74,13 @@ class QuestionForm(forms.ModelForm):
 
     class Meta:
         model = models.Question
-        fields = ['sources', 'subjects','exam_types', 'parent_question','statuses']
+        fields = ['sources', 'subjects', 'exam_types',
+                  'parent_question', 'issues']
         widgets = {
             'parent_question': autocomplete.ModelSelect2(url='exams:autocomplete_questions',
                                                          forward=['exam_pk'],
                                                          attrs={'data-html': True,
                                                                 'data-width': '100%'}),
-            'sources': autocomplete.ModelSelect2Multiple(attrs={'data-width': '100%'}),
-            'subjects': autocomplete.ModelSelect2Multiple(attrs={'data-width': '100%'}),
-            'statuses': autocomplete.ModelSelect2Multiple(attrs={'data-width': '100%'})
         }
 
 class RevisionForm(forms.ModelForm):

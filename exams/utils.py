@@ -6,17 +6,11 @@ import teams.utils
 def is_question_marked(question, user):
     return question.marking_users.filter(pk=user.pk).exists()
 
-
-def is_question_complete(question):
-    return question.statuses.filter(code_name="COMPLETE").exists()
-
-
 def test_revision_approval(revision):
-    return teams.utils.is_editor(revision.submitter) and \
-           revision.question.statuses.filter(code_name='COMPLETE').exists() and \
+    return (not revision.submitter or teams.utils.is_editor(revision.submitter)) and \
+           not revision.question.issues.filter(is_blocker=True).exists() and \
            revision.choice_set.filter(is_right=True).exists() and \
            revision.choice_set.count() >= 2
-
 
 def get_only_one_revision_questions():
     return models.Question.objects.annotate(num_revision=Count('revision')).filter(num_revision=1)
@@ -108,6 +102,8 @@ def get_exam_question_count_per_meta(exam, meta, approved_only=False):
         keyword = 'exam_types'
     elif type(meta) is models.Subject:
         keyword = 'subjects'
+    elif type(meta) is models.Issue:
+        keyword = 'issues'
 
     query = {keyword: meta}
 

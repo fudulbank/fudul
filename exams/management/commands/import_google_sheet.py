@@ -24,7 +24,7 @@ class Command(BaseCommand):
         exam_type_pool = exam.exam_types.all()
         final_exam_type = exam_type_pool.get(name="Final")
         source_pool = exam.get_sources()
-        status_pool = models.Status.objects.all()
+        issue_pool = models.Issue.objects.all()
         unclassified_source = source_pool.get(name="Unclassified")
 
         # The latest question imported is initially None.
@@ -88,9 +88,9 @@ class Command(BaseCommand):
                 # here.
                 exam_type = final_exam_type
 
-            status_entries = [entry.strip() for entry in row[14:16] if entry.strip()]
-            print("Statuses:", ",".join(status_entries))
-            statuses = [status for status in status_pool if status.name in status_entries]
+            issue_entries = [entry.strip() for entry in row[14:16] if entry.strip()]
+            print("Issues:", ",".join(issue_entries))
+            issues = [issue for issue in issue_pool if issue.name in issue_entries]
 
             # If parent_question is specified, it is VERY LIKELY to be
             # the latest imported revision
@@ -106,13 +106,13 @@ class Command(BaseCommand):
             except IndexError:
                 # Not all Google Sheets have references
                 reference = ""
-    
+
             question = models.Question.objects.create(exam=exam,
                                                       parent_question=parent_question)
             question.subjects.add(*subjects)
             question.exam_types.add(exam_type)
             question.sources.add(source)
-            question.statuses.add(*statuses)
+            question.issues.add(*issues)
             revision = models.Revision.objects.create(question=question,
                                                       text=text,
                                                       reference=reference,

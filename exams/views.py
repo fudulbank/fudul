@@ -10,7 +10,7 @@ from django.views.decorators import csrf
 from htmlmin.decorators import minified_response
 
 from core import decorators
-from .models import Exam, Question, Category, Revision, Session, Choice, Answer, Status
+from .models import *
 from . import forms, utils
 import teams.utils
 from django.views.decorators.http import require_http_methods
@@ -222,11 +222,20 @@ def list_questions(request, slugs, pk, selector=None):
 
     if selector:
         try:
-            status_pk = int(selector)
+            issue_pk = int(selector)
         except ValueError:
             if selector == 'no_answer':
                 questions = exam.question_set.unsolved()
                 context['list_name'] = "no right answers"
+            elif selector == 'no_issues':
+                questions = exam.question_set.with_no_issues()
+                context['list_name'] = "no issues"
+            elif selector == 'blocking_issues':
+                questions = exam.question_set.with_blocking_issues()
+                context['list_name'] = "blocking issues"
+            elif selector == 'nonblocking_issues':
+                questions = exam.question_set.with_nonblocking_issues()
+                context['list_name'] = "non-blocking issues"
             elif selector == 'approved':
                 latest_revision_pks = exam.get_approved_latest_revisions()\
                                           .values_list('question__pk', flat=True)
@@ -238,15 +247,15 @@ def list_questions(request, slugs, pk, selector=None):
                 questions = Question.objects.filter(pk__in=latest_revision_pks)
                 context['list_name'] = "pending latesting revision"
         else:
-            status = get_object_or_404(Status, pk=status_pk)
-            context['list_name'] = status.name
+            issue = get_object_or_404(Issue, pk=issue_pk)
+            context['list_name'] = issue.name
             questions = exam.question_set.undeleted()\
-                                         .filter(statuses=status)
+                                         .filter(issues=issue)
 
         context['questions'] = questions
         return render(request, 'exams/list_questions_by_selector.html', context)
     else:
-        context['statuses'] = Status.objects.all()
+        context['issues'] = Issue.objects.all()
         return render(request, 'exams/list_questions_index.html', context)
 
 @login_required

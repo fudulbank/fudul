@@ -71,12 +71,16 @@
           </ul>
           {% endfor %}
         </td>
-        <th>Statuses</th>
+        <th>Issues</th>
         <td>
+          {% if question.issues.exists %}
           <ul>
-          {% for status in question.statuses.all %}<li>{{ status.name }}</li>
+          {% for issue in question.issues.all %}<li>{{ issue.name }}</li>
           </ul>
           {% endfor %}
+          {% else %}
+          No issues
+          {% endif %}
         </td>
       </tr>
   </table>
@@ -85,7 +89,7 @@
             <tr>
                 <th>Submitter</th>
                 <th>Date of Submission</th>
-                <th class="not-mobile">Status</th>
+                <th class="not-mobile">Issues</th>
                 <th>Is approved?</th>
 								<th class="always">Actions</th>
             </tr>
@@ -96,9 +100,9 @@
             <td>{% get_user_representation revision.submitter %}</td>
             <td data-order="{{ revision.submission_date|date:'U' }}">{{ revision.submission_date }}</td>
             <td>
-                <ul>{% for status in revision.question.statuses.all %}<li>{{ status.name }}</li>{% endfor %}</ul>
+                <ul>{% for issue in revision.question.issues.all %}<li>{{ issue.name }}</li>{% endfor %}</ul>
             </td>
-            <td class="status {% if revision.is_approved %}text-success{% else %}text-danger{% endif %}">{% if revision.is_approved %}Yes {% if revision.approved_by %}<br>By {% get_user_representation revision.approved_by %} {% endif %}{% else %}No{% endif %}</td>
+            <td class="issue {% if revision.is_approved %}text-success{% else %}text-danger{% endif %}">{% if revision.is_approved %}Yes {% if revision.approved_by %}<br>By {% get_user_representation revision.approved_by %} {% endif %}{% else %}No{% endif %}</td>
 						<td>
                 <div class="dropdown">
                   <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="ft-settings"></i> Actions</button>

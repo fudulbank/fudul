@@ -58,8 +58,8 @@
 {% endif %}
 	<div class="col-md-6">
 		<div class="form-group">
-      <label class="control-label"><i class="icon-stack-check text-muted"></i> Status <a data-placement="left" class="circle" data-toggle="tooltip" title="Before tagging a question as 'complete' make sure it has complete answers, and it should be solved.">?</a></label> {% if question %}<small style="margin-left: 1%;color: red"> This question will be approved if you set status to complete.</small>{% endif %}
-			{{ questionform.statuses }}
+      <label class="control-label"><i class="icon-stack-check text-muted"></i> Issues <a data-placement="left" data-html="true" class="circle" data-toggle="tooltip" title="Does this question have any issues?  Note that issues have two types: <em>blocker</em> and <em>non-blocker</em>.  Questions marked with <em>blocker</em> issues will NOT be available for users to be examined on.  Issues with <em>non-blocker</em> issues will still be available.">?</a></label>
+			{{ questionform.issues }}
 		</div>
 	</div>
 	<div class="col-md-6">

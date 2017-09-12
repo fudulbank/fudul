@@ -28,7 +28,7 @@
 				        <tr>
 				            <th data-priority="1">Exam</th>
                     <th data-priority="1">Total questions</th>
-				            <th data-toggle="tooltip" title="Questions that are not marked as having 'complete' status (includes: incomplete questions, incomplete answers, typos, etc)" data-priority="5">Incomplete</th>
+				            <th data-toggle="tooltip" title="Questions that are marked by editor as having issues (includes: incomplete questions, incomplete answers, typos, etc)" data-priority="5">With issues</th>
 				            <th data-toggle="tooltip" title="Questions with unsolved latest revision" data-priority="4">Unsolved</th>
 				            <th data-toggle="tooltip" title="Questions with pending latest revision" data-priority="3">Pending</th>
 				            <th data-toggle="tooltip" title="Sessions created by users" data-priority="2">Sessions</th>
@@ -37,11 +37,11 @@
 				    </thead>
 				    <tbody>
 				       {% for exam in category.exams.all %}
-				       {% with total_count=exam.question_set.undeleted.count incomplete_count=exam.question_set.incomplete.count unsolved_count=exam.question_set.unsolved.count pending_count=exam.get_pending_latest_revisions.count %}
+				       {% with total_count=exam.question_set.undeleted.count with_issue_count=exam.question_set.with_issues.count unsolved_count=exam.question_set.unsolved.count pending_count=exam.get_pending_latest_revisions.count %}
 				            <tr>
 				                <td><a href="{% url 'exams:create_session' exam.category.get_slugs exam.pk %}">{{ exam.name }}</a></td>
 				                <td><a href="{% url 'exams:list_questions' exam.category.get_slugs exam.pk %}">{{ total_count }}</a></td>
-				                <td data-order="{{ incomplete_count }}">{{ incomplete_count }} ({% widthratio incomplete_count total_count 100 %}%)</td>
+				                <td data-order="{{ with_issue_count }}">{{ with_issue_count }} ({% widthratio with_issue_count total_count 100 %}%)</td>
 				                <td data-order="{{ unsolved_count }}">{{ unsolved_count }} ({% widthratio unsolved_count total_count 100 %}%)</td>
                         <td data-order="{{ pending_count }}">{{ pending_count }} ({% widthratio pending_count total_count 100 %}%)</td>
                         {% with session_count=exam.session_set.count %}
@@ -63,6 +63,7 @@
 <script src="{% static 'stack/vendors/js/tables/datatable/dataTables.responsive.min.js' %}" type="text/javascript"></script>
   <script type="text/javascript">
     $(function(){
+       $('[data-toggle="tooltip"]').tooltip()
        $('.datatable').dataTable({searching: false,
                                   info: false,
                                   order: [[1, 'desc']]});

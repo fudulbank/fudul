@@ -64,7 +64,7 @@ editor_site = EditorAdmin("editor_admin")
 
 admin.site.register(models.Category, CategoryAdmin)
 admin.site.register(models.Exam, ExamAdmin)
-admin.site.register(models.Status)
+admin.site.register(models.Issue)
 admin.site.register(models.ExamType)
 admin.site.register(models.Source)
 admin.site.register(models.Session)

@@ -10,7 +10,7 @@ class Command(BaseCommand):
                             type=int)
 
     def handle(self, *args, **options):
-        
+
         exam_pk = options['exam_pk']
         csv_file = open('export-exam-%s.csv' % exam_pk, 'w')
         csv_writer = csv.writer(csv_file)
@@ -22,7 +22,7 @@ class Command(BaseCommand):
 
         header = ['ID', 'Text', 'Choice A', 'Choice B', 'Choice C',
                   'Choice D', 'Choice E', 'Answer', 'Explanation',
-                  'Parent question', 'Exam type', 'Status', 'Subject',
+                  'Parent question', 'Exam type', 'Issues', 'Subject',
                   'Source']
 
         csv_writer.writerow(header)
@@ -49,12 +49,12 @@ class Command(BaseCommand):
             else:
                 parent_question_pk = ""
             exam_types = ", ".join([exam_type.name for exam_type in revision.question.exam_types.all()])
-            statuses = ", ".join([status.name for status in revision.question.statuses.all()])
+            issues = ", ".join([issue.name for issue in revision.question.issues.all()])
             subjects = ", ".join([subject.name for subject in revision.question.subjects.all()])
             sources = ", ".join([source.name for source in revision.question.sources.all()])
 
             row = [pk, text] + choice_texts + [right_answer, explanation, parent_question_pk] + \
-                  [exam_types, statuses, subjects, sources]
+                  [exam_types, issues, subjects, sources]
 
             csv_writer.writerow(row)
 

@@ -45,6 +45,7 @@ class QuestionQuerySet(models.QuerySet):
         return self.undeleted()\
                    .filter(revision__is_approved=True,
                            revision__is_deleted=False)\
+                   .exclude(issues__is_blocker=True)\
                    .distinct()
 
     def unsolved(self):
@@ -54,18 +55,27 @@ class QuestionQuerySet(models.QuerySet):
                            revision__is_last=True)\
                    .distinct()
 
-    def incomplete(self):
+    def with_issues(self):
         return self.undeleted()\
-                   .filter(~Q(statuses__code_name='COMPLETE'),
-                           revision__is_deleted=False,
-                           revision__is_last=True)\
+                   .filter(issues__isnull=False)\
                    .distinct()
 
-    def complete(self):
+    def with_nonblocking_issues(self):
+        # If the question has a blocking issue, do not show it here,
+        # even if it has a non-blocking issue.  Let's kill overlap.
         return self.undeleted()\
-                   .filter(statuses__code_name='COMPLETE',
-                           revision__is_deleted=False,
-                           revision__is_last=True)\
+                   .filter(issues__isnull=False)\
+                   .exclude(issues__is_blocker=True)\
+                   .distinct()
+
+    def with_blocking_issues(self):
+        return self.undeleted()\
+                   .filter(issues__is_blocker=True)\
+                   .distinct()
+
+    def with_no_issues(self):
+        return self.undeleted()\
+                   .filter(issues__isnull=True)\
                    .distinct()
 
     def order_global_sequence(self):
@@ -120,7 +130,7 @@ class MetaInformationQuerySet(models.QuerySet):
     def with_undeleted_questions(self):
         return self.filter(question__is_deleted=False,
                            question__revision__is_deleted=False)\
-                   .distnict()
+                   .distinct()
 
     def with_approved_questions(self, exam=None):
         kwargs = {'question__is_deleted': False,

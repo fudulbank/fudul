@@ -21,13 +21,19 @@ class Source(models.Model):
     def __str__(self):
         return self.name
 
-class Status(models.Model):
+class Issue(models.Model):
     name = models.CharField(max_length=100)
     # code_name is something more stable than 'name'
     code_name = models.CharField(max_length=50)
+    is_blocker = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.name
+        if self.is_blocker:
+            blocker_str = "blocker"
+        else:
+            blocker_str = "non-blocker"
+
+        return "{} ({})".format(self.name, blocker_str)
 
 class ExamType(models.Model):
     name = models.CharField(max_length=100)
@@ -181,7 +187,7 @@ class Question(models.Model):
     # parents and children.  It is used to determine the sequence of
     # question within sessions.
     global_sequence = models.PositiveIntegerField(null=True, blank=True)
-    statuses = models.ManyToManyField(Status)
+    issues = models.ManyToManyField('Issue', blank=True)
     marking_users = models.ManyToManyField(User, blank=True,
                                            related_name="marked_questions")
     objects = managers.QuestionQuerySet.as_manager()
@@ -266,7 +272,6 @@ class Revision(models.Model):
     question = models.ForeignKey(Question)
     submitter = models.ForeignKey(User, null=True, blank=True)
     text = models.TextField()
-    statuses = models.ManyToManyField(Status)
     figure = models.ImageField(upload_to="revision_images",
                                blank=True)
     explanation = models.TextField(default="", blank=True)
