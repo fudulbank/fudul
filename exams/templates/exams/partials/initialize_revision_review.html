@@ -48,9 +48,9 @@ function initializeReview(){
 
                 // The following applies in list_revision:
                 $revision_table = $("#revision-list").DataTable();
-                issue_cell = $revision_table.cell(row_selector + " .issue").node();
-                $issue_cell = $(issue_cell);
-                $issue_cell.removeClass("text-danger")
+                approval_status_cell = $revision_table.cell(row_selector + " .approval_status").node();
+                $approval_status_cell = $(approval_status_cell);
+                $approval_status_cell.removeClass("text-danger")
                             .addClass("text-success")
                             .html("Yes");
                 $this.hide();
@@ -80,9 +80,9 @@ function initializeReview(){
                 toastr.info("Revision is now marked as pending");
 
                 $revision_table = $("#revision-list").DataTable();
-                issue_cell = $revision_table.cell(row_selector + " .issue").node();
-                $issue_cell = $(issue_cell);
-                $issue_cell.removeClass("text-success")
+                approval_status_cell = $revision_table.cell(row_selector + " .approval_status").node();
+                $approval_status_cell = $(approval_status_cell);
+                $approval_status_cell.removeClass("text-success")
                             .addClass("text-danger")
                             .html("No");
                 $this.hide();
