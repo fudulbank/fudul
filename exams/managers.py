@@ -94,7 +94,8 @@ class ExamQuerySet(models.QuerySet):
     def with_approved_questions(self):
         return self.filter(question__is_deleted=False,
                            question__revision__is_approved=True,
-                           question__revision__is_deleted=False)
+                           question__revision__is_deleted=False)\
+                   .distinct()
 
 class SessionQuerySet(models.QuerySet):
     def with_approved_questions(self):
@@ -118,7 +119,8 @@ class MetaInformationQuerySet(models.QuerySet):
 
     def with_undeleted_questions(self):
         return self.filter(question__is_deleted=False,
-                           question__revision__is_deleted=False)
+                           question__revision__is_deleted=False)\
+                   .distnict()
 
     def with_approved_questions(self, exam=None):
         kwargs = {'question__is_deleted': False,
