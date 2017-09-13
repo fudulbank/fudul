@@ -89,6 +89,10 @@ class QuestionQuerySet(models.QuerySet):
                    .filter(is_deleted=False)\
                    .exclude(revision_count=0)
 
+    def marked_by_user(self,user):
+        return self.undeleted()\
+                   .filter(marking_users=user)
+
 class RevisionQuerySet(models.QuerySet):
     def order_by_submission(self):
         return self.order_by('-pk')

@@ -371,6 +371,9 @@ def create_session(request, slugs, exam_pk):
                'question_count': question_count,
                'editor':editor,
                'latest_sessions': latest_sessions,
+               'unused': exam.question_set.unused_by_user(request.user).count(),
+               'incorrect':exam.question_set.incorrect_by_user(request.user).count(),
+               'marked':exam.question_set.marked_by_user(request.user).count(),
                'is_browse_active': True, # To make sidebar 'active'
     }
 
