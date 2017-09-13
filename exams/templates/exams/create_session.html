@@ -63,10 +63,6 @@
 <div class="row">
    <div class="col-md-8">
 
-       {% if alert %}
-           <div style="background-color: lightyellow" class="card"><div class="card-body"><div class="card-block"> <i class="ft-alert-triangle"></i>{{ alert }}</div></div></div>
-        {% endif %}
-
      <div class="card">
        <div class="card-header">
          <h4 class="card-title">Start a new session</h4>
@@ -190,39 +186,98 @@
     <script src="{% static 'js/jquery.autogrowtextarea.min.js' %}"></script>
     <script src="{% static 'js/toastr.js' %}"></script>
     <script>
+
+    function controlSessionModes(){
+        if ($('input[value=INCOMPLETE]:checked').length) {
+          $("#session-mode input").attr({disabled: true,
+                                         name: false,
+                                         checked: false,
+                                         required: false});
+          $hidden_mode = $("<input>").attr({type: 'hidden',
+                                           name: 'session_mode',
+                                           value: 'INCOMPLETE',
+                                           id: 'hidden-session-mode'});
+          $("#session-mode").append($hidden_mode);
+        } else {
+          $("#session-mode input").attr({name: 'session_mode',
+                                          required: true,
+                                          disabled: false});
+          $("#hidden-session-mode").remove();
+        }
+    }
+
+    function toggleSubjects(status){
+      if (status == 'show_select2'){
+        $('#all-subjects-options').show();
+        $('#subjects-select option:last-child').prop('selected', true);
+      } else if (status == 'hide_select2'){
+        $('#all-subjects-options').hide();
+        $('#subjects-select option:first-child').prop('selected', true);
+      }
+    }
+
+    function toggleSources(status){
+      if (status == 'show_select2'){
+
+      } else if (status == 'show_select2'){
+
+      }
+    }
+
+
     $(function() {
         $("#id_session_mode li:nth-child(1) label").tooltip({title: "This shows the right answer with its explanation after submitting each question."})
         $("#id_session_mode li:nth-child(2) label").tooltip({title: "This hides the right answer and explanation, and only shows them at the end."})
         $("#id_session_mode li:nth-child(3) label").tooltip({title: "This turns off exam mode, and it will show questions with the explanation and right answer right away."})
 
-        if ($('#subjects-select option[value=All]:checked').length) {
-        $('#all-subjects-options').hide();
-        $('#all-subjects-options select option').prop('selected', true);
+        $("#id_question_filter li:nth-child(1) label").tooltip({title: "Select all complete and valid questions in the {{ exam.name }} exam."})
+        $("#id_question_filter li:nth-child(2) label").tooltip({title: "Select questions that you have never answered in the {{ exam.name }} exam."})
+        $("#id_question_filter li:nth-child(3) label").tooltip({title: "Select questions that you have only answered incorrectly and never correctly in the {{ exam.name }} exam."})
+        $("#id_question_filter li:nth-child(4) label").tooltip({title: "Select questions that you have marked in the {{ exam.name }} exam."})
+        $("#id_question_filter li:nth-child(5) label").tooltip({title: "Select incomplete questions in the {{ exam.name }} exam."})
+
+        controlSessionModes();
+        $("input[name=question_filter]").change(controlSessionModes);
+
+        // if the form was pre-filled with subject or source selections.
+        if ($('#id_subjects').find(':selected').length){
+          toggleSubjects('show_select2');
+        } else {
+          toggleSubjects('hide_select2');
         }
+        if ($('#id_sources').find(':selected').length){
+           toggleSources('show_select2');
+        } else {
+           toggleSources('hide_select2');
+        }
+
+        // disable question filters with zero counts
+        $("input[name=question_filter]").each(function(){
+          label = $(this).closest("label").text()
+          regex = /\((\d+)\)/
+          count = label.match(regex)[1]
+          if (count == 0){
+            $(this).attr('disabled', true);
+          }
+        })
+
+        // If the meta subject or source selection field changes
         $('#subjects-select').change(function() {
-            if ($('#subjects-select option[value=All]:checked').length) {
-                $('#all-subjects-options').hide();
-                $('#all-subjects-options select option').prop('selected', true);
+            if ($(this).val() == 'All') {
+                toggleSubjects('hide_select2');
             } else {
-                $('#all-subjects-options').show();
-                $('#all-subjects-options select option').prop('selected', false);
+                toggleSubjects('show_select2');
             }
         });
-        if ($('#sources-select option[value=All]:checked').length) {
-                $('#all-sources-options').hide();
-                $('#all-sources-options select option').prop('selected', true);
-        }
         $('#sources-select').change(function() {
-            if ($('#sources-select option[value=All]:checked').length) {
-                $('#all-sources-options').hide();
-                $('#all-sources-options select option').prop('selected', true);
+            if ($(this).val() == 'All') {
+                toggleSources('hide_select2');
             } else {
-                $('#all-sources-options').show();
-                $('#all-sources-options select option').prop('selected', false);
+                toggleSources('show_select2');
             }
         });
 
-                // initialize project edit modal
+        // initialize credit modal
         $('#show-credit-modal').modal({
           keyboard: false,
           backdrop: 'static',

@@ -1,6 +1,6 @@
 from dal import autocomplete
 from django import forms
-from django.core.validators import MaxValueValidator,MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.forms.models import inlineformset_factory
 from accounts.utils import get_user_college
 from . import models, utils
@@ -144,11 +144,32 @@ ContributedRevisionChoiceFormset = inlineformset_factory(models.Revision,
 
 class SessionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-        exam = kwargs.pop('exam')
+        self.exam = kwargs.pop('exam')
+        self.user = kwargs.pop('user')
         super(SessionForm, self).__init__(*args, **kwargs)
 
+        self.fields['session_mode'].widget = forms.RadioSelect(choices=models.session_mode_choices[:-1])
+
+        filter_choices = []
+        for code_name, human_name in models.questions_choices:
+            if code_name == 'ALL':
+                question_pool = self.exam.question_set.approved()
+            elif code_name == 'UNUSED':
+                question_pool = self.exam.question_set.approved().unused_by_user(self.user)
+            elif code_name == 'INCORRECT':
+                question_pool = self.exam.question_set.approved().incorrect_by_user(self.user)
+            elif code_name == 'MARKED':
+                question_pool = self.exam.question_set.approved().filter(marking_users=self.user)
+            elif code_name == 'INCOMPLETE':
+                question_pool = self.exam.question_set.with_blocking_issues()
+
+            count = question_pool.count()
+            choice = (code_name, "{} ({})".format(human_name, count))
+            filter_choices.append(choice)
+        self.fields['question_filter'].widget = forms.RadioSelect(choices=filter_choices)
+
         # Limit number of questions
-        total_questions = exam.question_set.approved().count()
+        total_questions = self.exam.question_set.approved().count()
         total_question_validator = MaxValueValidator(total_questions)
         self.fields['number_of_questions'].validators.append(total_question_validator)
         self.fields['number_of_questions'].widget.attrs['max'] = total_questions
@@ -160,11 +181,11 @@ class SessionForm(forms.ModelForm):
         self.fields['number_of_questions'].widget.attrs['placeholder'] = ''
 
         # Limit subjects and exams per exam
-        subjects = models.Subject.objects.filter(exam=exam)\
+        subjects = models.Subject.objects.filter(exam=self.exam)\
                                          .with_approved_questions()\
                                          .distinct()
         if subjects.exists():
-            self.fields['subjects'] = MetaChoiceField(exam=exam,
+            self.fields['subjects'] = MetaChoiceField(exam=self.exam,
                                                       required=False,
                                                       form_type='session',
                                                       queryset=subjects,
@@ -172,11 +193,11 @@ class SessionForm(forms.ModelForm):
         else:
             del self.fields['subjects']
 
-        sources = exam.get_sources().filter(parent_source__isnull=True)\
-                                    .with_approved_questions(exam)\
-                                    .distinct()
+        sources = self.exam.get_sources().filter(parent_source__isnull=True)\
+                                         .with_approved_questions(self.exam)\
+                                         .distinct()
         if sources.exists():
-            self.fields['sources'] = MetaChoiceField(exam=exam,
+            self.fields['sources'] = MetaChoiceField(exam=self.exam,
                                                      required=False,
                                                      form_type='session',
                                                      queryset=sources,
@@ -184,39 +205,57 @@ class SessionForm(forms.ModelForm):
         else:
             del self.fields['sources']
 
-        exam_types = exam.exam_types.with_approved_questions(exam)\
-                                    .distinct()
+        exam_types = self.exam.exam_types.with_approved_questions(self.exam)\
+                                         .distinct()
         if exam_types.exists():
             self.fields['exam_types'] = MetaChoiceField(required=True,
                                                         form_type='session',
-                                                        exam=exam,
+                                                        exam=self.exam,
                                                         queryset=exam_types,
                                                         widget=select2_widget)
         else:
             del self.fields['exam_types']
 
-    def save(self, *args, **kwargs):
-        session = super(SessionForm, self).save(*args, **kwargs)
-        question_pool = session.exam.question_set.approved()\
-                                    .order_by('?')\
-                                    .select_related('parent_question',
-                                                    'child_question')
+    def clean(self):
+        cleaned_data = super(SessionForm, self).clean()
 
-        if session.subjects.exists():
-            question_pool = question_pool.filter(subjects__in=session.subjects.all())
+        # If the form is invalid to start with, skip question
+        # checking.
 
-        if session.sources.exists():
-            question_pool = question_pool.filter(sources__in=session.sources.all())
+        if not 'question_filter' in cleaned_data or \
+           not 'number_of_questions' in cleaned_data:
+            return cleaned_data
 
-        if session.exam_types.exists():
-            question_pool = question_pool.filter(exam_types__in=session.exam_types.all())
+        question_pool = self.exam.question_set\
+                             .order_by('?')\
+                             .select_related('parent_question',
+                                             'child_question')
 
-        if session.question_filter == 'UNUSED':
-            question_pool = question_pool.unused_by_user(session.submitter)
-        elif session.question_filter == 'INCORRECT':
-            question_pool = question_pool.incorrect_by_user(session.submitter)
-        elif session.question_filter == 'MARKED':
-            question_pool = question_pool.filter(marking_users=session.submitter)
+
+        question_filter = cleaned_data['question_filter']
+        if question_filter == 'INCOMPLETE':
+            question_pool = question_pool.with_blocking_issues()
+        else:
+            question_pool = question_pool.approved()
+
+            if question_filter == 'UNUSED':
+                question_pool = question_pool.unused_by_user(self.user)
+            elif question_filter == 'INCORRECT':
+                question_pool = question_pool.incorrect_by_user(self.user)
+            elif question_filter == 'MARKED':
+                question_pool = question_pool.filter(marking_users=self.user)
+
+        subjects = cleaned_data.get('subjects')
+        if subjects:
+            question_pool = question_pool.filter(subjects__in=subjects)
+
+        sources = cleaned_data.get('sources')
+        if sources:
+            question_pool = question_pool.filter(sources__in=sources)
+
+        exam_types = cleaned_data.get('exam_types')
+        if exam_types:
+            question_pool = question_pool.filter(exam_types__in=exam_types)
 
         # Let's make sure that when a question is randomly chosen, we
         # also include its parents and children.
@@ -225,20 +264,30 @@ class SessionForm(forms.ModelForm):
             tree = question.get_tree()
             selected += tree
 
-            if len(selected) >= session.number_of_questions:
+            if len(selected) >= cleaned_data['number_of_questions']:
                 break
 
         # In the course of ensuring inclusion of the complete question
         # child/parent tree, we might have exceeded the required
         # number.  So let's cut on that.
         final = selected
-        if len(selected) > session.number_of_questions:
+        if len(selected) > cleaned_data['number_of_questions']:
             for question in selected:
                 if not hasattr(question, 'child_question') and \
                    not question.parent_question:
                     final.remove(question)
 
-        session.questions.add(*final)
+        self.questions = final
+
+        if not self.questions:
+            raise forms.ValidationError("No questions at all match your selection.  Please try other options.")
+
+        return cleaned_data
+
+    def save(self, *args, **kwargs):
+        session = super(SessionForm, self).save(*args, **kwargs)
+
+        session.questions.add(*self.questions)
 
         return session
 
@@ -246,10 +295,6 @@ class SessionForm(forms.ModelForm):
         model = models.Session
         fields = ['session_mode', 'number_of_questions','exam_types',
                   'sources', 'subjects', 'question_filter']
-        widgets = {
-            'question_filter':forms.RadioSelect(choices=models.questions_choices),
-            'session_mode':forms.RadioSelect(choices=models.session_mode_choices)
-            }
 
 
 class ExplanationForm(RevisionForm):

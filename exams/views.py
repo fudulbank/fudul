@@ -363,37 +363,24 @@ def create_session(request, slugs, exam_pk):
                                       .order_by('-pk')[:10]
 
     question_count = exam.question_set.approved().count()
-    editor = teams.utils.is_editor(request.user)
     context = {'exam': exam,
                'question_count': question_count,
-               'editor':editor,
                'latest_sessions': latest_sessions,
                'is_browse_active': True, # To make sidebar 'active'
     }
 
-    if 'alert' in request.COOKIES.keys():
-        alert = request.COOKIES['alert']
-        context['alert'] = alert
-        del request.COOKIES['alert']
-
     if request.method == 'GET':
-        sessionform = forms.SessionForm(exam=exam)
+        sessionform = forms.SessionForm(exam=exam, user=request.user)
     elif request.method == 'POST':
         instance = Session(submitter=request.user, exam=exam)
         sessionform = forms.SessionForm(request.POST,
-                                        instance=instance, exam=exam)
+                                        instance=instance, exam=exam,
+                                        user=request.user)
         if sessionform.is_valid():
             # Question allocation happens in SessionForm.save()
             session = sessionform.save()
-            if session.questions.count() < 1:
-                response = HttpResponseRedirect(reverse("exams:create_session",
-                                                    args=(
-                                                    session.exam.category.get_slugs(), session.exam.pk)))
-                response.set_cookie("alert", "Sorry, we don't have enough questions for your specific request, please try other options.",max_age=3)
-                return response
-            else:
-                return HttpResponseRedirect(reverse("exams:show_session",
-                                                    args=(session.exam.category.get_slugs(),session.exam.pk,session.pk)))
+            return HttpResponseRedirect(reverse("exams:show_session",
+                                                args=(session.exam.category.get_slugs(),session.exam.pk,session.pk)))
     context['sessionform'] = sessionform
 
     return render(request, "exams/create_session.html", context)
