@@ -221,30 +221,27 @@ def list_questions(request, slugs, pk, selector=None):
                'is_browse_active': True}
 
     if selector:
+        question_pool = exam.question_set.all()
         try:
             issue_pk = int(selector)
         except ValueError:
             if selector == 'no_answer':
-                questions = exam.question_set.unsolved()
+                questions = question_pool.unsolved()
                 context['list_name'] = "no right answers"
             elif selector == 'no_issues':
-                questions = exam.question_set.with_no_issues()
+                questions = question_pool.with_no_issues()
                 context['list_name'] = "no issues"
             elif selector == 'blocking_issues':
-                questions = exam.question_set.with_blocking_issues()
+                questions = question_pool.with_blocking_issues()
                 context['list_name'] = "blocking issues"
             elif selector == 'nonblocking_issues':
-                questions = exam.question_set.with_nonblocking_issues()
+                questions = question_pool.with_nonblocking_issues()
                 context['list_name'] = "non-blocking issues"
             elif selector == 'approved':
-                latest_revision_pks = exam.get_approved_latest_revisions()\
-                                          .values_list('question__pk', flat=True)
-                questions = Question.objects.filter(pk__in=latest_revision_pks)
+                questions = question_pool.with_approved_latest_revision()
                 context['list_name'] = "approved latesting revision"                
             elif selector == 'pending':
-                latest_revision_pks = exam.get_pending_latest_revisions()\
-                                          .values_list('question__pk', flat=True)
-                questions = Question.objects.filter(pk__in=latest_revision_pks)
+                questions = question_pool.with_pending_latest_revision()
                 context['list_name'] = "pending latesting revision"
         else:
             issue = get_object_or_404(Issue, pk=issue_pk)

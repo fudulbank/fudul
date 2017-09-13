@@ -144,18 +144,6 @@ class Exam(models.Model):
 
         return False
 
-    def get_approved_latest_revisions(self):
-        return Revision.objects.select_related('question', 'submitter')\
-                               .undeleted()\
-                               .per_exam(self)\
-                               .filter(is_last=True, is_approved=True)
-
-    def get_pending_latest_revisions(self):
-        return Revision.objects.select_related('question', 'submitter')\
-                               .undeleted()\
-                               .per_exam(self)\
-                               .filter(is_last=True, is_approved=False)
-
     def get_percentage_of_correct_submitted_answers(self):
         submitted_answers = Answer.objects.filter(session__exam=self,choice__isnull=False).count()
         if not submitted_answers == 0:
