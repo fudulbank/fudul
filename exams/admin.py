@@ -48,14 +48,23 @@ class SourceInline(admin.TabularInline):
     model= models.Source
     extra = 0
 
-class ExamAdmin(admin.ModelAdmin):
+class EditorModelAdmin(admin.ModelAdmin):
+    def has_module_permission(self, request, obj=None):
+        return teams.utils.is_editor(request.user) or \
+               request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        return teams.utils.is_editor(request.user) or \
+               request.user.is_superuser
+    
+class ExamAdmin(EditorModelAdmin):
     search_fields = ['name', 'category__name']
     list_display = ['__str__', 'category']
     list_filter = ['category']
     inlines = [SubjectInline]
     readonly_fields = ['is_deleted']
 
-class CategoryAdmin(admin.ModelAdmin):
+class CategoryAdmin(EditorModelAdmin):
     search_fields = ['name']
     inlines = [SourceInline]
 
@@ -66,10 +75,7 @@ admin.site.register(models.Category, CategoryAdmin)
 admin.site.register(models.Exam, ExamAdmin)
 admin.site.register(models.Issue)
 admin.site.register(models.ExamType)
-admin.site.register(models.Source)
 admin.site.register(models.Session)
 
 editor_site.register(models.Category, CategoryAdmin)
-editor_site.register(models.Source)
-editor_site.register(models.ExamType)
 editor_site.register(models.Exam, ExamAdmin)

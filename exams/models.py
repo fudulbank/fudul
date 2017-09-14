@@ -195,7 +195,7 @@ class Question(models.Model):
         return first_revision.submitter == user
 
     def was_solved_in_session(self, session):
-        if session.session_mode == 'SOLVED':
+        if session.session_mode in ['INCOMPLETE', 'SOLVED']:
             return True
         else:
             return Answer.objects.filter(session=session, question=self).exists()
@@ -303,16 +303,18 @@ class Choice(models.Model):
 
 
 questions_choices = (
+    ('ALL','All'),
     ('UNUSED','Unused'),
     ('INCORRECT', 'Incorrect'),
     ('MARKED', 'Marked'),
-    ('ALL','All'),
+    ('INCOMPLETE', 'Incomplete'),
 )
 
 session_mode_choices = (
     ('EXPLAINED', 'Explained'),
     ('UNEXPLAINED', 'Unexplained'),
     ('SOLVED', 'Solved'),
+    ('INCOMPLETE', 'Incomplete'),
 )
 
 class Session(models.Model):
