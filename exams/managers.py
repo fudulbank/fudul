@@ -78,6 +78,18 @@ class QuestionQuerySet(models.QuerySet):
                    .filter(issues__isnull=True)\
                    .distinct()
 
+    def with_approved_latest_revision(self):
+        return self.undeleted()\
+                   .filter(revision__is_last=True,
+                           revision__is_approved=True)\
+                   .distinct()
+
+    def with_pending_latest_revision(self):
+        return self.undeleted()\
+                   .filter(revision__is_last=True,
+                           revision__is_approved=False)\
+                   .distinct()
+
     def order_global_sequence(self):
         return self.order_by('global_sequence')
 

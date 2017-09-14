@@ -144,18 +144,6 @@ class Exam(models.Model):
 
         return False
 
-    def get_approved_latest_revisions(self):
-        return Revision.objects.select_related('question', 'submitter')\
-                               .undeleted()\
-                               .per_exam(self)\
-                               .filter(is_last=True, is_approved=True)
-
-    def get_pending_latest_revisions(self):
-        return Revision.objects.select_related('question', 'submitter')\
-                               .undeleted()\
-                               .per_exam(self)\
-                               .filter(is_last=True, is_approved=False)
-
     def get_percentage_of_correct_submitted_answers(self):
         submitted_answers = Answer.objects.filter(session__exam=self,choice__isnull=False).count()
         if not submitted_answers == 0:
@@ -207,7 +195,7 @@ class Question(models.Model):
         return first_revision.submitter == user
 
     def was_solved_in_session(self, session):
-        if session.session_mode == 'SOLVED':
+        if session.session_mode in ['INCOMPLETE', 'SOLVED']:
             return True
         else:
             return Answer.objects.filter(session=session, question=self).exists()
@@ -315,16 +303,18 @@ class Choice(models.Model):
 
 
 questions_choices = (
+    ('ALL','All'),
     ('UNUSED','Unused'),
     ('INCORRECT', 'Incorrect'),
     ('MARKED', 'Marked'),
-    ('ALL','All'),
+    ('INCOMPLETE', 'Incomplete'),
 )
 
 session_mode_choices = (
     ('EXPLAINED', 'Explained'),
     ('UNEXPLAINED', 'Unexplained'),
     ('SOLVED', 'Solved'),
+    ('INCOMPLETE', 'Incomplete'),
 )
 
 class Session(models.Model):

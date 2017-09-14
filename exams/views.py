@@ -221,30 +221,27 @@ def list_questions(request, slugs, pk, selector=None):
                'is_browse_active': True}
 
     if selector:
+        question_pool = exam.question_set.all()
         try:
             issue_pk = int(selector)
         except ValueError:
             if selector == 'no_answer':
-                questions = exam.question_set.unsolved()
+                questions = question_pool.unsolved()
                 context['list_name'] = "no right answers"
             elif selector == 'no_issues':
-                questions = exam.question_set.with_no_issues()
+                questions = question_pool.with_no_issues()
                 context['list_name'] = "no issues"
             elif selector == 'blocking_issues':
-                questions = exam.question_set.with_blocking_issues()
+                questions = question_pool.with_blocking_issues()
                 context['list_name'] = "blocking issues"
             elif selector == 'nonblocking_issues':
-                questions = exam.question_set.with_nonblocking_issues()
+                questions = question_pool.with_nonblocking_issues()
                 context['list_name'] = "non-blocking issues"
             elif selector == 'approved':
-                latest_revision_pks = exam.get_approved_latest_revisions()\
-                                          .values_list('question__pk', flat=True)
-                questions = Question.objects.filter(pk__in=latest_revision_pks)
+                questions = question_pool.with_approved_latest_revision()
                 context['list_name'] = "approved latesting revision"                
             elif selector == 'pending':
-                latest_revision_pks = exam.get_pending_latest_revisions()\
-                                          .values_list('question__pk', flat=True)
-                questions = Question.objects.filter(pk__in=latest_revision_pks)
+                questions = question_pool.with_pending_latest_revision()
                 context['list_name'] = "pending latesting revision"
         else:
             issue = get_object_or_404(Issue, pk=issue_pk)
@@ -366,10 +363,8 @@ def create_session(request, slugs, exam_pk):
                                       .order_by('-pk')[:10]
 
     question_count = exam.question_set.approved().count()
-    editor = teams.utils.is_editor(request.user)
     context = {'exam': exam,
                'question_count': question_count,
-               'editor':editor,
                'latest_sessions': latest_sessions,
                'unused': exam.question_set.unused_by_user(request.user).count(),
                'incorrect':exam.question_set.incorrect_by_user(request.user).count(),
@@ -377,29 +372,18 @@ def create_session(request, slugs, exam_pk):
                'is_browse_active': True, # To make sidebar 'active'
     }
 
-    if 'alert' in request.COOKIES.keys():
-        alert = request.COOKIES['alert']
-        context['alert'] = alert
-        del request.COOKIES['alert']
-
     if request.method == 'GET':
-        sessionform = forms.SessionForm(exam=exam)
+        sessionform = forms.SessionForm(exam=exam, user=request.user)
     elif request.method == 'POST':
         instance = Session(submitter=request.user, exam=exam)
         sessionform = forms.SessionForm(request.POST,
-                                        instance=instance, exam=exam)
+                                        instance=instance, exam=exam,
+                                        user=request.user)
         if sessionform.is_valid():
             # Question allocation happens in SessionForm.save()
             session = sessionform.save()
-            if session.questions.count() < 1:
-                response = HttpResponseRedirect(reverse("exams:create_session",
-                                                    args=(
-                                                    session.exam.category.get_slugs(), session.exam.pk)))
-                response.set_cookie("alert", "Sorry, we don't have enough questions for your specific request, please try other options.",max_age=3)
-                return response
-            else:
-                return HttpResponseRedirect(reverse("exams:show_session",
-                                                    args=(session.exam.category.get_slugs(),session.exam.pk,session.pk)))
+            return HttpResponseRedirect(reverse("exams:show_session",
+                                                args=(session.exam.category.get_slugs(),session.exam.pk,session.pk)))
     context['sessionform'] = sessionform
 
     return render(request, "exams/create_session.html", context)

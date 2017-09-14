@@ -4,8 +4,8 @@
      <ul>
        <li>{{ exam.question_set.with_no_issues.count }} with <strong>no</strong> issues.</li>
        <li>{{ exam.question_set.with_issues.count }} with issues.</li>
-       <li>{{ exam.get_approved_latest_revisions.count }} with latest revision approved.</li>
-       <li>{{ exam.get_pending_latest_revisions.count }} with latest revision pending.</li>
+       <li>{{ exam.question_set.with_approved_latest_revision.count }} with latest revision approved.</li>
+       <li>{{ exam.question_set.with_pending_latest_revision.count }} with latest revision pending.</li>
      </ul>
   </li>
     <li>
