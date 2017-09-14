@@ -70,7 +70,7 @@
             </thead>
             <tbody>
               <tr>
-                <td><a href="{% url 'exams:list_questions_by_selector' category_slug exam.pk 'no_issues' %}">With no issues (complete and valid)</a></td>
+                <td><a href="{% url 'exams:list_questions_by_selector' category_slug exam.pk 'no_issues' %}">With no editor-specified issues</a></td>
                 <td data-order="{{ no_issue_count }}">{{ no_issue_count }} ({% widthratio no_issue_count total_count 100 %}%)</td>
               </tr>
               <tr>
