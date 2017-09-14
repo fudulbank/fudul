@@ -362,7 +362,7 @@ def create_session(request, slugs, exam_pk):
        not exam.question_set.approved().exists():
         raise Http404
 
-    latest_sessions = exam.session_set.with_approved_questions()\
+    latest_sessions = exam.session_set.with_accessible_questions()\
                                       .filter(submitter=request.user)\
                                       .order_by('-pk')[:10]
 
@@ -408,7 +408,7 @@ def list_session_questions(request):
 @require_safe
 def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     category = Category.objects.get_from_slugs(slugs)
-    session = get_object_or_404(Session.objects.with_approved_questions(), pk=session_pk)
+    session = get_object_or_404(Session.objects.with_accessible_questions(), pk=session_pk)
 
     if not category:
         raise Http404
@@ -457,7 +457,7 @@ def toggle_marked(request):
     question_pk = request.POST.get('question_pk')
     session_pk = request.POST.get('session_pk')
     session = get_object_or_404(Session, pk=session_pk)
-    question = get_object_or_404(session.questions.approved(), pk=question_pk,
+    question = get_object_or_404(session.get_questions(), pk=question_pk,
                                  is_deleted=False)
 
     # PERMISSION CHECKS
@@ -482,7 +482,7 @@ def submit_answer(request):
     session_pk = request.POST.get('session_pk')
     choice_pk = request.POST.get('choice_pk')
     session = get_object_or_404(Session, pk=session_pk)
-    question = get_object_or_404(session.questions.approved(), pk=question_pk, is_deleted=False)
+    question = get_object_or_404(session.get_questions(), pk=question_pk, is_deleted=False)
 
     # PERMISSION CHECKS
     if not session.can_user_access(request.user):
@@ -519,10 +519,10 @@ def submit_answer(request):
     else:
         right_choice_pk = None
 
-    next_question = session.questions.approved()\
-                                     .order_by('global_sequence')\
-                                     .exclude(pk__lte=question.pk)\
-                                     .exists()
+    next_question = session.get_questions()\
+                           .order_by('global_sequence')\
+                           .exclude(pk__lte=question.pk)\
+                           .exists()
     if next_question:
         done = False
     else:
@@ -536,7 +536,7 @@ def submit_answer(request):
 @login_required
 def list_previous_sessions(request):
     sessions = Session.objects.filter(submitter=request.user)\
-                              .with_approved_questions()
+                              .with_accessible_questions()
 
     context = {'sessions':sessions,
                'is_previous_active': True}

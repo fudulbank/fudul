@@ -150,19 +150,18 @@ class SessionForm(forms.ModelForm):
 
         self.fields['session_mode'].widget = forms.RadioSelect(choices=models.session_mode_choices[:-1])
 
+        self.question_pools = {'ALL': self.exam.question_set.approved(),
+                               'UNUSED': self.exam.question_set.approved().unused_by_user(self.user),
+                               'INCORRECT': self.exam.question_set.approved().incorrect_by_user(self.user),
+                               'MARKED': self.exam.question_set.approved().filter(marking_users=self.user),
+                               'INCOMPLETE': self.exam.question_set.with_blocking_issues() |\
+                                             self.exam.question_set.unsolved() |\
+                                             self.exam.question_set.lacking_choices()
+                               }
+
         filter_choices = []
         for code_name, human_name in models.questions_choices:
-            if code_name == 'ALL':
-                question_pool = self.exam.question_set.approved()
-            elif code_name == 'UNUSED':
-                question_pool = self.exam.question_set.approved().unused_by_user(self.user)
-            elif code_name == 'INCORRECT':
-                question_pool = self.exam.question_set.approved().incorrect_by_user(self.user)
-            elif code_name == 'MARKED':
-                question_pool = self.exam.question_set.approved().filter(marking_users=self.user)
-            elif code_name == 'INCOMPLETE':
-                question_pool = self.exam.question_set.with_blocking_issues()
-
+            question_pool = self.question_pools[code_name]
             count = question_pool.count()
             choice = (code_name, "{} ({})".format(human_name, count))
             filter_choices.append(choice)
@@ -226,24 +225,8 @@ class SessionForm(forms.ModelForm):
            not 'number_of_questions' in cleaned_data:
             return cleaned_data
 
-        question_pool = self.exam.question_set\
-                             .order_by('?')\
-                             .select_related('parent_question',
-                                             'child_question')
-
-
         question_filter = cleaned_data['question_filter']
-        if question_filter == 'INCOMPLETE':
-            question_pool = question_pool.with_blocking_issues()
-        else:
-            question_pool = question_pool.approved()
-
-            if question_filter == 'UNUSED':
-                question_pool = question_pool.unused_by_user(self.user)
-            elif question_filter == 'INCORRECT':
-                question_pool = question_pool.incorrect_by_user(self.user)
-            elif question_filter == 'MARKED':
-                question_pool = question_pool.filter(marking_users=self.user)
+        question_pool = self.question_pools[question_filter]
 
         subjects = cleaned_data.get('subjects')
         if subjects:

@@ -164,7 +164,7 @@
                             {% if not session.has_finished %}
 						<li class="list-group-item">
 							<a  href="{% url 'exams:show_session' exam.category.get_slugs exam.pk session.pk %}" ><span class="tag tag-default tag-pill bg-primary float-xs-right">{{ session.pk }}</span></a>
-							{% if not session.session_mode == 'SOLVED'%}({{ session.get_unused_questions.count }}/{{ session.get_total_question_count }}) {% endif %}<strong>Subjects:</strong>{% if session.subjects.count == 1 %}{{ session.subjects.first.name }}{% elif not session.exam.subject_set.exists %} {{ session.exam.name }}{% else %} Multiple {% endif %}
+							{% if not session.session_mode == 'SOLVED'%}({{ session.get_unused_questions.count }}/{{ session.get_questions.count }}) {% endif %}<strong>Subjects:</strong>{% if session.subjects.count == 1 %}{{ session.subjects.first.name }}{% elif not session.exam.subject_set.exists %} {{ session.exam.name }}{% else %} Multiple {% endif %}
 						</li>
                             {% endif %}
                             </div>
