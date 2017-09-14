@@ -141,7 +141,7 @@
           <div class="form-group has-feedback has-feedback-left" style="display: inline-block;">
 {% bootstrap_field sessionform.number_of_questions show_label=False  %}
           </div>
-          <strong>/ {{ question_count }} </strong>
+          <strong>/ <span id="question-count">{{ question_count }}</span> </strong>
       </div>
     </div>
     <button type="submit" class="btn btn-primary btn-block btn-lg">Start Session <i class="icon-circle-right2 position-right"></i></button>
@@ -188,6 +188,13 @@
     <script>
 
     function controlSessionModes(){
+        total = $(this).data('total');
+        if (total){
+          console.log("fuck")
+          $("#id_number_of_questions").attr('max', total);
+          $("#question-count").html(total);
+        }
+
         if ($('input[value=INCOMPLETE]:checked').length) {
           $("#session-mode input").attr({disabled: true,
                                          name: false,
@@ -259,6 +266,7 @@
           if (count == 0){
             $(this).attr('disabled', true);
           }
+          $(this).data('total', count);
         })
 
         // If the meta subject or source selection field changes
