@@ -570,7 +570,9 @@ def contribute_explanation(request):
                                      request.FILES,
                                      instance=latest_revision)
         if form.is_valid():
-            form.clone(question, request.user)
+            new_revision = form.clone(question, request.user)
+            new_revision.change_summary = "Added an explanation"
+            new_revision.save()
             return {}
 
     context = {'question': question,

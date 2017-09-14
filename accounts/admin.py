@@ -35,6 +35,7 @@ class InstitutionAdmin(admin.ModelAdmin):
         return User.objects.filter(profile__college__institution=obj).count()
 
 class UserAdmin(UserenaAdmin):
+    ordering = ['-date_joined']
     change_form_template = 'loginas/change_form.html'
     inlines = [ProfileInline,]
     actions = ['make_active']
