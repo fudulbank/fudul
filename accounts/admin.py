@@ -46,7 +46,6 @@ class UserAdmin(UserenaAdmin):
 
     def make_active(self, request, queryset):
         queryset.update(is_active=True)
-        make_active.short_description = u"نشّط حسابات المستخدمين والمستخدمات"
 
     def get_user_representation(self, obj):
         return utils.get_user_representation(obj, with_email=False)
