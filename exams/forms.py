@@ -169,8 +169,6 @@ class SessionForm(forms.ModelForm):
 
         # Limit number of questions
         total_questions = self.exam.question_set.approved().count()
-        total_question_validator = MaxValueValidator(total_questions)
-        self.fields['number_of_questions'].validators.append(total_question_validator)
         self.fields['number_of_questions'].widget.attrs['max'] = total_questions
 
         self.fields['number_of_questions'].validators.append(MinValueValidator(1))
