@@ -3,20 +3,21 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
+from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
 from django.template.loader import get_template
 from django.views.decorators import csrf
+from django.views.decorators.http import require_POST, require_safe
 from htmlmin.decorators import minified_response
 
 from core import decorators
 from .models import *
 from . import forms, utils
 import teams.utils
-from django.views.decorators.http import require_http_methods
-from django.db.models import Q
-# from reversion.helpers import genericpath
 
+
+@require_safe
 @login_required
 def list_meta_categories(request, indicators=False):
     if indicators and not teams.utils.is_editor(request.user):
@@ -35,6 +36,7 @@ def list_meta_categories(request, indicators=False):
     }
     return render(request, 'exams/show_category.html', context)
 
+@require_safe
 @login_required
 def show_category(request, slugs, indicators=False):
     category = Category.objects.get_from_slugs(slugs)
@@ -81,8 +83,7 @@ def show_category(request, slugs, indicators=False):
 
     return render(request, "exams/show_category.html", context)
 
-
-@decorators.get_only
+@require_safe
 @login_required
 def add_question(request, slugs, pk):
     category = Category.objects.get_from_slugs(slugs)
@@ -121,10 +122,11 @@ class QuestionAutocomplete(autocomplete.Select2QuerySetView):
         text_preview = str(item)
         return "<strong>{}</strong>: {}".format(item.pk, text_preview)
 
-@login_required
+
 @csrf.csrf_exempt
-@decorators.post_only
+@require_POST
 @decorators.ajax_only
+@login_required
 def delete_question(request, pk):
     question = get_object_or_404(Question, pk=pk)
     exam = question.exam
@@ -140,9 +142,9 @@ def delete_question(request, pk):
 
     return {}
 
-@login_required
-@decorators.post_only
+@require_POST
 @decorators.ajax_only
+@login_required
 def handle_question(request, exam_pk,question_pk=None):
     exam = get_object_or_404(Exam, pk=exam_pk)
 
@@ -205,6 +207,7 @@ def handle_question(request, exam_pk,question_pk=None):
 
     return render(request, "exams/partials/question_form.html", context)
 
+@require_safe
 @login_required
 def list_questions(request, slugs, pk, selector=None):
     category = Category.objects.get_from_slugs(slugs)
@@ -255,8 +258,9 @@ def list_questions(request, slugs, pk, selector=None):
         context['issues'] = Issue.objects.all()
         return render(request, 'exams/list_questions_index.html', context)
 
-@login_required
 @decorators.ajax_only
+@require_safe
+@login_required
 def show_question(request, pk, revision_pk=None):
     question = get_object_or_404(Question, pk=pk, is_deleted=False)
     if revision_pk:
@@ -273,6 +277,7 @@ def show_question(request, pk, revision_pk=None):
     context = {'revision': revision}
     return render(request, 'exams/partials/show_question.html', context)
 
+@require_safe
 @login_required
 def list_revisions(request, slugs, exam_pk, pk):
     category = Category.objects.get_from_slugs(slugs)
@@ -290,7 +295,6 @@ def list_revisions(request, slugs, exam_pk, pk):
                'is_browse_active': True,
                'exam': exam}
     return render(request, 'exams/list_revisions.html', context)
-
 
 @login_required
 def submit_revision(request, slugs, exam_pk, pk):
@@ -387,7 +391,7 @@ def create_session(request, slugs, exam_pk):
 
 @minified_response
 @decorators.ajax_only
-@decorators.get_only
+@require_safe
 @login_required
 def list_session_questions(request):
     question_pk = request.GET.get('question_pk')
@@ -401,6 +405,7 @@ def list_session_questions(request):
                    'current_question': current_question})
 
 @login_required
+@require_safe
 def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     category = Category.objects.get_from_slugs(slugs)
     session = get_object_or_404(Session.objects.with_approved_questions(), pk=session_pk)
@@ -425,6 +430,7 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     return render(request, "exams/show_session.html", context)
 
 @login_required
+@require_safe
 def show_session_results(request, slugs, exam_pk, session_pk):
     category = Category.objects.get_from_slugs(slugs)
     session = get_object_or_404(Session, pk=session_pk)
@@ -444,7 +450,7 @@ def show_session_results(request, slugs, exam_pk, session_pk):
     return render(request, 'exams/show_session_results.html', context)
 
 @decorators.ajax_only
-@decorators.post_only
+@require_POST
 @login_required
 @csrf.csrf_exempt
 def toggle_marked(request):
@@ -468,7 +474,7 @@ def toggle_marked(request):
     return {'is_marked': is_marked}
 
 @decorators.ajax_only
-@decorators.post_only
+@require_POST
 @login_required
 @csrf.csrf_exempt
 def submit_answer(request):
@@ -526,6 +532,7 @@ def submit_answer(request):
             'right_choice_pk': right_choice_pk,
             'explanation': explanation}
 
+@require_safe
 @login_required
 def list_previous_sessions(request):
     sessions = Session.objects.filter(submitter=request.user)\
@@ -537,8 +544,7 @@ def list_previous_sessions(request):
     return render(request, 'exams/list_previous_sessions.html',
                   context)
 
-
-
+@require_safe
 def show_category_indicators(request, category):
     # PERMISSION CHECK
     if not teams.utils.is_editor(request.user):
@@ -643,7 +649,7 @@ def show_revision_comparison(request, pk, revision_pk=None):
     return render(request, 'exams/partials/show_revision_comparison.html', context)
 
 @csrf.csrf_exempt
-@decorators.post_only
+@require_POST
 @decorators.ajax_only
 def delete_revision(request, pk):
     revision = get_object_or_404(Revision, pk=pk)
@@ -668,7 +674,7 @@ def delete_revision(request, pk):
     return {}
 
 @csrf.csrf_exempt
-@decorators.post_only
+@require_POST
 @decorators.ajax_only
 def mark_revision_approved(request, pk):
     revision = get_object_or_404(Revision, pk=pk)
@@ -683,7 +689,7 @@ def mark_revision_approved(request, pk):
     revision.save()
 
 @csrf.csrf_exempt
-@decorators.post_only
+@require_POST
 @decorators.ajax_only
 def mark_revision_pending(request, pk):
     revision = get_object_or_404(Revision, pk=pk)
@@ -722,6 +728,7 @@ def approve_question(request, slugs, exam_pk,pk):
 
     return render(request, "exams/add_question.html", context)
 
+@require_safe
 @login_required
 def show_my_performance(request):
     total_questions = Question.objects.approved()\
@@ -750,6 +757,7 @@ def show_my_performance(request):
     return render(request, "exams/show_my_performance.html", context)
 
 @login_required
+@require_safe
 def show_my_performance_per_exam(request, exam_pk):
     user_exams = Exam.objects.filter(session__submitter=request.user).distinct()
     exam = get_object_or_404(user_exams, pk=exam_pk)
@@ -771,12 +779,13 @@ def show_my_performance_per_exam(request, exam_pk):
     return render(request, "exams/show_my_performance_per_exam.html", context)
 
 @login_required
+@require_safe
 def show_credits(request,pk):
     exam = get_object_or_404(Exam, pk=pk)
     return render(request, 'exams/partials/show_credits.html',{'exam':exam})
 
-
 @login_required
+@require_safe
 def list_contributions(request,user_pk=None):
     if user_pk:
         user = get_object_or_404(User,pk=user_pk)
@@ -788,8 +797,7 @@ def list_contributions(request,user_pk=None):
 
     return render(request, 'exams/list_contributions.html',{'revisions':revisions,'exams':exams})
 
-
-@require_http_methods(['GET'])
+@require_safe
 def search(request):
     q = request.GET.get('q')
     #TODO:try to add choices to search

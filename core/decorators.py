@@ -5,28 +5,6 @@ import json
 from django.core import exceptions as django_exceptions
 from django.http import HttpResponse, Http404
 
-def get_only(view_func):
-    @functools.wraps(view_func)
-    def wrapper(request, *args, **kwargs):
-        if request.method != 'GET':
-            raise django_exceptions.PermissionDenied(
-                'request method %s is not supported for this function' % \
-                request.method
-            )
-        return view_func(request, *args, **kwargs)
-    return wrapper
-
-def post_only(view_func):
-    @functools.wraps(view_func)
-    def wrapper(request, *args, **kwargs):
-        if request.method != 'POST':
-            raise django_exceptions.PermissionDenied(
-                'request method %s is not supported for this function' % \
-                request.method
-            )
-        return view_func(request, *args, **kwargs)
-    return wrapper
-
 def ajax_only(view_func):
     @functools.wraps(view_func)
     def wrapper(request, *args, **kwargs):
