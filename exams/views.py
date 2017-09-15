@@ -15,6 +15,7 @@ from . import forms, utils
 import teams.utils
 from django.views.decorators.http import require_http_methods
 from django.db.models import Q
+import core.utils
 # from reversion.helpers import genericpath
 
 @login_required
@@ -366,9 +367,6 @@ def create_session(request, slugs, exam_pk):
     context = {'exam': exam,
                'question_count': question_count,
                'latest_sessions': latest_sessions,
-               'unused': exam.question_set.unused_by_user(request.user).count(),
-               'incorrect':exam.question_set.incorrect_by_user(request.user).count(),
-               'marked':exam.question_set.marked_by_user(request.user).count(),
                'is_browse_active': True, # To make sidebar 'active'
     }
 
@@ -791,16 +789,18 @@ def list_contributions(request,user_pk=None):
 
     return render(request, 'exams/list_contributions.html',{'revisions':revisions,'exams':exams})
 
-
+@login_required
 @require_http_methods(['GET'])
 def search(request):
     q = request.GET.get('q')
+    categories= utils.get_user_allowed_categories(request.user)
     #TODO:try to add choices to search
-    #what about questions that the user isnt allowed to see
     if q:
-        revisions = Revision.objects.filter(is_last=True, is_approved=True).filter(Q(question__pk__icontains=q)| Q(text__icontains=q))
+        search_fields =['question__pk','text','choice__text']
+        qs = Revision.objects.filter(question__subjects__exam__category__in=categories,is_last=True, is_approved=True)
+        revisions = core.utils.get_search_queryset(qs, search_fields, q)
         return render(request, 'exams/search_results.html', {'revisions': revisions, 'query': q})
-    return HttpResponse('Please submit a search term.')
+    return render(request, 'exams/search_results.html', {'search': True})
 
 
 # qs = User.objects.filter(is_active=True)
