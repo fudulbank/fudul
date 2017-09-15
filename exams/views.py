@@ -359,7 +359,7 @@ def create_session(request, slugs, exam_pk):
     # If the exam has no approved questions, it doesn't exist for
     # users.
     if not exam.can_user_edit(request.user) and \
-       not exam.question_set.approved().exists():
+       not exam.question_set.undeleted().exists():
         raise Http404
 
     latest_sessions = exam.session_set.with_accessible_questions()\
