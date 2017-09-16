@@ -132,6 +132,9 @@ class Exam(models.Model):
             category = category.parent_category
         return sources
 
+    def can_user_access(self, user):
+        return self.category.can_user_access(user)
+
     def can_user_edit(self, user):
         if user.is_superuser:
             return True
@@ -391,10 +394,27 @@ class Session(models.Model):
     def can_user_access(self, user):
         return self.submitter == user or user.is_superuser
 
-
 class Answer(models.Model):
     session = models.ForeignKey(Session)
     question = models.ForeignKey(Question)
     choice = models.ForeignKey(Choice,null=True)
     is_marked = models.BooleanField("is marked ?", default=False)
+    submission_date = models.DateTimeField(auto_now_add=True, null=True)
+
     objects = managers.AnswerQuerySet.as_manager()
+
+    def __str__(self):
+        return "Answer of Q#{} in S#{}".format(self.question.pk,
+                                               self.session.pk)
+
+class AnswerCorrection(models.Model):
+    choice = models.OneToOneField(Choice, null=True,
+                                  related_name="answer_correction")
+    supporting_users = models.ManyToManyField(User, blank=True,
+                                              related_name="supported_corrections")
+    opposing_users = models.ManyToManyField(User, blank=True,
+                                            related_name="opposed_corrections")
+    submitter = models.ForeignKey(User)
+    justification = models.TextField(default="")    
+    submission_date = models.DateTimeField(auto_now_add=True)
+

@@ -128,13 +128,15 @@ class QuestionAutocomplete(autocomplete.Select2QuerySetView):
 @decorators.ajax_only
 @login_required
 def delete_question(request, pk):
-    question = get_object_or_404(Question, pk=pk)
+    question_pool = Question.objects.undeleted()\
+                                    .select_related('exam')
+    question = get_object_or_404(question_pool, pk=pk)
     exam = question.exam
 
     # PERMISSION CHECK
     if not request.user.is_superuser and \
-            not exam.category.is_user_editor(request.user) and \
-            not question.is_user_creator(request.user):
+       not exam.category.is_user_editor(request.user) and \
+       not question.is_user_creator(request.user):
         raise Exception("You cannot delete that question!")
 
     question.is_deleted = True
@@ -262,6 +264,7 @@ def list_questions(request, slugs, pk, selector=None):
 @require_safe
 @login_required
 def show_question(request, pk, revision_pk=None):
+    
     question = get_object_or_404(Question, pk=pk, is_deleted=False)
     if revision_pk:
         revision = get_object_or_404(Revision, pk=revision_pk)
@@ -632,8 +635,9 @@ def approve_user_contributions(request,slugs,exam_pk):
 @login_required
 @decorators.ajax_only
 def show_revision_comparison(request, pk, revision_pk=None):
-
-    question = get_object_or_404(Question, pk=pk)
+    question_pool = Question.objects.undeleted()\
+                                    .select_related('exam')
+    question = get_object_or_404(question_pool, pk=pk)
 
     if revision_pk:
         revision = get_object_or_404(Revision, pk=revision_pk,
@@ -654,14 +658,17 @@ def show_revision_comparison(request, pk, revision_pk=None):
 @require_POST
 @decorators.ajax_only
 def delete_revision(request, pk):
-    revision = get_object_or_404(Revision, pk=pk)
+    revision_pool = Revision.objects.undeleted()\
+                                    .select_related('question',
+                                                    'question__exam')
+    revision = get_object_or_404(revision_pool, pk=pk)
     question = revision.question
     exam = question.exam
 
     # PERMISSION CHECK
     if not request.user.is_superuser and \
-            not exam.category.is_user_editor(request.user) and \
-            not revision.submitter == request.user:
+       not exam.category.is_user_editor(request.user) and \
+       not revision.submitter == request.user:
         raise Exception("You cannot delete that question!")
 
     revision.is_deleted = True
@@ -679,7 +686,10 @@ def delete_revision(request, pk):
 @require_POST
 @decorators.ajax_only
 def mark_revision_approved(request, pk):
-    revision = get_object_or_404(Revision, pk=pk)
+    revision_pool = Revision.objects.undeleted()\
+                                    .select_related('question',
+                                                    'question__exam')
+    revision = get_object_or_404(revision_pool, pk=pk)
     exam = revision.question.exam
 
     # PERMISSION CHECK
@@ -690,11 +700,14 @@ def mark_revision_approved(request, pk):
     revision.approved_by= request.user
     revision.save()
 
-@csrf.csrf_exempt
 @require_POST
 @decorators.ajax_only
+@csrf.csrf_exempt
 def mark_revision_pending(request, pk):
-    revision = get_object_or_404(Revision, pk=pk)
+    revision_pool = Revision.objects.undeleted()\
+                                    .select_related('question',
+                                                    'question__exam')
+    revision = get_object_or_404(revision_pool, pk=pk)
     exam = revision.question.exam
 
     # PERMISSION CHECK
@@ -707,7 +720,7 @@ def mark_revision_pending(request, pk):
 
 
 @login_required
-def approve_question(request, slugs, exam_pk,pk):
+def approve_question(request, slugs, exam_pk, pk):
     category = Category.objects.get_from_slugs(slugs)
     if not category:
         raise Http404
@@ -725,8 +738,8 @@ def approve_question(request, slugs, exam_pk,pk):
                'questionform': forms.QuestionForm(instance=question),
                'revisionform': forms.RevisionForm(instance=revision),
                'revisionchoiceformset': forms.RevisionChoiceFormset(instance=revision),
-               'editor':editor,
-               'question':question}
+               'editor': editor,
+               'question': question}
 
     return render(request, "exams/add_question.html", context)
 
@@ -800,6 +813,7 @@ def list_contributions(request,user_pk=None):
     return render(request, 'exams/list_contributions.html',{'revisions':revisions,'exams':exams})
 
 @require_safe
+@login_required
 def search(request):
     q = request.GET.get('q')
     #TODO:try to add choices to search
@@ -809,11 +823,66 @@ def search(request):
         return render(request, 'exams/search_results.html', {'revisions': revisions, 'query': q})
     return HttpResponse('Please submit a search term.')
 
+@login_required
+@decorators.ajax_only
+@csrf.csrf_exempt
+def correct_answer(request):
+    action = request.POST.get('action')
+    choice_pk = request.GET.get('choice_pk')
+    changed = False
 
-# qs = User.objects.filter(is_active=True)
-#
-# if self.q:
-#     search_fields = [field.replace('user__', '') for field in utils.BASIC_SEARCH_FIELDS]
-#     qs = utils.get_search_queryset(qs, search_fields, self.q)
-#
-# return qs
+    # PERMISSION CHECK
+    choice_pool = Choice.objects.filter(revision__question__session__submitter=request.user)\
+                                .select_related('revision',
+                                                'revision__question',
+                                                'revision__question__exam')\
+                                .distinct()
+    choice = get_object_or_404(choice_pool, pk=choice_pk,
+                               revision__is_deleted=False,
+                               revision__question__is_deleted=False)
+    if not choice.revision.question.exam.can_user_access(request.user):
+        raise PermissionDenied
+
+    if request.method == 'GET':
+        form = forms.AnswerCorrectionForm()
+    elif request.method == 'POST':
+        if AnswerCorrection.objects.filter(choice=choice).exists():
+            correction = AnswerCorrection.objects.get(choice=choice)
+            if correction.submmiter == request.user:
+                raise Exception("You were the one that submitted this correction, so you cannot vote.")
+
+            if action in ['add', 'support']:
+                if correction.supporting_users.filter(pk=request.user.pk).exists():
+                    raise Exception("You have already supported this correction.")
+                elif correction.opposing_users.filter(pk=request.user.pk).exists():
+                    correction.opposing_users.remove(request.user)
+                correction.supporting_users.add(request.user)
+                # TODO: Notify the submitter that people are supporting
+                # their contribution
+            elif action == 'oppose':
+                if correction.opposing_users.filter(pk=request.user.pk).exists():
+                    raise Exception("You have already opposed this correction.")
+                elif correction.supporting_users.filter(pk=request.user.pk).exists():
+                    correction.supporting_users.remove(request.user)
+                correction.opposing_users.add(request.user)
+            else:
+                return HttpResponseBadRequest()
+            changed = True
+        else:
+            instance = AnswerCorrection(submitter=request.user,
+                                        choice=choice)
+            form = forms.AnswerCorrectionForm(request.POST,
+                                              instance=instance)
+            if form.is_valid():
+                form.save()
+                changed = True
+
+    if changed:
+        template = get_template('exams/partials/show_answer_correction.html')
+        context = {'choice': choice, 'user': request.user}
+        correction_html = template.render(context)
+        return {'correction_html': correction_html}
+    else:
+        context = {'choice': choice, 'form': form}
+        return render(request, 'exams/partials/correct_answer.html', context)
+

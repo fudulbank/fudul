@@ -71,3 +71,11 @@ def get_session_subjects(session):
 @register.filter
 def get_exam_question_count_per_meta(exam, meta, approved_only=False):
     return utils.get_exam_question_count_per_meta(exam, meta, approved_only)
+
+@register.filter
+def can_support_correction(user, correction):
+    return correction.submitter != user and not correction.supporting_users.filter(pk=user.pk).exists()
+
+@register.filter
+def can_oppose_correction(user, correction):
+    return correction.submitter != user and not correction.opposing_users.filter(pk=user.pk).exists()

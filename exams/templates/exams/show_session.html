@@ -173,7 +173,7 @@
         font-family: Arial, Verdana, Helvetica;
     }
 
-    .tooltip-container, #mark-loading, .explanation-container, #explain, #submit{
+    .tooltip-container, #mark-loading, .explanation-container, #explain, #submit, .answer-correction-tooltip-container{
       display: none;
     }
 
@@ -351,6 +351,40 @@
         });
     }
 
+    function updateCorrectionTooltip(html, choice_pk){
+      pk_selector = "[data-choice-pk=" + choice_pk + "]";
+      $choice_row = $(".question-body.show tr" + pk_selector);
+      $choice_row.find('.answer-correction-notification').tooltip('dispose');
+      $choice_row.find(".answer-correction-tooltip-container").remove();
+      $choice_row.find('.check').append(html);
+      tooltip = $choice_row.find('.answer-correction-tooltip-body').get()[0];
+      $choice_row.find('.answer-correction-notification').tooltip({html: true,
+                                                                   title: tooltip,
+                                                                   trigger: 'click'})
+    }
+
+    function handleCorrectionVotes(){
+      $(".support-correction, .oppose-correction").click(function(){
+        action = $(this).data('action');
+        choice_pk = $(this).data('choice-pk');
+        url = "{% url 'exams:correct_answer' %}?" + $.param({choice_pk: choice_pk})
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: {'action': action},
+            success: function(data){
+              if (data.success == 1){
+                toastr.success("Your vote was submitted.")
+                updateCorrectionTooltip(data.correction_html, choice_pk);
+              } else {
+                toastr.error(data.message)
+              }
+            }
+        });
+      });
+    }
+
     function controlExplanation(was_solved){
       if (!was_solved){
         $(".question-body.show .explanation-container, #explain").hide()
@@ -384,7 +418,7 @@
           $(".unfinished #results").hide();
         }
 
-        // Show contributors as a tooltipster
+        // Show contributors as a
         $("#contributors").tooltip('dispose');
         $("#contributors").tooltip({html: true,
                                     trigger: 'click',
@@ -448,6 +482,7 @@
                       $correct_row.find("td.check i").addClass("icon-checkmark2 text-success")
                       $incorrect_rows = $(".question-body.show tr").not(pk_selector);
                       $incorrect_rows.find("td.check i").addClass("icon-cross3 text-danger");
+                      $incorrect_rows.find("td.correct i").addClass("icon-hand text-warning");
                     }
 
                     if (data.explanation){
@@ -478,6 +513,22 @@
         $("#question-pool").load(pool_url, function(){
           updateData();
           initializeInteractions();
+          $(".correct i").click(function () {
+              $("#correct-answer-modal").modal('show');
+              choice_pk = $(this).closest('tr').data('choice-pk')
+              url = "{% url 'exams:correct_answer' %}?" + $.param({choice_pk: choice_pk})
+              $("#correct-answer-modal .modal-body").load(url);
+          });
+
+          $('.question-body.show .answer-correction-notification').each(function(){
+            tooltip = $(this).closest("td").find('.answer-correction-tooltip-body').get()[0];
+            $(this).tooltip({html: true,
+                             trigger: 'click',
+                             title: tooltip})
+          });
+
+          handleCorrectionVotes();
+
         });
         updateFooterMargins();
         $(window).resize(updateFooterMargins);
@@ -525,6 +576,10 @@
         {% endwith %}
 
         {% with modal_id='explain-question-modal' no_footer=True modal_title="Explain the answer" %}
+            {% include "exams/modals/common_modal_v4.html" %}
+        {% endwith %}
+
+        {% with modal_id='correct-answer-modal' no_footer=True modal_title="Correct the answer" %}
             {% include "exams/modals/common_modal_v4.html" %}
         {% endwith %}
     </body>

@@ -287,3 +287,8 @@ class ExplanationForm(RevisionForm):
         model = models.Revision
         fields = ['explanation', 'explanation_figure']
 
+class AnswerCorrectionForm(forms.ModelForm):
+    class Meta:
+        model = models.AnswerCorrection
+        fields = ['justification']
+

@@ -1,0 +1,55 @@
+{% load bootstrap3 static %}
+
+<p>You are suggesting that <strong>"{{ choice }}"</strong> is the right answer for question #{{ choice.revision.question.pk }}.  Please note that users examining on this question will be <em>immediately</em> shown a notification telling about your suggested correction.  Editors of Fudul will also be notified about your suggestion so that they can update the recorded answer.</p>
+
+<form method="post" id="correct-answer-form">
+ {% csrf_token %}
+ {% bootstrap_form form %}
+ <button type="submit" class="btn btn-primary btn-block btn-lg">Correct the answer. <i class="icon-circle-right2 position-right"></i></button>
+</form>
+
+{% block customscript %}
+   <script src="{% static 'js/jquery.autogrowtextarea.min.js' %}"></script>
+
+   <script type="text/javascript">
+   $(function() {
+       $("textarea").autoGrow();
+       $("#id_comment").append("Justification");
+
+       $("form#correct-answer-form").submit(function (event) {
+       /* stop form from submitting normally */
+           event.preventDefault();
+           /* get some values from elements on the page: */
+           var formData = new FormData($(this)[0]);
+           choice_pk = {{ choice.pk }};
+           url = "{% url 'exams:correct_answer' %}?" + $.param({choice_pk: choice_pk});
+           /* Send the data */
+
+           $.ajax({
+               url: url,
+               type: 'POST',
+               data: formData,
+               cache: false,
+               contentType: false,
+               processData: false,
+               success: function (data) {
+                   if (data.success == 1) {
+                       // show success message (using toastr)
+                       toastr.success("Thank you!  Your correction is highly appreciated!");
+                       $("#correct-answer-modal").modal('hide');
+                       pk_selector = "[data-choice-pk=" + choice_pk + "]";
+                       $choice_row = $(".question-body.show tr" + pk_selector);
+                       $notification = $("<i>").addClass("icon-notification2 text-warning answer-correction-notification")
+                       $choice_row.find('.check').html($notification);
+                       $choice_row.find('.correct i').hide();
+                       updateCorrectionTooltip(data.correction_html, choice_pk)
+                       handleCorrectionVotes(); {# defined in the main show_session.html #}
+                   } else {
+                       $("#correct-answer-modal .modal-body").html(data);
+                   }
+               }
+           });
+       });
+   });
+   </script>
+{% endblock %}
