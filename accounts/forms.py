@@ -64,6 +64,7 @@ class CustomSignupForm(SignupFormOnlyEmail):
         # return the new user.
         return new_user
 
+
 class CustomEditProfileForm(EditProfileForm):
     password = forms.CharField(widget=forms.PasswordInput())
     class Meta:
