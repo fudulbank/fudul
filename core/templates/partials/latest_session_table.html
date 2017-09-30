@@ -9,7 +9,7 @@
    <tbody>
    {% for session in latest_sessions %}
    <tr>
-       <td data-html="true" data-toggle="tooltip" title="{{ session.get_total_question_count }} questions on: <ul>{% for subject in session|get_session_subjects %}<li>{{ subject.name }}</li>{% endfor %}</ul>">
+       <td data-html="true" data-toggle="tooltip" title="{{ session.get_questions.count }} questions on: <ul>{% for subject in session|get_session_subjects %}<li>{{ subject.name }}</li>{% endfor %}</ul>">
          {% if session.session_mode != 'SOLVED' and not session.has_finished %}
                  <a href="{% url 'exams:show_session' session.exam.category.get_slugs session.exam.pk session.pk %}"> {{ session.exam.name }} (#{{ session.pk }})</a>
          {% else %}
@@ -21,9 +21,9 @@
        <span data-toggle="tooltip" title="Solved questions have no scores.">N/A<span>
    {% elif session.has_finished %}
        <span class="font-small-2">{{ session.get_score }}%</span>
-       <progress  data-toggle="tooltip" title="{{ session.get_correct_answer_count }} out of {{ session.get_total_question_count }} questions were answered correctly." class="progress progress-sm progress-success mb-0" value="{{ session.get_score }}" max="100"></progress>
+       <progress  data-toggle="tooltip" title="{{ session.get_correct_answer_count }} out of {{ session.get_questions.count }} questions were answered correctly." class="progress progress-sm progress-success mb-0" value="{{ session.get_score }}" max="100"></progress>
    {% else %}
-       <span data-toggle="tooltip" title="{{ session.get_unused_questions.count }} out of {{ session.get_total_question_count }} questions remaining.">Ongoing</span>
+       <span data-toggle="tooltip" title="{{ session.get_unused_questions.count }} out of {{ session.get_questions.count }} questions remaining.">Ongoing</span>
    {% endif %}
        </td>
      </tr>

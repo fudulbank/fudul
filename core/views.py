@@ -1,8 +1,9 @@
 from dal import autocomplete
-from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
+from django.views.decorators.http import require_POST, require_safe
 import math
 
 from . import utils
@@ -11,10 +12,12 @@ from exams import models as exams_models
 import accounts.utils
 import teams.utils
 
+
+@require_safe
 def show_index(request):
     if request.user.is_authenticated():
         latest_sessions = exams_models.Session.objects.filter(submitter=request.user)\
-                                                      .with_approved_questions()\
+                                                      .with_accessible_questions()\
                                                       .order_by('-pk')[:8]
         context = {'latest_sessions': latest_sessions}
         if teams.utils.is_editor(request.user):
@@ -48,9 +51,10 @@ class UserAutocomplete(autocomplete.Select2QuerySetView):
     def get_result_label(self, item):
         return accounts.utils.get_user_representation(item)
 
+@require_safe
 def show_about(request):
     team = CoreMember.objects.order_by('?')
-    
+
     question_count = utils.round_to(exams_models.Question.objects.undeleted().count(), 100)
     answer_count = utils.round_to(exams_models.Answer.objects.count(), 100)
     session_count = utils.round_to(exams_models.Session.objects.count(), 10)

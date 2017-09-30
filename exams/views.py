@@ -3,10 +3,12 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
+from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
 from django.template.loader import get_template
 from django.views.decorators import csrf
+from django.views.decorators.http import require_POST, require_safe
 from htmlmin.decorators import minified_response
 
 from core import decorators
@@ -14,10 +16,10 @@ from .models import *
 from . import forms, utils
 import teams.utils
 from django.views.decorators.http import require_http_methods
-from django.db.models import Q
 import core.utils
 # from reversion.helpers import genericpath
 
+@require_safe
 @login_required
 def list_meta_categories(request, indicators=False):
     if indicators and not teams.utils.is_editor(request.user):
@@ -36,6 +38,7 @@ def list_meta_categories(request, indicators=False):
     }
     return render(request, 'exams/show_category.html', context)
 
+@require_safe
 @login_required
 def show_category(request, slugs, indicators=False):
     category = Category.objects.get_from_slugs(slugs)
@@ -82,8 +85,7 @@ def show_category(request, slugs, indicators=False):
 
     return render(request, "exams/show_category.html", context)
 
-
-@decorators.get_only
+@require_safe
 @login_required
 def add_question(request, slugs, pk):
     category = Category.objects.get_from_slugs(slugs)
@@ -122,18 +124,21 @@ class QuestionAutocomplete(autocomplete.Select2QuerySetView):
         text_preview = str(item)
         return "<strong>{}</strong>: {}".format(item.pk, text_preview)
 
-@login_required
+
 @csrf.csrf_exempt
-@decorators.post_only
+@require_POST
 @decorators.ajax_only
+@login_required
 def delete_question(request, pk):
-    question = get_object_or_404(Question, pk=pk)
+    question_pool = Question.objects.undeleted()\
+                                    .select_related('exam')
+    question = get_object_or_404(question_pool, pk=pk)
     exam = question.exam
 
     # PERMISSION CHECK
     if not request.user.is_superuser and \
-            not exam.category.is_user_editor(request.user) and \
-            not question.is_user_creator(request.user):
+       not exam.category.is_user_editor(request.user) and \
+       not question.is_user_creator(request.user):
         raise Exception("You cannot delete that question!")
 
     question.is_deleted = True
@@ -141,9 +146,9 @@ def delete_question(request, pk):
 
     return {}
 
-@login_required
-@decorators.post_only
+@require_POST
 @decorators.ajax_only
+@login_required
 def handle_question(request, exam_pk,question_pk=None):
     exam = get_object_or_404(Exam, pk=exam_pk)
 
@@ -206,6 +211,7 @@ def handle_question(request, exam_pk,question_pk=None):
 
     return render(request, "exams/partials/question_form.html", context)
 
+@require_safe
 @login_required
 def list_questions(request, slugs, pk, selector=None):
     category = Category.objects.get_from_slugs(slugs)
@@ -256,9 +262,11 @@ def list_questions(request, slugs, pk, selector=None):
         context['issues'] = Issue.objects.all()
         return render(request, 'exams/list_questions_index.html', context)
 
-@login_required
 @decorators.ajax_only
+@require_safe
+@login_required
 def show_question(request, pk, revision_pk=None):
+    
     question = get_object_or_404(Question, pk=pk, is_deleted=False)
     if revision_pk:
         revision = get_object_or_404(Revision, pk=revision_pk)
@@ -274,6 +282,7 @@ def show_question(request, pk, revision_pk=None):
     context = {'revision': revision}
     return render(request, 'exams/partials/show_question.html', context)
 
+@require_safe
 @login_required
 def list_revisions(request, slugs, exam_pk, pk):
     category = Category.objects.get_from_slugs(slugs)
@@ -291,7 +300,6 @@ def list_revisions(request, slugs, exam_pk, pk):
                'is_browse_active': True,
                'exam': exam}
     return render(request, 'exams/list_revisions.html', context)
-
 
 @login_required
 def submit_revision(request, slugs, exam_pk, pk):
@@ -356,10 +364,10 @@ def create_session(request, slugs, exam_pk):
     # If the exam has no approved questions, it doesn't exist for
     # users.
     if not exam.can_user_edit(request.user) and \
-       not exam.question_set.approved().exists():
+       not exam.question_set.undeleted().exists():
         raise Http404
 
-    latest_sessions = exam.session_set.with_approved_questions()\
+    latest_sessions = exam.session_set.with_accessible_questions()\
                                       .filter(submitter=request.user)\
                                       .order_by('-pk')[:10]
 
@@ -388,7 +396,7 @@ def create_session(request, slugs, exam_pk):
 
 @minified_response
 @decorators.ajax_only
-@decorators.get_only
+@require_safe
 @login_required
 def list_session_questions(request):
     question_pk = request.GET.get('question_pk')
@@ -402,9 +410,10 @@ def list_session_questions(request):
                    'current_question': current_question})
 
 @login_required
+@require_safe
 def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     category = Category.objects.get_from_slugs(slugs)
-    session = get_object_or_404(Session.objects.with_approved_questions(), pk=session_pk)
+    session = get_object_or_404(Session.objects.with_accessible_questions(), pk=session_pk)
 
     if not category:
         raise Http404
@@ -426,6 +435,7 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     return render(request, "exams/show_session.html", context)
 
 @login_required
+@require_safe
 def show_session_results(request, slugs, exam_pk, session_pk):
     category = Category.objects.get_from_slugs(slugs)
     session = get_object_or_404(Session, pk=session_pk)
@@ -445,14 +455,14 @@ def show_session_results(request, slugs, exam_pk, session_pk):
     return render(request, 'exams/show_session_results.html', context)
 
 @decorators.ajax_only
-@decorators.post_only
+@require_POST
 @login_required
 @csrf.csrf_exempt
 def toggle_marked(request):
     question_pk = request.POST.get('question_pk')
     session_pk = request.POST.get('session_pk')
     session = get_object_or_404(Session, pk=session_pk)
-    question = get_object_or_404(session.questions.approved(), pk=question_pk,
+    question = get_object_or_404(session.get_questions(), pk=question_pk,
                                  is_deleted=False)
 
     # PERMISSION CHECKS
@@ -469,7 +479,7 @@ def toggle_marked(request):
     return {'is_marked': is_marked}
 
 @decorators.ajax_only
-@decorators.post_only
+@require_POST
 @login_required
 @csrf.csrf_exempt
 def submit_answer(request):
@@ -477,7 +487,7 @@ def submit_answer(request):
     session_pk = request.POST.get('session_pk')
     choice_pk = request.POST.get('choice_pk')
     session = get_object_or_404(Session, pk=session_pk)
-    question = get_object_or_404(session.questions.approved(), pk=question_pk, is_deleted=False)
+    question = get_object_or_404(session.get_questions(), pk=question_pk, is_deleted=False)
 
     # PERMISSION CHECKS
     if not session.can_user_access(request.user):
@@ -514,10 +524,10 @@ def submit_answer(request):
     else:
         right_choice_pk = None
 
-    next_question = session.questions.approved()\
-                                     .order_by('global_sequence')\
-                                     .exclude(pk__lte=question.pk)\
-                                     .exists()
+    next_question = session.get_questions()\
+                           .order_by('global_sequence')\
+                           .exclude(pk__lte=question.pk)\
+                           .exists()
     if next_question:
         done = False
     else:
@@ -527,10 +537,11 @@ def submit_answer(request):
             'right_choice_pk': right_choice_pk,
             'explanation': explanation}
 
+@require_safe
 @login_required
 def list_previous_sessions(request):
     sessions = Session.objects.filter(submitter=request.user)\
-                              .with_approved_questions()
+                              .with_accessible_questions()
 
     context = {'sessions':sessions,
                'is_previous_active': True}
@@ -538,8 +549,7 @@ def list_previous_sessions(request):
     return render(request, 'exams/list_previous_sessions.html',
                   context)
 
-
-
+@require_safe
 def show_category_indicators(request, category):
     # PERMISSION CHECK
     if not teams.utils.is_editor(request.user):
@@ -565,7 +575,9 @@ def contribute_explanation(request):
                                      request.FILES,
                                      instance=latest_revision)
         if form.is_valid():
-            form.clone(question, request.user)
+            new_revision = form.clone(question, request.user)
+            new_revision.change_summary = "Added an explanation"
+            new_revision.save()
             return {}
 
     context = {'question': question,
@@ -625,8 +637,9 @@ def approve_user_contributions(request,slugs,exam_pk):
 @login_required
 @decorators.ajax_only
 def show_revision_comparison(request, pk, revision_pk=None):
-
-    question = get_object_or_404(Question, pk=pk)
+    question_pool = Question.objects.undeleted()\
+                                    .select_related('exam')
+    question = get_object_or_404(question_pool, pk=pk)
 
     if revision_pk:
         revision = get_object_or_404(Revision, pk=revision_pk,
@@ -644,17 +657,20 @@ def show_revision_comparison(request, pk, revision_pk=None):
     return render(request, 'exams/partials/show_revision_comparison.html', context)
 
 @csrf.csrf_exempt
-@decorators.post_only
+@require_POST
 @decorators.ajax_only
 def delete_revision(request, pk):
-    revision = get_object_or_404(Revision, pk=pk)
+    revision_pool = Revision.objects.undeleted()\
+                                    .select_related('question',
+                                                    'question__exam')
+    revision = get_object_or_404(revision_pool, pk=pk)
     question = revision.question
     exam = question.exam
 
     # PERMISSION CHECK
     if not request.user.is_superuser and \
-            not exam.category.is_user_editor(request.user) and \
-            not revision.submitter == request.user:
+       not exam.category.is_user_editor(request.user) and \
+       not revision.submitter == request.user:
         raise Exception("You cannot delete that question!")
 
     revision.is_deleted = True
@@ -669,10 +685,13 @@ def delete_revision(request, pk):
     return {}
 
 @csrf.csrf_exempt
-@decorators.post_only
+@require_POST
 @decorators.ajax_only
 def mark_revision_approved(request, pk):
-    revision = get_object_or_404(Revision, pk=pk)
+    revision_pool = Revision.objects.undeleted()\
+                                    .select_related('question',
+                                                    'question__exam')
+    revision = get_object_or_404(revision_pool, pk=pk)
     exam = revision.question.exam
 
     # PERMISSION CHECK
@@ -683,11 +702,14 @@ def mark_revision_approved(request, pk):
     revision.approved_by= request.user
     revision.save()
 
-@csrf.csrf_exempt
-@decorators.post_only
+@require_POST
 @decorators.ajax_only
+@csrf.csrf_exempt
 def mark_revision_pending(request, pk):
-    revision = get_object_or_404(Revision, pk=pk)
+    revision_pool = Revision.objects.undeleted()\
+                                    .select_related('question',
+                                                    'question__exam')
+    revision = get_object_or_404(revision_pool, pk=pk)
     exam = revision.question.exam
 
     # PERMISSION CHECK
@@ -700,7 +722,7 @@ def mark_revision_pending(request, pk):
 
 
 @login_required
-def approve_question(request, slugs, exam_pk,pk):
+def approve_question(request, slugs, exam_pk, pk):
     category = Category.objects.get_from_slugs(slugs)
     if not category:
         raise Http404
@@ -718,11 +740,12 @@ def approve_question(request, slugs, exam_pk,pk):
                'questionform': forms.QuestionForm(instance=question),
                'revisionform': forms.RevisionForm(instance=revision),
                'revisionchoiceformset': forms.RevisionChoiceFormset(instance=revision),
-               'editor':editor,
-               'question':question}
+               'editor': editor,
+               'question': question}
 
     return render(request, "exams/add_question.html", context)
 
+@require_safe
 @login_required
 def show_my_performance(request):
     total_questions = Question.objects.approved()\
@@ -751,6 +774,7 @@ def show_my_performance(request):
     return render(request, "exams/show_my_performance.html", context)
 
 @login_required
+@require_safe
 def show_my_performance_per_exam(request, exam_pk):
     user_exams = Exam.objects.filter(session__submitter=request.user).distinct()
     exam = get_object_or_404(user_exams, pk=exam_pk)
@@ -772,12 +796,13 @@ def show_my_performance_per_exam(request, exam_pk):
     return render(request, "exams/show_my_performance_per_exam.html", context)
 
 @login_required
+@require_safe
 def show_credits(request,pk):
     exam = get_object_or_404(Exam, pk=pk)
     return render(request, 'exams/partials/show_credits.html',{'exam':exam})
 
-
 @login_required
+@require_safe
 def list_contributions(request,user_pk=None):
     if user_pk:
         user = get_object_or_404(User,pk=user_pk)
@@ -789,6 +814,7 @@ def list_contributions(request,user_pk=None):
 
     return render(request, 'exams/list_contributions.html',{'revisions':revisions,'exams':exams})
 
+@require_safe
 @login_required
 @require_http_methods(['GET'])
 def search(request):
@@ -803,4 +829,66 @@ def search(request):
     return render(request, 'exams/search_results.html', {'search': True})
 
 
+@login_required
+@decorators.ajax_only
+@csrf.csrf_exempt
+def correct_answer(request):
+    action = request.POST.get('action')
+    choice_pk = request.GET.get('choice_pk')
+    changed = False
+
+    # PERMISSION CHECK
+    choice_pool = Choice.objects.filter(revision__question__session__submitter=request.user)\
+                                .select_related('revision',
+                                                'revision__question',
+                                                'revision__question__exam')\
+                                .distinct()
+    choice = get_object_or_404(choice_pool, pk=choice_pk,
+                               revision__is_deleted=False,
+                               revision__question__is_deleted=False)
+    if not choice.revision.question.exam.can_user_access(request.user):
+        raise PermissionDenied
+
+    if request.method == 'GET':
+        form = forms.AnswerCorrectionForm()
+    elif request.method == 'POST':
+        if AnswerCorrection.objects.filter(choice=choice).exists():
+            correction = AnswerCorrection.objects.get(choice=choice)
+            if correction.submmiter == request.user:
+                raise Exception("You were the one that submitted this correction, so you cannot vote.")
+
+            if action in ['add', 'support']:
+                if correction.supporting_users.filter(pk=request.user.pk).exists():
+                    raise Exception("You have already supported this correction.")
+                elif correction.opposing_users.filter(pk=request.user.pk).exists():
+                    correction.opposing_users.remove(request.user)
+                correction.supporting_users.add(request.user)
+                # TODO: Notify the submitter that people are supporting
+                # their contribution
+            elif action == 'oppose':
+                if correction.opposing_users.filter(pk=request.user.pk).exists():
+                    raise Exception("You have already opposed this correction.")
+                elif correction.supporting_users.filter(pk=request.user.pk).exists():
+                    correction.supporting_users.remove(request.user)
+                correction.opposing_users.add(request.user)
+            else:
+                return HttpResponseBadRequest()
+            changed = True
+        else:
+            instance = AnswerCorrection(submitter=request.user,
+                                        choice=choice)
+            form = forms.AnswerCorrectionForm(request.POST,
+                                              instance=instance)
+            if form.is_valid():
+                form.save()
+                changed = True
+
+    if changed:
+        template = get_template('exams/partials/show_answer_correction.html')
+        context = {'choice': choice, 'user': request.user}
+        correction_html = template.render(context)
+        return {'correction_html': correction_html}
+    else:
+        context = {'choice': choice, 'form': form}
+        return render(request, 'exams/partials/correct_answer.html', context)
 

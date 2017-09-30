@@ -37,7 +37,7 @@
 				    </thead>
 				    <tbody>
 				       {% for exam in category.exams.all %}
-				       {% with total_count=exam.question_set.undeleted.count with_issue_count=exam.question_set.with_issues.count unsolved_count=exam.question_set.unsolved.count pending_count=exam.get_pending_latest_revisions.count %}
+				       {% with total_count=exam.question_set.undeleted.count with_issue_count=exam.question_set.with_issues.count unsolved_count=exam.question_set.unsolved.count pending_count=exam.question_set.with_pending_latest_revision.count %}
 				            <tr>
 				                <td><a href="{% url 'exams:create_session' exam.category.get_slugs exam.pk %}">{{ exam.name }}</a></td>
 				                <td><a href="{% url 'exams:list_questions' exam.category.get_slugs exam.pk %}">{{ total_count }}</a></td>

@@ -55,6 +55,14 @@ class QuestionQuerySet(models.QuerySet):
                            revision__is_last=True)\
                    .distinct()
 
+    def lacking_choices(self):
+        return self.undeleted()\
+                   .filter(revision__is_deleted=False,
+                           revision__is_last=True)\
+                   .annotate(choice_count=Count('revision__choice'))\
+                   .filter(choice_count__lte=1)\
+                   .distinct()
+
     def with_issues(self):
         return self.undeleted()\
                    .filter(issues__isnull=False)\
@@ -124,11 +132,14 @@ class ExamQuerySet(models.QuerySet):
                    .distinct()
 
 class SessionQuerySet(models.QuerySet):
-    def with_approved_questions(self):
-        return self.filter(questions__is_deleted=False,
-                           questions__revision__is_deleted=False,
-                           questions__revision__is_approved=True)\
-                   .distinct()
+    def with_accessible_questions(self):
+        return (self.filter(~Q(session_mode="INCOMPLETE"),
+                            questions__is_deleted=False,
+                            questions__revision__is_deleted=False,
+                            questions__revision__is_approved=True) | \
+                self.filter(session_mode="INCOMPLETE",
+                            questions__revision__is_deleted=False)
+                ).distinct()
 
     def nonsolved(self):
         return self.exclude(session_mode='SOLVED')

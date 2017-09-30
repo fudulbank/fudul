@@ -132,6 +132,9 @@ class Exam(models.Model):
             category = category.parent_category
         return sources
 
+    def can_user_access(self, user):
+        return self.category.can_user_access(user)
+
     def can_user_edit(self, user):
         if user.is_superuser:
             return True
@@ -333,17 +336,21 @@ class Session(models.Model):
 
     def get_score(self):
         if not self.number_of_questions ==0 :
-            total = self.get_total_question_count()
+            total = self.get_questions().count()
             correct = self.get_correct_answer_count()
             return round(correct / total * 100, 2)
 
-    def get_total_question_count(self):
-        return self.questions.approved().count()
+    def get_questions(self):
+        questions = self.questions
+        if not self.session_mode != 'INCOMPLETE':
+            questions = questions.approved()
+        return questions
 
     def get_used_questions_count(self):
-        return self.answer_set.distinct() \
-            .count()
-        
+        return self.answer_set.of_undeleted_questions()\
+                              .distinct()\
+                              .count()
+
     def get_correct_answer_count(self):
         return self.answer_set.of_undeleted_questions()\
                               .filter(choice__is_right=True)\
@@ -353,45 +360,61 @@ class Session(models.Model):
     def has_finished(self):
         return not self.get_unused_questions().exists()
 
-
     def get_question_sequence(self, question):
-        return self.questions.approved()\
-                             .filter(global_sequence__lte=question.pk)\
-                             .count()
+        return self.get_questions()\
+                   .filter(global_sequence__lte=question.pk)\
+                   .count()
 
     def get_unused_questions(self):
-        return self.questions.approved()\
-                             .exclude(answer__session=self)\
-                             .order_by('global_sequence')\
-                             .distinct()
+        return self.get_questions()\
+                   .exclude(answer__session=self)\
+                   .order_by('global_sequence')\
+                   .distinct()
 
     def has_question(self, question):
-        return self.questions.approved()\
-                             .filter(pk=question.pk)\
-                             .exists()
+        return self.get_questions()\
+                   .filter(pk=question.pk)\
+                   .exists()
 
     def get_current_question(self, question_pk=None):
         # If a question PK is given, show it.  Otheriwse show the first
         # session unused question.  Otherwise, show the first session
         # question.
         if question_pk:
-            current_question = get_object_or_404(self.questions.approved(), pk=question_pk)
+            current_question = get_object_or_404(self.get_questions(), pk=question_pk)
         elif not self.has_finished():
             current_question = self.get_unused_questions().first()
         else:
-            current_question = self.questions.approved()\
-                                             .order_by('global_sequence')\
-                                             .first()
+            current_question = self.get_questions()\
+                                   .order_by('global_sequence')\
+                                   .first()
 
         return current_question
 
     def can_user_access(self, user):
         return self.submitter == user or user.is_superuser
 
-
 class Answer(models.Model):
     session = models.ForeignKey(Session)
     question = models.ForeignKey(Question)
     choice = models.ForeignKey(Choice,null=True)
     is_marked = models.BooleanField("is marked ?", default=False)
+    submission_date = models.DateTimeField(auto_now_add=True, null=True)
+
     objects = managers.AnswerQuerySet.as_manager()
+
+    def __str__(self):
+        return "Answer of Q#{} in S#{}".format(self.question.pk,
+                                               self.session.pk)
+
+class AnswerCorrection(models.Model):
+    choice = models.OneToOneField(Choice, null=True,
+                                  related_name="answer_correction")
+    supporting_users = models.ManyToManyField(User, blank=True,
+                                              related_name="supported_corrections")
+    opposing_users = models.ManyToManyField(User, blank=True,
+                                            related_name="opposed_corrections")
+    submitter = models.ForeignKey(User)
+    justification = models.TextField(default="")    
+    submission_date = models.DateTimeField(auto_now_add=True)
+

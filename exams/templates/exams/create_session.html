@@ -93,7 +93,7 @@
             <div class="col-sm-6">
                 <div class="form-group has-feedback has-feedback-left">
                     <label class="control-label"><h5>Subjects</h5></label>
-                    <select id="subjects-select" class="alpaca-control form-control" name="">
+                    <select id="meta-subjects" class="alpaca-control form-control" name="">
                     <option value="All">All</option>
                     <option value="Custom">Custom</option>
                     </select>
@@ -102,7 +102,7 @@
                     </div>
                 </div>
 
-                <div id="all-subjects-options" style="display: none">
+                <div id="specific-subjects" style="display: none">
                    {{ sessionform.subjects }}
                     <div class="form-control-feedback">
                     </div>
@@ -113,7 +113,7 @@
             <div class="col-sm-6">
                 <div class="form-group has-feedback has-feedback-left">
                     <label class="control-label"><h5>Sources</h5></label>
-                    <select id="sources-select" class="alpaca-control form-control" name="">
+                    <select id="meta-sources" class="alpaca-control form-control" name="">
                     <option value="All">All</option>
                     <option value="Custom">Custom</option>
                     </select>
@@ -122,7 +122,7 @@
                     </div>
                 </div>
 
-                <div id="all-sources-options" style="display: none">
+                <div id="specific-sources" style="display: none">
                     {{ sessionform.sources }}
                 </div>
             </div>
@@ -141,7 +141,7 @@
           <div class="form-group has-feedback has-feedback-left" style="display: inline-block;">
 {% bootstrap_field sessionform.number_of_questions show_label=False  %}
           </div>
-          <strong>/ {{ question_count }} </strong>
+          <strong>/ <span id="question-count">{{ question_count }}</span> </strong>
       </div>
     </div>
     <button type="submit" class="btn btn-primary btn-block btn-lg">Start Session <i class="icon-circle-right2 position-right"></i></button>
@@ -164,7 +164,7 @@
                             {% if not session.has_finished %}
 						<li class="list-group-item">
 							<a  href="{% url 'exams:show_session' exam.category.get_slugs exam.pk session.pk %}" ><span class="tag tag-default tag-pill bg-primary float-xs-right">{{ session.pk }}</span></a>
-							{% if not session.session_mode == 'SOLVED'%}({{ session.get_unused_questions.count }}/{{ session.get_total_question_count }}) {% endif %}<strong>Subjects:</strong>{% if session.subjects.count == 1 %}{{ session.subjects.first.name }}{% elif not session.exam.subject_set.exists %} {{ session.exam.name }}{% else %} Multiple {% endif %}
+							{% if not session.session_mode == 'SOLVED'%}({{ session.get_unused_questions.count }}/{{ session.get_questions.count }}) {% endif %}<strong>Subjects:</strong>{% if session.subjects.count == 1 %}{{ session.subjects.first.name }}{% elif not session.exam.subject_set.exists %} {{ session.exam.name }}{% else %} Multiple {% endif %}
 						</li>
                             {% endif %}
                             </div>
@@ -188,6 +188,13 @@
     <script>
 
     function controlSessionModes(){
+        total = $(this).data('total');
+        if (total){
+          console.log("fuck")
+          $("#id_number_of_questions").attr('max', total);
+          $("#question-count").html(total);
+        }
+
         if ($('input[value=INCOMPLETE]:checked').length) {
           $("#session-mode input").attr({disabled: true,
                                          name: false,
@@ -208,18 +215,23 @@
 
     function toggleSubjects(status){
       if (status == 'show_select2'){
-        $('#all-subjects-options').show();
-        $('#subjects-select option:last-child').prop('selected', true);
+        $('#specific-subjects').show();
+        $('#meta-subjects option:last-child').prop('selected', true);
       } else if (status == 'hide_select2'){
-        $('#all-subjects-options').hide();
-        $('#subjects-select option:first-child').prop('selected', true);
+        $('#specific-subjects').hide();
+        $('#meta-subjects option:first-child').prop('selected', true);
       }
     }
 
+
+
     function toggleSources(status){
       if (status == 'show_select2'){
-
+        $('#specific-sources').show();
+        $('#meta-sources option:last-child').prop('selected', true);
       } else if (status == 'show_select2'){
+        $('#specific-sources').hide();
+        $('#meta-sources option:first-child').prop('selected', true);
 
       }
     }
@@ -259,17 +271,18 @@
           if (count == 0){
             $(this).attr('disabled', true);
           }
+          $(this).data('total', count);
         })
 
         // If the meta subject or source selection field changes
-        $('#subjects-select').change(function() {
+        $('#meta-subjects').change(function() {
             if ($(this).val() == 'All') {
                 toggleSubjects('hide_select2');
             } else {
                 toggleSubjects('show_select2');
             }
         });
-        $('#sources-select').change(function() {
+        $('#meta-sources').change(function() {
             if ($(this).val() == 'All') {
                 toggleSources('hide_select2');
             } else {

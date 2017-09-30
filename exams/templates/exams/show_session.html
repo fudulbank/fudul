@@ -8,7 +8,6 @@
       	<script src="{% static 'limitless/assets/js/core/libraries/jquery.min.js' %}"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/jquery.tooltipster/4.2.5/js/tooltipster.bundle.min.js"></script>
         <script>
         paceOptions = {
             document: false,
@@ -20,8 +19,6 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/pace.min.js"></script>
         <link rel="shortcut icon" href="{% static 'img/logo-monkey.png' %}">
       	<link href="{% static 'limitless/assets/css/icons/icomoon/styles.css' %}" rel="stylesheet" type="text/css">
-        <link href="https://cdn.jsdelivr.net/jquery.tooltipster/4.2.5/css/tooltipster.bundle.min.css" rel="stylesheet" type="text/css">
-        <link href="https://cdn.jsdelivr.net/jquery.tooltipster/4.2.5/css/plugins/tooltipster/sideTip/themes/tooltipster-sideTip-shadow.min.css" rel="stylesheet" type="text/css">
         <link href="https://fonts.googleapis.com/css?family=Montserrat:300,300i,400,400i,500,500i%7COpen+Sans:300,300i,400,400i,600,600i,700,700i" rel="stylesheet">
 
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
@@ -40,8 +37,15 @@
         font-weight: 400;
     }
 
+    .top-info, .tooltip-inner, #footer{
+      background-color: #404E67;
+    }
+
+    .tooltip.bs-tooltip-top .arrow::before{
+      border-top-color: #404E67;
+    }
+
     .top-info{
-        background-color: #404E67;
         font-size: 12pt;
         color: #FFF;
     }
@@ -112,7 +116,6 @@
         font-weight: 700;
         line-height: 36px;
         font-size: 12pt;
-        background-color: #404E67;
         bottom: 0;
         position: fixed;
         border-top: solid 2px #fff;
@@ -170,7 +173,7 @@
         font-family: Arial, Verdana, Helvetica;
     }
 
-    .tooltip-container, #mark-loading, .explanation-container, #explain, #submit{
+    .tooltip-container, #mark-loading, .explanation-container, #explain, #submit, .answer-correction-tooltip-container{
       display: none;
     }
 
@@ -348,6 +351,40 @@
         });
     }
 
+    function updateCorrectionTooltip(html, choice_pk){
+      pk_selector = "[data-choice-pk=" + choice_pk + "]";
+      $choice_row = $(".question-body.show tr" + pk_selector);
+      $choice_row.find('.answer-correction-notification').tooltip('dispose');
+      $choice_row.find(".answer-correction-tooltip-container").remove();
+      $choice_row.find('.check').append(html);
+      tooltip = $choice_row.find('.answer-correction-tooltip-body').get()[0];
+      $choice_row.find('.answer-correction-notification').tooltip({html: true,
+                                                                   title: tooltip,
+                                                                   trigger: 'click'})
+    }
+
+    function handleCorrectionVotes(){
+      $(".support-correction, .oppose-correction").click(function(){
+        action = $(this).data('action');
+        choice_pk = $(this).data('choice-pk');
+        url = "{% url 'exams:correct_answer' %}?" + $.param({choice_pk: choice_pk})
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: {'action': action},
+            success: function(data){
+              if (data.success == 1){
+                toastr.success("Your vote was submitted.")
+                updateCorrectionTooltip(data.correction_html, choice_pk);
+              } else {
+                toastr.error(data.message)
+              }
+            }
+        });
+      });
+    }
+
     function controlExplanation(was_solved){
       if (!was_solved){
         $(".question-body.show .explanation-container, #explain").hide()
@@ -381,8 +418,11 @@
           $(".unfinished #results").hide();
         }
 
-        // Show contributors as a tooltipster
-        $("#contributors").tooltipster({theme: 'tooltipster-shadow', contentCloning: true});
+        // Show contributors as a
+        $("#contributors").tooltip('dispose');
+        $("#contributors").tooltip({html: true,
+                                    trigger: 'click',
+                                    title: $(".question-body.show .tooltip-body").get()[0]})
 
         // Disable interaction if question was solved.
         was_solved = $(".question-body.show").data('was-solved');
@@ -442,6 +482,7 @@
                       $correct_row.find("td.check i").addClass("icon-checkmark2 text-success")
                       $incorrect_rows = $(".question-body.show tr").not(pk_selector);
                       $incorrect_rows.find("td.check i").addClass("icon-cross3 text-danger");
+                      $incorrect_rows.find("td.correct i").addClass("icon-hand text-warning");
                     }
 
                     if (data.explanation){
@@ -464,11 +505,30 @@
     }
 
     $(function() {
+        // Initialize tooltips
+        $('[data-toggle="tooltip"]').tooltip()
+
         pool_url = "{% url 'exams:list_session_questions' %}?" + $.param({ {% if current_question_pk %}question_pk: {{ current_question_pk }},{% endif %}
                                                                           session_pk: {{ session.pk }}});
         $("#question-pool").load(pool_url, function(){
           updateData();
           initializeInteractions();
+          $(".correct i").click(function () {
+              $("#correct-answer-modal").modal('show');
+              choice_pk = $(this).closest('tr').data('choice-pk')
+              url = "{% url 'exams:correct_answer' %}?" + $.param({choice_pk: choice_pk})
+              $("#correct-answer-modal .modal-body").load(url);
+          });
+
+          $('.question-body.show .answer-correction-notification').each(function(){
+            tooltip = $(this).closest("td").find('.answer-correction-tooltip-body').get()[0];
+            $(this).tooltip({html: true,
+                             trigger: 'click',
+                             title: tooltip})
+          });
+
+          handleCorrectionVotes();
+
         });
         updateFooterMargins();
         $(window).resize(updateFooterMargins);
@@ -516,6 +576,10 @@
         {% endwith %}
 
         {% with modal_id='explain-question-modal' no_footer=True modal_title="Explain the answer" %}
+            {% include "exams/modals/common_modal_v4.html" %}
+        {% endwith %}
+
+        {% with modal_id='correct-answer-modal' no_footer=True modal_title="Correct the answer" %}
             {% include "exams/modals/common_modal_v4.html" %}
         {% endwith %}
     </body>

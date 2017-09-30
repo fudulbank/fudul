@@ -1,9 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import User
 import re
+from userena.models import UserenaBaseProfile
+from django.utils.translation import ugettext as _
 
-
-class Profile(models.Model):
+class Profile(UserenaBaseProfile):
     user = models.OneToOneField(User)
     first_name = models.CharField(max_length=30)
     middle_name = models.CharField(max_length=30)
@@ -55,7 +56,9 @@ class Institution(models.Model):
             return bool(re.findall(self.email_regex, email, re.I))
 
     def is_user_allowed(self, user):
-        return is_email_allowed(user.email)
+        return self.is_email_allowed(user.email)
 
     def __str__(self):
         return self.name
+
+

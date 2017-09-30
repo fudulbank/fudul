@@ -16,6 +16,7 @@ urlpatterns =[
     url(r'^ajax/examiners/toggle_marked$', views.toggle_marked, name='toggle_marked'),
     url(r'^ajax/examiners/list$', views.list_session_questions, name='list_session_questions'),
     url(r'^ajax/examiners/explain$', views.contribute_explanation, name='contribute_explanation'),
+    url(r'^ajax/examiners/correct_answer$', views.correct_answer, name='correct_answer'),
     url(r'^ajax/examiners/edit$', views.contribute_revision, name='contribute_revision'),
     url(r'^ajax/examiners/(?P<pk>\d+)/credits$', views.show_credits, name='show_credits'),
     url(r'^tmep/end_session/$', TemplateView.as_view(template_name='exams/session_end.html'), name="session_end"),

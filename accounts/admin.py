@@ -35,6 +35,7 @@ class InstitutionAdmin(admin.ModelAdmin):
         return User.objects.filter(profile__college__institution=obj).count()
 
 class UserAdmin(UserenaAdmin):
+    ordering = ['-date_joined']
     change_form_template = 'loginas/change_form.html'
     inlines = [ProfileInline,]
     actions = ['make_active']
@@ -45,7 +46,6 @@ class UserAdmin(UserenaAdmin):
 
     def make_active(self, request, queryset):
         queryset.update(is_active=True)
-        make_active.short_description = u"نشّط حسابات المستخدمين والمستخدمات"
 
     def get_user_representation(self, obj):
         return utils.get_user_representation(obj, with_email=False)

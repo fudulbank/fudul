@@ -7,6 +7,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         finished = []
         count = 1
+        # To give global sequence more stability, we won't exclude
+        # deleted question here.
         for question in Question.objects.order_by('pk'):
             if question.pk in finished:
                 continue
@@ -14,7 +16,8 @@ class Command(BaseCommand):
             tree = question.get_tree()
 
             for tree_question in tree:
-                tree_question.global_sequence = count
-                tree_question.save()
+                if tree_question.global_sequence != count:
+                    tree_question.global_sequence = count
+                    tree_question.save()
                 count += 1
                 finished.append(tree_question.pk)

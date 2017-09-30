@@ -3,7 +3,7 @@
     <tr>
         <th data-priority="1">ID</th>
         <th data-priority="2">Text</th>
-        <th>Issues</th>
+        <th>Editor's issues</th>
         <th>Date of last latest_revision</th>
         <th data-priority="2">Actions</th>
     </tr>
@@ -18,7 +18,7 @@
       {% if question.issues.exists %}
        <ul>{% for issue in question.issues.all %}<li>{{ issue.name }}</li>{% endfor %}</ul>
       {% else %}
-       No issue
+       None
       {% endif %}
     </td>
     <td data-order="{{ latest_revision.submission_date|date:'U' }}">{{ latest_revision.submission_date }}</td>

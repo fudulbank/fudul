@@ -47,7 +47,7 @@ tr td:last-child{
          <tr>
              <td>{{ session.pk }}</td>
              <td><a href="{% url 'exams:create_session' session.exam.category.get_slugs session.exam.pk %}">{{ session.exam.name }}</a></td>
-             <td>{{ session.get_total_question_count }}</td>
+             <td>{{ session.get_questions.count }}</td>
              <td>
          {% if session.subjects.count == 1 %}
              {{ session.subjects.first.name }}
@@ -63,13 +63,13 @@ tr td:last-child{
              <span data-toggle="tooltip" title="Solved questions have no scores.">N/A<span>
          {% elif session.has_finished %}
          {% with score=session.get_score %}
-             <div data-toggle="tooltip" title="{{ session.get_correct_answer_count }} out of {{ session.get_total_question_count }} questions were answered correctly.">
+             <div data-toggle="tooltip" title="{{ session.get_correct_answer_count }} out of {{ session.get_questions.count }} questions were answered correctly.">
                  <span class="font-small-2">{{ score }}%</span>
                  <progress class="progress progress-sm progress-success mb-0" value="{{ score }}" max="100"></progress>
              </div>
          {% endwith %}
          {% else %}
-             <span data-toggle="tooltip" title="{{ session.get_unused_questions.count }} out of {{ session.get_total_question_count }} questions remaining.">Ongoing</span>
+             <span data-toggle="tooltip" title="{{ session.get_unused_questions.count }} out of {{ session.get_questions.count }} questions remaining.">Ongoing</span>
          {% endif %}
              </td>
              <td>
