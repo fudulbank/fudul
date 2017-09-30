@@ -803,10 +803,4 @@ def search(request):
     return render(request, 'exams/search_results.html', {'search': True})
 
 
-# qs = User.objects.filter(is_active=True)
-#
-# if self.q:
-#     search_fields = [field.replace('user__', '') for field in utils.BASIC_SEARCH_FIELDS]
-#     qs = utils.get_search_queryset(qs, search_fields, self.q)
-#
-# return qs
+

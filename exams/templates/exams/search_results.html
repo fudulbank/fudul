@@ -26,7 +26,7 @@ p.question-info{
 .totop {
     position: fixed;
     bottom: 10px;
-    left: 20px;
+    right: 20px;
 }
 .totop a {
     display: none;
@@ -85,7 +85,7 @@ a:hover {
     <p>You searched for: <strong>{{ query }}</strong></p>
 
 {% if revisions %}
-    <p>Found <strong>{{ revisions|length }}</strong> questions{{ revisions|pluralize }}.</p>
+    <p>Found <strong>{{ revisions|length }}</strong> question{{ revisions|pluralize }}.</p>
 
 {% for revision in revisions %}
     <div class="card">
