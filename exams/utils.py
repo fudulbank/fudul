@@ -113,3 +113,10 @@ def get_exam_question_count_per_meta(exam, meta, approved_only=False):
         question_pool = exam.question_set
         
     return question_pool.filter(**query).distinct().count()
+
+def get_user_allowed_categories(user):
+    categories=[]
+    for cat in models.Category.objects.all():
+        if cat.can_user_access(user):
+            categories.append(cat)
+    return categories

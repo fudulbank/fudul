@@ -72,3 +72,7 @@ def show_about(request):
                'editor_count': editor_count}
 
     return render(request, 'about.html', context)
+
+def list_latest_changes(request, user_pk=None):
+    pass
+    return render(request, 'list_latest_changes.html')

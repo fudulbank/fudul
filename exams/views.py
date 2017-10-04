@@ -15,7 +15,9 @@ from core import decorators
 from .models import *
 from . import forms, utils
 import teams.utils
-
+from django.views.decorators.http import require_http_methods
+import core.utils
+# from reversion.helpers import genericpath
 
 @require_safe
 @login_required
@@ -814,14 +816,18 @@ def list_contributions(request,user_pk=None):
 
 @require_safe
 @login_required
+@require_http_methods(['GET'])
 def search(request):
     q = request.GET.get('q')
+    categories= utils.get_user_allowed_categories(request.user)
     #TODO:try to add choices to search
-    #what about questions that the user isnt allowed to see
     if q:
-        revisions = Revision.objects.filter(is_last=True, is_approved=True).filter(Q(question__pk__icontains=q)| Q(text__icontains=q))
+        search_fields =['question__pk','text','choice__text']
+        qs = Revision.objects.filter(question__subjects__exam__category__in=categories,is_last=True, is_approved=True)
+        revisions = core.utils.get_search_queryset(qs, search_fields, q)
         return render(request, 'exams/search_results.html', {'revisions': revisions, 'query': q})
-    return HttpResponse('Please submit a search term.')
+    return render(request, 'exams/search_results.html', {'search': True})
+
 
 @login_required
 @decorators.ajax_only
