@@ -335,10 +335,13 @@ class Session(models.Model):
     objects = managers.SessionQuerySet.as_manager()
 
     def get_score(self):
-        if not self.number_of_questions ==0 :
+        try:
             total = self.get_questions().count()
             correct = self.get_correct_answer_count()
             return round(correct / total * 100, 2)
+        except ZeroDivisionError:
+            correct = 0
+            return correct
 
     def get_questions(self):
         questions = self.questions
