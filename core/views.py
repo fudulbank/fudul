@@ -16,6 +16,7 @@ import teams.utils
 @require_safe
 def show_index(request):
     if request.user.is_authenticated():
+
         latest_sessions = exams_models.Session.objects.filter(submitter=request.user)\
                                                       .with_accessible_questions()\
                                                       .order_by('-pk')[:8]
@@ -27,7 +28,9 @@ def show_index(request):
             context['added_question_count'] = added_question_count
             edited_question_count = revision_pool.exclude(is_first=True).count()
             context['edited_question_count'] = edited_question_count
-        return render(request, 'index.html', context)
+            return render(request, 'index.html', context)
+        else:
+            return render(request, 'count-down.html', context)
     else:
         question_count = exams_models.Question.objects.undeleted().count()
         answer_count = exams_models.Answer.objects.count()
