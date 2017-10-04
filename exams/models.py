@@ -335,7 +335,7 @@ class Session(models.Model):
     objects = managers.SessionQuerySet.as_manager()
 
     def get_score(self):
-        if not self.number_of_questions ==0 :
+        if not self.number_of_questions == 0:
             total = self.get_questions().count()
             correct = self.get_correct_answer_count()
             return round(correct / total * 100, 2)

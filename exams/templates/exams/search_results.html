@@ -68,7 +68,7 @@ a:hover {
 {% block content %}
 {% if search %}
 <div id="search-div"style="width: 60%; height:40%">
-<img class="img-responsive" align="middle" src="{% static 'img/logo.svg' %}" style=" height:40%"">
+<img class="img-responsive" align="middle" src="{% static 'img/logo.svg' %}" style=" height:40%">
 <fieldset class="form-group position-relative">
                       <form type="get" action="{% url 'exams:search' %}" accept-charset="utf-8">
                         <input  type="search" id="q" name="q"  type="text" class="form-control form-control-lg input-lg"  placeholder="Explore Fudul ..." >
