@@ -11,6 +11,44 @@
       <label class="control-label"><i class="icon-image2 text-muted"></i> Explanation figure</label>
       {% bootstrap_field form.explanation_figure show_label=False %}
   </div>
+    <div>
+        <div style="margin-left: 10%;display: none">
+                        {{ revisionchoiceformset.management_form }}
+                        {{ revisionchoiceformset.non_form_errors.as_ul }}
+                        <table id="choice_formset" class="form" style="width: 100%;">
+
+                        {% for form in revisionchoiceformset.forms %}
+                          {% if forloop.first %}
+                            <colgroup>
+                                <col class="col-xs-8">
+                                <col class="col-xs-2">
+                                <col class="col-xs-2">
+                            </colgroup>
+                            <thead><tr>
+                              <th>Text</th>
+                              <th></th>
+                              <th></th>
+                            </tr></thead>
+                          {% endif %}
+                          <tr class="form-container">
+                          {% for field in form.visible_fields %}
+                            <td>
+                            {% if forloop.first %}
+                              {% for hidden in form.hidden_fields %}
+                              {{ hidden }}
+                              {% endfor %}
+                            {% endif %}
+                                <div class="form-group">
+                              {{ field.errors.as_ul }}
+                              {% bootstrap_field field show_label=False %}
+                                </div>
+                            </td>
+                          {% endfor %}
+                          </tr>
+                        {% endfor %}
+                        </table>
+        </div>
+    </div>
   <button type="submit" class="btn btn-primary btn-block btn-lg">Improve explanation <i class="icon-circle-right2 position-right"></i></button>
 </form>
 
@@ -33,7 +71,6 @@
 
 <script type="text/javascript">
     $(function() {
-        $("#id_change_summary").append("Modify Explanation");
         $('[data-toggle="tooltip"]').tooltip();
         $("textarea").autoGrow();
 
@@ -60,6 +97,7 @@
                         $("#explain-question-modal").modal('hide');
                         $("#explain").hide()
                     } else {
+                        toastr.error(data.message);
                         $("#explain-question-modal .modal-body").html(data);
                     }
                 }

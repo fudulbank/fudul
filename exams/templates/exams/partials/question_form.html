@@ -62,12 +62,14 @@
 			{{ questionform.issues }}
 		</div>
 	</div>
+  {% if questionform.sources %}
 	<div class="col-md-6">
 		<div class="form-group">
       <label class="control-label"><i class="icon-git-branch text-muted"></i> Source<a class="circle" data-placement="left" data-toggle="tooltip"  title="PLACEHOLDER">?</a></label>
 			{{ questionform.sources }}
 		</div>
 	</div>
+  {% endif %}
   {% if questionform.subjects %}
 	<div class="col-md-6">
 		<div class="form-group">

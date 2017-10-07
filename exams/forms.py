@@ -139,7 +139,7 @@ RevisionChoiceFormset = inlineformset_factory(models.Revision,
 ContributedRevisionChoiceFormset = inlineformset_factory(models.Revision,
                                               models.Choice,
                                               formset=CustomRevisionChoiceFormset,
-                                              extra=0,
+                                              extra=1,
                                               fields=['text','is_right'])
 
 class SessionForm(forms.ModelForm):
@@ -283,9 +283,11 @@ class ExplanationForm(RevisionForm):
         super(ExplanationForm, self).__init__(*args, **kwargs)
         self.fields['explanation'].required = True
 
+
     class Meta:
         model = models.Revision
         fields = ['explanation', 'explanation_figure']
+
 
 class AnswerCorrectionForm(forms.ModelForm):
     class Meta:
