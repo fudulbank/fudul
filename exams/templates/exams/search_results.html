@@ -26,7 +26,7 @@ p.question-info{
 .totop {
     position: fixed;
     bottom: 10px;
-    left: 20px;
+    right: 20px;
 }
 .totop a {
     display: none;
@@ -50,19 +50,42 @@ a:hover {
     background-color: #fff;
     color: #33739E;
 }
-
+#search-div img {
+    display: block;
+    margin: 0 auto;
+}
+#search-div{
+    display: block;
+    margin: 0 auto;
+}
 </style>
+
+
 {% endblock %}
 {% block breadcrumb %}
 
 {% endblock %}
 {% block content %}
+{% if search %}
+<div id="search-div"style="width: 60%; height:40%">
+<img class="img-responsive" align="middle" src="{% static 'img/logo.svg' %}" style=" height:40%">
+<fieldset class="form-group position-relative">
+                      <form type="get" action="{% url 'exams:search' %}" accept-charset="utf-8">
+                        <input  type="search" id="q" name="q"  type="text" class="form-control form-control-lg input-lg"  placeholder="Explore Fudul ..." >
+                      </form>
+                          <div class="form-control-position">
+                <i class="ficon ft-search"></i>
+            </div>
+</fieldset>
+</div>
+{% else %}
+
 <div id="content">
 
     <p>You searched for: <strong>{{ query }}</strong></p>
 
 {% if revisions %}
-    <p>Found <strong>{{ revisions|length }}</strong> questions{{ revisions|pluralize }}.</p>
+    <p>Found <strong>{{ revisions|length }}</strong> question{{ revisions|pluralize }}.</p>
 
 {% for revision in revisions %}
     <div class="card">
@@ -88,19 +111,25 @@ a:hover {
 <p>No Revision matched your search criteria.</p>
 
 {% endif %}
+
 </div>
-    <a class="btn bg-primary btn-block btn-lg" id="loadMore">Load More</a>
+    {% if revisions %} <a class="btn bg-primary btn-block btn-lg" id="loadMore">Load More</a> {% endif %}
     <p class="totop">
     <a href="#top"><i class=" icon-arrow-up7"></i> Back to top</a>
 </p>
+{% endif %}
 {% endblock %}
 {% block customscript %}
     <script type="text/javascript">
     $(function () {
-        $("#content div").slice(0, 8).show();
+        if ($("#content div:hidden").length == 0) {
+                $("#loadMore").fadeOut();
+        }
+
+        $("#content div").slice(0, 14).show();
             $("#loadMore").on('click', function (e) {
             e.preventDefault();
-            $("#content div:hidden").slice(0, 4).slideDown();
+            $("#content div:hidden").slice(0, 8).slideDown();
             if ($("#content div:hidden").length == 0) {
                 $("#loadMore").fadeOut('slow');
             }
