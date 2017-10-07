@@ -566,11 +566,12 @@ def contribute_explanation(request):
     question_pk = request.GET.get('question_pk')
     question = get_object_or_404(Question, pk=question_pk,
                                  is_deleted=False)
-    latest_revision = question.get_latest_revision()
+    latest_revision = question.get_latest_approved_revision()
 
     if request.method == 'GET':
         form = forms.ExplanationForm(instance=latest_revision)
-        revisionchoiceformset = forms.RevisionChoiceFormset(request.POST)
+        revisionchoiceformset = forms.RevisionChoiceFormset(instance=latest_revision)
+
     elif request.method == 'POST':
         form = forms.ExplanationForm(request.POST,
                                      request.FILES,
@@ -579,14 +580,14 @@ def contribute_explanation(request):
                                                             instance=latest_revision)
         if form.is_valid() and revisionchoiceformset.is_valid():
             new_revision = form.clone(question,request.user)
-            new_revision.change_summary = "Added an explanation"
             revisionchoiceformset.clone(new_revision)
-            revisionchoiceformset.save()
+            new_revision.change_summary = "Added an explanation"
 
             new_revision.is_contribution = not teams.utils.is_editor(request.user)
             new_revision.save()
             form.save_m2m()
 
+            revisionchoiceformset.save()
 
             # This test relies on choices, so the choices have to be saved
             # before.
@@ -848,10 +849,10 @@ def search(request):
     categories= utils.get_user_allowed_categories(request.user)
     #TODO:try to add choices to search
     if q:
-        search_fields =['question__pk','text','choice__text']
-        qs = Revision.objects.filter(question__subjects__exam__category__in=categories,is_last=True, is_approved=True)
-        revisions = core.utils.get_search_queryset(qs, search_fields, q)
-        return render(request, 'exams/search_results.html', {'revisions': revisions, 'query': q})
+        search_fields =['pk','revision__text','revision__choice__text']
+        qs = Question.objects.filter(subjects__exam__category__in=categories,revision__is_last=True, revision__is_approved=True,revision__is_deleted=False).distinct()
+        questions = core.utils.get_search_queryset(qs, search_fields, q)
+        return render(request, 'exams/search_results.html', {'questions': questions, 'query': q})
     return render(request, 'exams/search_results.html', {'search': True})
 
 
@@ -880,7 +881,7 @@ def correct_answer(request):
     elif request.method == 'POST':
         if AnswerCorrection.objects.filter(choice=choice).exists():
             correction = AnswerCorrection.objects.get(choice=choice)
-            if correction.submmiter == request.user:
+            if correction.submitter == request.user:
                 raise Exception("You were the one that submitted this correction, so you cannot vote.")
 
             if action in ['add', 'support']:
