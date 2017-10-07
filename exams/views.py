@@ -568,18 +568,33 @@ def contribute_explanation(request):
 
     if request.method == 'GET':
         form = forms.ExplanationForm(instance=latest_revision)
+        revisionchoiceformset = forms.RevisionChoiceFormset(request.POST)
     elif request.method == 'POST':
         form = forms.ExplanationForm(request.POST,
                                      request.FILES,
                                      instance=latest_revision)
-        if form.is_valid():
-            new_revision = form.clone(question, request.user)
+        revisionchoiceformset = forms.RevisionChoiceFormset(request.POST,
+                                                            instance=latest_revision)
+        if form.is_valid() and revisionchoiceformset.is_valid():
+            new_revision = form.clone(question,request.user)
             new_revision.change_summary = "Added an explanation"
+            revisionchoiceformset.clone(new_revision)
+            revisionchoiceformset.save()
+
+            new_revision.is_contribution = not teams.utils.is_editor(request.user)
+            new_revision.save()
+            form.save_m2m()
+
+
+            # This test relies on choices, so the choices have to be saved
+            # before.
+            new_revision.is_approved = utils.test_revision_approval(new_revision)
             new_revision.save()
             return {}
 
     context = {'question': question,
-               'form': form}
+               'form': form,
+               'revisionchoiceformset': revisionchoiceformset}
     return render(request, 'exams/partials/contribute_explanation.html', context)
 
 @login_required
@@ -603,6 +618,17 @@ def contribute_revision(request):
         if revisionform.is_valid() and revisionchoiceformset.is_valid():
             new_revision = revisionform.clone(question,request.user)
             revisionchoiceformset.clone(new_revision)
+            revisionchoiceformset.save()
+
+            new_revision.is_contribution = not teams.utils.is_editor(request.user)
+            new_revision.save()
+            revisionform.save_m2m()
+
+
+            # This test relies on choices, so the choices have to be saved
+            # before.
+            new_revision.is_approved = utils.test_revision_approval(new_revision)
+            new_revision.save()
             return {}
 
     context = {'question': question,
