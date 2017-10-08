@@ -357,7 +357,7 @@ class Session(models.Model):
             return correct
 
     def get_questions(self):
-        questions = self.questions
+        questions = self.questions.undeleted()
         if self.question_filter != 'INCOMPLETE':
             questions = questions.approved()
         return questions
