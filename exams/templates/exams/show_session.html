@@ -219,7 +219,7 @@
                 <h2 class="brand-text">Fudul</h2></a>
             </div>
             <div class="ml-auto col-sm-6 text-center"> {{ session.exam.name }} <span class="separator">•</span> Session id: <span id="session-pk">{{ session.pk }}</span> ({{ session.get_session_mode_display }})<br> Question id: <span id="question-pk">{{ current_question.pk }}</span> </div>
-            <div class="col-sm-3 top-question-id my-2 mb-sm-0"><span id="question-sequence">{{ current_question_sequence }}</span> of <span id="question-total">{{ session.questions.approved.count }}</span></div>
+            <div class="col-sm-3 top-question-id my-2 mb-sm-0"><span id="question-sequence">{{ current_question_sequence }}</span> of <span id="question-total">{{ session.get_questions.count }}</span></div>
         </div>
         <div class="row top-options text-left align-items-center">
           <div class="col-sm-6 text-left">
