@@ -1,14 +1,14 @@
 {% load static exam_utils %}
-{% with latest_revision=question.get_latest_revision latest_approved_revision=question.get_latest_approved_revision was_solved=question|was_solved_in_session:session show_explanation=question|show_explanation:session %}
+{% with latest_revision=question.get_latest_revision best_latest_revision=question.get_best_latest_revision was_solved=question|was_solved_in_session:session show_explanation=question|show_explanation:session %}
 <div class="question-body well-sm{% if question == current_question %} show{% endif %}" data-url="{{ question|get_session_url:session }}" data-question-sequence="{{ question_sequence }}" data-question-pk="{{ question.pk }}" data-is-marked="{% if question|is_question_marked:user %}true{% else %}false{% endif %}" data-was-solved="{% if was_solved %}true{% else %}false{% endif %}">
-  {% if latest_approved_revision.figure %}
-     <img class="img-fluid center-block" src="{{ latest_approved_revision.figure.url }}">
+  {% if best_latest_revision.figure %}
+     <img class="img-fluid center-block" src="{{ best_latest_revision.figure.url }}">
   {% endif %}
-    <p class="question-text">{{ latest_approved_revision.text|linebreaksbr }}</p>
+    <p class="question-text">{{ best_latest_revision.text|linebreaksbr }}</p>
 
     <table>
       <tbody>
-        {% for choice in latest_approved_revision.choice_set.order_by_alphabet %}
+        {% for choice in best_latest_revision.choice_set.order_by_alphabet %}
             <tr data-choice-pk="{{ choice.pk }}">
                <td class="correct">{% if not choice.answer_correction %}<i{% if show_explanation and not choice.is_right %} class="icon-hand"{% endif %}></i>{% endif %}</td>
                <td class="check">{% if show_explanation and choice.is_right %}<i class="icon-checkmark2 text-success">{% elif show_explanation and not choice.is_right and choice.answer_correction %}<i class="icon-notification2 text-warning answer-correction-notification">{% include 'exams/partials/show_answer_correction.html' %}{% elif show_explanation and not choice.is_right %}<i class="icon-cross3 text-danger">{% else %}<i class="">{% endif %}</i></td>

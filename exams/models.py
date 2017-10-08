@@ -193,6 +193,15 @@ class Question(models.Model):
         return textwrap.shorten(latest_revision.text, 70,
                                 placeholder='...')
 
+    def is_incomplete(self):
+        latest_revision = self.get_latest_revision() 
+        if self.issues.filter(is_blocker=True).exists() or \
+           not latest_revision.choice_set.filter(is_right=True).exists() or \
+           latest_revision.choice_set.count >= 1:
+            return True
+        else:
+            return False
+
     def is_user_creator(self, user):
         first_revision = self.revision_set.order_by("submission_date").first()
         return first_revision.submitter == user
@@ -202,6 +211,10 @@ class Question(models.Model):
             return True
         else:
             return Answer.objects.filter(session=session, question=self).exists()
+
+    def get_best_latest_revision(self):
+        return self.get_latest_approved_revision() or \
+               self.get_latest_revision()
 
     def get_latest_approved_revision(self):
         return self.revision_set.filter(is_approved=True, is_deleted=False)\
