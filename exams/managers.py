@@ -9,14 +9,18 @@ class QuestionQuerySet(models.QuerySet):
                    .exclude(revision__is_approved=True)\
                    .distinct()
 
-    def used_by_user(self, user):
-        return self.filter(answer__session__submitter=user,
-                           answer__choice__isnull=False)\
+    def used_by_user(self, user, exclude_skipped=True):
+        kwargs = {'answer__session__submitter': user}
+        if exclude_skipped:
+            kwargs['answer__choice__isnull'] = False
+        return self.filter(**kwargs)\
                    .distinct()
 
-    def unused_by_user(self, user):
-        return self.exclude(answer__session__submitter=user,
-                            answer__choice__isnull=False)\
+    def unused_by_user(self, user, exclude_skipped=True):
+        kwargs = {'answer__session__submitter': user}
+        if exclude_skipped:
+            kwargs['answer__choice__isnull'] = False
+        return self.exclude(**kwargs)\
                    .distinct()
 
     def correct_by_user(self, user):

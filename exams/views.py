@@ -776,7 +776,8 @@ def approve_question(request, slugs, exam_pk, pk):
 @login_required
 def show_my_performance(request):
     total_questions = Question.objects.approved()\
-                                      .used_by_user(request.user)\
+                                      .used_by_user(request.user,
+                                                    exclude_skipped=False)\
                                       .count()
     correct_questions = Question.objects.approved()\
                                         .correct_by_user(request.user)\
