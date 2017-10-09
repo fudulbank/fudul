@@ -28,15 +28,18 @@ class QuestionQuerySet(models.QuerySet):
 
     def incorrect_by_user(self, user):
         # See the note in 'self.correct_by_user()'
-        return self.exclude(answer__choice__is_right=True)\
+        return self.exclude(answer__choice__is_right=True,
+                            answer__session__submitter=user)\
                    .filter(answer__choice__is_right=False,
                            answer__session__submitter=user)\
                    .distinct()
 
     def skipped_by_user(self, user):
         # See the note in 'self.correct_by_user()'
-        return self.exclude(answer__choice__is_right=True)\
-                   .exclude(answer__choice__is_right=False)\
+        return self.exclude(answer__choice__is_right=True,
+                            answer__session__submitter=user)\
+                   .exclude(answer__choice__is_right=False,
+                            answer__session__submitter=user)\
                    .filter(answer__choice__isnull=True,
                            answer__session__submitter=user)\
                    .distinct()
