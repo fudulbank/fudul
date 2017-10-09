@@ -919,3 +919,34 @@ def correct_answer(request):
         context = {'choice': choice, 'form': form}
         return render(request, 'exams/partials/correct_answer.html', context)
 
+
+@csrf.csrf_exempt
+@require_POST
+@decorators.ajax_only
+@login_required
+def get_selected_question_count(request, exam_pk):
+    exam = get_object_or_404(Exam, pk=exam_pk)
+    form = forms.SessionForm(request.POST,
+                             user=request.user,
+                             exam=exam)
+    form.full_clean()
+
+    question_filter = form.cleaned_data.get('question_filter')
+    if question_filter:
+        question_pool = form.question_pools[question_filter]
+    else:
+        question_pool = form.question_pools['ALL']
+
+    subjects = form.cleaned_data.get('subjects')
+    if subjects:
+        question_pool = question_pool.filter(subjects__in=subjects)
+
+    sources = form.cleaned_data.get('sources')
+    if sources:
+        question_pool = question_pool.filter(sources__in=sources)
+
+    exam_types = form.cleaned_data.get('exam_types')
+    if exam_types:
+        question_pool = question_pool.filter(exam_types__in=exam_types)
+
+    return {'count': question_pool.count()}
