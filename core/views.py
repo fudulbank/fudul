@@ -32,7 +32,9 @@ def show_index(request):
 
     else:
         question_count = exams_models.Question.objects.undeleted().count()
-        answer_count = exams_models.Answer.objects.count()
+        answer_count = exams_models.Answer.objects\
+                                          .filter(choice__isnull=False)\
+                                          .count()
         context = {'question_count': question_count,
                    'answer_count': answer_count}
         return render(request, 'index_unauthenticated.html', context)
