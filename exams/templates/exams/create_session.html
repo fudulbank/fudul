@@ -262,7 +262,7 @@
 
 
         updateTotalQuestions();
-        $("input, select").not('[name=session_mode]').change(updateTotalQuestions);
+        $("input, select").not('#id_number_of_questions, input[name=session_mode]').change(updateTotalQuestions);
 
         controlSessionModes();
         $("input[name=question_filter]").change(controlSessionModes);
