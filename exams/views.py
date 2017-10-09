@@ -813,7 +813,7 @@ def show_my_performance_per_exam(request, exam_pk):
                                                          result='incorrect')
     skipped_questions =  utils.get_user_question_stats(target=exam,
                                                        user=request.user,
-                                                       result='correct')
+                                                       result='skipped')
     context = {'correct_questions': correct_questions,
                'incorrect_questions': incorrect_questions,
                'skipped_questions': skipped_questions,
