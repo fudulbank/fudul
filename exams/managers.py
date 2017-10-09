@@ -36,10 +36,13 @@ class QuestionQuerySet(models.QuerySet):
 
     def skipped_by_user(self, user):
         # See the note in 'self.correct_by_user()'
-        return self.exclude(answer__choice__is_right=True,
-                            answer__session__submitter=user)\
-                   .exclude(answer__choice__is_right=False,
-                            answer__session__submitter=user)\
+        excluded_pks = (self.filter(answer__choice__is_right=True,
+                                    answer__session__submitter=user) |
+                        self.filter(answer__choice__is_right=False,
+                                    answer__session__submitter=user))\
+                       .values_list('pk')
+
+        return self.exclude(pk__in=excluded_pks)\
                    .filter(answer__choice__isnull=True,
                            answer__session__submitter=user)\
                    .distinct()
