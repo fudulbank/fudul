@@ -58,7 +58,10 @@ def was_ever_taken_by_user(exam, user):
 
 @register.filter
 def get_used_question_count_per_user(exam, user):
-    return exam.question_set.approved().used_by_user(user).count()
+    return exam.question_set.approved()\
+                            .used_by_user(user,
+                                          exclude_skipped=False)\
+                            .count()
 
 @register.simple_tag
 def get_user_question_stats(target, user, result, percent=False):
