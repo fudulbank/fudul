@@ -11,14 +11,12 @@ class QuestionQuerySet(models.QuerySet):
 
     def used_by_user(self, user):
         return self.filter(answer__session__submitter=user,
-                           answer__choice__isnull=False,
-                           answer__session__is_deleted=False)\
+                           answer__choice__isnull=False)\
                    .distinct()
 
     def unused_by_user(self, user):
         return self.exclude(answer__session__submitter=user,
-                            answer__choice__isnull=False,
-                            answer__session__is_deleted=False)\
+                            answer__choice__isnull=False)\
                    .distinct()
 
     def correct_by_user(self, user):
