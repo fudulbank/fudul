@@ -1,4 +1,5 @@
 from dal import autocomplete
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
@@ -55,6 +56,7 @@ class UserAutocomplete(autocomplete.Select2QuerySetView):
     def get_result_label(self, item):
         return accounts.utils.get_user_representation(item)
 
+@login_required
 @require_safe
 def show_about(request):
     team = CoreMember.objects.order_by('?')
