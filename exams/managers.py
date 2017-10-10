@@ -18,11 +18,17 @@ class QuestionQuerySet(models.QuerySet):
                    .distinct()
 
     def unused_by_user(self, user, exclude_skipped=True):
+
         kwargs = {'answer__session__submitter': user,
                   'answer__session__is_deleted': False}
         if exclude_skipped:
             kwargs['answer__choice__isnull'] = False
-        return self.exclude(**kwargs)\
+
+        # We have to do this funny queryset to account for
+        # session.is_deleted.  Otherwise, it won't be considered.
+        excluded_pks = self.filter(**kwargs).values_list('pk')
+
+        return self.exclude(pk__in=excluded_pks)\
                    .distinct()
 
     def correct_by_user(self, user):
