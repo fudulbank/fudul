@@ -113,6 +113,12 @@ class QuestionQuerySet(models.QuerySet):
         return self.undeleted()\
                    .filter(marking_users=user)
 
+    def available(self):
+        return self.with_blocking_issues() | \
+               self.unsolved() | \
+               self.lacking_choices() | \
+               self.approved()
+
 class RevisionQuerySet(models.QuerySet):
     def order_by_submission(self):
         return self.order_by('-pk')
