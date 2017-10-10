@@ -18,7 +18,8 @@ import teams.utils
 def show_index(request):
     if request.user.is_authenticated():
 
-        latest_sessions = exams_models.Session.objects.filter(submitter=request.user)\
+        latest_sessions = exams_models.Session.objects.undeleted()\
+                                                      .filter(submitter=request.user)\
                                                       .with_accessible_questions()\
                                                       .order_by('-pk')[:8]
         context = {'latest_sessions': latest_sessions}
