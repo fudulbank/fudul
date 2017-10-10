@@ -9,12 +9,26 @@ class QuestionQuerySet(models.QuerySet):
                    .exclude(revision__is_approved=True)\
                    .distinct()
 
-    def used_by_user(self, user):
-        return self.filter(answer__session__submitter=user)\
+    def used_by_user(self, user, exclude_skipped=True):
+        kwargs = {'answer__session__submitter': user,
+                  'answer__session__is_deleted': False}
+        if exclude_skipped:
+            kwargs['answer__choice__isnull'] = False
+        return self.filter(**kwargs)\
                    .distinct()
 
-    def unused_by_user(self, user):
-        return self.exclude(answer__session__submitter=user)\
+    def unused_by_user(self, user, exclude_skipped=True):
+
+        kwargs = {'answer__session__submitter': user,
+                  'answer__session__is_deleted': False}
+        if exclude_skipped:
+            kwargs['answer__choice__isnull'] = False
+
+        # We have to do this funny queryset to account for
+        # session.is_deleted.  Otherwise, it won't be considered.
+        excluded_pks = self.filter(**kwargs).values_list('pk')
+
+        return self.exclude(pk__in=excluded_pks)\
                    .distinct()
 
     def correct_by_user(self, user):
@@ -23,21 +37,36 @@ class QuestionQuerySet(models.QuerySet):
         # answer, then the user got it (regardless of whether it has
         # other incorrect/skipped answers).
         return self.filter(answer__choice__is_right=True,
+                           answer__session__is_deleted=False,
                            answer__session__submitter=user)\
                    .distinct()
 
     def incorrect_by_user(self, user):
         # See the note in 'self.correct_by_user()'
-        return self.exclude(answer__choice__is_right=True)\
+        excluded_pks = self.filter(answer__choice__is_right=True,
+                                   answer__session__is_deleted=False,
+                                   answer__session__submitter=user)\
+                       .values_list('pk')
+
+        return self.exclude(pk__in=excluded_pks)\
                    .filter(answer__choice__is_right=False,
+                           answer__session__is_deleted=False,
                            answer__session__submitter=user)\
                    .distinct()
 
     def skipped_by_user(self, user):
         # See the note in 'self.correct_by_user()'
-        return self.exclude(answer__choice__is_right=True)\
-                   .exclude(answer__choice__is_right=False)\
+        excluded_pks = (self.filter(answer__choice__is_right=True,
+                                    answer__session__is_deleted=False,
+                                    answer__session__submitter=user) |
+                        self.filter(answer__choice__is_right=False,
+                                    answer__session__is_deleted=False,
+                                    answer__session__submitter=user))\
+                       .values_list('pk')
+
+        return self.exclude(pk__in=excluded_pks)\
                    .filter(answer__choice__isnull=True,
+                           answer__session__is_deleted=False,
                            answer__session__submitter=user)\
                    .distinct()
 
@@ -149,6 +178,9 @@ class SessionQuerySet(models.QuerySet):
 
     def nonsolved(self):
         return self.exclude(session_mode='SOLVED')
+
+    def undeleted(self):
+        return self.filter(is_deleted=False)
 
 class ChoiceQuerySet(models.QuerySet):
     def order_by_alphabet(self):

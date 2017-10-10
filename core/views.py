@@ -1,4 +1,5 @@
 from dal import autocomplete
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
@@ -17,7 +18,8 @@ import teams.utils
 def show_index(request):
     if request.user.is_authenticated():
 
-        latest_sessions = exams_models.Session.objects.filter(submitter=request.user)\
+        latest_sessions = exams_models.Session.objects.undeleted()\
+                                                      .filter(submitter=request.user)\
                                                       .with_accessible_questions()\
                                                       .order_by('-pk')[:8]
         context = {'latest_sessions': latest_sessions}
@@ -32,7 +34,9 @@ def show_index(request):
 
     else:
         question_count = exams_models.Question.objects.undeleted().count()
-        answer_count = exams_models.Answer.objects.count()
+        answer_count = exams_models.Answer.objects\
+                                          .filter(choice__isnull=False)\
+                                          .count()
         context = {'question_count': question_count,
                    'answer_count': answer_count}
         return render(request, 'index_unauthenticated.html', context)
@@ -53,6 +57,7 @@ class UserAutocomplete(autocomplete.Select2QuerySetView):
     def get_result_label(self, item):
         return accounts.utils.get_user_representation(item)
 
+@login_required
 @require_safe
 def show_about(request):
     team = CoreMember.objects.order_by('?')

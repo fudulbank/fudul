@@ -367,7 +367,8 @@ def create_session(request, slugs, exam_pk):
        not exam.question_set.undeleted().exists():
         raise Http404
 
-    latest_sessions = exam.session_set.with_accessible_questions()\
+    latest_sessions = exam.session_set.undeleted()\
+                                      .with_accessible_questions()\
                                       .filter(submitter=request.user)\
                                       .order_by('-pk')[:10]
 
@@ -413,7 +414,8 @@ def list_session_questions(request):
 @require_safe
 def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     category = Category.objects.get_from_slugs(slugs)
-    session = get_object_or_404(Session.objects.with_accessible_questions(), pk=session_pk)
+    session = get_object_or_404(Session.objects.undeleted().with_accessible_questions(),
+                                pk=session_pk)
 
     if not category:
         raise Http404
@@ -540,8 +542,9 @@ def submit_answer(request):
 @require_safe
 @login_required
 def list_previous_sessions(request):
-    sessions = Session.objects.filter(submitter=request.user)\
-                              .with_accessible_questions()
+    sessions = request.user.session_set\
+                           .undeleted()\
+                           .with_accessible_questions()
 
     context = {'sessions':sessions,
                'is_previous_active': True}
@@ -776,7 +779,8 @@ def approve_question(request, slugs, exam_pk, pk):
 @login_required
 def show_my_performance(request):
     total_questions = Question.objects.approved()\
-                                      .used_by_user(request.user)\
+                                      .used_by_user(request.user,
+                                                    exclude_skipped=False)\
                                       .count()
     correct_questions = Question.objects.approved()\
                                         .correct_by_user(request.user)\
@@ -790,6 +794,7 @@ def show_my_performance(request):
 
     # Only get exams which the user has taken
     exams = Exam.objects.filter(session__submitter=request.user,
+                                session__is_deleted=False,
                                 session__answer__isnull=False).distinct()
 
     context = {'correct_questions': correct_questions,
@@ -803,7 +808,9 @@ def show_my_performance(request):
 @login_required
 @require_safe
 def show_my_performance_per_exam(request, exam_pk):
-    user_exams = Exam.objects.filter(session__submitter=request.user).distinct()
+    user_exams = Exam.objects.filter(session__submitter=request.user,
+                                     session__is_deleted=False)\
+                             .distinct()
     exam = get_object_or_404(user_exams, pk=exam_pk)
     correct_questions =  utils.get_user_question_stats(target=exam,
                                                        user=request.user,
@@ -813,7 +820,7 @@ def show_my_performance_per_exam(request, exam_pk):
                                                          result='incorrect')
     skipped_questions =  utils.get_user_question_stats(target=exam,
                                                        user=request.user,
-                                                       result='correct')
+                                                       result='skipped')
     context = {'correct_questions': correct_questions,
                'incorrect_questions': incorrect_questions,
                'skipped_questions': skipped_questions,
@@ -919,3 +926,53 @@ def correct_answer(request):
         context = {'choice': choice, 'form': form}
         return render(request, 'exams/partials/correct_answer.html', context)
 
+
+@csrf.csrf_exempt
+@require_POST
+@decorators.ajax_only
+@login_required
+def get_selected_question_count(request, exam_pk):
+    exam = get_object_or_404(Exam, pk=exam_pk)
+    form = forms.SessionForm(request.POST,
+                             user=request.user,
+                             exam=exam)
+    form.full_clean()
+
+    question_filter = form.cleaned_data.get('question_filter')
+    if question_filter:
+        question_pool = form.question_pools[question_filter]
+    else:
+        question_pool = form.question_pools['ALL']
+
+    subjects = form.cleaned_data.get('subjects')
+    if subjects:
+        question_pool = question_pool.filter(subjects__in=subjects)
+
+    sources = form.cleaned_data.get('sources')
+    if sources:
+        question_pool = question_pool.filter(sources__in=sources)
+
+    exam_types = form.cleaned_data.get('exam_types')
+    if exam_types:
+        question_pool = question_pool.filter(exam_types__in=exam_types)
+
+    return {'count': question_pool.count()}
+
+@csrf.csrf_exempt
+@require_POST
+@decorators.ajax_only
+@login_required
+def delete_session(request):
+    if 'delete_all' in request.POST:
+        request.user.session_set.update(is_deleted=True)
+    else:
+        session_pk = request.POST.get('pk')
+        session = Session.objects.get(pk=session_pk)
+
+        # PERMISSION CHECK
+        if session.submitter == request.user:
+            session.is_deleted = True
+            session.save()
+        else:
+            raise Exception("You cannot delete this session.")
+    return {}

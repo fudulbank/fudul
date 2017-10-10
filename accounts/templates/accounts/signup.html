@@ -138,7 +138,7 @@ $(function() {
         if ($('#institution-list option[value=Other]:checked').length) {
             $('#institution-text-field').show();
             $('#id_college, #id_batch').closest('.form-group.has-feedback').hide();
-            $('#id_college, #id_batch').html('');
+            $('#id_college, #id_batch').prop('required', false).html('');
             $('#institution-text-field').attr('required', 'required');
         } else {
             $('#institution-text-field').hide();
@@ -151,7 +151,7 @@ $(function() {
                         name: value
                     },
                     success: function(data) {
-                        $("#id_college").html(empty_option);
+                        $("#id_college").prop('required', true).html(empty_option);
                         $("#id_college").closest('.form-group.has-feedback').show();
                         $.each(data.colleges, function(pk, name) {
                             option = $("<option>").val(pk).html(name);
@@ -170,7 +170,7 @@ $(function() {
     $("#id_college").change(function() {
         value = $(this).val();
         if (value.length) {
-            $("#id_batch").html(empty_option);
+            $("#id_batch").prop('required', true).html(empty_option);
             $("#id_batch").closest('.form-group.has-feedback').show();
             college_batches = batches[value]
             $.each(college_batches, function(index, batch_data) {
@@ -179,6 +179,8 @@ $(function() {
                 option = $("<option>").val(pk).html(name);
                 option.appendTo("#id_batch");
             });
+        } else {
+            $("#id_batch").prop('required', false);
         }
 
     });
