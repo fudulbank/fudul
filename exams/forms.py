@@ -240,25 +240,21 @@ class SessionForm(forms.ModelForm):
 
         # Let's make sure that when a question is randomly chosen, we
         # also include its parents and children.
-        selected = []
+        selected_pks = []
         for question in question_pool.iterator():
             tree = question.get_tree()
-            selected += tree
+            new_pks = [q.pk for q in tree if not q.pk in selected_pks]
+            selected_pks += new_pks
 
-            if len(selected) >= cleaned_data['number_of_questions']:
+            # Check unique questions
+            selected_questions = models.Question.objects.select_related('parent_question')\
+                                                        .filter(pk__in=selected_pks)
+            if question_filter != 'INCOMPLETE':
+                selected_questions = selected_questions.approved()
+            if selected_questions.count() >= cleaned_data['number_of_questions']:
                 break
 
-        # In the course of ensuring inclusion of the complete question
-        # child/parent tree, we might have exceeded the required
-        # number.  So let's cut on that.
-        final = selected
-        if len(selected) > cleaned_data['number_of_questions']:
-            for question in selected:
-                if not hasattr(question, 'child_question') and \
-                   not question.parent_question:
-                    final.remove(question)
-
-        self.questions = final
+        self.questions = selected_questions
 
         if not self.questions:
             raise forms.ValidationError("No questions at all match your selection.  Please try other options.")
@@ -267,9 +263,7 @@ class SessionForm(forms.ModelForm):
 
     def save(self, *args, **kwargs):
         session = super(SessionForm, self).save(*args, **kwargs)
-
         session.questions.add(*self.questions)
-
         return session
 
     class Meta:
