@@ -92,7 +92,7 @@ tr td:last-child{
     {% include "exams/modals/common_edit_modal.html" %}
 {% endwith %}
 
-{% with modal_id='confirm-delete-all-modal' is_small=True modal_title="Delete all sessions" modal_content="<strong>Are you sure you want us to forgive and hide <em>all</em> your previous sessions?</strong> By asking for forgiveness, you will be resetting your performance statistics and reclaiming all your 'used questions'." %}
+{% with modal_id='confirm-delete-all-modal' is_small=True modal_title="Forgive me all sessions" modal_content="<strong>Are you sure you want us to forgive and hide <em>all</em> your previous sessions?</strong> By asking for forgiveness, you will be resetting your performance statistics and reclaiming all your 'used questions'." %}
     {% include "exams/modals/common_edit_modal.html" %}
 {% endwith %}
 <script src="{% static 'stack/vendors/js/tables/jquery.dataTables.min.js' %}" type="text/javascript"></script>
@@ -121,7 +121,7 @@ tr td:last-child{
                     success: function (data) {
         		            if (data.success == 1) {
         		                // show success message (using toastr)
-        		                toastr.info("All your sessions have been deleted.");
+        		                toastr.info("All your sessions have been forgiven.");
         										row = table.rows();
         										row.remove().draw(false);
                             $("#delete-all-sessions").hide();
@@ -140,7 +140,7 @@ tr td:last-child{
         $('tbody').on('click','.confirm-delete-session',function () {
             var pk = $(this).closest('tr').data('pk');
             $deleteConfirmationButton.data('pk', pk);
-            $("#confirm-delete-session-modal .modal-title").html("Delete session #" + pk);
+            $("#confirm-delete-session-modal .modal-title").html("Forgive me for session #" + pk);
             $("#confirm-delete-session-modal").modal('show');
         });
 
@@ -155,7 +155,7 @@ tr td:last-child{
                     success: function (data) {
         		            if (data.success == 1) {
         		                // show success message (using toastr)
-        		                toastr.info("Session #" + pk + " was deleted");
+        		                toastr.info("Session #" + pk + " was forgiven.");
 
         										row = table.row("tr[data-pk=" +  pk + "]");
         										row.remove().draw(false);
