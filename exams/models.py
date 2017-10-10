@@ -344,6 +344,7 @@ class Session(models.Model):
     submitter = models.ForeignKey(User)
     question_filter = models.CharField(max_length=20, choices=questions_choices, default=None)
     submission_date = models.DateTimeField(auto_now_add=True)
+    is_deleted = models.BooleanField(default=False)
 
     objects = managers.SessionQuerySet.as_manager()
 

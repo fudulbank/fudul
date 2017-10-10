@@ -13,6 +13,7 @@ urlpatterns =[
     url(r'^ajax/collectors/pend_revision/(?P<pk>\d+)$', views.mark_revision_pending, name='mark_revision_pending'),
     url(r'^ajax/collectors/show_revision_comparison/(?P<pk>\d+)(?:/(?P<revision_pk>\d+))?$', views.show_revision_comparison,name='show_revision_comparison'),
     url(r'^ajax/examiners/count_selection/(?P<exam_pk>\d+)$', views.get_selected_question_count, name='get_selected_question_count'),
+    url(r'^ajax/examiners/delete_session$', views.delete_session, name='delete_session'),
     url(r'^ajax/examiners/submit_answer$', views.submit_answer, name='submit_answer'),
     url(r'^ajax/examiners/toggle_marked$', views.toggle_marked, name='toggle_marked'),
     url(r'^ajax/examiners/list$', views.list_session_questions, name='list_session_questions'),
