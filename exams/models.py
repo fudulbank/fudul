@@ -379,7 +379,7 @@ class Session(models.Model):
 
     def get_question_sequence(self, question):
         return self.get_questions()\
-                   .filter(global_sequence__lte=question.pk)\
+                   .filter(global_sequence__lte=question.global_sequence)\
                    .count()
 
     def get_unused_questions(self):
