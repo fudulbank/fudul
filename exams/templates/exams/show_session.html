@@ -37,7 +37,7 @@
         font-weight: 400;
     }
 
-    .top-info, .tooltip-inner, #footer{
+    #top-info, .tooltip-inner, #footer{
       background-color: #404E67;
     }
 
@@ -45,27 +45,13 @@
       border-top-color: #404E67;
     }
 
-    .top-info{
+    #top-info{
         font-size: 12pt;
         color: #FFF;
     }
 
-    .top-exam-details {
-        height: 50px;
-        position: absolute;
-        left: 47%;
-        margin-left: -50px;
-        padding: 4px 0;
-    }
-
     .top-question-id {
-        text-align: center;
-        font-weight: 700;
         line-height: 15px;
-    }
-
-    .top-options div.text-right, .top-options div.text-left, #footer div.text-right, #footer div.text-left{
-      text-align: center !important;
     }
 
     .option{
@@ -77,20 +63,10 @@
     }
 
     @media (min-width: 576px) {
-      .top-question-id {
-        text-align: right;
-      }
-      .top-options div.text-right, #footer div.text-right{
-        text-align: right !important;
-      }
-      .top-options div.text-left, #footer div.text-left{
-        text-align: left !important;
-      }
-
       #footer .option{
         height: 38px;
       }
-      .top-options .option{
+      #top-options .option{
         height: 32px;
       }
     }
@@ -99,7 +75,7 @@
         color: yellow;
     }
 
-    .top-options {
+    #top-options {
         background-color: #929EB4;
         border-top: 1px solid #fff;
         line-height: 32px;
@@ -113,7 +89,6 @@
 
     #footer {
         color: #fff;
-        font-weight: 700;
         line-height: 36px;
         font-size: 12pt;
         bottom: 0;
@@ -123,12 +98,12 @@
         width: 100%;
     }
 
-    /* Styling "results", which is a direct link */
-    a.option{
+    /* Styling the exam name and "results" (which is a direct link) */
+    #top-info a, a.option{
         color: white;
     }
 
-    a.option:hover{
+    #top-info a, a.option:hover{
         text-decoration: none;
     }
 
@@ -212,23 +187,23 @@
     </head>
     <body class="{% if session.has_finished %}finished{% else %}unfinished{% endif %}">
     <div class="container-fluid" id="container">
-        <div class="row top-info align-items-center">
+        <div id="top-info" class="row align-items-center">
             <div class ="col-sm-3 text-sm-left text-center">
               <a href="/" class="navbar-brand">
                 <img alt="stack admin logo" src="{% static 'img/logo-monkey.png' %}" class="img-fluid brand-logo">
                 <h2 class="brand-text">Fudul</h2></a>
             </div>
-            <div class="ml-auto col-sm-6 text-center"> {{ session.exam.name }} <span class="separator">•</span> Session id: <span id="session-pk">{{ session.pk }}</span> ({{ session.get_session_mode_display }})<br> Question id: <span id="question-pk">{{ current_question.pk }}</span> </div>
-            <div class="col-sm-3 top-question-id my-2 mb-sm-0"><span id="question-sequence">{{ current_question_sequence }}</span> of <span id="question-total">{{ session.get_questions.count }}</span></div>
+            <div class="ml-auto col-sm-6 text-center"> <a href="{% url 'exams:create_session' session.exam.category.get_slugs session.exam.pk %}">{{ session.exam.name }}</a> <span class="separator">•</span> Session id: <span id="session-pk">{{ session.pk }}</span> ({{ session.get_session_mode_display }})<br> Question id: <span id="question-pk">{{ current_question.pk }}</span> </div>
+            <div class="col-sm-3 top-question-id font-weight-bold text-sm-right text-center my-2 mb-sm-0"><span id="question-sequence">{{ current_question_sequence }}</span> of <span id="question-total">{{ session.get_questions.count }}</span></div>
         </div>
-        <div class="row top-options text-left align-items-center">
-          <div class="col-sm-6 text-left">
+        <div id="top-options" class="row text-center align-items-center">
+          <div class="col-sm-6 text-sm-left">
                <div class="option" id="contribute">
                    <a data-placement="left" data-toggle="tooltip" title=" If you have any improvements on the question you can help us with, please submit it here.Your edits will be quickly available to public."> <i class="icon-pencil"></i> Edit</a>
 
                </div>
           </div>
-          <div class="col-sm-6 text-right">
+          <div class="col-sm-6 text-sm-right">
                <div id="mark" class="option{% if current_question|is_question_marked:user %} marked{% endif %}">
                   <img id="mark-loading" src="{% static 'img/ajax-loader.gif' %}">
                   <i id="mark-icon" class="icon-flag7"></i> Mark
@@ -243,13 +218,13 @@
           <button {% if current_question|was_solved_in_session:session %}style="display: none;"{% endif %} type="button" id="submit" class="btn">Submit <i class=" icon-circle-right2"></i></button>
           <button class="btn btn-outline-primary" id="explain"><i class=" icon-brain"></i> Improve this explanation!</button>
         </div>
-        <div id="footer" class="row text-center">
-          <div class="col-sm-6 text-left">
+        <div id="footer" class="row text-center font-weight-bold">
+          <div class="col-sm-6 text-sm-left">
            <a id="results" class="float-left float-sm-none option" href="{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}"><i class="icon-list3"></i> Results</a>
            <div id="end" class="float-left float-sm-none option"><i class="icon-exit3"></i> End</div>
            <div id="contributors" class="float-right float-sm-none option" data-tooltip-content="#tooltip-body"><i class="icon-stars"></i> Contributors</div>
           </div>
-          <div class="col-sm-6 text-right">
+          <div class="col-sm-6 text-sm-right">
            <div data-action="previous" id="previous" class="float-left float-sm-none option"><i class=" icon-circle-left2"></i> Previous</div>
            <div data-action="next" id="next" class="float-right float-sm-none option">Next <i class=" icon-circle-right2"></i></div>
           </div>
