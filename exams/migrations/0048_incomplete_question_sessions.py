@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='session',
             name='question_filter',
-            field=models.CharField(choices=[('ALL', 'All'), ('UNUSED', 'Unused'), ('INCORRECT', 'Incorrect'), ('MARKED', 'Marked'), ('INCOMPLETE', 'Incomplete')], default=None, max_length=20),
+            field=models.CharField(choices=[('ALL', 'All complete'), ('UNUSED', 'Unused'), ('INCORRECT', 'Incorrect'), ('MARKED', 'Marked'), ('INCOMPLETE', 'Incomplete')], default=None, max_length=20),
         ),
         migrations.AlterField(
             model_name='session',

@@ -319,7 +319,7 @@ class Choice(models.Model):
 
 
 questions_choices = (
-    ('ALL','All'),
+    ('ALL','All complete'),
     ('UNUSED','Unused'),
     ('INCORRECT', 'Incorrect'),
     ('MARKED', 'Marked'),
