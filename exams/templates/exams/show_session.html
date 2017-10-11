@@ -173,7 +173,7 @@
         font-family: Arial, Verdana, Helvetica;
     }
 
-    .tooltip-container, #mark-loading, .explanation-container, #explain, #submit, .answer-correction-tooltip-container{
+    .tooltip-container, #mark-loading, .explanation-container, #explain, #submit, #contribute, .answer-correction-tooltip-container{
       display: none;
     }
 
@@ -294,6 +294,9 @@
         } else if (action == 'previous' ){
           targeted_sequence = current_sequence - 1;
         }
+
+        // Upon navigation, hide previous voting tooltips
+        $(".answer-correction-notification").tooltip('hide');
 
         $question = $("#question-pool [data-question-sequence=" + targeted_sequence + "]")
         // Add 'show' class to the current question
@@ -418,7 +421,7 @@
           $(".unfinished #results").hide();
         }
 
-        // Show contributors as a
+        // Show contributors as a tooltip
         $("#contributors").tooltip('dispose');
         $("#contributors").tooltip({html: true,
                                     trigger: 'click',
@@ -428,9 +431,11 @@
         was_solved = $(".question-body.show").data('was-solved');
         controlExplanation(was_solved);
         if (was_solved){
+          $("#contribute").show();
           $("#submit").hide();
           $(".question-body.show .question-choice").prop("disabled", "disabled");
         } else {
+            $("#contribute").hide();
             $("#submit").show();
             $(".question-body.show .question-text").mouseup(highlightText);
             $('.question-body.show .question-choice').change(toggleChoices);
@@ -490,6 +495,7 @@
                     }
 
                     controlExplanation(true);
+                    $("#contribute").show();
                 } else {
                   toastr.error(data.message);
                 }
