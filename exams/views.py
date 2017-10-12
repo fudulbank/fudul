@@ -520,7 +520,11 @@ def submit_highlight(request):
                                              revision=best_latest_revision)
 
     highlight.revision = best_latest_revision
-    highlight.highlighted_text = highlighted_text
+
+    # Don't save in the database unless it contains a highlight span.
+    if '<span ' in highlighted_text:
+        highlight.highlighted_text = highlighted_text
+
     highlight.stricken_choices.clear()
     highlight.stricken_choices.add(*stricken_choices)
     highlight.save()
