@@ -298,6 +298,7 @@
             data: data,
             cache: false,
             success: function(data){
+               $(".question-body.show").data('is-marked', data.is_marked);
                handleMarked(data.is_marked);
                $("#mark-icon").show();
                $("#mark-loading").hide();
