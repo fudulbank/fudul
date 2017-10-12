@@ -295,8 +295,10 @@
           <li class="nav-item"><a href="{% if user.is_superuser %}{% url 'admin:index' %}{% else %}{% url 'editor_admin:index' %}{% endif %}"><i class="ft-zap"></i><span data-i18n="" class="menu-title">Admin</span></a></li>
           {% endif %}
 
+
           <li class=" navigation-header"><span>About</span><i data-toggle="tooltip" data-placement="right" data-original-title="About" class=" ft-minus"></i>
           <li class="{% if is_about_active %}active {% endif %}nav-item"><a href="{% url 'about' %}"><i class="ft-info"></i><span data-i18n="" class="menu-title">About Fudul</span></a></li>
+          <li class="{% if is_ask_active %}active {% endif %}nav-item"><a href="{% url 'help' %}"><i class="ft-message-circle"></i><span data-i18n="" class="menu-title">Get help</span></a></li>
         </ul>
       </div>
     </div>

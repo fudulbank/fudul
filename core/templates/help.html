@@ -1,0 +1,49 @@
+{% extends 'base_new.html' %}{% load staticfiles %}
+{% block title %}Fudul | Get help{% endblock %}
+
+{% block header_title %}
+	<h1>Get help</h1>
+{% endblock %}
+
+{% block breadcrumb %}
+      <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
+			<li class="breadcrumb-item active">Get help</li>
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+	<div class="card-body">
+		<div class="card-block">
+			<p>If you have any question regarding the use of Fudul, you can reach us through:</p>
+  	</div>
+    <div class="card-block">
+      <div class="row justify-content-center">
+  			<div class="col-xs-12 offset-sm-2 col-sm-4 offset-md-3 col-md-3">
+  				<div class="card text-xs-center">
+  					<div class="card-body">
+  						<i class="font-large-3 fa fa-telegram"></i>
+  						<div class="card-block">
+  							<h4 class="card-title"><a target="_blank" href="https://t.me/FudulBot">Telegram live chat</a></h4>
+                <p class="font-small-3 text-justify">Our support team is immediately available to help you get ready for your next exam!  Try our live chatting support.</p>
+  						</div>
+  					</div>
+  				</div>
+  			</div>
+  			<div class="col-xs-12 col-sm-4 col-md-3">
+  				<div class="card text-xs-center">
+  					<div class="card-body">
+  						<i class="font-large-3 ft-mail"></i>
+  						<div class="card-block">
+  							<h4 class="card-title"><a href="mailto:support@fudulbank.com">Email Support</a></h4>
+                <p class="font-small-3 text-justify">Our support team is ready to answer your email, and to get your questions answered!  Email us right now!</p>
+  						</div>
+  					</div>
+  				</div>
+  			</div>
+  		</div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

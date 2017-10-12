@@ -5,5 +5,6 @@ from . import views
 urlpatterns = [
     url(r'^ajax/get_users$', views.UserAutocomplete.as_view(), name='user_autocomplete'),
     url(r'^about/$', views.show_about, name="about"),
+    url(r'^help/$', TemplateView.as_view(template_name="help.html"), name="help"),
     url(r'^$', views.show_index, name="index"),
 ]
