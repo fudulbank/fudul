@@ -21,9 +21,7 @@ p.question-text{
     {% if revision.figure %}
        <img class="img-responsive center-block"  src="{{ revision.figure.url }}">
     {% endif %}
-    {% with text=revision|get_question_text:session %}
-       <p class="question-text">{{ text|linebreaksbr }}</p>
-    {% endwith %}
+    <p class="question-text">{{ revision.text|linebreaksbr }}</p>
     <ol type="A">
      {% for choice in revision.choice_set.order_by_alphabet %}
        <li {% if choice.is_right %}class="is-right text-success-800"{% endif %}>{{ choice.text|linebreaksbr }}</li>
