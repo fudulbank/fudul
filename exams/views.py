@@ -132,7 +132,8 @@ class QuestionAutocomplete(autocomplete.Select2QuerySetView):
 @login_required
 def delete_question(request, pk):
     question_pool = Question.objects.undeleted()\
-                                    .select_related('exam')
+                                    .select_related('exam',
+                                                    'exam__category')
     question = get_object_or_404(question_pool, pk=pk)
     exam = question.exam
 
@@ -150,8 +151,9 @@ def delete_question(request, pk):
 @require_POST
 @decorators.ajax_only
 @login_required
-def handle_question(request, exam_pk,question_pk=None):
-    exam = get_object_or_404(Exam, pk=exam_pk)
+def handle_question(request, exam_pk, question_pk=None):
+    exam = get_object_or_404(Exam.objects.select_related('category'),
+                             pk=exam_pk)
 
     # # PERMISSION CHECK
     # if not exam.can_user_edit(request.user):
@@ -197,7 +199,7 @@ def handle_question(request, exam_pk,question_pk=None):
         template = get_template('exams/partials/exam_stats.html')
         context = {'exam': exam}
         stat_html = template.render(context)
-        show_url = reverse('exams:approve_user_contributions', args=(exam.category.get_slugs(),exam.pk))
+        show_url = reverse('exams:approve_user_contributions', args=(exam.category.get_slugs(), exam.pk))
         full_url = request.build_absolute_uri(show_url)
         return {"message": "success",
                 "question_pk": question.pk,
@@ -317,7 +319,7 @@ def submit_revision(request, slugs, exam_pk, pk):
     # if not exam.can_user_edit(request.user):
     #     raise PermissionDenied
     editor = exam.can_user_edit(request.user)
-    context = {'editor':editor,'exam': exam, 'revision': latest_revision}
+    context = {'editor':editor, 'exam': exam, 'revision': latest_revision}
 
     if request.method == 'POST':
         questionform = forms.QuestionForm(request.POST,
@@ -339,7 +341,8 @@ def submit_revision(request, slugs, exam_pk, pk):
             new_revision.save()
 
             return HttpResponseRedirect(
-                reverse("exams:list_revisions", args=(exam.category.get_slugs(), exam.pk, question.pk)))
+                reverse("exams:list_revisions",
+                        args=(slugs, exam_pk, pk)))
 
     elif request.method == 'GET':
         questionform = forms.QuestionForm(instance=question)
@@ -391,7 +394,7 @@ def create_session(request, slugs, exam_pk):
             # Question allocation happens in SessionForm.save()
             session = sessionform.save()
             return HttpResponseRedirect(reverse("exams:show_session",
-                                                args=(session.exam.category.get_slugs(),session.exam.pk,session.pk)))
+                                                args=(slugs, exam_pk, session.pk)))
     context['sessionform'] = sessionform
 
     return render(request, "exams/create_session.html", context)
@@ -521,13 +524,15 @@ def submit_highlight(request):
 
     highlight.revision = best_latest_revision
 
-    # Don't save in the database unless it contains a highlight span.
-    if '<span ' in highlighted_text:
-        highlight.highlighted_text = highlighted_text
+    if not '<span ' in highlighted_text:
+        highlighted_text = ""
 
-    highlight.stricken_choices.clear()
-    highlight.stricken_choices.add(*stricken_choices)
-    highlight.save()
+    # Save a database hit if the highlighted text ha not changed
+    if highlight.highlighted_text != highlighted_text:
+        highlight.highlighted_text = highlighted_text
+        highlight.save()
+
+    highlight.stricken_choices = stricken_choices
 
     return {}
 
@@ -743,7 +748,8 @@ def show_revision_comparison(request, pk, revision_pk=None):
 def delete_revision(request, pk):
     revision_pool = Revision.objects.undeleted()\
                                     .select_related('question',
-                                                    'question__exam')
+                                                    'question__exam',
+                                                    'question__exam__category')
     revision = get_object_or_404(revision_pool, pk=pk)
     question = revision.question
     exam = question.exam
