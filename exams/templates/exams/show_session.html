@@ -121,6 +121,9 @@
 
     .highlight {
         background: yellow;
+    }
+
+    .highlight.active{
         cursor: pointer;
     }
 
@@ -328,7 +331,7 @@
         var selection = window.getSelection().toString();
         if (selection.length >= 3) {
             var escapedSelection = $("<div>").text(selection).html();
-            var replacement = $('<span></span>').addClass('highlight').html(selection);
+            var replacement = $('<span></span>').addClass('active highlight').html(selection);
             var replacementHtml = replacement.prop('outerHTML');
             $(this).html($(this).html().replace(escapedSelection, replacementHtml));
             $(".highlight").click(removeHighlight);
@@ -404,7 +407,7 @@
           $(".unfinished #results").hide();
         }
 
-        $(".highlight").click(removeHighlight);
+        $(".highlight").addClass('active').click(removeHighlight);
 
         // Show contributors as a tooltip
         $("#contributors").tooltip('dispose');
@@ -418,12 +421,14 @@
         if (was_solved){
           $("#contribute").show();
           $("#submit").hide();
+          $(".highlight").removeClass('active').off('click');
           $(".question-body.show .question-choice").prop("disabled", "disabled");
         } else {
             $("#contribute").hide();
             $("#submit").show();
             $(".question-body.show .question-text").on('mouseup touchend', highlightText);
             $('.question-body.show .question-choice').change(toggleChoices);
+            $(".highlight").addClass('active').click(removeHighlight);
             $(".question-body.show .choice-text").click(function() {
                 if (!$(this).hasClass("strike")){
                    // If a choice is striked, it is no longer checked.
@@ -457,7 +462,8 @@
         // Disable choices upon submission
         $(".question-body.show .question-choice").prop("disabled", "disabled")
         // Disable interactions after submission
-        $(".question-text, .question-choice, .choice-text, .highlight").off();
+        $(".question-body.show").find(".highlight").removeClass("active");
+        $(".question-body.show").find(".question-text, .question-choice, .choice-text, .highlight").off();
 
         $checkedChoice = $('.question-body.show .question-choice:checked');
         // Do we have a choice, or was it skipped?
