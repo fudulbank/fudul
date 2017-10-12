@@ -441,19 +441,26 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
 @require_safe
 def show_session_results(request, slugs, exam_pk, session_pk):
     category = Category.objects.get_from_slugs(slugs)
-    session = get_object_or_404(Session, pk=session_pk)
-    exam = session.exam
+
     if not category:
         raise Http404
 
-    if not session.has_finished():
+    session = get_object_or_404(Session.objects.select_related('exam'),
+                                pk=session_pk)
+
+    # PERMISSION CHECK
+    if not session.can_user_access(request.user):
+        raise PermissionDenied
+
+    if not session.has_finished() and \
+       request.user == session.submitter:
         answers = []
         for question in session.get_unused_questions():
             answer = Answer(session=session, question=question)
             answers.append(answer)
         Answer.objects.bulk_create(answers)
 
-    context = {'session': session,'exam':exam}
+    context = {'session': session, 'exam': session.exam}
 
     return render(request, 'exams/show_session_results.html', context)
 
@@ -868,6 +875,11 @@ def show_my_performance_per_exam(request, exam_pk):
 @require_safe
 def show_credits(request,pk):
     exam = get_object_or_404(Exam, pk=pk)
+
+    # PERMISSION CHECK
+    if not exam.can_user_access(request.user):
+        raise PermissionDenied
+
     return render(request, 'exams/partials/show_credits.html',{'exam':exam})
 
 @login_required
@@ -968,6 +980,11 @@ def correct_answer(request):
 @login_required
 def get_selected_question_count(request, exam_pk):
     exam = get_object_or_404(Exam, pk=exam_pk)
+
+    # PERMISSION CHECK
+    if not exam.can_user_access(request.user):
+        raise PermissionDenied
+
     form = forms.SessionForm(request.POST,
                              user=request.user,
                              exam=exam)
