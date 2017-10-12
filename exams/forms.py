@@ -238,6 +238,9 @@ class SessionForm(forms.ModelForm):
         if exam_types:
             question_pool = question_pool.filter(exam_types__in=exam_types)
 
+        if question_pool.exists():
+            raise forms.ValidationError("No questions at all match your selection.  Please try other options.")
+    
         # Let's make sure that when a question is randomly chosen, we
         # also include its parents and children.
         selected_pks = []
@@ -255,9 +258,6 @@ class SessionForm(forms.ModelForm):
                 break
 
         self.questions = selected_questions
-
-        if not self.questions:
-            raise forms.ValidationError("No questions at all match your selection.  Please try other options.")
 
         return cleaned_data
 
