@@ -238,7 +238,7 @@ class SessionForm(forms.ModelForm):
         if exam_types:
             question_pool = question_pool.filter(exam_types__in=exam_types)
 
-        if question_pool.exists():
+        if not question_pool.exists():
             raise forms.ValidationError("No questions at all match your selection.  Please try other options.")
     
         # Let's make sure that when a question is randomly chosen, we
