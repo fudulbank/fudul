@@ -335,7 +335,8 @@
             var replacement = $('<span></span>').addClass('active highlight').html(selection);
             var replacementHtml = replacement.prop('outerHTML');
             $(this).html($(this).html().replace(escapedSelection, replacementHtml));
-            $(".highlight").click(removeHighlight);
+            // Bind only once
+            $(".question-body.show .highlight").off('click').on('click', removeHighlight);
             submitHighlight();
         }
 
@@ -436,10 +437,13 @@
         } else {
             $("#contribute").hide();
             $("#submit").show();
-            $(".question-body.show .question-text").on('mouseup touchend', highlightText);
-            $('.question-body.show .question-choice').change(toggleChoices);
-            $(".highlight").addClass('active').click(removeHighlight);
-            $(".question-body.show .choice-text").click(function() {
+            // We turn off handlers first to ensure they don't get
+            // triggered more than once as the user navigates and
+            // binds the handlers.
+            $(".question-body.show .question-text").off('mouseup touchend').on('mouseup touchend', highlightText);
+            $('.question-body.show .question-choice').off('change').on('change', toggleChoices);
+            $(".highlight").addClass('active').off('click').on('click', removeHighlight);
+            $(".question-body.show .choice-text").off('click').on('click', function() {
                 if (!$(this).hasClass("strike")){
                    // If a choice is striked, it is no longer checked.
                     $(this).closest("tr").find(".question-choice").prop('checked', false);
