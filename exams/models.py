@@ -234,7 +234,8 @@ class Question(models.Model):
                                        .values_list('session__submitter', flat=True)
         correct_users = User.objects.filter(pk__in=correct_user_pks).count()
         total_users = User.objects.filter(pk__in=total_user_pks).count()
-        return correct_users / total_users * 100
+        result = correct_users / total_users * 100
+        return round(result, 1)
 
     def get_session_url(self, session):
         category = session.exam.category
