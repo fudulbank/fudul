@@ -374,6 +374,16 @@
       });
     }
 
+    function toggleResults(){
+      if ($('.question-body[data-was-solved="false"]').length){
+        $(".unfinished #end").css('display', 'inline-block');
+        $(".unfinished #results").hide();
+      } else {
+        $(".unfinished #end").hide();
+        $(".unfinished #results").css('display', 'inline-block');
+      }
+    }
+
     function controlExplanation(was_solved){
       if (!was_solved){
         $(".question-body.show .explanation-container, #explain").hide()
@@ -399,14 +409,13 @@
 
         if (sequence == total){
           $("#next").css('cursor', 'not-allowed');
-          $(".unfinished #end").hide();
-          $(".unfinished #results").css('display', 'inline-block');
+          $("#next").tooltip({title: 'This is the last question.  You can click "Results" to end this session.'})
         } else {
           $("#next").css('cursor', 'pointer');
-          $(".unfinished #end").css('display', 'inline-block');
-          $(".unfinished #results").hide();
+          $("#next").tooltip('dispose');
         }
 
+        toggleResults();
         $(".highlight").addClass('active').click(removeHighlight);
 
         // Show contributors as a tooltip
@@ -457,7 +466,9 @@
         $(this).hide();
 
         // Mark question as solved
-        $(".question-body.show").data('was-solved', true);
+        // We set was-solved using .attr() to change the DOM and be able to query in toggleResults.
+        $(".question-body.show").attr('data-was-solved', true);
+        toggleResults();
 
         // Disable choices upon submission
         $(".question-body.show .question-choice").prop("disabled", "disabled")
