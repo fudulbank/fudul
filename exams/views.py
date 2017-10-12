@@ -403,7 +403,8 @@ def create_session(request, slugs, exam_pk):
 def list_session_questions(request):
     question_pk = request.GET.get('question_pk')
     session_pk = request.GET.get('session_pk')
-    session = get_object_or_404(Session, pk=session_pk)
+    session = get_object_or_404(Session.objects.undeleted(),
+                                pk=session_pk)
 
     current_question = session.get_current_question(question_pk)
 
@@ -415,7 +416,8 @@ def list_session_questions(request):
 @require_safe
 def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     category = Category.objects.get_from_slugs(slugs)
-    session = get_object_or_404(Session.objects.undeleted().with_accessible_questions(),
+    session = get_object_or_404(Session.objects.undeleted()\
+                                               .with_accessible_questions(),
                                 pk=session_pk)
 
     if not category:
@@ -445,7 +447,8 @@ def show_session_results(request, slugs, exam_pk, session_pk):
     if not category:
         raise Http404
 
-    session = get_object_or_404(Session.objects.select_related('exam'),
+    session = get_object_or_404(Session.objects.undeleted()\
+                                               .select_related('exam'),
                                 pk=session_pk)
 
     # PERMISSION CHECK
@@ -471,7 +474,8 @@ def show_session_results(request, slugs, exam_pk, session_pk):
 def toggle_marked(request):
     question_pk = request.POST.get('question_pk')
     session_pk = request.POST.get('session_pk')
-    session = get_object_or_404(Session, pk=session_pk)
+    session = get_object_or_404(Session.objects.undeleted(),
+                                pk=session_pk)
     question = get_object_or_404(session.get_questions(), pk=question_pk,
                                  is_deleted=False)
 
@@ -495,7 +499,8 @@ def toggle_marked(request):
 def submit_highlight(request):
     # PERMISSION CHECKS
     session_pk = request.POST.get('session_pk')
-    session = get_object_or_404(Session, pk=session_pk)
+    session = get_object_or_404(Session.objects.undeleted(),
+                                pk=session_pk)
     if not session.can_user_access(request.user):
         raise PermissionDenied
 
@@ -530,7 +535,7 @@ def submit_answer(request):
     question_pk = request.POST.get('question_pk')
     session_pk = request.POST.get('session_pk')
     choice_pk = request.POST.get('choice_pk')
-    session = get_object_or_404(Session, pk=session_pk)
+    session = get_object_or_404(Session.objects.undeleted(), pk=session_pk)
     question = get_object_or_404(session.get_questions(), pk=question_pk)
 
     # PERMISSION CHECKS
