@@ -412,7 +412,7 @@
         } else {
             $("#contribute").hide();
             $("#submit").show();
-            $(".question-body.show .question-text").mouseup(highlightText);
+            $(".question-body.show .question-text").on('mouseup touchend', highlightText);
             $('.question-body.show .question-choice').change(toggleChoices);
             $(".question-body.show .choice-text").click(function() {
                 if (!$(this).hasClass("strike")){
