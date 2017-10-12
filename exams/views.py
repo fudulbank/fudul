@@ -498,7 +498,6 @@ def submit_highlight(request):
     stricken_choice_pks = request.POST.get('stricken_choice_pks', '[]')
     stricken_choice_pks = json.loads(stricken_choice_pks)
     stricken_choices = Choice.objects.filter(pk__in=stricken_choice_pks)
-    print(stricken_choices)
     highlighted_text = request.POST.get('highlighted_text', '')
  
     try:
