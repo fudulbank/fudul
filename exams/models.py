@@ -449,8 +449,8 @@ class Highlight(models.Model):
     submission_date = models.DateTimeField(auto_now_add=True, null=True)
 
     def __str__(self):
-        return "Answer of Q#{} in S#{}".format(self.revision.question.pk,
-                                               self.session.pk)
+        return "Highlight on Q#{} in S#{}".format(self.revision.question.pk,
+                                                  self.session.pk)
 
 class AnswerCorrection(models.Model):
     choice = models.OneToOneField(Choice, null=True,
