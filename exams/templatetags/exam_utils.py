@@ -16,6 +16,29 @@ def was_chosen(choice, session):
     return choice.answer_set.filter(session=session).exists()
 
 @register.filter
+def get_question_text(best_latest_revision, session):
+    highlight = best_latest_revision.get_relevant_highlight(session)
+
+    if highlight and \
+       highlight.revision.text == best_latest_revision.text and \
+       highlight.highlighted_text:
+        return highlight.highlighted_text
+    else:
+        return best_latest_revision.text
+
+@register.simple_tag
+def stricken_choice_class(choice, best_latest_revision, session):
+    """Returs 'strike' or an empty string depending on whether the choice
+       was previously stricken"""
+    highlight = best_latest_revision.get_relevant_highlight(session)
+
+    if highlight:
+        if highlight.stricken_choices.filter(text=choice.text).exists():
+            return 'strike'
+    else:
+        return ''
+
+@register.filter
 def get_question_sequence(question, session):
     return session.get_question_sequence(question)
 

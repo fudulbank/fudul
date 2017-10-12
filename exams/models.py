@@ -298,6 +298,15 @@ class Revision(models.Model):
     def has_right_answer(self):
         return self.choice_set.filter(is_right=True).exists()
 
+    def get_relevant_highlight(self, session):
+        try:
+            highlight = Highlight.objects.select_related('revision')\
+                                         .get(revision__question=self.question,
+                                              session=session)
+        except Highlight.DoesNotExist:
+            highlight = None
+        return highlight
+
     def save(self, *args, **kwargs):
         if self.is_approved:
             self.approval_date = timezone.now()
@@ -414,14 +423,32 @@ class Session(models.Model):
 class Answer(models.Model):
     session = models.ForeignKey(Session)
     question = models.ForeignKey(Question)
-    choice = models.ForeignKey(Choice,null=True)
-    is_marked = models.BooleanField("is marked ?", default=False)
+    choice = models.ForeignKey(Choice, null=True)
+
     submission_date = models.DateTimeField(auto_now_add=True, null=True)
 
     objects = managers.AnswerQuerySet.as_manager()
 
     def __str__(self):
         return "Answer of Q#{} in S#{}".format(self.question.pk,
+                                               self.session.pk)
+
+class Highlight(models.Model):
+    session = models.ForeignKey(Session)
+
+    # Since revision text and choices are changeable, but we also want
+    # to keep the highlights/strikes, let's remember which revision
+    # was the user faced with.  In case the text of that revision and
+    # the showed revision differs, we won't keep
+    revision = models.ForeignKey(Revision)
+    highlighted_text = models.TextField()
+    stricken_choices = models.ManyToManyField(Choice, blank=True,
+                                              related_name="striking_answers")
+
+    submission_date = models.DateTimeField(auto_now_add=True, null=True)
+
+    def __str__(self):
+        return "Answer of Q#{} in S#{}".format(self.revision.question.pk,
                                                self.session.pk)
 
 class AnswerCorrection(models.Model):

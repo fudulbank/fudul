@@ -10,6 +10,7 @@ from django.template.loader import get_template
 from django.views.decorators import csrf
 from django.views.decorators.http import require_POST, require_safe
 from htmlmin.decorators import minified_response
+import json
 
 from core import decorators
 from .models import *
@@ -484,12 +485,47 @@ def toggle_marked(request):
 @require_POST
 @login_required
 @csrf.csrf_exempt
+def submit_highlight(request):
+    # PERMISSION CHECKS
+    session_pk = request.POST.get('session_pk')
+    session = get_object_or_404(Session, pk=session_pk)
+    if not session.can_user_access(request.user):
+        raise PermissionDenied
+
+    best_latest_revision_pk = request.POST.get('best_latest_revision_pk')
+    best_latest_revision = get_object_or_404(Revision,
+                                             pk=best_latest_revision_pk)
+    stricken_choice_pks = request.POST.get('stricken_choice_pks', '[]')
+    stricken_choice_pks = json.loads(stricken_choice_pks)
+    stricken_choices = Choice.objects.filter(pk__in=stricken_choice_pks)
+    print(stricken_choices)
+    highlighted_text = request.POST.get('highlighted_text', '')
+ 
+    try:
+        highlight = Highlight.objects.get(session=session,
+                                          revision=best_latest_revision)
+    except Highlight.DoesNotExist:
+        highlight = Highlight.objects.create(session=session,
+                                             revision=best_latest_revision)
+
+    highlight.revision = best_latest_revision
+    highlight.highlighted_text = highlighted_text
+    highlight.stricken_choices.clear()
+    highlight.stricken_choices.add(*stricken_choices)
+    highlight.save()
+
+    return {}
+
+@decorators.ajax_only
+@require_POST
+@login_required
+@csrf.csrf_exempt
 def submit_answer(request):
     question_pk = request.POST.get('question_pk')
     session_pk = request.POST.get('session_pk')
     choice_pk = request.POST.get('choice_pk')
     session = get_object_or_404(Session, pk=session_pk)
-    question = get_object_or_404(session.get_questions(), pk=question_pk, is_deleted=False)
+    question = get_object_or_404(session.get_questions(), pk=question_pk)
 
     # PERMISSION CHECKS
     if not session.can_user_access(request.user):

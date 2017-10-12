@@ -309,11 +309,19 @@
             // other sister choices to be removed
             $otherChoices = $choice.closest('.question-body').find('.question-choice').not($choice);
             // If a choice is checked, it is no longer striked.
-            $choice.closest('tr').find('.choice-text').removeClass('strike');
+            if ($choice.closest('tr').find('.choice-text.strike').length){
+              $choice.closest('tr').find('.choice-text.strike').removeClass('strike');
+              submitHighlight();
+            }
             $otherChoices.prop("checked", false);
         } else {
             $choice.prop("checked", false);
         }
+    }
+
+    function removeHighlight(){
+      $(this).contents().unwrap();
+      submitHighlight();
     }
 
     function highlightText() {
@@ -323,10 +331,10 @@
             var replacement = $('<span></span>').addClass('highlight').html(selection);
             var replacementHtml = replacement.prop('outerHTML');
             $(this).html($(this).html().replace(escapedSelection, replacementHtml));
+            $(".highlight").click(removeHighlight);
+            submitHighlight();
         }
-        $(".highlight").click(function() {
-            $(this).removeClass("highlight");
-        });
+
     }
 
     function updateCorrectionTooltip(html, choice_pk){
@@ -396,6 +404,8 @@
           $(".unfinished #results").hide();
         }
 
+        $(".highlight").click(removeHighlight);
+
         // Show contributors as a tooltip
         $("#contributors").tooltip('dispose');
         $("#contributors").tooltip({html: true,
@@ -420,8 +430,22 @@
                     $(this).closest("tr").find(".question-choice").prop('checked', false);
                 }
                 $(this).toggleClass("strike");
+                submitHighlight();
             });
         }
+    }
+
+    function submitHighlight(){
+      data.best_latest_revision_pk = $(".question-body.show").data('best-latest-revision-pk');
+      data.highlighted_text = $(".question-body.show .question-text").html();
+      stricken_choice_pks = $('.question-body.show .choice-text.strike').map(function(){return $(this).closest('tr').data('choice-pk')}).get();
+      data.stricken_choice_pks = JSON.stringify(stricken_choice_pks);
+
+      $.ajax({
+          url: "{% url 'exams:submit_highlight' %}",
+          type: 'POST',
+          data: data
+      });
     }
 
     function submitChoice() {
