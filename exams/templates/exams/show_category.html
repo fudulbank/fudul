@@ -48,7 +48,7 @@
 		<div class="card-body">
 			<div class="card-block text-muted">
 				<div class="card-text">
-						<span>{{ exam.question_set.undeleted.count }} questions</span>
+						<span>{{ exam.question_set.available.count }} questions</span>
 						{% if not exam|was_ever_taken_by_user:user %}
 						<span class="float-xs-right">
 							<span class="tag tag-warning">New!</span>
