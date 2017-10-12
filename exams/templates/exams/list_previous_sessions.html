@@ -110,6 +110,7 @@ tr td:last-child{
         });
 
         $("#delete-all-sessions").click(function(){
+          $(this).tooltip("hide");
           $("#confirm-delete-all-modal").modal('show');
         });
         $("#confirm-delete-all-modal .submit-button").click(function () {
@@ -138,6 +139,7 @@ tr td:last-child{
 
         $deleteConfirmationButton = $("#confirm-delete-session-modal .submit-button")
         $('tbody').on('click','.confirm-delete-session',function () {
+            $(this).tooltip("hide");
             var pk = $(this).closest('tr').data('pk');
             $deleteConfirmationButton.data('pk', pk);
             $("#confirm-delete-session-modal .modal-title").html("Forgive me for session #" + pk);
