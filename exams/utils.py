@@ -17,6 +17,7 @@ def get_contributed_questions(exam):
     pks = models.Revision.objects.per_exam(exam)\
                          .filter(is_contribution=True,
                                  is_deleted=False,
+                                 question__is_deleted=False,
                                  is_approved=False)\
                          .values_list('question__pk',
                                       flat=True)
