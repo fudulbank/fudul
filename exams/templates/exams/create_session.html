@@ -46,7 +46,9 @@
 
 {% block header_title %}
 <h1>{{ exam.name }} Session</h1>
+{% if category|is_editor:user %}
 {% include 'exams/partials/exam_editor_buttons.html' %}
+{% endif %}
 {% endblock %}
 
 {% block breadcrumb %}
