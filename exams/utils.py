@@ -8,9 +8,7 @@ def is_question_marked(question, user):
 
 def test_revision_approval(revision):
     return (not revision.submitter or teams.utils.is_editor(revision.submitter)) and \
-           not revision.question.issues.filter(is_blocker=True).exists() and \
-           revision.choice_set.filter(is_right=True).exists() and \
-           revision.choice_set.count() >= 2
+           not revision.question.issues.filter(is_blocker=True).exists()
 
 def get_only_one_revision_questions():
     return models.Question.objects.annotate(num_revision=Count('revision')).filter(num_revision=1)

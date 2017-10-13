@@ -1,7 +1,7 @@
 from django.db import models
 from django.db.models import Q, Count
 import accounts.utils
-
+from itertools import chain
 
 class QuestionQuerySet(models.QuerySet):
     def unapproved(self):
@@ -75,7 +75,7 @@ class QuestionQuerySet(models.QuerySet):
         return self.undeleted()\
                    .filter(revision__is_approved=True,
                            revision__is_deleted=False)\
-                   .exclude(issues__is_blocker=True, pk__in=incomplete)\
+                   .exclude(pk__in=incomplete)\
                    .distinct()
 
     def unsolved(self):
