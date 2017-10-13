@@ -214,11 +214,17 @@ class Question(models.Model):
 
     def get_best_latest_revision(self):
         return self.get_latest_approved_revision() or \
+               self.get_latest_revision_by_editor() or \
                self.get_latest_revision()
 
     def get_latest_approved_revision(self):
         return self.revision_set.filter(is_approved=True, is_deleted=False)\
                                 .order_by('-pk')\
+                                .first()
+
+    def get_latest_revision_by_editor(self):
+        return self.revision_set.filter(is_deleted=False,is_contribution=False)\
+                                .order_by('-submission_date')\
                                 .first()
 
     def get_latest_revision(self):

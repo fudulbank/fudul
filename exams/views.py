@@ -253,6 +253,9 @@ def list_questions(request, slugs, pk, selector=None):
             elif selector == 'pending':
                 questions = question_pool.with_pending_latest_revision()
                 context['list_name'] = "pending latesting revision"
+            elif selector == 'lacking_choices':
+                questions = question_pool.lacking_choices()
+                context['list_name'] = "lacking choices "
         else:
             issue = get_object_or_404(Issue, pk=issue_pk)
             context['list_name'] = issue.name
@@ -274,7 +277,7 @@ def show_question(request, pk, revision_pk=None):
     if revision_pk:
         revision = get_object_or_404(Revision, pk=revision_pk)
     else:
-        revision = question.get_latest_revision()
+        revision = question.get_best_latest_revision()
 
     exam = question.exam
 

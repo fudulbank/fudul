@@ -71,10 +71,11 @@ class QuestionQuerySet(models.QuerySet):
                    .distinct()
 
     def approved(self):
+        incomplete = self.incomplete().values_list('pk')
         return self.undeleted()\
                    .filter(revision__is_approved=True,
                            revision__is_deleted=False)\
-                   .exclude(issues__is_blocker=True)\
+                   .exclude(issues__is_blocker=True, pk__in=incomplete)\
                    .distinct()
 
     def unsolved(self):
@@ -147,6 +148,11 @@ class QuestionQuerySet(models.QuerySet):
                self.unsolved() | \
                self.lacking_choices() | \
                self.approved()
+
+    def incomplete(self):
+        return self.with_blocking_issues() | \
+               self.unsolved() | \
+               self.lacking_choices()
 
 class RevisionQuerySet(models.QuerySet):
     def order_by_submission(self):
