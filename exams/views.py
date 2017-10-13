@@ -655,7 +655,10 @@ def contribute_explanation(request):
             # before.
             new_revision.is_approved = utils.test_revision_approval(new_revision)
             new_revision.save()
-            return {}
+            template = get_template('exams/partials/show_explanation.html')
+            context = {'latest_revision': new_revision}
+            explanation_html = template.render(context)
+            return {'explanation_html': explanation_html}
 
     context = {'question': question,
                'form': form,

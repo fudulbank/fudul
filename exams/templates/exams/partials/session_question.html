@@ -21,13 +21,8 @@
     </table>
 
     <div class="explanation-container" {% if show_explanation %}style="display: block;"{% endif %}>
-      <h2>Explanation </h2>
-      <div class="explanation-content">{% if show_explanation %}
-        {% if latest_revision.explanation_figure %}<img src="{{ latest_revision.explanation_figure.url }}" class="img-fluid">{% endif %}
-        {{ latest_revision.explanation|linebreaks }}{% if latest_revision.reference %}<br>
-        <strong>Reference:</strong> {{ latest_revision.reference|linebreaks }}{% endif %}
-
-      {% endif %}</div>
+      <h3>Explanation</h3>
+      <div class="explanation-content">{% if show_explanation %}{% include 'exams/partials/show_explanation.html' %}{% endif %}</div>
     </div>
 {% endwith %}{# with highlight #}
 {% endwith %}{# with others #}
