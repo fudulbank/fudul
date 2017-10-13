@@ -41,7 +41,11 @@ p.question-text{
                                               <strong>Explaination:</strong>
                        {% if revision.question.get_best_latest_revision.explanation %}
                         <br>
-                       <p>{{ revision.question.get_best_latest_revision.explanation }}</p>
+                        {% if revision.question.get_best_latest_revision.explanation_figure %}
+                           <img class="img-responsive center-block"  src="{{ revision.question.get_best_latest_revision.explanation_figure.url }}">
+                       {% endif %}
+                        <br>
+                       <p>{{ revision.question.get_best_latest_revision.explanation| urlize }}</p>
                        {% else %}
                            No Explanation
                        {% endif  %}
@@ -65,7 +69,11 @@ p.question-text{
                        <strong>Explaination:</strong>
                        {% if revision.explanation %}
                         <br>
-                       <p>{{ revision.explanation }}</p>
+                        {% if revision.explanation_figure %}
+                           <img class="img-responsive center-block"  src="{{ revision.explanation_figure.url }}">
+                       {% endif %}
+                        <br>
+                       <p>{{ revision.explanation| urlize }}</p>
                        {% else %}
                            No Explanation
                        {% endif  %}
@@ -81,3 +89,5 @@ p.question-text{
      </div>
  </div>
 </div>
+
+

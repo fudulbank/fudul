@@ -27,7 +27,13 @@ p.question-text{
        <li {% if choice.is_right %}class="is-right text-success-800"{% endif %}>{{ choice.text|linebreaksbr }}</li>
      {% endfor %}
     </ol>
-    {% if revision.explanation %}<b>Explanation:</b><br>{{ revision.explanation| urlize }} {% endif %}
+
+    {% if revision.explanation %}<b>Explanation:</b><br>
+                                {% if revision.explanation_figure %}
+                           <img class="img-responsive center-block"  src="{{ revision.explanation_figure.url }}">
+                       {% endif %}
+                        <br>
+        {{ revision.explanation| urlize }} {% endif %}
     {% if revision.reference %}<br><b>Reference:</b><br>{{ revision.reference| urlize }} {% endif %}
   </div>
 </div>
