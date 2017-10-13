@@ -280,7 +280,7 @@ class ExplanationForm(RevisionForm):
 
     class Meta:
         model = models.Revision
-        fields = ['explanation', 'explanation_figure']
+        fields = ['explanation', 'explanation_figure', 'reference']
 
 
 class AnswerCorrectionForm(forms.ModelForm):
