@@ -476,8 +476,9 @@
         $(this).hide();
 
         // Mark question as solved
-        // We set was-solved using .attr() to change the DOM and be able to query in toggleResults.
-        $(".question-body.show").attr('data-was-solved', true);
+        // We also set was-solved using .attr() to change the DOM and
+        // be able to query in toggleResults.
+        $(".question-body.show").data('was-solved', true).attr('data-was-solved', true);
         toggleResults();
 
         // Disable choices upon submission
