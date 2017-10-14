@@ -294,7 +294,6 @@
 
     function navigate() {
         action = $(this).data('action');
-        total = $("#question-total").html();
         current_sequence = parseInt($("#question-sequence").html());
 
         // If no previous or no next, just return
@@ -448,7 +447,6 @@
 
     function activateNext(){
       sequence = $("#question-sequence").html();
-      total = $("#question-total").html();
 
       // We dispose in all cases to allow for changes, if indicated,
       // to be applied.
@@ -470,7 +468,6 @@
     function initializeInteractions() {
         // Change navigation cursor as per the sequence
         sequence = $("#question-sequence").html();
-        total = $("#question-total").html();
 
         if (sequence == 1){
           $("#previous").css('cursor', 'not-allowed');
@@ -602,6 +599,9 @@
     });
 
     $(function() {
+        // variable used by many functions
+        total = $("#question-total").html();
+
         // Initialize tooltips
         $('[data-toggle="tooltip"]').tooltip()
 
