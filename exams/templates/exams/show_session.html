@@ -16,13 +16,14 @@
             restartOnPushState: false
         }
         </script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/pace.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/pace.min.js" integrity="sha384-5DyzDgtTHw1bbnR1u2aQPxi5+e1KVPsygV5Pioo5W+5ua3sN5AHF05kzM0QfXXqm" crossorigin="anonymous"></script>
         <link rel="shortcut icon" href="{% static 'img/logo-monkey.png' %}">
       	<link href="{% static 'limitless/assets/css/icons/icomoon/styles.css' %}" rel="stylesheet" type="text/css">
         <link href="https://fonts.googleapis.com/css?family=Montserrat:300,300i,400,400i,500,500i%7COpen+Sans:300,300i,400,400i,600,600i,700,700i" rel="stylesheet">
 
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/themes/black/pace-theme-loading-bar.min.css" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/themes/black/pace-theme-loading-bar.min.css" integrity="sha384-46hxeX6k1sLo9XqANbmEmR8fjXTTcbm85rcnRtQQ1YkUMG+4xVnSgz718hNUu8Ak" crossorigin="anonymous">
         {% include 'partials/piwik.html' %}
         <style>
     body, html, #container{
@@ -163,6 +164,10 @@
       margin-top: 20px;
     }
 
+    #question-total, #question-sequence{
+      display: inline-block;
+    }
+
     .question-body{
       display: none;
     }
@@ -202,7 +207,7 @@
                 <h2 class="brand-text">Fudul</h2></a>
             </div>
             <div class="ml-auto col-sm-6 text-center"> <a href="{% url 'exams:create_session' session.exam.category.get_slugs session.exam.pk %}">{{ session.exam.name }}</a> <span class="separator">•</span> Session id: <span id="session-pk">{{ session.pk }}</span> ({{ session.get_session_mode_display }})<br> Question id: <span id="question-pk">{{ current_question.pk }}</span> </div>
-            <div class="col-sm-3 top-question-id font-weight-bold text-sm-right text-center my-2 mb-sm-0"><span id="question-sequence">{{ current_question_sequence }}</span> of <span id="question-total">{{ session.get_questions.count }}</span></div>
+            <div class="col-sm-3 top-question-id font-weight-bold text-sm-right text-center my-2 mb-sm-0"><div id="question-sequence">{{ current_question_sequence }}</div> of <div id="question-total">{{ session.get_questions.count }}</div></div>
         </div>
         <div id="top-options" class="row text-center align-items-center">
           <div class="col-sm-6 text-sm-left">
@@ -265,10 +270,18 @@
 
         // If no previous or no next, just return
         if (current_sequence == 1 && action == 'previous'){
+          $("#question-sequence").addClass("animated flash");
+          $("#question-sequence").one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
+            $(this).removeClass();
+          });
           return
         }
 
         if (current_sequence == total && action == 'next'){
+          $("#question-total").addClass("animated flash");
+          $("#question-total").one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
+            $(this).removeClass();
+          });
           return
         }
 
