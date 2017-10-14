@@ -30,7 +30,7 @@
   <div class="tooltip-body">
     {% for contributor in question.get_contributors %}
       {% if forloop.first %}
-          This question was originally added by {% if contributor %}<a href="{% url 'exams:list_contributions' contributor.pk %}">{{ contributor.nickname|default:contributor.username }}</a>. {% else %} automatic importing.{% endif %}
+          This question was originally added by {% if contributor %}<a href="{% url 'exams:list_contributions' contributor.pk %}">{{ contributor.profile.nickname|default:contributor.username }}</a>. {% else %} automatic importing.{% endif %}
         {% if question.get_contributors|length > 1 %}
         Futher contributions were done by
         {% endif %}
