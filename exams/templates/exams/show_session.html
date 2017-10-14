@@ -537,6 +537,14 @@
       })
     }
 
+    $(document).keydown(function(e){
+      if (e.keyCode == 37) { // left key
+        $("#previous").trigger('click');
+      } else if (e.keyCode == 39) {  // right key
+        $("#next").trigger('click');
+      }
+    });
+
     $(function() {
         // Initialize tooltips
         $('[data-toggle="tooltip"]').tooltip()
