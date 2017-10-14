@@ -389,6 +389,7 @@
         $(".unfinished #end").hide();
         $(".unfinished #results").css('display', 'inline-block');
       }
+      activateNext();
     }
 
     function controlExplanation(was_solved){
@@ -403,6 +404,27 @@
       }
     }
 
+    function activateNext(){
+      sequence = $("#question-sequence").html();
+      total = $("#question-total").html();
+
+      // We dispose in all cases to allow for changes, if indicated,
+      // to be applied.
+      $("#next").tooltip('dispose');
+
+      if (sequence == total){
+        $("#next").css('cursor', 'not-allowed');
+        if ($("#results").is(":hidden")){
+          button_name = 'End';
+        } else {
+          button_name = 'Results';
+        }
+        $("#next").tooltip({title: 'This is the last question.  You can click "' + button_name + '" to end this session.'})
+      } else {
+        $("#next").css('cursor', 'pointer');
+      }
+    }
+
     function initializeInteractions() {
         // Change navigation cursor as per the sequence
         sequence = $("#question-sequence").html();
@@ -412,14 +434,6 @@
           $("#previous").css('cursor', 'not-allowed');
         } else {
           $("#previous").css('cursor', 'pointer');
-        }
-
-        if (sequence == total){
-          $("#next").css('cursor', 'not-allowed');
-          $("#next").tooltip({title: 'This is the last question.  You can click "Results" to end this session.'})
-        } else {
-          $("#next").css('cursor', 'pointer');
-          $("#next").tooltip('dispose');
         }
 
         toggleResults();
