@@ -561,42 +561,10 @@ def submit_answer(request):
     else:
         choice = None
 
-    latest_revision = question.get_latest_approved_revision()
-
     answer = Answer.objects.create(session=session, question=question,
                                    choice=choice)
 
-    # Only return the explanation if the session mode is explained,
-    # and an explanation exists.
-    if session.session_mode == 'EXPLAINED' and \
-       latest_revision.explanation:
-        explanation = latest_revision.explanation
-    else:
-        explanation = None
-
-    # Only return the right answer if the session mode is explained.
-    if session.session_mode == 'EXPLAINED':
-        try:
-            right_choice = latest_revision.choice_set.get(is_right=True)
-        except Choice.DoesNotExist:
-            raise Exception("We don't have the right answer for this question.")
-        else:
-            right_choice_pk = right_choice.pk
-    else:
-        right_choice_pk = None
-
-    next_question = session.get_questions()\
-                           .order_by('global_sequence')\
-                           .exclude(pk__lte=question.pk)\
-                           .exists()
-    if next_question:
-        done = False
-    else:
-        done = True
-
-    return {'done': done,
-            'right_choice_pk': right_choice_pk,
-            'explanation': explanation}
+    return {}
 
 @require_safe
 @login_required

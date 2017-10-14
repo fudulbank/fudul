@@ -38,8 +38,20 @@
         font-weight: 400;
     }
 
+    .question-body .check i,
+    .question-body .correct i{
+      display: none;
+    }
+
     #top-info, .tooltip-inner, #footer{
       background-color: #404E67;
+    }
+
+    body:not([data-session-mode="UNEXPLAINED"]) .question-body[data-was-solved="true"] .check i,
+    body:not([data-session-mode="UNEXPLAINED"]) .question-body[data-was-solved="true"] .correct i,
+    body[data-session-mode="UNEXPLAINED"][data-has-finished="true"] .question-body[data-was-solved="true"] .check i,
+    body[data-session-mode="UNEXPLAINED"][data-has-finished="true"] .question-body[data-was-solved="true"] .correct i{
+      display: inline-block;
     }
 
     .tooltip.bs-tooltip-top .arrow::before{
@@ -156,8 +168,13 @@
       display: none;
     }
 
-    body.unfinished #results, body.finished #end{
+    #results, #end, #back{
       display: none;
+    }
+
+    body[data-session-mode=INCOMPLETE] #back,
+    body[data-session-mode=SOLVED] #back{
+      display: inline-block;
     }
 
     #question-container{
@@ -225,7 +242,7 @@
     }
   </style>
     </head>
-    <body class="{% if session.has_finished %}finished{% else %}unfinished{% endif %}">
+    <body data-session-mode="{{ session.session_mode }}" data-has-finished="{% if session.has_finished %}true{% else %}false{% endif %}">
     <div class="container-fluid" id="container">
         <div class="d-sm-none mobile-slide previous" id="slide-previous"></div>
         <div class="d-sm-none mobile-slide next " id="slide-next"></div>
@@ -262,6 +279,7 @@
         </div>
         <div id="footer" class="row text-center font-weight-bold">
           <div class="col-sm-6 text-sm-left order-2 order-sm-1">
+           <a id="back" class="float-left float-sm-none option" href="{% url 'exams:create_session' session.exam.category.get_slugs session.exam.pk %}"><i class="icon-exit3"></i> Back</a>
            <a id="results" class="float-left float-sm-none option" href="{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}"><i class="icon-list3"></i> Results</a>
            <div id="end" class="float-left float-sm-none option"><i class="icon-exit3"></i> End</div>
            <div id="contributors" class="float-right float-sm-none option" data-tooltip-content="#tooltip-body"><i class="icon-stars"></i> Contributors</div>
@@ -423,20 +441,27 @@
     }
 
     function toggleResults(){
+      // If the session mode is SOLVED or INCOMPLETE, the button will always be 'Back'.
+      if (session_mode == 'SOLVED' || session_mode == 'INCOMPLETE'){
+        return
+      }
       if ($('.question-body[data-was-solved="false"]').length){
-        $(".unfinished #end").css('display', 'inline-block');
-        $(".unfinished #results").hide();
+        $("#end").css('display', 'inline-block');
+        $("#results").hide();
       } else {
-        $(".unfinished #end").hide();
-        $(".unfinished #results").css('display', 'inline-block');
+        // Changing data-has-finished to true will excause
+        // expalantions to show right away in UNEXPLAINED sessions
+        $('body').data('has-finished', true).attr('data-has-finished', true);
+        $("#end").hide();
+        $("#results").css('display', 'inline-block');
       }
       activateNext();
     }
 
     function controlExplanation(was_solved){
-      if (!was_solved){
+      if (!was_solved || (session_mode == 'UNEXPLAINED' && !$('body').data('has-finished'))){
         $(".question-body.show .explanation-container, #explain").hide()
-      } else if ($('.question-body.show .explanation-content').html().length){
+      } else if ($('.question-body.show .explanation-content').text().length){
         $("#explain").show().html("Improve this explanation!");
         $(".question-body.show .explanation-container").show();
       } else {
@@ -530,7 +555,7 @@
 
         // Mark question as solved
         // We also set was-solved using .attr() to change the DOM and
-        // be able to query in toggleResults.
+        // be able to apply CSS and query in toggleResults.
         $(".question-body.show").data('was-solved', true).attr('data-was-solved', true);
         toggleResults();
 
@@ -561,19 +586,6 @@
                         toastr.warning('You skipped this question');
                     }
 
-                    if (data.right_choice_pk != null){
-                      pk_selector = "[data-choice-pk=" + data.right_choice_pk + "]";
-                      $correct_row = $(".question-body.show tr" + pk_selector);
-                      $correct_row.find("td.check i").addClass("icon-checkmark2 text-success")
-                      $incorrect_rows = $(".question-body.show tr").not(pk_selector);
-                      $incorrect_rows.find("td.check i").addClass("icon-cross3 text-danger");
-                      $incorrect_rows.find("td.correct i").addClass("icon-hand text-warning");
-                    }
-
-                    if (data.explanation){
-                      $(".question-body.show .explanation-content").html(data.explanation).show();
-                    }
-
                     controlExplanation(true);
                     $("#contribute").show();
                 } else {
@@ -601,6 +613,7 @@
     $(function() {
         // variable used by many functions
         total = $("#question-total").html();
+        session_mode = $('body').data('session-mode');
 
         // Initialize tooltips
         $('[data-toggle="tooltip"]').tooltip()
@@ -617,8 +630,11 @@
               $("#correct-answer-modal .modal-body").load(url);
           });
 
-          $('.question-body.show .answer-correction-notification').each(function(){
+          $('.question-body .answer-correction-notification').each(function(){
             tooltip = $(this).closest("td").find('.answer-correction-tooltip-body').get()[0];
+            $(this).click(function(){
+              $('.answer-correction-notification').not(this).tooltip('hide');
+            });
             $(this).tooltip({html: true,
                              trigger: 'click',
                              title: tooltip})
