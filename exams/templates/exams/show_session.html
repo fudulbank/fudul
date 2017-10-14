@@ -172,10 +172,6 @@
       display: none;
     }
 
-    .question-body.show{
-      display: block;
-    }
-
     .explanation-container{
       margin-top: 20px;
     }
@@ -196,10 +192,40 @@
       font-size: 1.74rem;
       font-weight: 500;
     }
+
+    .mobile-slide{
+      height: 100%;
+      width: 20%;
+      position: fixed;
+      z-index: 1;
+    }
+
+    .question-body.show{
+      display: block;
+      z-index: 2;
+      position: relative;
+    }
+
+    #top-info, #top-options, #footer{
+      z-index: 3;
+    }
+
+    #top-info, #top-options{
+      position: relative;
+    }
+
+    .mobile-slide.next{
+      right: 0
+    }
+    .mobile-slide.previous{
+      left: 0
+    }
   </style>
     </head>
     <body class="{% if session.has_finished %}finished{% else %}unfinished{% endif %}">
     <div class="container-fluid" id="container">
+        <div class="d-sm-none mobile-slide previous" id="slide-previous"></div>
+        <div class="d-sm-none mobile-slide next " id="slide-next"></div>
         <div id="top-info" class="row align-items-center">
             <div class ="col-sm-3 text-sm-left text-center">
               <a href="/" class="navbar-brand">
@@ -225,19 +251,19 @@
         </div>
 
         <div id="question-container">
-          <div id="question-pool">
+          <div id="question-pool" class="mx-4 mx-sm-0">
             <!--AJAX will insert questions here--->
           </div>
           <button {% if current_question|was_solved_in_session:session %}style="display: none;"{% endif %} type="button" id="submit" class="btn">Submit <i class=" icon-circle-right2"></i></button>
           <button class="btn btn-outline-primary" id="explain"><i class=" icon-brain"></i> Improve this explanation!</button>
         </div>
         <div id="footer" class="row text-center font-weight-bold">
-          <div class="col-sm-6 text-sm-left">
+          <div class="col-sm-6 text-sm-left order-2 order-sm-1">
            <a id="results" class="float-left float-sm-none option" href="{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}"><i class="icon-list3"></i> Results</a>
            <div id="end" class="float-left float-sm-none option"><i class="icon-exit3"></i> End</div>
            <div id="contributors" class="float-right float-sm-none option" data-tooltip-content="#tooltip-body"><i class="icon-stars"></i> Contributors</div>
           </div>
-          <div class="col-sm-6 text-sm-right">
+          <div class="col-sm-6 text-sm-right order-1 order-sm-2">
            <div data-action="previous" id="previous" class="float-left float-sm-none option"><i class=" icon-circle-left2"></i> Previous</div>
            <div data-action="next" id="next" class="float-right float-sm-none option">Next <i class=" icon-circle-right2"></i></div>
           </div>
@@ -600,6 +626,14 @@
         });
         updateFooterMargins();
         $(window).resize(updateFooterMargins);
+
+        $(".mobile-slide").click(function(){
+          if ($(this).hasClass('previous')){
+            $("#previous").trigger('click');
+          } else if ($(this).hasClass('next')){
+            $("#next").trigger('click');
+          }
+        });
 
         $("#end").click(function(){
           $("#confirm-end-modal a.submit-button").prop("href", "{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}");
