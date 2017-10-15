@@ -580,6 +580,7 @@ def list_previous_sessions(request):
                   context)
 
 @require_safe
+@login_required
 def show_category_indicators(request, category):
     # PERMISSION CHECK
     if not teams.utils.is_editor(request.user):
