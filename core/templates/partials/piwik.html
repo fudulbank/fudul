@@ -1,6 +1,6 @@
 {% if request.get_host == 'fudulbank.com' or request.get_host == 'www.fudulbank.com' %}
 <!-- Piwik -->
-<script type="text/javascript">
+<script>
   var _paq = _paq || [];
   {% if user.is_authenticated %}
   _paq.push(['setUserId', '{{ user.email|default:user.username }}']);
@@ -16,4 +16,10 @@
   })();
 </script>
 <!-- End Piwik Code -->
+{% else %}
+<!-- Piwik Placeholder -->
+<script>
+  var _paq = [];
+</script>
+<!-- End Piwik Placeholder Code -->
 {% endif %}
