@@ -655,7 +655,6 @@ def contribute_revision(request):
         if revisionform.is_valid() and revisionchoiceformset.is_valid():
             new_revision = revisionform.clone(question,request.user)
             choices = revisionchoiceformset.clone(new_revision)
-            choices.save()
 
             new_revision.is_contribution = not teams.utils.is_editor(request.user)
             new_revision.save()
