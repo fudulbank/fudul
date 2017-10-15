@@ -285,14 +285,14 @@
           <button class="btn btn-outline-primary" id="explain"><i class=" icon-brain"></i> Improve this explanation!</button>
         </div>
         <div id="footer" class="row text-center font-weight-bold">
-          <div class="col-sm-6 text-sm-left order-2 order-sm-1">
+          <div class="col-sm-7 text-sm-left order-2 order-sm-1">
            <a id="back" class="float-left float-sm-none option" href="{% url 'exams:create_session' session.exam.category.get_slugs session.exam.pk %}"><i class="icon-exit3"></i> Back</a>
            <a id="results" class="float-left float-sm-none option" href="{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}"><i class="icon-list3"></i> Results</a>
            <div id="end" class="float-left float-sm-none option"><i class="icon-exit3"></i> End</div>
            <div id="contributors" class="float-right float-sm-none option"><i class="icon-stars"></i> Contributors</div>
            <div id="help-me" class="float-right float-sm-none option d-none d-sm-inline-block"><i class="fa fa-comment"></i> Get help</div>
           </div>
-          <div class="col-sm-6 text-sm-right order-1 order-sm-2">
+          <div class="col-sm-5 text-sm-right order-1 order-sm-2">
            <div data-action="previous" id="previous" class="float-left float-sm-none option"><i class=" icon-circle-left2"></i> Previous</div>
            <div data-action="next" id="next" class="float-right float-sm-none option">Next <i class=" icon-circle-right2"></i></div>
           </div>
@@ -599,7 +599,7 @@
       if (e.keyCode == 37) { // left key
         $("#previous").trigger('click');
 	_paq.push(['trackEvent', 'show_session', 'navigation', 'keyboard-previous']);
-	    
+
       } else if (e.keyCode == 39) {  // right key
         $("#next").trigger('click');
 	_paq.push(['trackEvent', 'show_session', 'navigation', 'keyboard-next']);
