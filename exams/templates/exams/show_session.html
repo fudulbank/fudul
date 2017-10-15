@@ -297,6 +297,7 @@
     toastr.options.positionClass = "toast-top-left";
 
     function updateData(){
+        current_sequence =  parseInt($("#question-sequence").html());
         data = {question_pk: $(".question-body.show").data('question-pk'),
                 session_pk: $("#session-pk").html()}
     }
@@ -310,10 +311,8 @@
         }
     }
 
-
     function navigate() {
         action = $(this).data('action');
-        current_sequence = parseInt($("#question-sequence").html());
 
         animation_events = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
         // If no previous or no next, just return
@@ -347,10 +346,10 @@
         $(".question-body").not($question).removeClass('show');
         $("#question-sequence").html($question.data('question-sequence'));
         $("#question-pk").html($question.data('question-pk'));
+        updateData();
         initializeInteractions();
         handleMarked($question.data('is-marked'));
         history.pushState({url: $question.data('url')}, '', $question.data('url'));
-        updateData();
     }
 
     function toggleMarked() {
@@ -455,7 +454,6 @@
         $("#end").hide();
         $("#results").css('display', 'inline-block');
       }
-      activateNext();
     }
 
     function controlExplanation(was_solved){
@@ -470,14 +468,12 @@
       }
     }
 
-    function activateNext(){
-      sequence = $("#question-sequence").html();
-
+    function controlNavigationButtons(){
       // We dispose in all cases to allow for changes, if indicated,
       // to be applied.
       $("#next").tooltip('dispose');
 
-      if (sequence == total){
+      if (current_sequence == total){
         $("#next").css('cursor', 'not-allowed');
         if ($("#results").is(":hidden")){
           button_name = 'End';
@@ -488,19 +484,18 @@
       } else {
         $("#next").css('cursor', 'pointer');
       }
+
+      if (current_sequence == 1){
+        $("#previous").css('cursor', 'not-allowed');
+      } else {
+        $("#previous").css('cursor', 'pointer');
+      }
     }
 
     function initializeInteractions() {
-        // Change navigation cursor as per the sequence
-        sequence = $("#question-sequence").html();
-
-        if (sequence == 1){
-          $("#previous").css('cursor', 'not-allowed');
-        } else {
-          $("#previous").css('cursor', 'pointer');
-        }
-
         toggleResults();
+        controlNavigationButtons();
+
         $(".highlight").addClass('active').click(removeHighlight);
 
         // Show contributors as a tooltip
