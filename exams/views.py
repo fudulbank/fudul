@@ -551,7 +551,7 @@ def submit_answer(request):
     question = get_object_or_404(session.get_questions(), pk=question_pk)
 
     # PERMISSION CHECKS
-    if not session.can_user_access(request.user):
+    if not session.submitter == request.user:
         raise Exception("You cannot submit answers in this session")
     if question.was_solved_in_session(session):
         raise Exception("Question #{} was previously solved in this session.".format(question_pk))
