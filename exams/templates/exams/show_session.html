@@ -56,6 +56,20 @@
       display: inline-block;
     }
 
+    #results, #end, #back{
+      display: none;
+    }
+
+    body[data-session-mode=INCOMPLETE] #back,
+    body[data-session-mode=SOLVED] #back{
+      display: inline-block;
+    }
+
+    body:not([data-session-mode=INCOMPLETE]):not([data-session-mode=SOLVED])[data-has-finished=true] #results,
+    body:not([data-session-mode=INCOMPLETE]):not([data-session-mode=SOLVED])[data-has-finished=false] #end{
+      display: inline-block;
+    }
+
     .tooltip.bs-tooltip-top .arrow::before{
       border-top-color: #404E67;
     }
@@ -168,15 +182,6 @@
 
     .tooltip-container, #mark-loading, .explanation-container, #explain, #submit, #contribute, .answer-correction-tooltip-container{
       display: none;
-    }
-
-    #results, #end, #back{
-      display: none;
-    }
-
-    body[data-session-mode=INCOMPLETE] #back,
-    body[data-session-mode=SOLVED] #back{
-      display: inline-block;
     }
 
     #question-container{
@@ -441,23 +446,6 @@
       });
     }
 
-    function toggleResults(){
-      // If the session mode is SOLVED or INCOMPLETE, the button will always be 'Back'.
-      if (session_mode == 'SOLVED' || session_mode == 'INCOMPLETE'){
-        return
-      }
-      if ($('.question-body[data-was-solved="false"]').length){
-        $("#end").css('display', 'inline-block');
-        $("#results").hide();
-      } else {
-        // Changing data-has-finished to true will excause
-        // expalantions to show right away in UNEXPLAINED sessions
-        $('body').data('has-finished', true).attr('data-has-finished', true);
-        $("#end").hide();
-        $("#results").css('display', 'inline-block');
-      }
-    }
-
     function controlExplanation(was_solved){
       if (!was_solved || (session_mode == 'UNEXPLAINED' && !$('body').data('has-finished'))){
         $(".question-body.show .explanation-container, #explain").hide()
@@ -495,7 +483,14 @@
     }
 
     function initializeInteractions() {
-        toggleResults();
+        // Check whether we have any unsolved questions. Changing
+        // data-has-finished to true will cause expalantions to show
+        // right away in UNEXPLAINED sessions.
+        // This also affects #results and #end buttons.
+        if (!$('.question-body[data-was-solved="false"]').length){
+          $('body').data('has-finished', true).attr('data-has-finished', true);
+        }
+
         controlNavigationButtons();
 
         $(".highlight").addClass('active').click(removeHighlight);
@@ -552,12 +547,10 @@
 
     function submitChoice() {
         $(this).hide();
-
         // Mark question as solved
         // We also set was-solved using .attr() to change the DOM and
-        // be able to apply CSS and query in toggleResults.
+        // be able to apply CSS.
         $(".question-body.show").data('was-solved', true).attr('data-was-solved', true);
-        toggleResults();
 
         // Disable choices upon submission
         $(".question-body.show .question-choice").prop("disabled", "disabled")
