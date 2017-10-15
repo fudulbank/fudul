@@ -597,7 +597,7 @@ def contribute_explanation(request):
     question_pk = request.GET.get('question_pk')
     question = get_object_or_404(Question, pk=question_pk,
                                  is_deleted=False)
-    latest_revision = question.get_latest_approved_revision()
+    latest_revision = question.get_best_latest_revision()
 
     if request.method == 'GET':
         form = forms.ExplanationForm(instance=latest_revision)
