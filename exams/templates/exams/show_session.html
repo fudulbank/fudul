@@ -25,6 +25,7 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw" crossorigin="anonymous">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/themes/black/pace-theme-loading-bar.min.css" integrity="sha384-46hxeX6k1sLo9XqANbmEmR8fjXTTcbm85rcnRtQQ1YkUMG+4xVnSgz718hNUu8Ak" crossorigin="anonymous">
+        <link rel="stylesheet" type="text/css" href="{% static 'stack/fonts/font-awesome/css/font-awesome.min.css' %}">
         {% include 'partials/piwik.html' %}
         <style>
     body, html, #container{
@@ -113,11 +114,11 @@
     }
 
     /* Styling the exam name and "results" (which is a direct link) */
-    #top-info a, a.option{
+    #top-info a, a.option, #help-me-tooltip a{
         color: white;
     }
 
-    #top-info a, a.option:hover{
+    #top-info a:hover, a.option:hover, #help-me-tooltip a:hover{
         text-decoration: none;
     }
 
@@ -283,7 +284,8 @@
            <a id="back" class="float-left float-sm-none option" href="{% url 'exams:create_session' session.exam.category.get_slugs session.exam.pk %}"><i class="icon-exit3"></i> Back</a>
            <a id="results" class="float-left float-sm-none option" href="{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}"><i class="icon-list3"></i> Results</a>
            <div id="end" class="float-left float-sm-none option"><i class="icon-exit3"></i> End</div>
-           <div id="contributors" class="float-right float-sm-none option" data-tooltip-content="#tooltip-body"><i class="icon-stars"></i> Contributors</div>
+           <div id="contributors" class="float-right float-sm-none option"><i class="icon-stars"></i> Contributors</div>
+           <div id="help-me" class="float-right float-sm-none option d-none d-sm-inline-block"><i class="fa fa-comment"></i> Get help</div>
           </div>
           <div class="col-sm-6 text-sm-right order-1 order-sm-2">
            <div data-action="previous" id="previous" class="float-left float-sm-none option"><i class=" icon-circle-left2"></i> Previous</div>
@@ -618,6 +620,10 @@
 
         // Initialize tooltips
         $('[data-toggle="tooltip"]').tooltip()
+        help_me_tooltip = $("#help-me-tooltip").get()[0];
+        $("#help-me").tooltip({html: true,
+                               trigger: 'click',
+                               title: help_me_tooltip})
 
         pool_url = "{% url 'exams:list_session_questions' %}?" + $.param({ {% if current_question_pk %}question_pk: {{ current_question_pk }},{% endif %}
                                                                           session_pk: {{ session.pk }}});
@@ -633,11 +639,11 @@
           });
 
           $('.question-body .answer-correction-notification').each(function(){
-            tooltip = $(this).closest("td").find('.answer-correction-tooltip-body').get()[0];
             $(this).click(function(){
               _paq.push(['trackEvent', 'show_session', 'answer_correction', 'click-notification']);
               $('.answer-correction-notification').not(this).tooltip('hide');
             });
+            tooltip = $(this).closest("td").find('.answer-correction-tooltip-body').get()[0];
             $(this).tooltip({html: true,
                              trigger: 'click',
                              title: tooltip})
@@ -708,5 +714,21 @@
         {% with modal_id='correct-answer-modal' no_footer=True modal_title="Correct the answer" %}
             {% include "exams/modals/common_modal_v4.html" %}
         {% endwith %}
+
+        <div class="d-none">
+          <div id="help-me-tooltip">
+            <p>Fudul is made better by your feedback and ideas!  Contact us right now:</p>
+            <div class="row justify-content-center">
+              <div class="col-12">
+                <a target="_blank" href="https://t.me/FudulBot"><i class="fa fa-2x fa-telegram"></i><br>Telegram Live Chat</a>
+              </div>
+            </div>
+            <div class="row justify-content-center mt-3">
+              <div class="col-12">
+                <a href="mailto:support@fudulbank.com"><i class="fa-2x  icon-envelop5"></i><br>Support Email</a>
+              </div>
+            </div>
+          </div>
+        </div>
     </body>
 </html>
