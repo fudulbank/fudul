@@ -500,6 +500,9 @@
 
         // Show contributors as a tooltip
         $("#contributors").tooltip('dispose');
+	$("#contributors").off('click').click(function(){
+	    _paq.push(['trackEvent', 'show_sessions', 'see-contributors', 'see-contributors']);
+	});
         $("#contributors").tooltip({html: true,
                                     trigger: 'click',
                                     title: $(".question-body.show .tooltip-body").get()[0]})
@@ -600,8 +603,11 @@
     $(document).keydown(function(e){
       if (e.keyCode == 37) { // left key
         $("#previous").trigger('click');
+	_paq.push(['trackEvent', 'show_session', 'navigation', 'keyboard-previous']);
+	    
       } else if (e.keyCode == 39) {  // right key
         $("#next").trigger('click');
+	_paq.push(['trackEvent', 'show_session', 'navigation', 'keyboard-next']);
       }
     });
 
@@ -619,6 +625,7 @@
           updateData();
           initializeInteractions();
           $(".correct i").click(function () {
+              _paq.push(['trackEvent', 'show_session', 'answer_correction', 'click-correct']);
               $("#correct-answer-modal").modal('show');
               choice_pk = $(this).closest('tr').data('choice-pk')
               url = "{% url 'exams:correct_answer' %}?" + $.param({choice_pk: choice_pk})
@@ -628,6 +635,7 @@
           $('.question-body .answer-correction-notification').each(function(){
             tooltip = $(this).closest("td").find('.answer-correction-tooltip-body').get()[0];
             $(this).click(function(){
+              _paq.push(['trackEvent', 'show_session', 'answer_correction', 'click-notification']);
               $('.answer-correction-notification').not(this).tooltip('hide');
             });
             $(this).tooltip({html: true,
@@ -644,8 +652,10 @@
         $(".mobile-slide").click(function(){
           if ($(this).hasClass('previous')){
             $("#previous").trigger('click');
+	    _paq.push(['trackEvent', 'show_session', 'navigation', 'slide-previous']);
           } else if ($(this).hasClass('next')){
             $("#next").trigger('click');
+	    _paq.push(['trackEvent', 'show_session', 'navigation', 'slide-next']);
           }
         });
 
