@@ -315,19 +315,20 @@
         action = $(this).data('action');
         current_sequence = parseInt($("#question-sequence").html());
 
+        animation_events = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
         // If no previous or no next, just return
         if (current_sequence == 1 && action == 'previous'){
-          $("#question-sequence").addClass("animated flash");
-          $("#question-sequence").one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
-            $(this).removeClass();
+          $("#question-sequence").addClass("animated flash").css('color', 'yellow');
+          $("#question-sequence").one(animation_events, function(){
+            $(this).removeClass().css('color', '');
           });
           return
         }
 
         if (current_sequence == total && action == 'next'){
-          $("#question-total").addClass("animated flash");
-          $("#question-total").one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
-            $(this).removeClass();
+          $("#question-total").addClass("animated flash").css('color', 'yellow');
+          $("#question-total").one(animation_events, function(){
+            $(this).removeClass().css('color', '');
           });
           return
         }
