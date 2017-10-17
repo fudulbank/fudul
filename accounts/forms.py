@@ -1,7 +1,7 @@
 from django import forms
 from accounts.models import Profile
 from userena.forms import SignupFormOnlyEmail, EditProfileForm
-from .models import Profile, College, Batch
+from . import models
 
 
 class CustomSignupForm(SignupFormOnlyEmail):
@@ -11,29 +11,46 @@ class CustomSignupForm(SignupFormOnlyEmail):
     nickname = forms.CharField(max_length=30)
     alternative_email = forms.EmailField()
     institution = forms.CharField(max_length=100)
-    college = forms.ModelChoiceField(queryset=College.objects.all(),
+    college = forms.ModelChoiceField(queryset=models.College.objects.all(),
                                      required=False)
-    batch = forms.ModelChoiceField(queryset=Batch.objects.all(),
+    batch = forms.ModelChoiceField(queryset=models.Batch.objects.all(),
                                    required=False)    
     mobile_number = forms.CharField(max_length=15)
 
     def clean(self, *args, **kwargs):
         cleaned_data = super(CustomSignupForm, self).clean(*args, **kwargs)
-        if not 'college' in cleaned_data or \
-           not 'email' in cleaned_data or \
-           not cleaned_data['college'] or \
-           not cleaned_data['email']:
-            return cleaned_data
 
-        email = self.cleaned_data['email']
-        college = self.cleaned_data['college']
-        institution = college.institution
+        if 'institution' in cleaned_data:
+            institution_name = cleaned_data['institution']
+            try:
+                institution = models.Institution.objects.get(name=institution_name)
+            except models.Institution.DoesNotExist:
+                # The user has manually entered an institution name.
+                # This will be handled by built-in form validation.
+                pass
+            else:
+                if institution.college_set.exists() and \
+                   (not 'college' in cleaned_data or \
+                    not cleaned_data['college']):
+                    raise forms.ValidationError("You did not choose a college within {}.".format(institution.name))
+                elif institution.college_set.exists():
+                    # College check
+                    college = cleaned_data['college']
+                    # Make sure that the selected colleges falls under the institution
+                    if not institution.college_set.filter(pk=college.pk).exists():
+                        msg = ("The college you entered is not part of "
+                               "{}.".format(institution.name))
+                        self._errors['college'] = self.error_class([msg])
+                        del cleaned_data['college']
 
-        if not institution.is_email_allowed(email):
-            msg = ("The email you entered does not allow you to sign "
-                   "up for {}.".format(institution.name))
-            self._errors['email'] = self.error_class([msg])
-            del cleaned_data['email']
+                # Email check
+                if 'email' in cleaned_data:
+                    email = cleaned_data['email']
+                    if not institution.is_email_allowed(email):
+                        msg = ("The email you entered does not allow you to sign "
+                               "up for {}.".format(institution_name))
+                        self._errors['email'] = self.error_class([msg])
+                        del cleaned_data['email']
 
         return cleaned_data
 
@@ -68,6 +85,6 @@ class CustomSignupForm(SignupFormOnlyEmail):
 class CustomEditProfileForm(EditProfileForm):
     password = forms.CharField(widget=forms.PasswordInput())
     class Meta:
-        model = Profile
+        model = models.Profile
         fields = ['first_name', 'middle_name', 'last_name',
                   'nickname', 'alternative_email', 'mobile_number']
