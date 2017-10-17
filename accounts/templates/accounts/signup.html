@@ -70,6 +70,8 @@
 			</div>
 		</fieldset>
 
+    <h6 class="line-on-side text-muted text-xs-center font-small-2"><span>Your institution</span></h6>
+
 		<div class="form-group has-feedback has-feedback-left">
                         <select {% if form.institution.value and not form.institution.errors %}value="{{ form.institution.value }}" {% endif %} title="" id="institution-list" class="form-control">
                               <option value="" selected="">---------</option>
@@ -95,6 +97,8 @@
 				<i class="icon-graduation2 text-muted"></i>
 			</div>
 		</div>
+
+    <h6 class="line-on-side text-muted text-xs-center font-small-2"><span>Your secret</span></h6>
 
 		<fieldset class="form-group position-relative has-icon-left mb-1">
 			{% bootstrap_field form.password1 show_label=False %}
