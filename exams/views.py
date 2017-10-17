@@ -570,6 +570,7 @@ def submit_answer(request):
 @login_required
 def list_previous_sessions(request):
     sessions = request.user.session_set\
+                           .select_related('exam', 'exam__category')\
                            .undeleted()\
                            .with_accessible_questions()
 
