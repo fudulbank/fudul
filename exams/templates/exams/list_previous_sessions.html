@@ -48,7 +48,7 @@ tr td:last-child{
          <tbody>
          {% for session in sessions %}
          <tr data-pk="{{ session.pk }}">
-             <td data-html="true" data-toggle="tooltip" title="{{ session.get_questions.count }} questions on: <ul>{% for subject in session|get_session_subjects %}<li>{{ subject.name }}</li>{% endfor %}</ul>"><a href="{% url 'exams:create_session' session.exam.category.get_slugs session.exam.pk %}">{{ session.exam.name }} ({{ session.pk }})</a></td>
+             <td data-html="true" data-toggle="tooltip" title="{{ session.get_questions.count }} questions on: <ul>{% for subject in session|get_session_subjects %}<li>{{ subject.name }}</li>{% endfor %}</ul>"><a href="{% url 'exams:show_session' session.exam.category.get_slugs session.exam.pk session.pk %}">{{ session.exam.name }} ({{ session.pk }})</a></td>
              <td data-order="{{ session.submission_date|date:'U' }}">{{ session.submission_date }}</td>
              <td>{{ session.get_questions.count }}</td>
              <td class="text-xs-center">
