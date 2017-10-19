@@ -35,7 +35,7 @@
         Futher contributions were done by
         {% endif %}
       {% else %}
-        {{ contributor.0|default:contributor.username }}{% if forloop.last %}.{% else %}, {% endif %}
+        {{ contributor.profile.nickname|default:contributor.username }}{% if forloop.last %}.{% else %}, {% endif %}
     {% endif %}
       {% endfor %}
   </div>
