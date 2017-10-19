@@ -1021,3 +1021,12 @@ def delete_session(request):
         else:
             raise Exception("You cannot delete this session.")
     return {}
+
+@csrf.csrf_exempt
+@require_safe
+@decorators.ajax_only
+def count_answers(request):
+    return {'answer_count': Answer.objects\
+                                  .filter(choice__isnull=False)\
+                                  .count()
+            }
