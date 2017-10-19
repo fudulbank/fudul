@@ -595,7 +595,7 @@
       })
     }
 
-    $(document).keydown(function(e){
+    function keyboardNavigation(e){
       if (e.keyCode == 37) { // left key
         $("#previous").trigger('click');
 	_paq.push(['trackEvent', 'show_session', 'navigation', 'keyboard-previous']);
@@ -604,9 +604,11 @@
         $("#next").trigger('click');
 	_paq.push(['trackEvent', 'show_session', 'navigation', 'keyboard-next']);
       }
-    });
+    }
 
     $(function() {
+        $(document).keydown(keyboardNavigation);
+
         // variable used by many functions
         total = $("#question-total").html();
         session_mode = $('body').data('session-mode');
@@ -689,6 +691,16 @@
             $("#explain-question-modal").modal('show');
             url = "{% url 'exams:contribute_explanation' %}?" + $.param({question_pk: data.question_pk})
             $("#explain-question-modal .modal-body").load(url);
+        });
+
+        modal_selectors = '#explain-question-modal, #modify-question-modal, #correct-answer-modal';
+
+        $(modal_selectors).on("hidden.bs.modal", function(){
+          $(document).keydown(keyboardNavigation);
+        });
+
+        $(modal_selectors).on("show.bs.modal", function(){
+          $(document).off('keydown');
         });
 
     });
