@@ -224,7 +224,7 @@ class SessionForm(forms.ModelForm):
             return cleaned_data
 
         question_filter = cleaned_data['question_filter']
-        question_pool = self.question_pools[question_filter]
+        question_pool = self.question_pools[question_filter].order_by("?")
 
         subjects = cleaned_data.get('subjects')
         if subjects:
