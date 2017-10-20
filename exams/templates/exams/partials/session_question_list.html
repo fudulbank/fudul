@@ -1,5 +1,7 @@
+{% with category_slugs=session.exam.category.get_slugs  %}
 {% for question in session.get_questions.order_global_sequence %}
    {% with question_sequence=forloop.counter %}
     {% include 'exams/partials/session_question.html' %}
    {% endwith %}
 {% endfor %}
+{% endwith %}

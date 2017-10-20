@@ -281,8 +281,10 @@ def show_question(request, pk, revision_pk=None):
     question = get_object_or_404(Question, pk=pk, is_deleted=False)
     if revision_pk:
         revision = get_object_or_404(Revision, pk=revision_pk)
+        explanation_revision = None
     else:
         revision = question.get_best_latest_revision()
+        explanation_revision = question.get_latest_explanation_revision()
 
     exam = question.exam
 
@@ -290,8 +292,27 @@ def show_question(request, pk, revision_pk=None):
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
 
-    context = {'revision': revision}
+    context = {'revision': revision,
+               'explanation_revision': explanation_revision}
     return render(request, 'exams/partials/show_question.html', context)
+
+@decorators.ajax_only
+@require_safe
+@login_required
+def show_explanation_revision(request, pk):
+    explanation_pool = ExplanationRevision.objects.undeleted()\
+                                                  .select_related('question',
+                                                                  'question__exam',
+                                                                  'question__exam__category')
+    explanation_revision = get_object_or_404(explanation_pool, pk=pk)
+    exam = explanation_revision.question.exam
+
+    # PERMISSION CHECK
+    if not exam.can_user_edit(request.user):
+        raise PermissionDenied
+
+    context = {'explanation_revision': explanation_revision}
+    return render(request, 'exams/partials/show_explanation.html', context)
 
 @require_safe
 @login_required
@@ -427,7 +448,9 @@ def list_session_questions(request):
 @require_safe
 def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     category = Category.objects.get_from_slugs(slugs)
-    session = get_object_or_404(Session.objects.undeleted()\
+    session = get_object_or_404(Session.objects.select_related('exam',
+                                                               'exam__category')\
+                                               .undeleted()\
                                                .with_accessible_questions(),
                                 pk=session_pk)
 
@@ -603,41 +626,28 @@ def contribute_explanation(request):
     question_pk = request.GET.get('question_pk')
     question = get_object_or_404(Question, pk=question_pk,
                                  is_deleted=False)
-    latest_revision = question.get_best_latest_revision()
+    instance = question.get_latest_explanation_revision()
 
     if request.method == 'GET':
-        form = forms.ExplanationForm(instance=latest_revision)
-        revisionchoiceformset = forms.RevisionChoiceFormset(instance=latest_revision)
+        form = forms.ExplanationForm(instance=instance)
 
     elif request.method == 'POST':
+        if not instance:
+            instance = ExplanationRevision(question=question,
+                                           submitter=request.user)
         form = forms.ExplanationForm(request.POST,
                                      request.FILES,
-                                     instance=latest_revision)
-        revisionchoiceformset = forms.RevisionChoiceFormset(request.POST,
-                                                            instance=latest_revision)
-        if form.is_valid() and revisionchoiceformset.is_valid():
-            new_revision = form.clone(question,request.user)
-            revisionchoiceformset.clone(new_revision)
-            new_revision.change_summary = "Added an explanation"
+                                     instance=instance)
+        if form.is_valid():
+            new_explanation = form.clone(question, request.user)
 
-            new_revision.is_contribution = not teams.utils.is_editor(request.user)
-            new_revision.save()
-            form.save_m2m()
-
-            revisionchoiceformset.save()
-
-            # This test relies on choices, so the choices have to be saved
-            # before.
-            new_revision.is_approved = utils.test_revision_approval(new_revision)
-            new_revision.save()
             template = get_template('exams/partials/show_explanation.html')
-            context = {'latest_revision': new_revision}
+            context = {'explanation_revision': new_explanation}
             explanation_html = template.render(context)
             return {'explanation_html': explanation_html}
 
     context = {'question': question,
-               'form': form,
-               'revisionchoiceformset': revisionchoiceformset}
+               'form': form}
     return render(request, 'exams/partials/contribute_explanation.html', context)
 
 @login_required
@@ -738,7 +748,7 @@ def delete_revision(request, pk):
     if not request.user.is_superuser and \
        not exam.category.is_user_editor(request.user) and \
        not revision.submitter == request.user:
-        raise Exception("You cannot delete that question!")
+        raise Exception("You cannot delete this revision!")
 
     revision.is_deleted = True
     revision.save()
@@ -748,6 +758,30 @@ def delete_revision(request, pk):
     if not question.revision_set.undeleted().count():
         question.is_deleted = True
         question.save()
+
+    return {}
+
+
+@csrf.csrf_exempt
+@require_POST
+@decorators.ajax_only
+def delete_explanation_revision(request, pk):
+    explanation_pool = ExplanationRevision.objects.undeleted()\
+                                                  .select_related('question',
+                                                                  'question__exam',
+                                                                  'question__exam__category')
+    explanation_revision = get_object_or_404(explanation_pool, pk=pk)
+    question = explanation_revision.question
+    exam = question.exam
+
+    # PERMISSION CHECK
+    if not request.user.is_superuser and \
+       not exam.category.is_user_editor(request.user) and \
+       not explanation_revision.submitter == request.user:
+        raise Exception("You cannot delete this explanation!")
+
+    explanation_revision.is_deleted = True
+    explanation_revision.save()
 
     return {}
 
@@ -763,7 +797,7 @@ def mark_revision_approved(request, pk):
 
     # PERMISSION CHECK
     if not exam.can_user_edit(request.user):
-        raise Exception("You change the approval status.")
+        raise Exception("You cannot change the approval status.")
 
     revision.is_approved = True
     revision.approved_by= request.user
@@ -781,7 +815,7 @@ def mark_revision_pending(request, pk):
 
     # PERMISSION CHECK
     if not exam.can_user_edit(request.user):
-        raise Exception("You change the approval status.")
+        raise Exception("You cannot change the approval status.")
 
     revision.is_approved = False
     revision.approved_by= request.user

@@ -32,7 +32,7 @@ class StatusChoiceField(forms.ModelMultipleChoiceField):
 
 # shared widgets for exam_types, sources and subjects in QuestionForm and SessionForm
 select2_widget = autocomplete.ModelSelect2Multiple(attrs={'data-width': '100%'})
-    
+
 class QuestionForm(forms.ModelForm):
     issues = StatusChoiceField(widget=autocomplete.ModelSelect2Multiple(attrs={'data-width': '100%', 'data-html': 'true'}),
                                queryset=models.Issue.objects.all(),
@@ -104,8 +104,7 @@ class RevisionForm(forms.ModelForm):
 
     class Meta:
         model = models.Revision
-        fields = ['text', 'explanation', 'explanation_figure',
-                  'figure', 'is_approved','reference',
+        fields = ['text', 'figure', 'is_approved',
                   'change_summary','is_contribution']
 
 
@@ -240,7 +239,7 @@ class SessionForm(forms.ModelForm):
 
         if not question_pool.exists():
             raise forms.ValidationError("No questions at all match your selection.  Please try other options.")
-    
+
         # Let's make sure that when a question is randomly chosen, we
         # also include its parents and children.
         selected_pks = []
@@ -273,18 +272,27 @@ class SessionForm(forms.ModelForm):
 
 
 class ExplanationForm(RevisionForm):
-    def __init__(self, *args, **kwargs):
-        super(ExplanationForm, self).__init__(*args, **kwargs)
-        self.fields['explanation'].required = True
+    def clone(self, question, user):
+        new_explanation = self.save(commit=False)
 
+        new_explanation.pk = None
+        new_explanation.is_last = True
+        new_explanation.submitter = user
+        new_explanation.save()
+
+        # Make sure that all previous explanations are set to
+        # is_last=False
+        question.explanation_revisions.exclude(pk=new_explanation.pk)\
+                                      .update(is_last=False)
+
+        return new_explanation
 
     class Meta:
-        model = models.Revision
-        fields = ['explanation', 'explanation_figure', 'reference']
+        model = models.ExplanationRevision
+        fields = ['text', 'figure', 'reference']
 
 
 class AnswerCorrectionForm(forms.ModelForm):
     class Meta:
         model = models.AnswerCorrection
         fields = ['justification']
-

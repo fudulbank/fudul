@@ -28,12 +28,8 @@ p.question-text{
      {% endfor %}
     </ol>
 
-    {% if revision.explanation %}<b>Explanation:</b><br>
-                                {% if revision.explanation_figure %}
-                           <img class="img-responsive center-block"  src="{{ revision.explanation_figure.url }}">
-                       {% endif %}
-                        <br>
-        {{ revision.explanation| urlize }} {% endif %}
-    {% if revision.reference %}<br><b>Reference:</b><br>{{ revision.reference| urlize }} {% endif %}
+    {% if explanation_revision %}<h3>Explanation</h3>
+      {% include 'exams/partials/show_explanation.html' %}
+    {% endif %}
   </div>
 </div>

@@ -1,4 +1,4 @@
-
-  {{ latest_revision.explanation|linebreaks }}
-  {% if latest_revision.explanation_figure %}<img src="{{ latest_revision.explanation_figure.url }}" class="img-fluid">{% endif %}
-  {% if latest_revision.reference %}<h4 class="explanation-reference-header">Reference</h4>{{ latest_revision.reference|linebreaks }}{% endif %}
+{% load core_utils %}
+  {{ explanation_revision.text|urlize_target_blank|linebreaks }}
+  {% if explanation_revision.figure %}<img src="{{ explanation_revision.figure.url }}" class="img-fluid">{% endif %}
+  {% if explanation_revision.reference %}<h4 class="explanation-reference-header">Reference</h4>{{ explanation_revision.reference|urlize_target_blank|linebreaks }}{% endif %}

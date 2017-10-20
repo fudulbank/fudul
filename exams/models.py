@@ -190,6 +190,8 @@ class Question(models.Model):
 
     def __str__(self):
         latest_revision = self.get_latest_revision()
+        if not latest_revision:
+            return str(self.pk)
         return textwrap.shorten(latest_revision.text, 70,
                                 placeholder='...')
 
@@ -231,6 +233,12 @@ class Question(models.Model):
         return self.revision_set.filter(is_deleted=False)\
                                 .order_by('-submission_date')\
                                 .first()
+
+    def get_latest_explanation_revision(self):
+        return self.explanation_revisions\
+                   .filter(is_deleted=False)\
+                   .order_by('-submission_date')\
+                   .first()
 
     def get_correct_others(self):
         correct_user_pks = Answer.objects.filter(question=self,
@@ -320,9 +328,8 @@ class Revision(models.Model):
         super(Revision, self).save(*args, **kwargs)
 
     def __str__(self):
-        return self.text
-
-
+        return textwrap.shorten(self.text, 70,
+                                placeholder='...')
 
 class Choice(models.Model):
     text = models.CharField(max_length=255)
@@ -469,3 +476,24 @@ class AnswerCorrection(models.Model):
     justification = models.TextField(default="")    
     submission_date = models.DateTimeField(auto_now_add=True)
 
+class ExplanationRevision(models.Model):
+    question = models.ForeignKey(Question,
+                                 related_name="explanation_revisions")
+    submitter = models.ForeignKey(User, null=True, blank=True,
+                                  related_name="submitted_explanations")
+
+    text = models.TextField(default="", blank=True)
+    reference = models.TextField(default="")    
+    figure = models.ImageField(upload_to="explanation_images",
+                               blank=True)
+
+    is_deleted = models.BooleanField(default=False)
+    is_first = models.BooleanField(default=False)
+    is_last = models.BooleanField(default=False)
+    submission_date = models.DateTimeField(auto_now_add=True)
+
+    objects = managers.RevisionQuerySet.as_manager()
+
+    def __str__(self):
+        return textwrap.shorten(self.text, 70,
+                                placeholder='...')
