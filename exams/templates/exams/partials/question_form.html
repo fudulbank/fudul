@@ -41,17 +41,17 @@
 */
 
 </style>
-        {% bootstrap_form_errors questionform %}
+        {% bootstrap_form_errors question_form %}
 <form method="post" data-exam_pk='{{ exam.pk }}' enctype="multipart/form-data" id="add-question-form">
     {% csrf_token %}
 
   <div class="row">
-{% if questionform.exam_types %}
+{% if question_form.exam_types %}
 	<div class="col-md-6">
 		<div class="form-group">
       <label class="control-label"><i class="icon-filter3 text-muted"></i> Exam type</label>
       <div id='exam-type'>
-  			{% bootstrap_field questionform.exam_types show_label=False %}
+  			{% bootstrap_field question_form.exam_types show_label=False %}
       </div>
 		</div>
 	</div>
@@ -59,37 +59,37 @@
 	<div class="col-md-6">
 		<div class="form-group">
       <label class="control-label"><i class="icon-stack-check text-muted"></i> Issues <a data-placement="left" data-html="true" class="circle" data-toggle="tooltip" title="Does this question have any issues?  Note that issues have two types: <em>blocker</em> and <em>non-blocker</em>.  Questions marked with <em>blocker</em> issues will NOT be available for users to be examined on.  Issues with <em>non-blocker</em> issues will still be available.">?</a></label>
-			{{ questionform.issues }}
+			{{ question_form.issues }}
 		</div>
 	</div>
-  {% if questionform.sources %}
+  {% if question_form.sources %}
 	<div class="col-md-6">
 		<div class="form-group">
       <label class="control-label"><i class="icon-git-branch text-muted"></i> Source<a class="circle" data-placement="left" data-toggle="tooltip"  title="PLACEHOLDER">?</a></label>
-			{{ questionform.sources }}
+			{{ question_form.sources }}
 		</div>
 	</div>
   {% endif %}
-  {% if questionform.subjects %}
+  {% if question_form.subjects %}
 	<div class="col-md-6">
 		<div class="form-group">
       <label class="control-label"><i class="icon-list-unordered text-muted"></i> Subject<a class="circle" data-placement="left" data-toggle="tooltip"  title="PLACEHOLDER">?</a></label>
-			{{ questionform.subjects }}
+			{{ question_form.subjects }}
 		</div>
 	</div>
   {% endif %}
 	<div class="col-md-6">
 		<div class="form-group">
       <label class="control-label"><i class="icon-list-unordered text-muted"></i> Parent question <a class="circle" data-placement="left" data-toggle="tooltip"  title="if you are adding a case questions you can use parent question field by typing the number of the question that should come before it.">?</a></label>
-			{{ questionform.parent_question }}
+			{{ question_form.parent_question }}
 		</div>
 	</div>
-        {% bootstrap_form_errors revisionform %}
+        {% bootstrap_form_errors revision_form %}
 
 	<div class="col-md-6">
 		<div class="form-group" id="figure">
                         <label class="control-label"><i class="icon-image2 text-muted"></i> Corresponding figure</label>
-			{% bootstrap_field revisionform.figure show_label=False %}
+			{% bootstrap_field revision_form.figure show_label=False %}
 
 		</div>
 	</div>
@@ -97,7 +97,7 @@
 
         <div class="form-group has-feedback has-feedback-left">
             <label class="control-label">Question Text</label>
-			{% bootstrap_field revisionform.text show_label=False %}
+			{% bootstrap_field revision_form.text show_label=False %}
 			<div class="form-control-feedback">
 				<i class="icon-pencil text-muted"></i>
 			</div>
@@ -142,24 +142,22 @@
 
         		<div class="form-group has-feedback has-feedback-left">
             <label class="control-label">Answer explanation</label>
-			{% bootstrap_field revisionform.explanation show_label=False %}
+			{% bootstrap_field explanation_form.explanation_text show_label=False %}
 			<div class="form-control-feedback">
 				<i class=" icon-info22 text-muted"></i>
 			</div>
     </div>
   	<div class="form-group">
         <label class="control-label"><i class="icon-image2 text-muted"></i> Explanation figure</label>
-  			{% bootstrap_field revisionform.explanation_figure show_label=False %}
+  			{% bootstrap_field explanation_form.explanation_figure show_label=False %}
   	</div>
-{% if revision  %}
-            <div class="form-group has-feedback has-feedback-left">
-            <label class="control-label">Answer reference </label>
-			{% bootstrap_field revisionform.reference show_label=False %}
+    <div class="form-group has-feedback has-feedback-left">
+      <label class="control-label">Answer reference </label>
+			{% bootstrap_field explanation_form.reference show_label=False %}
 			<div class="form-control-feedback">
 				<i class=" icon-info22 text-muted"></i>
 			</div>
 		</div>
-                    {% endif %}
 <input name="exam_pk" type="hidden" value="{{ exam.pk }}">
                <button type="submit" class="btn btn-primary float-sm-right"><i class="ft-check"></i> Submit Question <i class="icon-circle-right2 position-right"></i></button>
 

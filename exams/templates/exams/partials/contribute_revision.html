@@ -5,16 +5,16 @@
         <form method="post"  enctype="multipart/form-data" id="modify-revision-form" action="post">
 	    {% csrf_token %}
 
-        {% bootstrap_form_errors revisionform %}
+        {% bootstrap_form_errors revision_form %}
         <div style="display: none">
-		{% bootstrap_field revisionform.figure show_label=False %}
+		{% bootstrap_field revision_form.figure show_label=False %}
         </div>
 
         <strong class="help-block"> </strong>
         <div class="form-group has-feedback has-feedback-left">
             <label class="control-label">Question Text</label>
 
-			{% bootstrap_field revisionform.text show_label=False %}
+			{% bootstrap_field revision_form.text show_label=False %}
 			<div class="form-control-feedback">
 			</div>
 		</div>
@@ -58,14 +58,14 @@
         </div>
         <div style="margin-top: 5%" class="form-group has-feedback has-feedback-left">
             <label class="control-label">Answer explanation</label> <a data-placement="left" class="circle" data-toggle="tooltip" title="An explanation is written to support your claim of the right answer, it would be displayed with the question during sessions."> ? </a>
-			{% bootstrap_field revisionform.explanation show_label=False %}
+			{% bootstrap_field revision_form.explanation show_label=False %}
 			<div class="form-control-feedback">
 			</div>
 		</div>
         <div class="form-group has-feedback has-feedback-left">
 
             <label class="control-label">Summary of change</label><a data-placement="left" class="circle" data-toggle="tooltip" title="Please briefly explain what have you modified in the question."> ? </a>
-			{% bootstrap_field revisionform.change_summary show_label=False %}
+			{% bootstrap_field revision_form.change_summary show_label=False %}
            <div class="form-control-feedback">
 			</div>
 		</div>

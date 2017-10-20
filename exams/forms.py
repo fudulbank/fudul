@@ -104,9 +104,7 @@ class RevisionForm(forms.ModelForm):
 
     class Meta:
         model = models.Revision
-        fields = ['text', 'figure', 'is_approved',
-                  'change_summary','is_contribution']
-
+        fields = ['text', 'figure', 'change_summary']
 
 class ChoiceForms(forms.ModelForm):
     class Meta:
@@ -271,13 +269,30 @@ class SessionForm(forms.ModelForm):
                   'sources', 'subjects', 'question_filter']
 
 
-class ExplanationForm(RevisionForm):
-    def clone(self, question, user):
-        new_explanation = self.save(commit=False)
+class ExplanationForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.is_optional = kwargs.pop('is_optional')        
+        super(ExplanationForm, self).__init__(*args, **kwargs)
+        if self.is_optional:
+            self.fields['explanation_text'].required = False
 
+    def clone(self, question, user):
+        if self.is_optional and \
+           (not 'explanation_text' in self.cleaned_data or \
+            'explanation_text' in self.cleaned_data and \
+            not self.cleaned_data['explanation_text']):
+            return
+
+        # If nothing has changed, don't create a new instance.
+        if self.instance.pk and \
+           not self.changed_data:
+            return
+
+        new_explanation = self.save(commit=False)
         new_explanation.pk = None
         new_explanation.is_last = True
         new_explanation.submitter = user
+        new_explanation.question = question
         new_explanation.save()
 
         # Make sure that all previous explanations are set to
@@ -289,8 +304,7 @@ class ExplanationForm(RevisionForm):
 
     class Meta:
         model = models.ExplanationRevision
-        fields = ['text', 'figure', 'reference']
-
+        fields = ['explanation_text', 'explanation_figure', 'reference']
 
 class AnswerCorrectionForm(forms.ModelForm):
     class Meta:

@@ -100,8 +100,9 @@ def add_question(request, slugs, pk):
     editor = exam.can_user_edit(request.user)
     instance = Question(exam=exam)
     context = {'exam': exam,
-               'questionform': forms.QuestionForm(instance=instance),
-               'revisionform': forms.RevisionForm(),
+               'question_form': forms.QuestionForm(instance=instance),
+               'revision_form': forms.RevisionForm(),
+               'explanation_form': forms.ExplanationForm(is_optional=True),
                'revisionchoiceformset': forms.RevisionChoiceFormset(),
                'editor':editor,
                'is_browse_active': True, # To make sidebar 'active'
@@ -154,39 +155,44 @@ def delete_question(request, pk):
 def handle_question(request, exam_pk, question_pk=None):
     exam = get_object_or_404(Exam.objects.select_related('category'),
                              pk=exam_pk)
-
-    # # PERMISSION CHECK
-    # if not exam.can_user_edit(request.user):
-    #     raise PermissionDenied
-    if question_pk :
+    explanation = None
+    if question_pk:
         question = get_object_or_404(Question, pk=question_pk,
                                      is_deleted=False)
-        instance = question.get_latest_revision()
-        questionform = forms.QuestionForm(request.POST,
-                                          instance=question)
-        revisionform = forms.RevisionForm(request.POST,
-                                          request.FILES,
-                                          instance=instance)
-        revisionchoiceformset = forms.RevisionChoiceFormset(request.POST,
-                                                            instance=instance,)
+        revision = question.get_latest_revision()
+        explanation = explanation.get_latest_explanation_revision()
     else:
-        question_instance = Question(exam=exam)
-        questionform = forms.QuestionForm(request.POST,
-                                          instance=question_instance)
-        revision_instance = Revision(submitter=request.user,
-                                     is_first=True, is_last=True)
-        revisionform = forms.RevisionForm(request.POST,
-                                          request.FILES,
-                                          instance=revision_instance)
-        revisionchoiceformset = forms.RevisionChoiceFormset(request.POST)
+        question = Question(exam=exam)
+        revision = Revision(submitter=request.user,
+                            is_first=True,
+                            is_last=True)
 
-    if questionform.is_valid() and revisionform.is_valid() and revisionchoiceformset.is_valid():
-        question = questionform.save()
-        revision = revisionform.save(commit=False)
+    if not explanation:
+        explanation = ExplanationRevision(submitter=request.user,
+                                          is_first=True, is_last=True)
+
+    question_form = forms.QuestionForm(request.POST,
+                                       instance=question)
+    revision_form = forms.RevisionForm(request.POST,
+                                       request.FILES,
+                                       instance=revision)
+    revisionchoiceformset = forms.RevisionChoiceFormset(request.POST,
+                                                        instance=revision)
+    explanation_form = forms.ExplanationForm(request.POST,
+                                             request.FILES,
+                                             instance=revision,
+                                             is_optional=True)
+
+    if question_form.is_valid() and \
+       revision_form.is_valid() and \
+       explanation_form.is_valid() and \
+       revisionchoiceformset.is_valid():
+        question = question_form.save()
+        revision = revision_form.save(commit=False)
         revision.question = question
         revision.is_contribution = not teams.utils.is_editor(request.user)
         revision.save()
-        revisionform.save_m2m()
+        revision_form.save_m2m()
 
         revisionchoiceformset.instance = revision
         revisionchoiceformset.save()
@@ -195,6 +201,8 @@ def handle_question(request, exam_pk, question_pk=None):
         # before.
         revision.is_approved = utils.test_revision_approval(revision)
         revision.save()
+
+        explanation_form.save()
 
         template = get_template('exams/partials/exam_stats.html')
         context = {'exam': exam}
@@ -208,8 +216,9 @@ def handle_question(request, exam_pk, question_pk=None):
                 }
 
     context = {'exam': exam,
-               'questionform': questionform,
-               'revisionform': revisionform,
+               'question_form': question_form,
+               'revision_form': revision_form,
+               'explanation_form': explanation_form,
                'revisionchoiceformset': revisionchoiceformset}
 
     return render(request, "exams/partials/question_form.html", context)
@@ -343,6 +352,7 @@ def submit_revision(request, slugs, exam_pk, pk):
     question = get_object_or_404(Question, pk=pk, is_deleted=False)
     #TODO :latest approved revision
     latest_revision = question.get_latest_revision()
+    latest_explanation_revision = question.get_latest_explanation_revision()
 
     # PERMISSION CHECK
     # if not exam.can_user_edit(request.user):
@@ -351,34 +361,46 @@ def submit_revision(request, slugs, exam_pk, pk):
     context = {'editor':editor, 'exam': exam, 'revision': latest_revision}
 
     if request.method == 'POST':
-        questionform = forms.QuestionForm(request.POST,
+        question_form = forms.QuestionForm(request.POST,
                                           instance=question)
-        revisionform = forms.RevisionForm(request.POST,
+        revision_form = forms.RevisionForm(request.POST,
                                           request.FILES,
                                           instance=latest_revision)
+        explanation_form = forms.ExplanationForm(request.POST,
+                                                 request.FILES,
+                                                 instance=latest_explanation_revision,
+                                                 is_optional=True)
 
         revisionchoiceformset = forms.RevisionChoiceFormset(request.POST,
                                                             instance=latest_revision)
-        if questionform.is_valid() and revisionform.is_valid() and revisionchoiceformset.is_valid():
-            question = questionform.save()
-            new_revision = revisionform.clone(question, request.user)
+        if question_form.is_valid() and \
+           revision_form.is_valid() and \
+           explanation_form.is_valid() and \
+           revisionchoiceformset.is_valid():
+            question = question_form.save()
+            new_revision = revision_form.clone(question, request.user)
+            explanation_form.clone(question, request.user)
             revisionchoiceformset.clone(new_revision)
 
             # This test relies on choices, so the choices have to be saved
             # before.
-            new_revision.is_approved = utils.test_revision_approval(new_revision)
-            new_revision.save()
+            if new_revision:
+                new_revision.is_approved = utils.test_revision_approval(new_revision)
+                new_revision.save()
 
             return HttpResponseRedirect(
                 reverse("exams:list_revisions",
                         args=(slugs, exam_pk, pk)))
 
     elif request.method == 'GET':
-        questionform = forms.QuestionForm(instance=question)
-        revisionform = forms.RevisionForm(instance=latest_revision)
+        question_form = forms.QuestionForm(instance=question)
+        revision_form = forms.RevisionForm(instance=latest_revision)
+        explanation_form = forms.ExplanationForm(instance=latest_explanation_revision,
+                                                 is_optional=True)
         revisionchoiceformset = forms.RevisionChoiceFormset(instance=latest_revision)
-    context['questionform'] = questionform
-    context['revisionform'] = revisionform
+    context['question_form'] = question_form
+    context['revision_form'] = revision_form
+    context['explanation_form'] = explanation_form
     context['revisionchoiceformset'] = revisionchoiceformset
 
     return render(request, 'exams/submit_revision.html', context)
@@ -482,7 +504,8 @@ def show_session_results(request, slugs, exam_pk, session_pk):
         raise Http404
 
     session = get_object_or_404(Session.objects.undeleted()\
-                                               .select_related('exam'),
+                                               .select_related('exam')\
+                                               .exclude(session_mode__in=['INCOMPLETE', 'SOLVED']),
                                 pk=session_pk)
 
     # PERMISSION CHECK
@@ -497,7 +520,21 @@ def show_session_results(request, slugs, exam_pk, session_pk):
             answers.append(answer)
         Answer.objects.bulk_create(answers)
 
-    context = {'session': session, 'exam': session.exam}
+    question_pool = session.get_questions()
+
+    correct_questions = question_pool.correct_by_user(request.user)\
+                                     .count()
+    incorrect_questions = question_pool.incorrect_by_user(request.user)\
+                                       .count()
+    skipped_questions = question_pool.skipped_by_user(request.user)\
+                                     .count()
+
+
+    context = {'session': session, 'exam': session.exam,
+               'correct_questions': correct_questions,
+               'incorrect_questions': incorrect_questions,
+               'skipped_questions': skipped_questions
+    }
 
     return render(request, 'exams/show_session_results.html', context)
 
@@ -659,22 +696,23 @@ def contribute_revision(request):
     latest_revision = question.get_latest_revision()
 
     if request.method == 'GET':
-        revisionform = forms.RevisionForm(instance=latest_revision)
+        revision_form = forms.RevisionForm(instance=latest_revision)
         revisionchoiceformset = forms.ContributedRevisionChoiceFormset(instance=latest_revision)
     elif request.method == 'POST':
-        revisionform = forms.RevisionForm(request.POST,
+        revision_form = forms.RevisionForm(request.POST,
                                           request.FILES,
                                           instance=latest_revision)
 
         revisionchoiceformset = forms.ContributedRevisionChoiceFormset(request.POST,
                                                             instance=latest_revision)
-        if revisionform.is_valid() and revisionchoiceformset.is_valid():
-            new_revision = revisionform.clone(question,request.user)
+        if revision_form.is_valid() and \
+           revisionchoiceformset.is_valid():
+            new_revision = revision_form.clone(question,request.user)
             choices = revisionchoiceformset.clone(new_revision)
 
             new_revision.is_contribution = not teams.utils.is_editor(request.user)
             new_revision.save()
-            revisionform.save_m2m()
+            revision_form.save_m2m()
 
 
             # This test relies on choices, so the choices have to be saved
@@ -684,7 +722,7 @@ def contribute_revision(request):
             return {}
 
     context = {'question': question,
-               'revisionform': revisionform,
+               'revision_form': revision_form,
                'revisionchoiceformset': revisionchoiceformset}
 
     return render(request, 'exams/partials/contribute_revision.html', context)
@@ -838,8 +876,8 @@ def approve_question(request, slugs, exam_pk, pk):
     editor = exam.can_user_edit(request.user)
 
     context = {'exam': exam,
-               'questionform': forms.QuestionForm(instance=question),
-               'revisionform': forms.RevisionForm(instance=revision),
+               'question_form': forms.QuestionForm(instance=question),
+               'revision_form': forms.RevisionForm(instance=revision),
                'revisionchoiceformset': forms.RevisionChoiceFormset(instance=revision),
                'editor': editor,
                'question': question}

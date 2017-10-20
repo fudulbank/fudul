@@ -482,10 +482,10 @@ class ExplanationRevision(models.Model):
     submitter = models.ForeignKey(User, null=True, blank=True,
                                   related_name="submitted_explanations")
 
-    text = models.TextField(default="")
+    explanation_text = models.TextField(default="")
     reference = models.TextField(default="", blank=True)    
-    figure = models.ImageField(upload_to="explanation_images",
-                               blank=True)
+    explanation_figure = models.ImageField(upload_to="explanation_images",
+                                           blank=True)
 
     is_deleted = models.BooleanField(default=False)
     is_first = models.BooleanField(default=False)
