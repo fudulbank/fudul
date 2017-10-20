@@ -482,8 +482,8 @@ class ExplanationRevision(models.Model):
     submitter = models.ForeignKey(User, null=True, blank=True,
                                   related_name="submitted_explanations")
 
-    text = models.TextField(default="", blank=True)
-    reference = models.TextField(default="")    
+    text = models.TextField(default="")
+    reference = models.TextField(default="", blank=True)    
     figure = models.ImageField(upload_to="explanation_images",
                                blank=True)
 

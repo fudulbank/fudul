@@ -19,8 +19,8 @@ class Migration(migrations.Migration):
             name='ExplanationRevision',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('text', models.TextField(blank=True, default='')),
-                ('reference', models.TextField(default='')),
+                ('text', models.TextField(default='')),
+                ('reference', models.TextField(default='', blank=True)),
                 ('figure', models.ImageField(blank=True, upload_to='explanation_images')),
                 ('is_deleted', models.BooleanField(default=False)),
                 ('is_first', models.BooleanField(default=False)),
