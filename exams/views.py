@@ -235,7 +235,10 @@ def list_questions(request, slugs, pk, selector=None):
         try:
             issue_pk = int(selector)
         except ValueError:
-            if selector == 'no_answer':
+            if selector == 'all':
+                questions = question_pool
+                context['list_name'] = "all questions"
+            elif selector == 'no_answer':
                 questions = question_pool.unsolved()
                 context['list_name'] = "no right answers"
             elif selector == 'no_issues':
@@ -255,7 +258,9 @@ def list_questions(request, slugs, pk, selector=None):
                 context['list_name'] = "pending latesting revision"
             elif selector == 'lacking_choices':
                 questions = question_pool.lacking_choices()
-                context['list_name'] = "lacking choices "
+                context['list_name'] = "lacking choices"
+            else:
+                raise Http404
         else:
             issue = get_object_or_404(Issue, pk=issue_pk)
             context['list_name'] = issue.name

@@ -124,6 +124,10 @@
             </thead>
             <tbody>
               <tr>
+                <td><a href="{% url 'exams:list_questions_by_selector' category_slug exam.pk 'all' %}">All questions</a></td>
+                <td data-order="{{ total_count }}">{{ total_count }} (100%)</td>
+              </tr>
+              <tr>
                 <td><a href="{% url 'exams:list_questions_by_selector' category_slug exam.pk 'no_answer' %}">With no right answers</a></td>
                 <td data-order="{{ unsolved_count }}">{{ unsolved_count }} ({% widthratio unsolved_count total_count 100 %}%)</td>
               </tr>
