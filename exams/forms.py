@@ -271,7 +271,7 @@ class SessionForm(forms.ModelForm):
 
 class ExplanationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-        self.is_optional = kwargs.pop('is_optional')        
+        self.is_optional = kwargs.pop('is_optional', False)        
         super(ExplanationForm, self).__init__(*args, **kwargs)
         if self.is_optional:
             self.fields['explanation_text'].required = False
