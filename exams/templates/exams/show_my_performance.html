@@ -103,6 +103,7 @@ $(function () {
     });
 
     $deleteConfirmationButton.click(function () {
+        _paq.push(['trackEvent', 'show-my-performance', 'delete-exam-sessions', 'delete-exam-sessions']);
         /* get some values from elements on the page: */
   			var pk = $(this).data('pk');
         var name = $(this).data('name');

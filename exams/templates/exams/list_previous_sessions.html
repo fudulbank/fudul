@@ -114,6 +114,7 @@ tr td:last-child{
           $("#confirm-delete-all-modal").modal('show');
         });
         $("#confirm-delete-all-modal .submit-button").click(function () {
+            _paq.push(['trackEvent', 'show-my-performance', 'delete-all-sessions', 'delete-all-sessions']);
 		        /* Send the data using post */
             $.ajax({url: "{% url 'exams:delete_session' %}",
                     data: {deletion_type: 'all'},
@@ -147,6 +148,7 @@ tr td:last-child{
         });
 
         $deleteConfirmationButton.click(function () {
+            _paq.push(['trackEvent', 'show-my-performance', 'delete-single-session', 'delete-single-session']);
 		        /* get some values from elements on the page: */
 						var pk = $(this).data('pk');
 		        /* Send the data using post */
