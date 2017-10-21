@@ -348,7 +348,7 @@ def submit_revision(request, slugs, exam_pk, pk):
     if not category:
         raise Http404
 
-    exam = get_object_or_404(Exam, pk=exam_pk)
+    exam = get_object_or_404(Exam, pk=exam_pk, category=category)
     question = get_object_or_404(Question, pk=pk, is_deleted=False)
     #TODO :latest approved revision
     latest_revision = question.get_latest_revision()
