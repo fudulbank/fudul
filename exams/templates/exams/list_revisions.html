@@ -100,9 +100,13 @@
         </td>
       </tr>
       <tr>
-        <th># of times answered</th>
+        <th># times answered</th>
         <td>
           {{ question.answer_set.count }}
+        </td>
+        <th>% correct</th>
+        <td>
+          {% widthratio question.answer_set.correct.count question.answer_set.count 100 %}%
         </td>
       </tr>
   </table>

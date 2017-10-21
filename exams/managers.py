@@ -260,5 +260,14 @@ class CategoryQuerySet(models.QuerySet):
         return universally_accessible_categories | self.filter(pk__in=pks)
 
 class AnswerQuerySet(models.QuerySet):
+    def correct(self):
+        return self.filter(choice__is_right=True)
+
+    def incorrect(self):
+        return self.filter(choice__is_right=False)
+
+    def skipped(self):
+        return self.filter(choice__isnull=True)
+
     def of_undeleted_questions(self):
         return self.filter(question__is_deleted=False)
