@@ -4,6 +4,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.forms.models import inlineformset_factory
 from accounts.utils import get_user_college
 from . import models, utils
+import itertools
 import teams.utils
 
 class MetaChoiceField(forms.ModelMultipleChoiceField):
@@ -220,8 +221,9 @@ class SessionForm(forms.ModelForm):
            not 'number_of_questions' in cleaned_data:
             return cleaned_data
 
+        number_of_questions = cleaned_data['number_of_questions']
         question_filter = cleaned_data['question_filter']
-        question_pool = self.question_pools[question_filter].order_by("?")
+        question_pool = self.question_pools[question_filter]
 
         subjects = cleaned_data.get('subjects')
         if subjects:
@@ -238,29 +240,31 @@ class SessionForm(forms.ModelForm):
         if not question_pool.exists():
             raise forms.ValidationError("No questions at all match your selection.  Please try other options.")
 
-        # Let's make sure that when a question is randomly chosen, we
-        # also include its parents and children.
-        selected_pks = []
-        for question in question_pool.iterator():
+        selected_slice = question_pool[:number_of_questions]
+        selected_pool = models.Question.objects.filter(pk__in=selected_slice)
+        questions_to_find_tree = selected_pool.filter(parent_question__isnull=False) | \
+                                 selected_pool.filter(child_question__isnull=False)
+        pks = []
+        for question in questions_to_find_tree.distinct():
             tree = question.get_tree()
-            new_pks = [q.pk for q in tree if not q.pk in selected_pks]
-            selected_pks += new_pks
+            pks = [q.pk for q in tree if not q.pk in pks]
+            pks += new_pks
+        self.questions_with_tree = models.Question.objects\
+                                                  .filter(pk__in=pks)
+        if question_filter != 'INCOMPLETE':
+            self.questions_with_tree = self.questions_with_tree.approved()
 
-            # Check unique questions
-            selected_questions = models.Question.objects.select_related('parent_question')\
-                                                        .filter(pk__in=selected_pks)
-            if question_filter != 'INCOMPLETE':
-                selected_questions = selected_questions.approved()
-            if selected_questions.count() >= cleaned_data['number_of_questions']:
-                break
-
-        self.questions = selected_questions
+        remaining_count = number_of_questions - self.questions_with_tree.count()
+        orphan_questions = selected_pool.filter(parent_question__isnull=True,
+                                                child_question__isnull=True)
+        self.orphan_pool = models.Question.objects.filter(pk__in=orphan_questions[:remaining_count])
 
         return cleaned_data
 
     def save(self, *args, **kwargs):
         session = super(SessionForm, self).save(*args, **kwargs)
-        session.questions.add(*self.questions)
+        questions = itertools.chain(self.orphan_pool, self.questions_with_tree)
+        session.questions.add(*questions)
         return session
 
     class Meta:
