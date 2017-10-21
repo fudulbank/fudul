@@ -32,20 +32,31 @@
         <thead>
           <tr>
             <th class="all">Exam</th>
-            <th># questions answered</th>
+            <th data-toggle="tooltip" title="Number of questions answered.">Questions</th>
             <th data-toggle="tooltip" title="Questions that were correctly answered by you at least one time." class="all">Correct</th>
             <th data-toggle="tooltip" title="Questions that were incorrectly answered by you and never answed correctly.">Incorrect</th>
             <th data-toggle="tooltip" title="Questions that were shown, skipped and never answered by you.">Skipped</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {% for exam in exams %}
-            <tr>
-              <td><a href="{% url 'exams:show_my_performance_per_exam' exam.pk %}">{{ exam.name }}</a></td>
+            <tr data-pk="{{ exam.pk }}">
+              <td class="exam-name"><a href="{% url 'exams:show_my_performance_per_exam' exam.pk %}">{{ exam.name }}</a></td>
               <td>{{ exam|get_used_question_count_per_user:user }}</td>
               <td>{% get_user_question_stats exam user 'correct' %} ({% get_user_question_stats exam user 'correct' percent=True %}%)</td>
               <td>{% get_user_question_stats exam user 'incorrect' %} ({% get_user_question_stats exam user 'incorrect' percent=True %}%)</td>
               <td>{% get_user_question_stats exam user 'skipped' %} ({% get_user_question_stats exam user 'skipped' percent=True %}%)</td>
+              <td>
+                <div class="dropdown">
+                  <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="ft-settings"></i> Actions</button>
+                  <div class="dropdown-menu">
+                    <a class="dropdown-item" href="{% url 'exams:show_my_performance_per_exam' exam.pk %}"><i class="ft-grid"></i> See details</a>
+                    <a data-pk="{{ exam.pk }}" class="dropdown-item confirm-delete-exam"><i class="ft-trash-2"></i> Forgive</a>
+                  </div>
+                </div>
+              </td>
+
             </tr>
           {% endfor %}
         </tbody>
@@ -64,13 +75,59 @@
 <script src="{% static 'stack/vendors/js/tables/datatable/dataTables.bootstrap4.min.js' %}" type="text/javascript"></script>
 <script src="{% static 'stack/vendors/js/tables/datatable/dataTables.responsive.min.js' %}" type="text/javascript"></script>
 <script src="{% static 'stack/vendors/js/charts/chart.min.js' %}"></script>
+<script src="{% static 'js/toastr.js' %}"></script>
+
+{% with modal_id='confirm-delete-exam-sessions-modal' is_small=True modal_content="<strong>Are you sure you want us to forgive you the sessions you took under this exam?</strong> By asking for forgiveness, you will be adjusting your performance statistics and reclaiming some 'used questions'." %}
+    {% include "exams/modals/common_edit_modal.html" %}
+{% endwith %}
 
 {% include 'exams/partials/performance_chart.html' %}
 
 <script>
 $(function () {
     $('[data-toggle="tooltip"]').tooltip()
-    $("table.datatable").DataTable({paging: false, info: false});
+    table = $("table.datatable").DataTable({paging: false, info: false});
+
+    $('.confirm-delete-exam').tooltip({title: "<div style='direction: rtl'>أنا غلطان ومتأسف<br>يا ريت تسمعني وتصالح<br>تراني خلاص متلهف<br>لكلمة صلح نتصالح 🎶</div>",
+                                        html: true})
+
+
+    $deleteConfirmationButton = $("#confirm-delete-exam-sessions-modal .submit-button")
+    $('tbody').on('click','.confirm-delete-exam',function () {
+        $(this).tooltip("hide");
+        var pk = $(this).closest('tr').data('pk');
+        var name = $(this).closest('tr').find('.exam-name').text();
+        $deleteConfirmationButton.data('name', name).data('pk', pk);
+        $("#confirm-delete-exam-sessions-modal .modal-title").html("Forgive me the " + exam + " exam");
+        $("#confirm-delete-exam-sessions-modal").modal('show');
+    });
+
+    $deleteConfirmationButton.click(function () {
+        /* get some values from elements on the page: */
+  			var pk = $(this).data('pk');
+        var name = $(this).data('name');
+        /* Send the data using post */
+        $.ajax({url: "{% url 'exams:delete_session' %}",
+                data: {deletion_type: 'exam',
+                       pk: pk},
+                type: 'POST',
+                cahe: 'false',
+                success: function (data) {
+    		            if (data.success == 1) {
+    		                // show success message (using toastr)
+    		                toastr.info("The " + name + " exam was forgiven.");
+
+    										row = table.row("tr[data-pk=" +  pk + "]");
+    										row.remove().draw(false);
+    										$("#confirm-delete-exam-sessions-modal").modal('hide');
+    		            } else {
+    		                toastr.error(data.message);
+    		            }
+    		        }
+        });
+  	});
+
+
 });
 </script>
 

@@ -1091,18 +1091,26 @@ def get_selected_question_count(request, exam_pk):
 @decorators.ajax_only
 @login_required
 def delete_session(request):
-    if 'delete_all' in request.POST:
+    if not 'deletion_type' in request.POST:
+        return HttpResponseBadRequest()
+    deletion_type = request.POST['deletion_type']
+
+    if deletion_type == 'all':
         request.user.session_set.update(is_deleted=True)
-    else:
+    elif deletion_type == 'exam':
+        exam_pk = request.POST.get('pk')
+        exam = Exam.objects.get(pk=exam_pk)
+        request.user.session_set.filter(exam=exam).update(is_deleted=True)
+    elif deletion_type == 'session':
         session_pk = request.POST.get('pk')
         session = Session.objects.get(pk=session_pk)
-
         # PERMISSION CHECK
         if session.submitter == request.user:
             session.is_deleted = True
             session.save()
         else:
-            raise Exception("You cannot delete this session.")
+            raise Exception("You cannot ask for forgiveness for this session.")
+
     return {}
 
 @csrf.csrf_exempt

@@ -116,7 +116,7 @@ tr td:last-child{
         $("#confirm-delete-all-modal .submit-button").click(function () {
 		        /* Send the data using post */
             $.ajax({url: "{% url 'exams:delete_session' %}",
-                    data: {'delete_all': true},
+                    data: {deletion_type: 'all'},
                     type: 'POST',
                     cahe: 'false',
                     success: function (data) {
@@ -151,7 +151,8 @@ tr td:last-child{
 						var pk = $(this).data('pk');
 		        /* Send the data using post */
             $.ajax({url: "{% url 'exams:delete_session' %}",
-                    data: {pk: pk},
+                    data: {deletion_type: 'session',
+                           pk: pk},
                     type: 'POST',
                     cahe: 'false',
                     success: function (data) {
