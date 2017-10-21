@@ -85,7 +85,6 @@ a:hover {
     <p>You searched for: <strong>{{ query }}</strong></p>
 
 {% if questions %}
-    <p>Found <strong>{{ questions.count }}</strong> question{{ questions|pluralize }}.</p>
 
 {% for question in questions %}
     <div class="card">
