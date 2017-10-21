@@ -119,7 +119,13 @@ class QuestionAutocomplete(autocomplete.Select2QuerySetView):
                               .order_by_submission()\
                               .filter(child_question__isnull=True)
         if self.q:
-            qs = qs.filter(pk=self.q)
+            try:
+                q = int(self.q)
+            except ValueError:
+                # If self.q is not an integer
+                qs = qs.none()
+            else:
+                qs = qs.filter(pk=q)
         return qs
 
     def get_result_label(self, item):
