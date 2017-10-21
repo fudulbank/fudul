@@ -499,9 +499,9 @@
 
         // Show contributors as a tooltip
         $("#contributors").tooltip('dispose');
-	$("#contributors").off('click').click(function(){
-	    _paq.push(['trackEvent', 'show_sessions', 'see-contributors', 'see-contributors']);
-	});
+      	$("#contributors").off('click').click(function(){
+      	    _paq.push(['trackEvent', 'show_sessions', 'see-contributors', 'see-contributors']);
+      	});
         $("#contributors").tooltip({html: true,
                                     trigger: 'click',
                                     title: $(".question-body.show .tooltip-body").get()[0]})
