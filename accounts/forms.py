@@ -15,7 +15,7 @@ class CustomSignupForm(SignupFormOnlyEmail):
                                      required=False)
     batch = forms.ModelChoiceField(queryset=models.Batch.objects.all(),
                                    required=False)    
-    mobile_number = forms.CharField(max_length=15)
+    mobile_number = forms.CharField(max_length=14)
 
     def clean(self, *args, **kwargs):
         cleaned_data = super(CustomSignupForm, self).clean(*args, **kwargs)
