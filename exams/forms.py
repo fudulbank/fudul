@@ -247,7 +247,7 @@ class SessionForm(forms.ModelForm):
         pks = []
         for question in questions_to_find_tree.distinct():
             tree = question.get_tree()
-            pks = [q.pk for q in tree if not q.pk in pks]
+            new_pks = [q.pk for q in tree if not q.pk in pks]
             pks += new_pks
         self.questions_with_tree = models.Question.objects\
                                                   .filter(pk__in=pks)
