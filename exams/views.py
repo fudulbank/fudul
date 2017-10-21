@@ -329,7 +329,7 @@ def list_revisions(request, slugs, exam_pk, pk):
     category = Category.objects.get_from_slugs(slugs)
     if not category:
         raise Http404
-    exam = get_object_or_404(Exam, pk=exam_pk)
+    exam = get_object_or_404(Exam, pk=exam_pk, category=category)
 
     # PERMISSION CHECK
     if not exam.can_user_edit(request.user):
