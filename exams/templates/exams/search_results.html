@@ -94,7 +94,7 @@ a:hover {
     {% if question.get_latest_approved_revision.figure %}
        <img class="img-responsive center-block" src="{{ question.get_latest_approved_revision.figure.url }}">
     {% endif %}
-    <p class="question-info">Q#{{ question.pk }} - {{ question.subjects.first.exam.name }}</p>
+    <p class="question-info">Q#{{ question.pk }} - {{ question.exam.name }}</p>
     <p class="question-text">{{ question.get_latest_approved_revision.text|linebreaksbr }}</p>
     <ol type="A">
      {% for choice in question.get_latest_approved_revision.choice_set.order_by_alphabet %}

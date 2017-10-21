@@ -24,10 +24,10 @@
     </div>
     <div class="panel-body">
             {% for revision in revisions %}
-                {% if revision.question.subjects.first.exam == exam %}
+                {% if revision.question.exam == exam %}
             <div {% if revision.is_approved %} class="panel panel-success panel-bordered panel-collapsed" {% else %}class="panel panel-flat panel-collapsed" {% endif %}>
              <div class="panel-heading">
-                 <div class="panel-title" ><a href="{% url 'exams:list_revisions' revision.question.subjects.first.exam.category.get_slugs revision.question.subjects.first.exam.pk revision.question.pk %}"><strong>{{ revision.pk }}:</strong>{{ revision.question.subjects.first.exam }}{{ revision.text|truncatewords:10 }}</a> <a class="heading-elements-toggle"></a></div>
+                 <div class="panel-title" ><a href="{% url 'exams:list_revisions' revision.question.exam.category.get_slugs revision.question.exam.pk revision.question.pk %}"><strong>{{ revision.pk }}:</strong>{{ revision.question.exam }}{{ revision.text|truncatewords:10 }}</a> <a class="heading-elements-toggle"></a></div>
                                 <div class="heading-elements">
 								<ul class="icons-list">
 			                		<li><a data-action="collapse" class="rotate-180" ></a></li>

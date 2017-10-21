@@ -41,7 +41,7 @@
 <div class="card">
   <div class="card-header">
     <div class="heading-elements">
-      <a href="{% url 'exams:submit_revision' question.subjects.first.exam.category.get_slugs question.subjects.first.exam.pk question.pk %}" class="btn btn-warning btn-rounded btn-xs"><i class="icon-pencil position-left"></i> Edit</a>
+      <a href="{% url 'exams:submit_revision' question.exam.category.get_slugs question.exam.pk question.pk %}" class="btn btn-warning btn-rounded btn-xs"><i class="icon-pencil position-left"></i> Edit</a>
     </div>
 	</div>
   <div class="card-body">
