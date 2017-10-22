@@ -188,12 +188,45 @@ class Question(models.Model):
                                            on_delete=models.SET_NULL,
                                            default=None)
 
+    # We have these fields to enable databse optimization to enable
+    # use of 'select_related'.
+    best_latest_revision = models.OneToOneField('Revision',
+                                                null=True,
+                                                blank=True,
+                                                related_name="best_latest_revision_of")
+    latest_explanation_revision = models.OneToOneField('ExplanationRevision',
+                                                       null=True,
+                                                       blank=True,
+                                                       related_name="latest_explanation_of")
+
     def __str__(self):
         latest_revision = self.get_latest_revision()
         if not latest_revision:
             return str(self.pk)
         return textwrap.shorten(latest_revision.text, 70,
                                 placeholder='...')
+
+    def update_latest(self):
+        latest_revision = self.get_latest_revision()
+        if latest_revision and not latest_revision.is_last:
+            self.revision_set.exclude(pk=latest_revision.pk)\
+                             .update(is_last=False)
+            latest_revision.is_last = True
+            latest_revision.save()
+
+        latest_explanation_revision = self.get_latest_explanation_revision()
+        if latest_explanation_revision and not latest_explanation_revision.is_last:
+            self.explanation_revisions.exclude(pk=latest_explanation_revision.pk)\
+                                      .update(is_last=False)
+            latest_explanation_revision.is_last = True
+            latest_explanation_revision.save()
+
+        best_latest_revision = self.get_best_latest_revision()
+        if self.latest_explanation_revision != latest_explanation_revision or \
+           self.best_latest_revision != best_latest_revision:
+            self.latest_explanation_revision = latest_explanation_revision
+            self.best_latest_revision = best_latest_revision
+            self.save()
 
     def is_incomplete(self):
         latest_revision = self.get_latest_revision() 
@@ -221,24 +254,24 @@ class Question(models.Model):
 
     def get_latest_approved_revision(self):
         return self.revision_set.filter(is_approved=True, is_deleted=False)\
-                                .order_by('-pk')\
-                                .first()
+                                .order_by('submission_date')\
+                                .last()
 
     def get_latest_revision_by_editor(self):
-        return self.revision_set.filter(is_deleted=False,is_contribution=False)\
-                                .order_by('-submission_date')\
-                                .first()
+        return self.revision_set.filter(is_deleted=False, is_contribution=False)\
+                                .order_by('submission_date')\
+                                .last()
 
     def get_latest_revision(self):
         return self.revision_set.filter(is_deleted=False)\
-                                .order_by('-submission_date')\
-                                .first()
+                                .order_by('submission_date')\
+                                .last()
 
     def get_latest_explanation_revision(self):
         return self.explanation_revisions\
                    .filter(is_deleted=False)\
-                   .order_by('-submission_date')\
-                   .first()
+                   .order_by('submission_date')\
+                   .last()
 
     def get_correct_others(self):
         correct_user_pks = Answer.objects.filter(question=self,
@@ -381,7 +414,9 @@ class Session(models.Model):
             return correct
 
     def get_questions(self):
-        questions = self.questions.undeleted()
+        questions = self.questions.select_related('best_latest_revision',
+                                                  'latest_explanation_revision')\
+                                  .undeleted()
         if self.question_filter != 'INCOMPLETE':
             questions = questions.approved()
         return questions
