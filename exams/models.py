@@ -195,8 +195,23 @@ class Question(models.Model):
         return textwrap.shorten(latest_revision.text, 70,
                                 placeholder='...')
 
+    def update_latest(self):
+        latest_revision = self.get_latest_revision()
+        if latest_revision and not latest_revision.is_last:
+            self.revision_set.exclude(pk=latest_revision.pk)\
+                             .update(is_last=False)
+            latest_revision.is_last = True
+            latest_revision.save()
+
+        latest_explanation_revision = self.get_latest_explanation_revision()
+        if latest_explanation_revision and not latest_explanation_revision.is_last:
+            self.explanation_revisions.exclude(pk=latest_explanation_revision.pk)\
+                                      .update(is_last=False)
+            latest_explanation_revision.is_last = True
+            latest_explanation_revision.save()
+
     def is_incomplete(self):
-        latest_revision = self.get_latest_revision() 
+        latest_revision = self.get_latest_revision()
         if self.issues.filter(is_blocker=True).exists() or \
            not latest_revision.choice_set.filter(is_right=True).exists() or \
            latest_revision.choice_set.count >= 1:
@@ -221,24 +236,24 @@ class Question(models.Model):
 
     def get_latest_approved_revision(self):
         return self.revision_set.filter(is_approved=True, is_deleted=False)\
-                                .order_by('-pk')\
-                                .first()
+                                .order_by('submission_date')\
+                                .last()
 
     def get_latest_revision_by_editor(self):
-        return self.revision_set.filter(is_deleted=False,is_contribution=False)\
-                                .order_by('-submission_date')\
-                                .first()
+        return self.revision_set.filter(is_deleted=False, is_contribution=False)\
+                                .order_by('submission_date')\
+                                .last()
 
     def get_latest_revision(self):
         return self.revision_set.filter(is_deleted=False)\
-                                .order_by('-submission_date')\
-                                .first()
+                                .order_by('submission_date')\
+                                .last()
 
     def get_latest_explanation_revision(self):
         return self.explanation_revisions\
                    .filter(is_deleted=False)\
-                   .order_by('-submission_date')\
-                   .first()
+                   .order_by('submission_date')\
+                   .last()
 
     def get_correct_others(self):
         correct_user_pks = Answer.objects.filter(question=self,
@@ -473,7 +488,7 @@ class AnswerCorrection(models.Model):
     opposing_users = models.ManyToManyField(User, blank=True,
                                             related_name="opposed_corrections")
     submitter = models.ForeignKey(User)
-    justification = models.TextField(default="")    
+    justification = models.TextField(default="")
     submission_date = models.DateTimeField(auto_now_add=True)
 
 class ExplanationRevision(models.Model):
@@ -483,7 +498,7 @@ class ExplanationRevision(models.Model):
                                   related_name="submitted_explanations")
 
     explanation_text = models.TextField(default="")
-    reference = models.TextField(default="", blank=True)    
+    reference = models.TextField(default="", blank=True)
     explanation_figure = models.ImageField(upload_to="explanation_images",
                                            blank=True)
 

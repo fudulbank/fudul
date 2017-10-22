@@ -186,7 +186,7 @@ def handle_question(request, exam_pk, question_pk=None):
                                                         instance=revision)
     explanation_form = forms.ExplanationForm(request.POST,
                                              request.FILES,
-                                             instance=revision,
+                                             instance=explanation,
                                              is_optional=True)
 
     if question_form.is_valid() and \
@@ -200,15 +200,17 @@ def handle_question(request, exam_pk, question_pk=None):
         revision.save()
         revision_form.save_m2m()
 
+
         revisionchoiceformset.instance = revision
         revisionchoiceformset.save()
 
         # This test relies on choices, so the choices have to be saved
-        # before.
+        # before
         revision.is_approved = utils.test_revision_approval(revision)
         revision.save()
 
-        explanation_form.save()
+        explanation.question = question
+        explanation = explanation_form.save()
 
         template = get_template('exams/partials/exam_stats.html')
         context = {'exam': exam}
@@ -267,7 +269,7 @@ def list_questions(request, slugs, pk, selector=None):
                 context['list_name'] = "non-blocking issues"
             elif selector == 'approved':
                 questions = question_pool.with_approved_latest_revision()
-                context['list_name'] = "approved latesting revision"                
+                context['list_name'] = "approved latesting revision"
             elif selector == 'pending':
                 questions = question_pool.with_pending_latest_revision()
                 context['list_name'] = "pending latesting revision"
@@ -698,7 +700,8 @@ def contribute_explanation(request):
 @csrf.csrf_exempt
 def contribute_revision(request):
     question_pk = request.GET.get('question_pk')
-    question = get_object_or_404(Question, pk=question_pk)
+    question = get_object_or_404(Question.objects.undeleted(),
+                                 pk=question_pk)
     latest_revision = question.get_latest_revision()
 
     if request.method == 'GET':
@@ -802,6 +805,9 @@ def delete_revision(request, pk):
     if not question.revision_set.undeleted().count():
         question.is_deleted = True
         question.save()
+    else:
+        # Mark the new last revision as such
+        question.update_latest()
 
     return {}
 
@@ -826,6 +832,9 @@ def delete_explanation_revision(request, pk):
 
     explanation_revision.is_deleted = True
     explanation_revision.save()
+
+    # Mark the new last explanation as such
+    question.update_latest()
 
     return {}
 
