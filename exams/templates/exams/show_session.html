@@ -376,6 +376,11 @@
             success: function(data){
                $(".question-body.show").data('is-marked', data.is_marked);
                handleMarked(data.is_marked);
+               if (data.is_marked){
+                 _paq.push(['trackEvent', 'show_session', 'mark-question', 'add-mark']);
+               } else {
+                 _paq.push(['trackEvent', 'show_session', 'mark-question', 'remove-mark']);
+               }
                $("#mark-icon").show();
                $("#mark-loading").hide();
 
@@ -504,7 +509,7 @@
         // Show contributors as a tooltip
         $("#contributors").tooltip('dispose');
       	$("#contributors").off('click').click(function(){
-      	    _paq.push(['trackEvent', 'show_sessions', 'see-contributors', 'see-contributors']);
+      	    _paq.push(['trackEvent', 'show_session', 'see-contributors', 'see-contributors']);
       	});
         $("#contributors").tooltip({html: true,
                                     trigger: 'click',
@@ -626,7 +631,7 @@
                                trigger: 'click',
                                title: help_me_tooltip})
          $("#help-me").click(function(){
-           _paq.push(['trackEvent', 'show_sessions', 'click-get-help', 'click-get-help']);
+           _paq.push(['trackEvent', 'show_session', 'click-get-help', 'click-get-help']);
          });
 
         pool_url = "{% url 'exams:list_session_questions' %}?" + $.param({ {% if current_question_pk %}question_pk: {{ current_question_pk }},{% endif %}
