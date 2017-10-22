@@ -69,7 +69,7 @@ tr td:last-child{
                <div class="dropdown">
                  <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="ft-settings"></i> Actions</button>
                  <div class="dropdown-menu">
-                   {% if session.session_mode != 'SOLVED' and not session.has_finished %}
+                   {% if session.session_mode == 'SOLVED' or session.session_mode == 'INCOMPLETE' or not session.has_finished %}
                    <a class="dropdown-item" href="{% url 'exams:show_session' session.exam.category.get_slugs session.exam.pk session.pk %}"><i class="ft-play"></i> Resume</a>
                    {% else %}
                    <a class="dropdown-item" href="{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}"><i class="ft-list"></i> View results</a>

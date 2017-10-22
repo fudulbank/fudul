@@ -10,7 +10,7 @@
    {% for session in latest_sessions %}
    <tr>
        <td data-html="true" data-toggle="tooltip" title="{{ session.get_questions.count }} questions on: <ul>{% for subject in session|get_session_subjects %}<li>{{ subject.name }}</li>{% endfor %}</ul>">
-         {% if session.session_mode != 'SOLVED' and not session.has_finished %}
+         {% if session.session_mode == 'SOLVED' or session.session_mode == 'INCOMPLETE' or not session.has_finished %}
                  <a href="{% url 'exams:show_session' session.exam.category.get_slugs session.exam.pk session.pk %}"> {{ session.exam.name }} (#{{ session.pk }})</a>
          {% else %}
                  <a href="{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}"> {{ session.exam.name }} (#{{ session.pk }})</a>

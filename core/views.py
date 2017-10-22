@@ -18,10 +18,11 @@ import teams.utils
 def show_index(request):
     if request.user.is_authenticated():
 
-        latest_sessions = exams_models.Session.objects.undeleted()\
-                                                      .filter(submitter=request.user)\
-                                                      .with_accessible_questions()\
-                                                      .order_by('-pk')[:8]
+        latest_sessions = request.user.session_set.select_related('exam',
+                                                                  'exam__category')\
+                                                  .undeleted()\
+                                                  .with_accessible_questions()\
+                                                  .order_by('-pk')[:8]
         context = {'latest_sessions': latest_sessions}
         if teams.utils.is_editor(request.user):
             revision_pool = exams_models.Revision.objects.undeleted()\
