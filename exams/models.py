@@ -197,18 +197,20 @@ class Question(models.Model):
 
     def update_latest(self):
         latest_revision = self.get_latest_revision()
-        if latest_revision and not latest_revision.is_last:
+        if latest_revision:
             self.revision_set.exclude(pk=latest_revision.pk)\
                              .update(is_last=False)
-            latest_revision.is_last = True
-            latest_revision.save()
+            if not latest_revision.is_last:
+                latest_revision.is_last = True
+                latest_revision.save()
 
         latest_explanation_revision = self.get_latest_explanation_revision()
-        if latest_explanation_revision and not latest_explanation_revision.is_last:
+        if latest_explanation_revision:
             self.explanation_revisions.exclude(pk=latest_explanation_revision.pk)\
                                       .update(is_last=False)
-            latest_explanation_revision.is_last = True
-            latest_explanation_revision.save()
+            if not latest_explanation_revision.is_last:
+                latest_explanation_revision.is_last = True
+                latest_explanation_revision.save()
 
     def is_incomplete(self):
         latest_revision = self.get_latest_revision()
