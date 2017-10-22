@@ -96,8 +96,10 @@ class RevisionForm(forms.ModelForm):
         new_revision.save()
         self.save_m2m()
 
-        # Mark the last revision as such
-        question.update_latest()
+        # Make sure that all previous revisions are set to
+        # is_last=False
+        question.revision_set.exclude(pk=new_revision.pk)\
+                             .update(is_last=False)
 
         return new_revision
 
@@ -146,15 +148,13 @@ class SessionForm(forms.ModelForm):
 
         self.fields['session_mode'].widget = forms.RadioSelect(choices=models.session_mode_choices[:-1])
 
-        common_pool = self.exam.question_set.select_related('parent_question',
-                                                            'child_question')
-        self.question_pools = {'ALL': common_pool.approved(),
-                               'UNUSED': common_pool.approved().unused_by_user(self.user),
-                               'INCORRECT': common_pool.approved().incorrect_by_user(self.user),
-                               'MARKED': common_pool.approved().filter(marking_users=self.user),
-                               'INCOMPLETE': common_pool.with_blocking_issues() |\
-                                             common_pool.unsolved() |\
-                                             common_pool.lacking_choices()
+        self.question_pools = {'ALL': self.exam.question_set.approved(),
+                               'UNUSED': self.exam.question_set.approved().unused_by_user(self.user),
+                               'INCORRECT': self.exam.question_set.approved().incorrect_by_user(self.user),
+                               'MARKED': self.exam.question_set.approved().filter(marking_users=self.user),
+                               'INCOMPLETE': self.exam.question_set.with_blocking_issues() |\
+                                             self.exam.question_set.unsolved() |\
+                                             self.exam.question_set.lacking_choices()
                                }
 
         filter_choices = []
@@ -280,31 +280,29 @@ class ExplanationForm(forms.ModelForm):
         if self.is_optional:
             self.fields['explanation_text'].required = False
 
-    def save(self,  commit=True):
+    def clone(self, question, user):
         if self.is_optional and \
            (not 'explanation_text' in self.cleaned_data or \
             'explanation_text' in self.cleaned_data and \
             not self.cleaned_data['explanation_text']):
             return
-        return super(ExplanationForm, self).save(commit=commit)
 
-    def clone(self, question, user):
         # If nothing has changed, don't create a new instance.
         if self.instance.pk and \
            not self.changed_data:
             return
 
         new_explanation = self.save(commit=False)
-        if not new_explanation:
-            return
         new_explanation.pk = None
         new_explanation.is_last = True
         new_explanation.submitter = user
         new_explanation.question = question
         new_explanation.save()
 
-        # Mark the last explanation as such
-        question.update_latest()
+        # Make sure that all previous explanations are set to
+        # is_last=False
+        question.explanation_revisions.exclude(pk=new_explanation.pk)\
+                                      .update(is_last=False)
 
         return new_explanation
 

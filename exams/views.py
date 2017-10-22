@@ -186,7 +186,7 @@ def handle_question(request, exam_pk, question_pk=None):
                                                         instance=revision)
     explanation_form = forms.ExplanationForm(request.POST,
                                              request.FILES,
-                                             instance=explanation,
+                                             instance=revision,
                                              is_optional=True)
 
     if question_form.is_valid() and \
@@ -200,22 +200,15 @@ def handle_question(request, exam_pk, question_pk=None):
         revision.save()
         revision_form.save_m2m()
 
-
         revisionchoiceformset.instance = revision
         revisionchoiceformset.save()
 
         # This test relies on choices, so the choices have to be saved
-        # before
+        # before.
         revision.is_approved = utils.test_revision_approval(revision)
         revision.save()
 
-        explanation.question = question
-        explanation = explanation_form.save()
-
-        # Set optimization fields
-        question.best_latest_revision = revision
-        question.latest_explanation_revision = explanation
-        question.save()
+        explanation_form.save()
 
         template = get_template('exams/partials/exam_stats.html')
         context = {'exam': exam}
@@ -299,16 +292,14 @@ def list_questions(request, slugs, pk, selector=None):
 @require_safe
 @login_required
 def show_question(request, pk, revision_pk=None):
-    question = get_object_or_404(Question.objects.select_related('exam',
-                                                                 'best_latest_revision',
-                                                                 'latest_explanation_revision'),
-                                 pk=pk)
+    
+    question = get_object_or_404(Question, pk=pk, is_deleted=False)
     if revision_pk:
         revision = get_object_or_404(Revision, pk=revision_pk)
         explanation_revision = None
     else:
-        revision = question.best_latest_revision
-        explanation_revision = question.latest_explanation_revision
+        revision = question.get_best_latest_revision()
+        explanation_revision = question.get_latest_explanation_revision()
 
     exam = question.exam
 
@@ -676,10 +667,9 @@ def show_category_indicators(request, category):
 @csrf.csrf_exempt
 def contribute_explanation(request):
     question_pk = request.GET.get('question_pk')
-    question = get_object_or_404(Question.objects.undeleted()\
-                                                 .select_related('latest_explanation_revision'),
-                                 pk=question_pk)
-    instance = question.latest_explanation_revision
+    question = get_object_or_404(Question, pk=question_pk,
+                                 is_deleted=False)
+    instance = question.get_latest_explanation_revision()
 
     if request.method == 'GET':
         form = forms.ExplanationForm(instance=instance)
@@ -708,8 +698,7 @@ def contribute_explanation(request):
 @csrf.csrf_exempt
 def contribute_revision(request):
     question_pk = request.GET.get('question_pk')
-    question = get_object_or_404(Question.objects.undeleted(),
-                                 pk=question_pk)
+    question = get_object_or_404(Question, pk=question_pk)
     latest_revision = question.get_latest_revision()
 
     if request.method == 'GET':
@@ -813,9 +802,6 @@ def delete_revision(request, pk):
     if not question.revision_set.undeleted().count():
         question.is_deleted = True
         question.save()
-    else:
-        # Mark the new last revision as such
-        question.update_latest()
 
     return {}
 
@@ -841,9 +827,6 @@ def delete_explanation_revision(request, pk):
     explanation_revision.is_deleted = True
     explanation_revision.save()
 
-    # Mark the new last explanation as such
-    question.update_latest()
-
     return {}
 
 @csrf.csrf_exempt
@@ -864,10 +847,6 @@ def mark_revision_approved(request, pk):
     revision.approved_by= request.user
     revision.save()
 
-    # Upon changing approval status, we need to update
-    # best_latest_revision
-    revision.question.update_latest()
-
 @require_POST
 @decorators.ajax_only
 @csrf.csrf_exempt
@@ -886,9 +865,6 @@ def mark_revision_pending(request, pk):
     revision.approved_by= request.user
     revision.save()
 
-    # Upon changing approval status, we need to update
-    # best_latest_revision
-    revision.question.update_latest()
 
 @login_required
 def approve_question(request, slugs, exam_pk, pk):
