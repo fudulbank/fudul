@@ -495,5 +495,5 @@ class ExplanationRevision(models.Model):
     objects = managers.RevisionQuerySet.as_manager()
 
     def __str__(self):
-        return textwrap.shorten(self.text, 70,
+        return textwrap.shorten(self.explanation_text, 70,
                                 placeholder='...')
