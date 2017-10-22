@@ -129,7 +129,7 @@
         {% for revision in question.revision_set.undeleted.order_by_submission %}
             <tr data-url="{% url 'exams:show_question' question.pk revision.pk %}" data-pk="{{ revision.pk }}">
             <td>{{ revision.pk }}</td>
-            <td>{% get_user_representation revision.submitter %}</td>
+            <td>{{ revision.submitter|get_user_credit:user }}</td>
             <td data-order="{{ revision.submission_date|date:'U' }}">{{ revision.submission_date }}</td>
             <td class="approval_status {% if revision.is_approved %}text-success{% else %}text-danger{% endif %}">{% if revision.is_approved %}Yes {% if revision.approved_by %}({% get_user_representation revision.approved_by %}){% endif %}{% else %}No{% endif %}</td>
             <td>{{ revision.change_summary|default:'-' }}</td>
@@ -165,7 +165,7 @@
             {% for explanation_revision in question.explanation_revisions.undeleted.order_by_submission %}
                 <tr data-url="{% url 'exams:show_explanation_revision' explanation_revision.pk %}" data-pk="{{ explanation_revision.pk }}">
                 <td>{{ explanation_revision.pk }}</td>
-                <td>{% get_user_representation explanation_revision.submitter %}</td>
+                <td>{{ explanation_revision.submitter|get_user_credit:user }}</td>
                 <td data-order="{{ explanation_revision.submission_date|date:'U' }}">{{ explanation_revision.submission_date }}</td>
                 {% if is_editor %}
                 <td>
