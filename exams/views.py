@@ -95,10 +95,9 @@ def add_question(request, slugs, pk):
 
     # PERMISSION CHECK
     exam = get_object_or_404(Exam, pk=pk, category=category)
-    # if not exam.can_user_edit(request.user):
-    #     raise PermissionDenied
-    editor = exam.can_user_edit(request.user)
+
     instance = Question(exam=exam)
+
     context = {'exam': exam,
                'question_form': forms.QuestionForm(instance=instance),
                'revision_form': forms.RevisionForm(),
@@ -241,7 +240,7 @@ def list_questions(request, slugs, pk, selector=None):
     exam = get_object_or_404(Exam, pk=pk, category=category)
 
     # PERMISSION CHECK
-    if not exam.can_user_edit(request.user):
+    if not exam.can_user_access(request.user):
         raise PermissionDenied
 
     context = {'exam': exam,
@@ -295,7 +294,9 @@ def list_questions(request, slugs, pk, selector=None):
 @login_required
 def show_question(request, pk, revision_pk=None):
     
-    question = get_object_or_404(Question, pk=pk, is_deleted=False)
+    question = get_object_or_404(Question.objects.select_related('exam'),
+                                 pk=pk,
+                                 is_deleted=False)
     if revision_pk:
         revision = get_object_or_404(Revision, pk=revision_pk)
         explanation_revision = None
@@ -303,10 +304,8 @@ def show_question(request, pk, revision_pk=None):
         revision = question.get_best_latest_revision()
         explanation_revision = question.get_latest_explanation_revision()
 
-    exam = question.exam
-
     # PERMISSION CHECK
-    if not exam.can_user_edit(request.user):
+    if not question.exam.can_user_access(request.user):
         raise PermissionDenied
 
     context = {'revision': revision,
@@ -325,7 +324,7 @@ def show_explanation_revision(request, pk):
     exam = explanation_revision.question.exam
 
     # PERMISSION CHECK
-    if not exam.can_user_edit(request.user):
+    if not exam.can_user_access(request.user):
         raise PermissionDenied
 
     context = {'explanation_revision': explanation_revision}
