@@ -59,11 +59,14 @@ p.question-text{
             </div>
 
  <div class="row">
-     <div class="col-md-6">
-         <button data-pk="{{ revision.pk }}" data-url="{% url 'exams:delete_revision' revision.pk %}" type="button" class="btn btn-danger btn-rounded btn-sm pull-left confirm-delete-revision"><i class=" icon-cross2 position-left"></i> Delete revision</button>
+     <div class="col-sm-4">
+         <button data-pk="{{ revision.pk }}" data-url="{% url 'exams:delete_revision' revision.pk %}" type="button" class="btn btn-danger btn-rounded btn-sm pull-left confirm-delete-revision"><i class="ft-trash-2"></i> Delete revision</button>
      </div>
-     <div class="col-md-6">
-         <button data-pk="{{ revision.pk }}" data-url="{% url 'exams:mark_revision_approved' revision.pk %}" type="button" class="btn btn-primary btn-rounded btn-sm pull-right approve-revision"><i class=" icon-add position-left"></i> Approve revision</button>
+     <div class="col-sm-4 text-xs-center">
+         <a href="{% url 'exams:submit_revision' revision.question.exam.category.get_slugs revision.question.exam.pk revision.question.pk %}" class="btn btn-warning btn-rounded btn-sm confirm-delete-revision"><i class="ft-edit-2"></i> Edit question</a>
+     </div>
+     <div class="col-sm-4">
+         <button data-pk="{{ revision.pk }}" data-url="{% url 'exams:mark_revision_approved' revision.pk %}" type="button" class="btn btn-primary btn-rounded btn-sm pull-right approve-revision"><i class="ft-check-circle"></i> Approve revision</button>
      </div>
  </div>
 </div>
