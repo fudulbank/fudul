@@ -37,7 +37,7 @@
         </div><!--card-body-->
     </div> <!--card-->
 </div> <!--col-->
-{% if editor %}
+{% if exam.category|is_editor:user %}
 <div class="col-md-4">
     <div id="exam-stats" class="card">
        <div class="card-header">

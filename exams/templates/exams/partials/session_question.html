@@ -1,4 +1,4 @@
-{% load static exam_utils %}
+{% load static exam_utils account_utils %}
 {% with explanation_revision=question.get_latest_explanation_revision best_latest_revision=question.get_best_latest_revision was_solved=question|was_solved_in_session:session %}
 {% with highlight=best_latest_revision|get_relevant_highlight:session %}
 <div class="question-body well-sm{% if question == current_question %} show{% endif %}" data-best-latest-revision-pk="{{ best_latest_revision.pk }}" data-list-revision-url="{% url 'exams:list_revisions' category_slugs session.exam.pk question.pk %}" data-url="{{ question|get_session_url:session }}" data-question-sequence="{{ question_sequence }}" data-question-pk="{{ question.pk }}" data-is-marked="{% if question|is_question_marked:user %}true{% else %}false{% endif %}" data-was-solved="{% if was_solved %}true{% else %}false{% endif %}">
@@ -30,12 +30,12 @@
   <div class="tooltip-body">
     {% for contributor in question.get_contributors %}
       {% if forloop.first %}
-          This question was originally added by {% if contributor %}<a href="{% url 'exams:list_contributions' contributor.pk %}">{{ contributor.profile.nickname|default:contributor.username }}</a>. {% else %} automatic importing.{% endif %}
+          This question was originally added by {% if contributor %}<a href="{% url 'exams:list_contributions' contributor.pk %}">{{ contributor|get_user_credit }}</a>. {% else %} automatic importing.{% endif %}
         {% if question.get_contributors|length > 1 %}
         Futher contributions were done by
         {% endif %}
       {% else %}
-        {{ contributor.profile.nickname|default:contributor.username }}{% if forloop.last %}.{% else %}, {% endif %}
+        {{ contributor|get_user_credit }}{% if forloop.last %}.{% else %}, {% endif %}
     {% endif %}
       {% endfor %}
   </div>

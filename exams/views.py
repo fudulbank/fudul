@@ -337,17 +337,14 @@ def list_revisions(request, slugs, exam_pk, pk):
     category = Category.objects.get_from_slugs(slugs)
     if not category:
         raise Http404
-    exam = get_object_or_404(Exam, pk=exam_pk, category=category)
 
-    # PERMISSION CHECK
-    if not exam.can_user_edit(request.user):
-        raise PermissionDenied
-
-    question = get_object_or_404(Question, pk=pk,
+    question = get_object_or_404(Question.objects.select_related('exam',
+                                                                 'exam__category'),
+                                 pk=pk,
                                  is_deleted=False)
     context = {'question': question,
                'is_browse_active': True,
-               'exam': exam}
+               'exam': question.exam}
     return render(request, 'exams/list_revisions.html', context)
 
 @login_required
@@ -365,8 +362,7 @@ def submit_revision(request, slugs, exam_pk, pk):
     # PERMISSION CHECK
     # if not exam.can_user_edit(request.user):
     #     raise PermissionDenied
-    editor = exam.can_user_edit(request.user)
-    context = {'editor':editor, 'exam': exam, 'revision': latest_revision}
+    context = {'exam': exam, 'revision': latest_revision}
 
     if request.method == 'POST':
         question_form = forms.QuestionForm(request.POST,
@@ -559,7 +555,7 @@ def toggle_marked(request):
                                  is_deleted=False)
 
     # PERMISSION CHECKS
-    if not session.can_user_access(request.user):
+    if not session.submitter == request.user:
         raise Exception("You cannot mark questions in this session.")
 
     if utils.is_question_marked(question, request.user):
@@ -576,12 +572,13 @@ def toggle_marked(request):
 @login_required
 @csrf.csrf_exempt
 def submit_highlight(request):
-    # PERMISSION CHECKS
     session_pk = request.POST.get('session_pk')
     session = get_object_or_404(Session.objects.undeleted(),
                                 pk=session_pk)
-    if not session.can_user_access(request.user):
-        raise PermissionDenied
+
+    # PERMISSION CHECKS
+    if not session.submitter == request.user:
+        raise Exception("You cannot highlight a question in this session.")
 
     best_latest_revision_pk = request.POST.get('best_latest_revision_pk')
     best_latest_revision = get_object_or_404(Revision,
