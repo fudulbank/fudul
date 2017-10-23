@@ -700,7 +700,8 @@ def contribute_revision(request):
     latest_revision = question.get_latest_revision()
 
     if request.method == 'GET':
-        revision_form = forms.RevisionForm(instance=latest_revision)
+        revision_initial = {'change_summary': ''}
+        revision_form = forms.RevisionForm(instance=latest_revision, initial=revision_initial)
         revisionchoiceformset = forms.ContributedRevisionChoiceFormset(instance=latest_revision)
     elif request.method == 'POST':
         revision_form = forms.RevisionForm(request.POST,
