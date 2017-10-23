@@ -326,6 +326,11 @@ class Revision(models.Model):
     #NOTE:colud be a model instead
     approved_by = models.ForeignKey(User,related_name="approved_revision",null=True, blank=True)
 
+    def get_previous(self):
+        return self.question.revision_set\
+                            .filter(submission_date__lt=self.submission_date)\
+                            .order_by('submission_date').last()
+
     def get_right_choice(self):
         return self.choice_set.filter(is_right=True).first()
 

@@ -127,7 +127,7 @@
         </thead>
         <tbody>
         {% for revision in question.revision_set.undeleted.order_by_submission %}
-            <tr data-url="{% url 'exams:show_question' question.pk revision.pk %}" data-pk="{{ revision.pk }}">
+            <tr data-url="{% url 'exams:show_revision_comparison' revision.pk %}" data-pk="{{ revision.pk }}">
             <td>{{ revision.pk }}</td>
             <td>{{ revision.submitter|get_user_credit:user }}</td>
             <td data-order="{{ revision.submission_date|date:'U' }}">{{ revision.submission_date }}</td>
@@ -217,7 +217,7 @@
 
             $("#show-revision-modal").modal('show');
 
-            $("#show-revision-modal .modal-title").html("Revision #" + revision_pk + " of " + title_part);
+            $("#show-revision-modal .modal-title").html("Revision #" + revision_pk);
             $("#show-revision-modal .modal-body").load(url);
             $("#show-revision-modal .modal-header").addClass('bg-primary')
 

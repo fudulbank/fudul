@@ -755,19 +755,17 @@ def approve_user_contributions(request,slugs,exam_pk):
 # COMPAIN WITH SHOW_QUESTION IF NO FURTHER CHANGE IS DONE
 @login_required
 @decorators.ajax_only
-def show_revision_comparison(request, pk):
+def show_revision_comparison(request, pk, review=False):
     revision = get_object_or_404(Revision.objects.select_related('question',
                                                                  'question__exam'),
                                  pk=pk, is_deleted=False)
-    previous_revision = revision.question.revision_set\
-                                         .filter(submission_date__lt=revision.submission_date)\
-                                         .order_by('submission_date').last()
 
     # PERMISSION CHECK
     if not revision.question.exam.can_user_edit(request.user):
         raise PermissionDenied
 
-    context = {'revision': revision, 'previous_revision': previous_revision}
+    context = {'revision': revision,
+               'review': bool(review)}
     return render(request, 'exams/partials/show_revision_comparison.html', context)
 
 @csrf.csrf_exempt

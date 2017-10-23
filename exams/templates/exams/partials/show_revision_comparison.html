@@ -1,8 +1,10 @@
 {% load bootstrap3 %}{% load staticfiles %}
+{% with previous_revision=revision.get_previous %}
 <div class="card">
   <div class="card-body">
     <div class="card-block new-revision">
       <h2 class="card-title">Changes</h2>
+      {% if previous_revision %}
       {% with previous_right_choice=previous_revision.get_right_choice new_right_choice=revision.get_right_choice %}
       <ul>
         {% if revision.change_summary %}
@@ -29,9 +31,16 @@
         {% endif %}
       </ul>
       {% endwith %}
+      {% else %}
+      <p>This was the first revision in question #{{ revision.question.pk }}</p>
+      {% endif %}
     </div>
     <div class="card-block new-revision">
+      {% if review %}
       <h2 class="card-title">Newer revision of question #{{ revision.question.pk }}</h2>
+      {% else %}
+      <h2 class="card-title">Revision #{{ revision.pk }}</h2>
+      {% endif %}
       {% if revision.figure %}<img class="img-fluid" src="{{ revision.figure.url }}">{% endif %}
       <p class="revision-text">{{ revision.text }}</p>
       <ul>
@@ -40,19 +49,21 @@
          {% endfor %}
       </ul>
     </div>
-    <div class="card-block previous-revision">
-      <h2 class="card-title">Previous revision of question #{{ revision.question.pk }}</h2>
-      {% if previous_revision.figure %}<img class="img-fluid"  src="{{ previous_revision.figure.url }}">{% endif %}
-      <p class="revision-text">{{ previous_revision.text }}</p>
-      <ul>
-         {% for choice in previous_revision.choice_set.order_by_alphabet %}
-           <li data-choice-order="{{ forloop.counter }}" {% if choice.is_right %}class="choice-text text-bold-700 success darken-4"{% endif %}>{{ choice.text|linebreaksbr }}</li>
-         {% endfor %}
-      </ul>
-    </div>
+    {% if review %}
+      <div class="card-block previous-revision">
+        <h2 class="card-title">Previous revision of question #{{ revision.question.pk }}</h2>
+        {% if previous_revision.figure %}<img class="img-fluid"  src="{{ previous_revision.figure.url }}">{% endif %}
+        <p class="revision-text">{{ previous_revision.text }}</p>
+        <ul>
+           {% for choice in previous_revision.choice_set.order_by_alphabet %}
+             <li data-choice-order="{{ forloop.counter }}" {% if choice.is_right %}class="choice-text text-bold-700 success darken-4"{% endif %}>{{ choice.text|linebreaksbr }}</li>
+           {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
   </div>
 </div>
-
+{% if review %}
  <div class="row">
      <div class="col-sm-4">
          <button data-pk="{{ revision.pk }}" data-url="{% url 'exams:delete_revision' revision.pk %}" type="button" class="btn btn-danger btn-rounded btn-sm pull-left confirm-delete-revision"><i class="ft-trash-2"></i> Delete revision</button>
@@ -64,6 +75,7 @@
          <button data-pk="{{ revision.pk }}" data-url="{% url 'exams:mark_revision_approved' revision.pk %}" type="button" class="btn btn-primary btn-rounded btn-sm pull-right approve-revision"><i class="ft-check-circle"></i> Approve revision</button>
      </div>
  </div>
+{% endif %}
 </div>
 
 {% if previous_revision.text.strip != revision.text.strip %}
@@ -92,3 +104,5 @@ diff.forEach(function(part){
 display.appendChild(fragment);
 </script>
 {% endif %}
+
+{% endwith %}{# revision.get_previous #}
