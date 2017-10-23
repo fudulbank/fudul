@@ -24,10 +24,12 @@ class Profile(UserenaBaseProfile):
     def get_full_name(self):
         # If the first name is missing, let's assume the rest is also
         # missing.
+        full_name = ''
+
         if self.first_name:
-            fullname = " ".join([self.first_name, self.middle_name,
-                                 self.last_name])
-            return fullname        
+            full_name = " ".join([self.first_name, self.middle_name,
+                                  self.last_name])
+        return full_name
 
 class Batch(models.Model):
     name = models.CharField(max_length=50)
