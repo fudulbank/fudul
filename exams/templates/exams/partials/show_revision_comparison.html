@@ -15,7 +15,7 @@
         {% elif not previous_right_choice and new_right_choice %}
         <li class="warning darken-4">The right answer was set to be <em>"{{ new_right_choice.text }}"</em>.</li>
         {% elif previous_right_choice and not new_right_choice %}
-        <li class="warning darken-4">The right answer was removed and it is no  longer <em>"{{ previous_right_choice.text }}"</em>.</li>
+        <li class="warning darken-4">The right answer was removed and it is no  longer <em>"{{ previous_right_choice.text }}"</em>.  With this revision, the question no longer has a right answer.</li>
         {% elif  previous_right_choice and new_right_choice and previous_right_choicetext == new_right_choice %}
         <li class="success darken-4">The right answer was <strong>not</strong> changed.</li>
         {% endif %}
