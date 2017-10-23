@@ -326,6 +326,8 @@ class Revision(models.Model):
     #NOTE:colud be a model instead
     approved_by = models.ForeignKey(User,related_name="approved_revision",null=True, blank=True)
 
+    def get_right_choice(self):
+        return self.choice_set.filter(is_right=True).first()
 
     def has_right_answer(self):
         return self.choice_set.filter(is_right=True).exists()

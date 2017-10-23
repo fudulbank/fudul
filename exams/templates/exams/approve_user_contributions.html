@@ -2,6 +2,7 @@
 {% block title %}Fudul | {{ exam.name }}: Pending contributions{% endblock %}
 
 {% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/3.4.0/diff.min.js" integrity="sha384-D4IHb2nval9FgYypLU0M14M+Lsi1iZYPH7jBkuHIlGLBF9jKSkj179T+D7WC/skd" crossorigin="anonymous"></script>
 <link rel="stylesheet" type="text/css" href="{% static 'stack/vendors/css/tables/datatable/dataTables.bootstrap4.min.css' %}">
 {% endblock %}
 
@@ -35,7 +36,8 @@
              <table id="revisions" class="table table-striped table-bordered datatable dt-responsive">
               <thead>
                   <tr>
-                      <th data-priority="1">Question #</th>
+                      <th data-priority="1">Question id</th>
+                      <th data-priority="1">Revision id</th>
                       <th data-priority="2">Submitter</th>
                       <th data-priority="4">Date of Submission</th>
                       <th data-priority="3">Change Summary</th>
@@ -43,8 +45,9 @@
               </thead>
               <tbody>
               {% for revision in revisions %}
-                  <tr data-url="{% url 'exams:show_revision_comparison' revision.question.pk revision.pk %}" data-pk="{{ revision.pk }}">
+                  <tr data-url="{% url 'exams:show_revision_comparison' revision.pk %}" data-pk="{{ revision.pk }}">
                   <td>{{ revision.question.pk }}</td>
+                  <td>{{ revision.pk }}</td>
                   <td>{% get_user_representation revision.submitter %} {% if not number_of_contributions == 0 %}[{{ number_of_contributions }}]{% endif %}</td>
                   <td data-order="{{ revision.submission_date|date:'U'}}">{{ revision.submission_date }}</td>
                   <td>{% if revision.change_summary %}{{ revision.change_summary }}{% else %} No Summary {% endif %}</td>
@@ -100,8 +103,8 @@
 
 <script>
     $(function(){
-        review_tables = $("#revisions,#questions").DataTable({
-            order: [[ 2, "desc" ]]
+        review_tables = $("#revisions, #questions").DataTable({
+            order: [[ 3, "desc" ]]
         });
 
         // initialize project edit modal
@@ -117,7 +120,7 @@
 
                 $("#show-revision-modal").modal('show');
 
-            $("#show-revision-modal .modal-title").html("Revision of" + title_part);
+            $("#show-revision-modal .modal-title").html("Revision #" + title_part);
             $("#show-revision-modal .modal-body").load(url, initializeReview);
             $("#show-revision-modal .modal-header").addClass('bg-primary')
           });

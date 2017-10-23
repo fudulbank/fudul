@@ -1,72 +1,94 @@
 {% load bootstrap3 %}{% load staticfiles %}
-<style>
-.panel-body a {
-    color: white;
-    font-size: medium;
-    font-weight: bold;
-    margin-top: auto
-}
-.img-responsive {
-    padding: 0;
-    max-width: 100%;
-    max-height: 100%;
-    width: 100%;
-    height: 100%;
-    margin-right: 20%;
-}
-li.is-answer{
-    font-weight: 800;
-}
-p.question-text{
-    font-size: medium;
-    font-weight: 800;
-}
-</style>
-    <div class="panel panel-flat">
-    <div class="panel-heading">
-
-							<h4 class="panel-title">Original Question #{{ revision.question.pk }} :
-                            </h4>
+<div class="card">
+  <div class="card-body">
+    <div class="card-block new-revision">
+      <h2 class="card-title">Changes</h2>
+      {% with previous_right_choice=previous_revision.get_right_choice new_right_choice=revision.get_right_choice %}
+      <ul>
+        {% if revision.change_summary %}
+        <li>The user provided the following change summary:  <em>"{{ revision.change_summary|linebreaksbr}}"</em>.</li>
+        {% else %}
+        <li>The contributor did not prodide a change summary.</li>
+        {% endif %}
+        {% if previous_right_choice and new_right_choice and previous_right_choice.text != new_right_choice.text  %}
+        <li class="warning darken-4">The right answer was changed from <em>"{{ previous_right_choice.text }}"</em> to <em>"{{ new_right_choice.text }}"</em>.</li>
+        {% elif not previous_right_choice and new_right_choice %}
+        <li class="warning darken-4">The right answer was set to be <em>"{{ new_right_choice.text }}"</em>.</li>
+        {% elif previous_right_choice and not new_right_choice %}
+        <li class="warning darken-4">The right answer was removed and it is no  longer <em>"{{ previous_right_choice.text }}"</em>.</li>
+        {% elif  previous_right_choice and new_right_choice and previous_right_choicetext == new_right_choice %}
+        <li class="success darken-4">The right answer was <strong>not</strong> changed.</li>
+        {% endif %}
+        {% if previous_revision.text.strip == revision.text.strip %}
+        <li class="success darken-4">The question text was <strong>not</strong> changed.</li>
+        {% else %}
+        <li>
+          The question text was changed:
+          <p id="revision-text-diff"></p>
+        </li>
+        {% endif %}
+      </ul>
+      {% endwith %}
     </div>
-                       <div class="panel-body">
-                       {% if revision.question.get_best_latest_revision.figure %}
-                           <img class="img-responsive center-block"  src="{{ revision.question.get_best_latest_revision.figure.url }}">
-                       {% endif %}
-       <p class="question-text">{{ revision.question.get_best_latest_revision.text|linebreaksbr }}</p>
-            <ul>
-                       {% for choice in revision.question.get_best_latest_revision.choice_set.order_by_alphabet %}
-                               <li {% if choice.is_right %}class="is-answer text-success-800"{% endif %}>{{ choice.text|linebreaksbr }}</li>
-                           {% endfor %}
-            </ul>
-                </div>
-            </div>
-    <div class="panel panel-flat">
-    <div class="panel-heading">
-							<h4 class="panel-title"> Submitted revision #{{ revision.pk }}
-                            </h4>
+    <div class="card-block new-revision">
+      <h2 class="card-title">Newer revision of question #{{ revision.question.pk }}</h2>
+      {% if revision.figure %}<img class="img-fluid" src="{{ revision.figure.url }}">{% endif %}
+      <p class="revision-text">{{ revision.text }}</p>
+      <ul>
+         {% for choice in revision.choice_set.order_by_alphabet %}
+           <li data-choice-order="{{ forloop.counter }}" {% if choice.is_right %}class="choice-text text-bold-700 success darken-4"{% endif %}>{{ choice.text|linebreaksbr }}</li>
+         {% endfor %}
+      </ul>
     </div>
-                       <div class="panel-body">
-                       {% if revision.figure %}
-                           <img class="img-responsive center-block"  src="{{ revision.figure.url }}">
-                       {% endif %}
-       <p class="question-text">{{ revision.text|linebreaksbr }}</p>
-            <ul>
-                       {% for choice in revision.choice_set.order_by_alphabet %}
-                               <li {% if choice.is_right %}class="is-answer text-success-800"{% endif %}>{{ choice.text|linebreaksbr }}</li>
-                           {% endfor %}
-            </ul>
-                </div>
-            </div>
+    <div class="card-block previous-revision">
+      <h2 class="card-title">Previous revision of question #{{ revision.question.pk }}</h2>
+      {% if previous_revision.figure %}<img class="img-fluid"  src="{{ previous_revision.figure.url }}">{% endif %}
+      <p class="revision-text">{{ previous_revision.text }}</p>
+      <ul>
+         {% for choice in previous_revision.choice_set.order_by_alphabet %}
+           <li data-choice-order="{{ forloop.counter }}" {% if choice.is_right %}class="choice-text text-bold-700 success darken-4"{% endif %}>{{ choice.text|linebreaksbr }}</li>
+         {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
 
  <div class="row">
      <div class="col-sm-4">
          <button data-pk="{{ revision.pk }}" data-url="{% url 'exams:delete_revision' revision.pk %}" type="button" class="btn btn-danger btn-rounded btn-sm pull-left confirm-delete-revision"><i class="ft-trash-2"></i> Delete revision</button>
      </div>
      <div class="col-sm-4 text-xs-center">
-         <a href="{% url 'exams:submit_revision' revision.question.exam.category.get_slugs revision.question.exam.pk revision.question.pk %}" class="btn btn-warning btn-rounded btn-sm confirm-delete-revision"><i class="ft-edit-2"></i> Edit question</a>
+         <a href="{% url 'exams:submit_revision' revision.question.exam.category.get_slugs revision.question.exam.pk revision.question.pk %}" class="btn btn-warning btn-rounded btn-sm"><i class="ft-edit-2"></i> Edit question</a>
      </div>
      <div class="col-sm-4">
          <button data-pk="{{ revision.pk }}" data-url="{% url 'exams:mark_revision_approved' revision.pk %}" type="button" class="btn btn-primary btn-rounded btn-sm pull-right approve-revision"><i class="ft-check-circle"></i> Approve revision</button>
      </div>
  </div>
 </div>
+
+{% if previous_revision.text.strip != revision.text.strip %}
+<script>
+var previous_text = $(".previous-revision .revision-text").text(),
+    new_text = $(".new-revision .revision-text").text(),
+    color = '',
+    span = null;
+
+var diff = JsDiff.diffChars(previous_text, new_text),
+    display = document.getElementById('revision-text-diff'),
+    fragment = document.createDocumentFragment();
+
+diff.forEach(function(part){
+  // green for additions, red for deletions
+  // grey for common parts
+  color = part.added ? 'green' :
+    part.removed ? 'red' : 'grey';
+  span = document.createElement('span');
+  span.style.color = color;
+  span.appendChild(document
+    .createTextNode(part.value));
+  fragment.appendChild(span);
+});
+
+display.appendChild(fragment);
+</script>
+{% endif %}

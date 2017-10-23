@@ -103,7 +103,6 @@ def add_question(request, slugs, pk):
                'revision_form': forms.RevisionForm(),
                'explanation_form': forms.ExplanationForm(is_optional=True),
                'revisionchoiceformset': forms.RevisionChoiceFormset(),
-               'editor':editor,
                'is_browse_active': True, # To make sidebar 'active'
     }
 
@@ -755,24 +754,19 @@ def approve_user_contributions(request,slugs,exam_pk):
 # COMPAIN WITH SHOW_QUESTION IF NO FURTHER CHANGE IS DONE
 @login_required
 @decorators.ajax_only
-def show_revision_comparison(request, pk, revision_pk=None):
-    question_pool = Question.objects.undeleted()\
-                                    .select_related('exam')
-    question = get_object_or_404(question_pool, pk=pk)
-
-    if revision_pk:
-        revision = get_object_or_404(Revision, pk=revision_pk,
-                                     is_deleted=False)
-    else:
-        revision = question.get_latest_revision()
-
-    exam = question.exam
+def show_revision_comparison(request, pk):
+    revision = get_object_or_404(Revision.objects.select_related('question',
+                                                                 'question__exam'),
+                                 pk=pk, is_deleted=False)
+    previous_revision = revision.question.revision_set\
+                                         .filter(submission_date__lt=revision.submission_date)\
+                                         .order_by('submission_date').last()
 
     # PERMISSION CHECK
-    if not exam.can_user_edit(request.user):
+    if not revision.question.exam.can_user_edit(request.user):
         raise PermissionDenied
 
-    context = {'revision': revision,'exam':exam}
+    context = {'revision': revision, 'previous_revision': previous_revision}
     return render(request, 'exams/partials/show_revision_comparison.html', context)
 
 @csrf.csrf_exempt
@@ -890,7 +884,6 @@ def approve_question(request, slugs, exam_pk, pk):
                'question_form': forms.QuestionForm(instance=question),
                'revision_form': forms.RevisionForm(instance=revision),
                'revisionchoiceformset': forms.RevisionChoiceFormset(instance=revision),
-               'editor': editor,
                'question': question}
 
     return render(request, "exams/add_question.html", context)
