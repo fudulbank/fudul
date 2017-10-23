@@ -113,6 +113,11 @@
           backdrop: 'static',
           show    : false,
         });
+
+        $('#show-revision-modal').on('hidden.bs.modal', function(){
+          $(this).find('.modal-body').html($('#ajax-loader').html());
+        });
+
         $('#revisions tbody').on('click','tr',function () {
             revision_pk =  $(this).data("pk");
             url = $(this).data('url');
@@ -133,4 +138,9 @@
 {% with category_pk=exam.category.pk  parent_category_pk=exam.category.parent_category.pk %}
   {% include 'exams/partials/dynamic_sidebar.html' %}
 {% endwith %}
+
+<div id="ajax-loader" style="display: none">
+  {% include "exams/modals/ajax-loader.html" %}
+</div>
+
 {% endblock %}

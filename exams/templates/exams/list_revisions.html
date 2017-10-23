@@ -204,6 +204,11 @@
           backdrop: 'static',
           show    : false,
         });
+
+        $('#show-revision-modal').on('hidden.bs.modal', function(){
+          $(this).find('.modal-body').html($('#ajax-loader').html());
+        });
+
         $('.datatable tbody').on('click','tr td:not(:last-child)',function () {
 					  $row = $(this).closest('tr')
             revision_pk =  $row.data("pk");
@@ -229,5 +234,9 @@
 {% with category_pk=exam.category.pk  parent_category_pk=exam.category.parent_category.pk %}
   {% include 'exams/partials/dynamic_sidebar.html' %}
 {% endwith %}
+
+<div id="ajax-loader" style="display: none">
+  {% include "exams/modals/ajax-loader.html" %}
+</div>
 
 {% endblock %}
