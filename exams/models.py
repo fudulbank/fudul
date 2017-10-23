@@ -420,9 +420,16 @@ class Session(models.Model):
         return not self.get_unused_questions().exists()
 
     def get_question_sequence(self, question):
-        return self.get_questions()\
-                   .filter(global_sequence__lte=question.global_sequence)\
-                   .count()
+        # global_sequence may not be set for freshly created
+        # questions.  For these, use pk to calculate sequence.
+        if not question.global_sequence:
+            return self.get_questions()\
+                       .filter(pk__lte=question.pk)\
+                       .count()
+        else:
+            return self.get_questions()\
+                       .filter(global_sequence__lte=question.global_sequence)\
+                       .count()
 
     def get_unused_questions(self):
         return self.get_questions()\
