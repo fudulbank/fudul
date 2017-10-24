@@ -757,7 +757,8 @@ def approve_user_contributions(request,slugs,exam_pk):
 @decorators.ajax_only
 def show_revision_comparison(request, pk, review=False):
     revision = get_object_or_404(Revision.objects.select_related('question',
-                                                                 'question__exam'),
+                                                                 'question__exam',
+                                                                 'question__exam__category'),
                                  pk=pk, is_deleted=False)
 
     # PERMISSION CHECK

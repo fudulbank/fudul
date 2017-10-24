@@ -1,4 +1,4 @@
-{% load bootstrap3 %}{% load staticfiles %}
+{% load bootstrap3 staticfiles exam_utils %}
 {% with previous_revision=revision.get_previous %}
 <div class="card">
   <div class="card-body">
@@ -12,6 +12,19 @@
         {% else %}
         <li>The contributor did not prodide a change summary.</li>
         {% endif %}
+
+        {% if revision|has_changed_choices:previous_revision %}
+        <li>Choices were changed:
+          <ul>
+            {% for new_text, previous_text in revision|get_choice_pairs:previous_revision %}
+            <li class="choice-text-diff" data-new-text="{{ new_text }}" data-previous-text="{{ previous_text }}"></li>
+            {% endfor %}
+          </ul>
+        </li>
+        {% else %}
+        <li class="success darken-4">Choices were <strong>not</strong> changed.</li>
+        {% endif %}
+
         {% if previous_right_choice and new_right_choice and previous_right_choice.text != new_right_choice.text  %}
         <li class="warning darken-4">The right answer was changed from <em>"{{ previous_right_choice.text }}"</em> to <em>"{{ new_right_choice.text }}"</em>.</li>
         {% elif not previous_right_choice and new_right_choice %}
@@ -21,6 +34,7 @@
         {% elif  previous_right_choice and new_right_choice and previous_right_choicetext == new_right_choice %}
         <li class="success darken-4">The right answer was <strong>not</strong> changed.</li>
         {% endif %}
+
         {% if previous_revision.text.strip == revision.text.strip %}
         <li class="success darken-4">The question text was <strong>not</strong> changed.</li>
         {% else %}
@@ -37,7 +51,7 @@
     </div>
     <div class="card-block new-revision">
       {% if review %}
-      <h2 class="card-title">Newer revision of question #{{ revision.question.pk }}</h2>
+      <h2 class="card-title">Newer revision of <a href="{% url 'exams:list_revisions' revision.question.exam.category.get_slugs revision.question.exam.pk revision.question.pk %}">question #{{ revision.question.pk }}</a></h2>
       {% else %}
       <h2 class="card-title">Revision #{{ revision.pk }}</h2>
       {% endif %}
@@ -51,7 +65,7 @@
     </div>
     {% if review %}
       <div class="card-block previous-revision">
-        <h2 class="card-title">Previous revision of question #{{ revision.question.pk }}</h2>
+        <h2 class="card-title">Previous revision of <a href="{% url 'exams:list_revisions' revision.question.exam.category.get_slugs revision.question.exam.pk revision.question.pk %}">question #{{ revision.question.pk }}</a></h2>
         {% if previous_revision.figure %}<img class="img-fluid"  src="{{ previous_revision.figure.url }}">{% endif %}
         <p class="revision-text">{{ previous_revision.text }}</p>
         <ul>
@@ -78,7 +92,7 @@
 {% endif %}
 </div>
 
-{% if previous_revision.text.strip != revision.text.strip %}
+{% if previous_revision and previous_revision.text.strip != revision.text.strip %}
 <script>
 var previous_text = $(".previous-revision .revision-text").text(),
     new_text = $(".new-revision .revision-text").text(),
@@ -104,5 +118,30 @@ diff.forEach(function(part){
 display.appendChild(fragment);
 </script>
 {% endif %}
+{% if previous_revision and revision|has_changed_choices:previous_revision %}
+<script>
+var color = '',
+    span = null;
 
+$('.choice-text-diff').each(function(){
+  new_text = $(this).data('new-text');
+  previous_text = $(this).data('previous-text');
+
+  var diff = JsDiff.diffChars(previous_text, new_text),
+      fragment = document.createDocumentFragment();
+
+  diff.forEach(function(part){
+    // green for additions, red for deletions
+    // grey for common parts
+    color = part.added ? 'green' :
+      part.removed ? 'red' : 'grey';
+    span = document.createElement('span');
+    span.style.color = color;
+    span.appendChild(document.createTextNode(part.value));
+    fragment.appendChild(span);
+  });
+  $(this).append(fragment);
+});
+</script>
+{% endif %}
 {% endwith %}{# revision.get_previous #}

@@ -20,6 +20,32 @@ def was_chosen(choice, session):
 def get_relevant_highlight(revision, session):
     return revision.get_relevant_highlight(session)
 
+@register.filter
+def has_changed_choices(revision, previous_revision):
+    previous_choice_texts = previous_revision.choice_set\
+                                             .values_list('text')
+    new_choice_texts = revision.choice_set\
+                               .values_list('text')
+    return revision.choice_set\
+                   .exclude(text__in=previous_choice_texts)\
+                   .exists() or \
+           previous_revision.choice_set\
+                            .exclude(text__in=new_choice_texts)\
+                            .exists()
+
+@register.filter
+def get_choice_pairs(revision, previous_revision):
+    index = 0
+    for new_choice in revision.choice_set.order_by_alphabet():
+        try:
+            previous_choice = previous_revision.choice_set.order_by_alphabet()[index]
+        except IndexError:
+            previous_choice_text = ''
+        else:
+            previous_choice_text = previous_choice.text
+        yield new_choice.text, previous_choice_text
+        index += 1
+
 @register.simple_tag
 def get_question_text(highlight, revision, session):
     if highlight and \
