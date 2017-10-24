@@ -10,7 +10,16 @@
         {% if revision.change_summary %}
         <li>The user provided the following change summary:  <em>"{{ revision.change_summary|urlize_target_blank|linebreaksbr}}"</em>.</li>
         {% else %}
-        <li>The contributor did not prodide a change summary.</li>
+        <li>The contributor did not provide a change summary.</li>
+        {% endif %}
+
+        {% if previous_revision.text.strip == revision.text.strip %}
+        <li class="success darken-4">The question text was <strong>not</strong> changed.</li>
+        {% else %}
+        <li>
+          The question text was changed:
+          <p id="revision-text-diff"></p>
+        </li>
         {% endif %}
 
         {% if revision|has_changed_choices:previous_revision %}
@@ -33,15 +42,6 @@
         <li class="warning darken-4">The right answer was removed and it is no  longer <em>"{{ previous_right_choice.text }}"</em>.  With this revision, the question no longer has a right answer.</li>
         {% elif  previous_right_choice and new_right_choice and previous_right_choicetext == new_right_choice %}
         <li class="success darken-4">The right answer was <strong>not</strong> changed.</li>
-        {% endif %}
-
-        {% if previous_revision.text.strip == revision.text.strip %}
-        <li class="success darken-4">The question text was <strong>not</strong> changed.</li>
-        {% else %}
-        <li>
-          The question text was changed:
-          <p id="revision-text-diff"></p>
-        </li>
         {% endif %}
       </ul>
       {% endwith %}
