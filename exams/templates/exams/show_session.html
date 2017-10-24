@@ -274,7 +274,7 @@
                </div>
           </div>
           <div class="col-sm-6 text-sm-right">
-               <div id="mark" class="option{% if current_question|is_question_marked:user %} marked{% endif %}">
+               <div data-toggle="tooltip" data-html="true" data-title="You can press <kbd>Ctrl+M</kbd> to toggle question mark." id="mark" class="option{% if current_question|is_question_marked:user %} marked{% endif %}">
                   <img id="mark-loading" src="{% static 'img/ajax-loader.gif' %}">
                   <i id="mark-icon" class="icon-flag7"></i> Mark
                </div>
@@ -306,6 +306,7 @@
         <script src="{% static 'js/toastr.js' %}"></script>
         <script>
     toastr.options.positionClass = "toast-top-left";
+    active_keys = {};
 
     function updateData(){
         current_sequence =  parseInt($("#question-sequence").html());
@@ -608,20 +609,31 @@
       })
     }
 
-    function keyboardNavigation(e){
-      if (e.keyCode == 37) { // left key
-        $("#previous").trigger('click');
-	_paq.push(['trackEvent', 'show_session', 'navigation', 'keyboard-previous']);
+    function initializeKeyboard(){
+      $(document).keydown(function(e){
+        // record active keys so we can handle a combination of keys
+        active_keys[e.which] = true;
 
-      } else if (e.keyCode == 39) {  // right key
-        $("#next").trigger('click');
-	_paq.push(['trackEvent', 'show_session', 'navigation', 'keyboard-next']);
-      }
+        // check which key we got
+        if (e.keyCode == 37) { // left key
+          $("#previous").trigger('click');
+        	_paq.push(['trackEvent', 'show_session', 'navigation', 'keyboard-previous']);
+        } else if (e.keyCode == 39) {  // right key
+          $("#next").trigger('click');
+        	_paq.push(['trackEvent', 'show_session', 'navigation', 'keyboard-next']);
+        } else if (active_keys[17] && active_keys[77]) { // ctrl + m
+          _paq.push(['trackEvent', 'show_session', 'mark-question', 'keyboard-mark']);
+          $('#mark').trigger('click');
+        }
+      });
+      $(document).keyup(function (e) {
+          // remove keys that are no longer active;
+          delete active_keys[e.which];
+      });
     }
 
     $(function() {
-        $(document).keydown(keyboardNavigation);
-
+        initializeKeyboard();
         // variable used by many functions
         total = $("#question-total").html();
         session_mode = $('body').data('session-mode');
@@ -709,11 +721,11 @@
         modal_selectors = '#explain-question-modal, #modify-question-modal, #correct-answer-modal';
 
         $(modal_selectors).on("hidden.bs.modal", function(){
-          $(document).keydown(keyboardNavigation);
+          initializeKeyboard();
         });
 
         $(modal_selectors).on("show.bs.modal", function(){
-          $(document).off('keydown');
+          $(document).off('keydown keydup');
         });
 
     });
