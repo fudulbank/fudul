@@ -1,4 +1,4 @@
-{% load bootstrap3 staticfiles exam_utils %}
+{% load bootstrap3 staticfiles exam_utils core_utils %}
 {% with previous_revision=revision.get_previous %}
 <div class="card">
   <div class="card-body">
@@ -8,7 +8,7 @@
       {% with previous_right_choice=previous_revision.get_right_choice new_right_choice=revision.get_right_choice %}
       <ul>
         {% if revision.change_summary %}
-        <li>The user provided the following change summary:  <em>"{{ revision.change_summary|linebreaksbr}}"</em>.</li>
+        <li>The user provided the following change summary:  <em>"{{ revision.change_summary|urlize_target_blank|linebreaksbr}}"</em>.</li>
         {% else %}
         <li>The contributor did not prodide a change summary.</li>
         {% endif %}
