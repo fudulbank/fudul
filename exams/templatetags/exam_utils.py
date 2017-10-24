@@ -43,7 +43,7 @@ def get_choice_pairs(revision, previous_revision):
             previous_choice_text = ''
         else:
             previous_choice_text = previous_choice.text
-        yield new_choice.text, previous_choice_text
+        yield new_choice.text, previous_choice_text, new_choice.is_right
         index += 1
 
 @register.simple_tag

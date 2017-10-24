@@ -16,8 +16,8 @@
         {% if revision|has_changed_choices:previous_revision %}
         <li>Choices were changed:
           <ul>
-            {% for new_text, previous_text in revision|get_choice_pairs:previous_revision %}
-            <li class="choice-text-diff" data-new-text="{{ new_text }}" data-previous-text="{{ previous_text }}"></li>
+            {% for new_text, previous_text, new_is_right in revision|get_choice_pairs:previous_revision %}
+            <li class="{% if new_is_right %}text-bold-700 {% endif %}choice-text-diff" data-new-text="{{ new_text }}" data-previous-text="{{ previous_text }}"></li>
             {% endfor %}
           </ul>
         </li>
