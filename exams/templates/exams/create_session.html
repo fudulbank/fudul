@@ -146,7 +146,7 @@
           <strong>/ <span id="question-count">{{ question_count }}</span> </strong>
       </div>
     </div>
-    <button id="session-submit" type="submit" class="btn btn-primary btn-block btn-lg">Start Session <i class="icon-circle-right2 position-right"></i></button>
+    <button data-delay='{"show": 100, "hide": 3000}' data-toggle="tooltip" data-html="true" data-title="<a target='_blank' href='https://youtu.be/VZ2HcRl4wSk'>YOU CAN DO IT</a> ✊" id="session-submit" type="submit" class="btn btn-primary btn-block btn-lg">Start Session <i class="icon-circle-right2 position-right"></i></button>
     <input name="exam_pk" type="hidden" value="{{ exam.pk }}">
     </form>
   </div><!--card-block-->
@@ -252,6 +252,8 @@
     }
 
     $(function() {
+        $('[data-toggle="tooltip"]').tooltip();
+
         $("#id_session_mode li:nth-child(1) label").tooltip({title: "This shows the right answer with its explanation after submitting each question."})
         $("#id_session_mode li:nth-child(2) label").tooltip({title: "This hides the right answer and explanation, and only shows them at the end."})
         $("#id_session_mode li:nth-child(3) label").tooltip({title: "This turns off exam mode, and it will show questions with the explanation and right answer right away."})
