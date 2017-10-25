@@ -726,6 +726,7 @@
           }
 
           $('.navigate-row').click(function(){
+            _paq.push(['trackEvent', 'show_session', 'navigation', 'click-navigate-row']);
             targeted_sequence = $(this).data('question-sequence');
             showQuestion(targeted_sequence);
           });
@@ -781,6 +782,7 @@
           show    : false,
         });
         $("#open-navigation").click(function(){
+          _paq.push(['trackEvent', 'show_session', 'navigation', 'open-navigation']);
           $('#navigate-modal').modal('show');
         });
         $("#contribute").click(function () {
