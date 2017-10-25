@@ -263,7 +263,7 @@
                 <img alt="stack admin logo" src="{% static 'img/logo-monkey.png' %}" class="img-fluid brand-logo">
                 <h2 class="brand-text">Fudul</h2></a>
             </div>
-            <div class="ml-auto col-sm-6 text-center"> <a target="_blank" href="{% url 'exams:create_session' session.exam.category.get_slugs session.exam.pk %}">{{ session.exam.name }}</a> <span class="separator">•</span> Session id: <span id="session-pk">{{ session.pk }}</span> ({{ session.get_session_mode_display }})<br> Question id: <a target="_blank" href="{% url 'exams:list_revisions' session.exam.category.get_slugs session.exam.pk current_question.pk %}" id="question-pk">{{ current_question.pk }}</a> </div>
+            <div class="ml-auto col-sm-6 text-center"> <a target="_blank" href="{% url 'exams:create_session' session.exam.category.get_slugs session.exam.pk %}">{{ session.exam.name }}</a> <span class="separator">•</span> Session id: <span id="session-pk">{{ session.pk }}</span> <span class="d-none d-sm-inline">({{ session.get_session_mode_display }})</span><br> Question id: <a target="_blank" href="{% url 'exams:list_revisions' session.exam.category.get_slugs session.exam.pk current_question.pk %}" id="question-pk">{{ current_question.pk }}</a> </div>
             <div class="col-sm-3 top-question-id font-weight-bold text-sm-right text-center my-2 mb-sm-0"><div id="question-sequence">{{ current_question_sequence }}</div> of <div id="question-total">{{ session.get_questions.count }}</div></div>
         </div>
         <div id="top-options" class="row text-center align-items-center">
