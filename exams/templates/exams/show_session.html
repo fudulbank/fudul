@@ -777,14 +777,24 @@
         $('#previous, #next').click(navigate);
         $('#mark').click(toggleMarked);
             // initialize project edit modal
-        $('#modify-question-modal, #explain-question-modal, #navigate-modal').modal({
+        $('#modify-question-modal, #explain-question-modal').modal({
           keyboard: false,
           backdrop: 'static',
           show    : false,
         });
+        // the navigation modal is special in that it is closed by
+        // keyboard and by clicking the backdrop
+        $('#navigate-modal').modal({show: false});
         $("#open-navigation").click(function(){
           _paq.push(['trackEvent', 'show_session', 'navigation', 'open-navigation']);
-          $('#navigate-modal').modal('show');
+          $('#navigate-modal').modal('show')
+        });
+
+        // move to the position of the active row
+        $('#navigate-modal').on('shown.bs.modal', function (){
+           $(this).animate({
+               scrollTop: $(".navigate-row.table-active").position().top
+           }, 1000);
         });
         $("#contribute").click(function () {
             $("#modify-question-modal").modal('show');
