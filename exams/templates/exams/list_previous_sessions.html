@@ -53,7 +53,7 @@ tr td:last-child{
              <td>{{ session.get_questions.count }}</td>
              <td class="text-xs-center">
          {% if session.session_mode == 'SOLVED' %}
-             <span data-toggle="tooltip" title="Solved questions have no scores.">N/A<span>
+             <span data-toggle="tooltip" title="Solved sessions have no scores.">N/A<span>
          {% elif session.has_finished %}
          {% with score=session.get_score %}
              <div data-toggle="tooltip" title="{{ session.get_correct_answer_count }} out of {{ session.get_questions.count }} questions were answered correctly.">
