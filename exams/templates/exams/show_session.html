@@ -561,18 +561,24 @@
 
     function submitChoice() {
         $(this).hide();
+        $question = $(".question-body.show");
+
+        // if question was previously solved, don't submit.
+        if ($question.data('was-solved')){
+          return
+        }
         // Mark question as solved
         // We also set was-solved using .attr() to change the DOM and
         // be able to apply CSS.
-        $(".question-body.show").data('was-solved', true).attr('data-was-solved', true);
+        $question.data('was-solved', true).attr('data-was-solved', true);
 
         // Disable choices upon submission
-        $(".question-body.show .question-choice").prop("disabled", "disabled")
+        $question.find(".question-choice").prop("disabled", "disabled")
         // Disable interactions after submission
-        $(".question-body.show").find(".highlight").removeClass("active");
-        $(".question-body.show").find(".question-text, .question-choice, .choice-text, .highlight").off();
+        $question.find(".highlight").removeClass("active");
+        $question.find(".question-text, .question-choice, .choice-text, .highlight").off();
 
-        $checkedChoice = $('.question-body.show .question-choice:checked');
+        $checkedChoice = $question.find(".question-choice:checked");
         // Do we have a choice, or was it skipped?
         if ($checkedChoice.length) {
             // We store choice pk at the row.
@@ -624,6 +630,8 @@
         } else if (active_keys[18] && active_keys[77]) { // alt + m
           _paq.push(['trackEvent', 'show_session', 'mark-question', 'keyboard-mark']);
           $('#mark').trigger('click');
+        } else if (active_keys[17] && active_keys[13]) { // ctrl + enter
+          $("#submit").trigger('click');
         } else if (active_keys[17] && active_keys[38] || active_keys[17] && active_keys[40]){ // ctrl + up or ctrl + down
           total_choices = $('.question-body.show .question-choice').length
           $checked_choice = $('.question-body.show .question-choice:enabled:checked')
