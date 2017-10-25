@@ -316,7 +316,7 @@
         <script>
     toastr.options.positionClass = "toast-top-left";
     active_keys = {};
-    was_solved_cell = '<i class="fa fa-check-square" aria-hidden="true"></i>';
+    was_solved_cell = '<i class="fa fa-check-square-o" aria-hidden="true"></i>';
     is_marked_cell = '<i class="icon-flag7" aria-hidden="true"></i>';
 
     function updateData(){
@@ -721,7 +721,7 @@
           for (var i = 1; i <= {{ session.get_questions.count }}; i++) {
              $question = $('.question-body[data-question-sequence="' + i.toString() + '"]')
              question_pk = $question.data('question-pk');
-             was_solved = $question.data('was-solved') ? was_solved_cell : '';
+             was_solved = $question.data('was-solved') ? was_solved_cell : '<i class="fa fa-square-o" aria-hidden="true"></i>';
              is_marked = $question.data('is-marked')  ? is_marked_cell : '';
              $("#navigation-table tbody").append("<tr class='navigate-row text-center' data-question-sequence='" + i.toString() + "'><td>" + i.toString() + "</td><td class='d-sm-table-cell d-none'>" + question_pk.toString() + "</td><td class='d-sm-table-cell d-none is_marked'>" + is_marked + "</td><td class='was_solved'>" + was_solved +"</td></tr>")
           }
