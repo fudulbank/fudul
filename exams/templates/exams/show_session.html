@@ -289,16 +289,25 @@
           <button class="btn btn-outline-primary" id="explain"><i class=" icon-brain"></i> Improve this explanation!</button>
         </div>
         <div id="footer" class="row text-center font-weight-bold">
-          <div class="col-sm-7 text-sm-left order-2 order-sm-1">
+          <div class="col-sm-6 text-sm-left order-2 order-sm-1">
            <a id="back" class="float-left float-sm-none option" href="{% url 'exams:create_session' session.exam.category.get_slugs session.exam.pk %}"><i class="icon-exit3"></i> Back</a>
-           <a id="results" class="float-left float-sm-none option" href="{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}"><i class="icon-list3"></i> Results</a>
+           <a id="results" class="float-left float-sm-none option" href="{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}"><i class="fa fa-check-square-o" aria-hidden="true"></i> Results</a>
            <div id="end" class="float-left float-sm-none option"><i class="icon-exit3"></i> End</div>
            <div id="contributors" class="float-right float-sm-none option"><i class="icon-stars"></i> Contributors</div>
            <div id="help-me" class="float-right float-sm-none option d-none d-sm-inline-block"><i class="fa fa-comment"></i> Get help</div>
           </div>
-          <div class="col-sm-5 text-sm-right order-1 order-sm-2">
-           <div data-action="previous" data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> You can also <span class='d-inline d-sm-none'>tap the left screen side</span><span class='d-none d-sm-inline'>press the left keyboard arrow (<kbd>←</kbd>)</span> to go back." id="previous" class="float-left float-sm-none option"><i class=" icon-circle-left2"></i> Previous</div>
-           <div data-action="next" data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> You can also <span class='d-inline d-sm-none'>tap the right screen side</span><span class='d-none d-sm-inline'>press the right keyboard arrow (<kbd>→</kbd>)</span> to go next." id="next" class="float-right float-sm-none option">Next <i class=" icon-circle-right2"></i></div>
+          <div class="col-sm-6 text-sm-right order-1 order-sm-2">
+            <div class="row justify-content-end no-gutters">
+
+              <div class="col-sm-auto col-5">
+                 <div data-action="previous" data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> You can also <span class='d-inline d-sm-none'>tap the left screen side</span><span class='d-none d-sm-inline'>press the left keyboard arrow (<kbd>←</kbd>)</span> to go back." id="previous" class="float-left float-sm-none option"><i class="icon-circle-left2" aria-hidden="true"></i> Previous</div>
+              </div>
+              <div class="col-sm-auto col-2">
+                 <div id="open-navigation" class="option"><i class="icon-list3" aria-hidden="true"></i> <span class="d-none d-sm-inline">Navigate</span></div>
+              </div>
+              <div class="col-sm-auto col-5">
+                 <div data-action="next" data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> You can also <span class='d-inline d-sm-none'>tap the right screen side</span><span class='d-none d-sm-inline'>press the right keyboard arrow (<kbd>→</kbd>)</span> to go next." id="next" class="float-right float-sm-none option">Next <i class="icon-circle-right2" aria-hidden="true"></i></div>
+              </div>
           </div>
         </div>
       </div>
@@ -307,6 +316,8 @@
         <script>
     toastr.options.positionClass = "toast-top-left";
     active_keys = {};
+    was_solved_cell = '<i class="fa fa-check-square" aria-hidden="true"></i>';
+    is_marked_cell = '<i class="icon-flag7" aria-hidden="true"></i>';
 
     function updateData(){
         current_sequence =  parseInt($("#question-sequence").html());
@@ -321,6 +332,27 @@
         } else {
             $markButton.removeClass("marked");
         }
+    }
+
+    function showQuestion(targeted_sequence){
+      $question = $("#question-pool [data-question-sequence=" + targeted_sequence + "]")
+      // Add 'show' class to the current question
+      $question.addClass("show");
+      // Remove 'show' class from other questions
+      $(".question-body").not($question).removeClass('show');
+      $("#question-sequence").html($question.data('question-sequence'));
+      $("#question-pk").html($question.data('question-pk'));
+      list_revision_url = $question.data('list-revision-url')
+      $("#question-pk").attr('href', list_revision_url);
+      updateData();
+      initializeInteractions();
+      handleMarked($question.data('is-marked'));
+      history.pushState({url: $question.data('url')}, '', $question.data('url'));
+
+      question_row = $('.navigate-row[data-question-sequence="' + targeted_sequence + '"]');
+      question_row.addClass('table-active');
+      $('.navigate-row').not(question_row).removeClass('table-active');
+
     }
 
     function navigate() {
@@ -351,19 +383,8 @@
         // Upon navigation, hide previous voting tooltips
         $(".answer-correction-notification").tooltip('hide');
 
-        $question = $("#question-pool [data-question-sequence=" + targeted_sequence + "]")
-        // Add 'show' class to the current question
-        $question.addClass("show");
-        // Remove 'show' class from other questions
-        $(".question-body").not($question).removeClass('show');
-        $("#question-sequence").html($question.data('question-sequence'));
-        $("#question-pk").html($question.data('question-pk'));
-        list_revision_url = $question.data('list-revision-url')
-        $("#question-pk").attr('href', list_revision_url);
-        updateData();
-        initializeInteractions();
-        handleMarked($question.data('is-marked'));
-        history.pushState({url: $question.data('url')}, '', $question.data('url'));
+        showQuestion(targeted_sequence);
+
     }
 
     function toggleMarked() {
@@ -375,11 +396,16 @@
             data: data,
             cache: false,
             success: function(data){
-               $(".question-body.show").data('is-marked', data.is_marked);
+               $question = $(".question-body.show");
+               sequence = $question.data('question-sequence')
+               $question_row = $('.navigate-row[data-question-sequence="' + sequence + '"]');
+               $question.data('is-marked', data.is_marked);
                handleMarked(data.is_marked);
                if (data.is_marked){
+                 $question_row.find('td.is_marked').html(is_marked_cell);
                  _paq.push(['trackEvent', 'show_session', 'mark-question', 'add-mark']);
                } else {
+                 $question_row.find('td.is_marked').html("");
                  _paq.push(['trackEvent', 'show_session', 'mark-question', 'remove-mark']);
                }
                $("#mark-icon").show();
@@ -571,6 +597,9 @@
         // We also set was-solved using .attr() to change the DOM and
         // be able to apply CSS.
         $question.data('was-solved', true).attr('data-was-solved', true);
+        sequence = $question.data('question-sequence')
+        question_row = $('.navigate-row[data-question-sequence="' + sequence + '"]');
+        question_row.find('td.was_solved').html(was_solved_cell);
 
         // Disable choices upon submission
         $question.find(".question-choice").prop("disabled", "disabled")
@@ -686,6 +715,21 @@
         pool_url = "{% url 'exams:list_session_questions' %}?" + $.param({ {% if current_question_pk %}question_pk: {{ current_question_pk }},{% endif %}
                                                                           session_pk: {{ session.pk }}});
         $("#question-pool").load(pool_url, function(){
+
+          // construct navigation-table
+          for (var i = 1; i <= {{ session.get_questions.count }}; i++) {
+             $question = $('.question-body[data-question-sequence="' + i.toString() + '"]')
+             question_pk = $question.data('question-pk');
+             was_solved = $question.data('was-solved') ? was_solved_cell : '';
+             is_marked = $question.data('is-marked')  ? is_marked_cell : '';
+             $("#navigation-table tbody").append("<tr class='navigate-row text-center' data-question-sequence='" + i.toString() + "'><td>" + i.toString() + "</td><td class='d-sm-table-cell d-none'>" + question_pk.toString() + "</td><td class='d-sm-table-cell d-none is_marked'>" + is_marked + "</td><td class='was_solved'>" + was_solved +"</td></tr>")
+          }
+
+          $('.navigate-row').click(function(){
+            targeted_sequence = $(this).data('question-sequence');
+            showQuestion(targeted_sequence);
+          });
+
           updateData();
           initializeInteractions();
           $(".correct i").click(function () {
@@ -731,10 +775,13 @@
         $('#previous, #next').click(navigate);
         $('#mark').click(toggleMarked);
             // initialize project edit modal
-        $('#modify-question-modal').modal({
+        $('#modify-question-modal, #explain-question-modal, #navigate-modal').modal({
           keyboard: false,
           backdrop: 'static',
           show    : false,
+        });
+        $("#open-navigation").click(function(){
+          $('#navigate-modal').modal('show');
         });
         $("#contribute").click(function () {
             $("#modify-question-modal").modal('show');
@@ -742,11 +789,6 @@
             $("#modify-question-modal .modal-body").load(url);
         });
         // initialize project edit modal
-        $('#explain-question-modal').modal({
-          keyboard: false,
-          backdrop: 'static',
-          show    : false,
-        });
         $("#explain, a.explain").click(function () {
             $("#explain-question-modal").modal('show');
             url = "{% url 'exams:contribute_explanation' %}?" + $.param({question_pk: data.question_pk})
@@ -780,6 +822,10 @@
         {% endwith %}
 
         {% with modal_id='correct-answer-modal' no_footer=True modal_title="Correct the answer" %}
+            {% include "exams/modals/common_modal_v4.html" %}
+        {% endwith %}
+
+        {% with modal_id='navigate-modal' no_footer=True modal_title="Navigate session" modal_content="<table id='navigation-table' class='table table-sm table-hover'><thead class='text-center thead-dark'><tr><th>Sequence</th><th class='d-sm-table-cell d-none'>ID</th><th class='d-sm-table-cell d-none'>Marked?</th><th>Answered?</th></tr></thead><tbody></tbody></table>" %}
             {% include "exams/modals/common_modal_v4.html" %}
         {% endwith %}
 
