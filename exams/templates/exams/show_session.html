@@ -274,7 +274,7 @@
                </div>
           </div>
           <div class="col-sm-6 text-sm-right">
-               <div data-toggle="tooltip" data-html="true" data-title="You can press <kbd>Ctrl+M</kbd> to toggle question mark." id="mark" class="option{% if current_question|is_question_marked:user %} marked{% endif %}">
+               <div data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> you can also press <kbd>Ctrl+M</kbd> to toggle question mark." id="mark" class="option{% if current_question|is_question_marked:user %} marked{% endif %}">
                   <img id="mark-loading" src="{% static 'img/ajax-loader.gif' %}">
                   <i id="mark-icon" class="icon-flag7"></i> Mark
                </div>
@@ -297,8 +297,8 @@
            <div id="help-me" class="float-right float-sm-none option d-none d-sm-inline-block"><i class="fa fa-comment"></i> Get help</div>
           </div>
           <div class="col-sm-5 text-sm-right order-1 order-sm-2">
-           <div data-action="previous" data-toggle="tooltip" data-html="true" data-title="You can <span class='d-inline d-sm-none'>tap the left side of the screen</span><span class='d-none d-sm-inline'>press the left keyboard arrow (<kbd>←</kbd>)</span> to go back." id="previous" class="float-left float-sm-none option"><i class=" icon-circle-left2"></i> Previous</div>
-           <div data-action="next" data-toggle="tooltip" data-html="true" data-title="You can <span class='d-inline d-sm-none'>tap the right side of the screen</span><span class='d-none d-sm-inline'>press the right keyboard arrow (<kbd>→</kbd>)</span> to go next." id="next" class="float-right float-sm-none option">Next <i class=" icon-circle-right2"></i></div>
+           <div data-action="previous" data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> You can also <span class='d-inline d-sm-none'>tap the left screen side</span><span class='d-none d-sm-inline'>press the left keyboard arrow (<kbd>←</kbd>)</span> to go back." id="previous" class="float-left float-sm-none option"><i class=" icon-circle-left2"></i> Previous</div>
+           <div data-action="next" data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> You can also <span class='d-inline d-sm-none'>tap the right screen side</span><span class='d-none d-sm-inline'>press the right keyboard arrow (<kbd>→</kbd>)</span> to go next." id="next" class="float-right float-sm-none option">Next <i class=" icon-circle-right2"></i></div>
           </div>
         </div>
       </div>
@@ -458,7 +458,8 @@
       });
     }
 
-    function controlExplanation(was_solved){
+    function controlExplanation(){
+      was_solved = $(".question-body.show").data('was-solved');
       if (!was_solved || (session_mode == 'UNEXPLAINED' && !$('body').data('has-finished'))){
         $(".question-body.show .explanation-container, #explain").hide()
       } else if ($('.question-body.show .explanation-content').text().length){
@@ -477,12 +478,10 @@
 
       if (current_sequence == total){
         $("#next").css('cursor', 'not-allowed');
-        if ($("#results").is(":hidden")){
-          button_name = 'End';
-        } else {
-          button_name = 'Results';
-        }
-        $("#next").tooltip({title: 'This is the last question.  You can click "' + button_name + '" to end this session.'})
+        // select whatever button that's visible
+        button_name = $("#end:visible, #results:visible").html();
+        $("#next").tooltip({title: 'This is the last question.  You can click <kbd>' + button_name + '</kbd> to end this session.',
+                            html: true})
       } else {
 
         $("#next").tooltip();
@@ -505,9 +504,9 @@
           $('body').data('has-finished', true).attr('data-has-finished', true);
         }
 
-        controlNavigationButtons();
+        $question = $(".question-body.show");
 
-        $(".highlight").addClass('active').click(removeHighlight);
+        controlNavigationButtons();
 
         // Show contributors as a tooltip
         $("#contributors").tooltip('dispose');
@@ -519,22 +518,23 @@
                                     title: $(".question-body.show .tooltip-body").get()[0]})
 
         // Disable interaction if question was solved.
-        was_solved = $(".question-body.show").data('was-solved');
-        controlExplanation(was_solved);
+
+        controlExplanation();
+        was_solved = $question.data('was-solved');
         if (was_solved){
           $("#contribute").show();
           $("#submit").hide();
-          $(".highlight").removeClass('active').off('click');
-          $(".question-body.show .question-choice").prop("disabled", "disabled");
+          $question.find(".highlight").removeClass('active').off('click');
+          $question.find(".question-choice").prop("disabled", "disabled");
         } else {
             $("#contribute").hide();
             $("#submit").show();
             // We turn off handlers first to ensure they don't get
             // triggered more than once as the user navigates and
             // binds the handlers.
-            $(".question-body.show .question-text").off('mouseup touchend').on('mouseup touchend', highlightText);
-            $('.question-body.show .question-choice').off('change').on('change', toggleChoices);
-            $(".highlight").addClass('active').off('click').on('click', removeHighlight);
+            $question.find(".question-text").off('mouseup touchend').on('mouseup touchend', highlightText);
+            $question.find(".question-choice").off('change').on('change', toggleChoices);
+            $question.find(".highlight").addClass('active').off('click').on('click', removeHighlight);
             $(".question-body.show .choice-text").off('click').on('click', function() {
                 if (!$(this).hasClass("strike")){
                    // If a choice is striked, it is no longer checked.
@@ -593,7 +593,7 @@
                         toastr.warning('You skipped this question');
                     }
 
-                    controlExplanation(true);
+                    controlExplanation();
                     $("#contribute").show();
                 } else {
                   toastr.error(data.message);
@@ -615,15 +615,41 @@
         active_keys[e.which] = true;
 
         // check which key we got
-        if (e.keyCode == 37) { // left key
+        if (active_keys[37]) { // left key
           $("#previous").trigger('click');
         	_paq.push(['trackEvent', 'show_session', 'navigation', 'keyboard-previous']);
-        } else if (e.keyCode == 39) {  // right key
+        } else if (active_keys[39]) {  // right key
           $("#next").trigger('click');
         	_paq.push(['trackEvent', 'show_session', 'navigation', 'keyboard-next']);
         } else if (active_keys[17] && active_keys[77]) { // ctrl + m
           _paq.push(['trackEvent', 'show_session', 'mark-question', 'keyboard-mark']);
           $('#mark').trigger('click');
+        } else if (active_keys[17] && active_keys[38] || active_keys[17] && active_keys[40]){ // ctrl + up or ctrl + down
+          total_choices = $('.question-body.show .question-choice').length
+          $checked_choice = $('.question-body.show .question-choice:enabled:checked')
+          if ($checked_choice.length){
+            choice_index = $('.question-body.show .question-choice').index($checked_choice);
+            if (active_keys[38] && choice_index == 0){ // Up while at top
+              // We are at the topmost choice, we cannot go up.
+              return
+            } else if (active_keys[40] && choice_index == (total_choices -1)){ // Up while at bottom
+              // We are at the bottom most choice, we cannot go futher down
+              return
+            } else {
+              if (active_keys[40]){ // down
+                _paq.push(['trackEvent', 'show_session', 'navigation', 'keyboard-down']);
+                target_index = choice_index + 1
+              } else if (active_keys[38]){ // up
+                _paq.push(['trackEvent', 'show_session', 'navigation', 'keyboard-up']);
+                target_index = choice_index - 1;
+              }
+            }
+          } else {
+            // If no choice is already checked, arrows always select the first choice.
+            target_index = 0;
+          }
+          target_choice = $('.question-body.show .question-choice:enabled').get(target_index)
+          $(target_choice).prop('checked', true).trigger('change');
         }
       });
       $(document).keyup(function (e) {
