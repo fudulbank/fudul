@@ -631,6 +631,7 @@
           _paq.push(['trackEvent', 'show_session', 'mark-question', 'keyboard-mark']);
           $('#mark').trigger('click');
         } else if (active_keys[17] && active_keys[13]) { // ctrl + enter
+          _paq.push(['trackEvent', 'show_session', 'mark-question', 'keyboard-submit']);
           $("#submit").trigger('click');
         } else if (active_keys[17] && active_keys[38] || active_keys[17] && active_keys[40]){ // ctrl + up or ctrl + down
           total_choices = $('.question-body.show .question-choice').length
