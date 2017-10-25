@@ -18,7 +18,7 @@
        </td>
        <td class="text-xs-center">
    {% if session.session_mode == 'SOLVED' %}
-       <span data-toggle="tooltip" title="Solved questions have no scores.">N/A<span>
+       <span data-toggle="tooltip" title="Solved sessions have no scores.">N/A<span>
    {% elif session.has_finished %}
        <span class="font-small-2">{{ session.get_score }}%</span>
        <progress  data-toggle="tooltip" title="{{ session.get_correct_answer_count }} out of {{ session.get_questions.count }} questions were answered correctly." class="progress progress-sm progress-success mb-0" value="{{ session.get_score }}" max="100"></progress>
