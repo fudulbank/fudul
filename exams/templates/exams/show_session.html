@@ -274,7 +274,7 @@
                </div>
           </div>
           <div class="col-sm-6 text-sm-right">
-               <div data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> you can also press <kbd>Ctrl+M</kbd> to toggle question mark." id="mark" class="option{% if current_question|is_question_marked:user %} marked{% endif %}">
+               <div data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> you can also press <kbd>Alt+M</kbd> to toggle question mark." id="mark" class="option{% if current_question|is_question_marked:user %} marked{% endif %}">
                   <img id="mark-loading" src="{% static 'img/ajax-loader.gif' %}">
                   <i id="mark-icon" class="icon-flag7"></i> Mark
                </div>
@@ -621,7 +621,7 @@
         } else if (active_keys[39]) {  // right key
           $("#next").trigger('click');
         	_paq.push(['trackEvent', 'show_session', 'navigation', 'keyboard-next']);
-        } else if (active_keys[17] && active_keys[77]) { // ctrl + m
+        } else if (active_keys[18] && active_keys[77]) { // alt + m
           _paq.push(['trackEvent', 'show_session', 'mark-question', 'keyboard-mark']);
           $('#mark').trigger('click');
         } else if (active_keys[17] && active_keys[38] || active_keys[17] && active_keys[40]){ // ctrl + up or ctrl + down
