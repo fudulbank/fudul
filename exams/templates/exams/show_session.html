@@ -26,6 +26,7 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw" crossorigin="anonymous">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/themes/black/pace-theme-loading-bar.min.css" integrity="sha384-46hxeX6k1sLo9XqANbmEmR8fjXTTcbm85rcnRtQQ1YkUMG+4xVnSgz718hNUu8Ak" crossorigin="anonymous">
         <link rel="stylesheet" type="text/css" href="{% static 'stack/fonts/font-awesome/css/font-awesome.min.css' %}">
+        <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
         {% include 'partials/piwik.html' %}
         <style>
     body, html, #container{
@@ -265,7 +266,7 @@
             </div>
             <div class="ml-auto col-sm-6 text-center"> <a target="_blank" href="{% url 'exams:create_session' session.exam.category.get_slugs session.exam.pk %}">{{ session.exam.name }}</a> <span class="separator">•</span> Session id: <span id="session-pk">{{ session.pk }}</span> <span class="d-none d-sm-inline">({{ session.get_session_mode_display }})</span><br> Question id: <a target="_blank" href="{% url 'exams:list_revisions' session.exam.category.get_slugs session.exam.pk current_question.pk %}" id="question-pk">{{ current_question.pk }}</a> </div>
             <div class="col-sm-3 top-question-id font-weight-bold text-sm-right text-center my-2 mb-sm-0"><div id="question-sequence">{{ current_question_sequence }}</div> of <div id="question-total">{{ session.get_questions.count }}</div></div>
-        </div>
+        </div><!--top-info-->
         <div id="top-options" class="row text-center align-items-center">
           <div class="col-sm-6 text-sm-left">
                <div class="option" id="contribute">
@@ -279,13 +280,13 @@
                   <i id="mark-icon" class="icon-flag7"></i> Mark
                </div>
           </div>
-        </div>
+        </div><!--top-options-->
 
         <div id="question-container">
           <div id="question-pool" class="mx-4 mx-sm-0">
             <!--AJAX will insert questions here-->
           </div>
-          <button {% if current_question|was_solved_in_session:session %}style="display: none;"{% endif %} type="button" id="submit" class="btn">Submit <i class=" icon-circle-right2"></i></button>
+          <button type="button" id="submit" class="btn">Submit <i class=" icon-circle-right2"></i></button>
           <button class="btn btn-outline-primary" id="explain"><i class=" icon-brain"></i> Improve this explanation!</button>
         </div>
         <div id="footer" class="row text-center font-weight-bold">
@@ -298,7 +299,6 @@
           </div>
           <div class="col-sm-6 text-sm-right order-1 order-sm-2">
             <div class="row justify-content-end no-gutters">
-
               <div class="col-sm-auto col-5">
                  <div data-action="previous" data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> You can also <span class='d-inline d-sm-none'>tap the left screen side</span><span class='d-none d-sm-inline'>press the left keyboard arrow (<kbd>←</kbd>)</span> to go back." id="previous" class="float-left float-sm-none option"><i class="icon-circle-left2" aria-hidden="true"></i> Previous</div>
               </div>
@@ -310,8 +310,10 @@
               </div>
           </div>
         </div>
-      </div>
-        <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
+      </div><!-footer-->
+    </div><!--container-fluid-->
+
+
         <script src="{% static 'js/toastr.js' %}"></script>
         <script>
     toastr.options.positionClass = "toast-top-left";
