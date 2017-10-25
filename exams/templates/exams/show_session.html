@@ -348,11 +348,6 @@
       initializeInteractions();
       handleMarked($question.data('is-marked'));
       history.pushState({url: $question.data('url')}, '', $question.data('url'));
-
-      question_row = $('.navigate-row[data-question-sequence="' + targeted_sequence + '"]');
-      question_row.addClass('table-active');
-      $('.navigate-row').not(question_row).removeClass('table-active');
-
     }
 
     function navigate() {
@@ -531,6 +526,12 @@
         }
 
         $question = $(".question-body.show");
+
+        // Mark row as active
+        sequence = $question.data('question-sequence');
+        question_row = $('.navigate-row[data-question-sequence="' + sequence + '"]');
+        question_row.addClass('table-active');
+        $('.navigate-row').not(question_row).removeClass('table-active');
 
         controlNavigationButtons();
 
