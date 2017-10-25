@@ -53,7 +53,7 @@ tbody tr td:last-child{
                 <th>ID</th>
                 <th>Text</th>
                 <th>Subjects</th>
-                <th>Correct others (%)</th>
+                <th data-toggle="tooltip" data-title="Percentage of Fudul users who had this question and answered it correctly.">Correct others (%)</th>
               </tr>
           </thead>
           <tbody>
@@ -83,6 +83,7 @@ tbody tr td:last-child{
 
 <script>
     $(function () {
+        $('[data-toggle="tooltip"]').tooltip();
         $("table.datatable").DataTable({
             "columnDefs": [
             { "orderable": false, "targets": 2 }
