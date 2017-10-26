@@ -656,7 +656,7 @@
         if (active_keys[37]) { // left key
           $("#previous").trigger('click');
         	_paq.push(['trackEvent', 'show_session', 'navigation', 'keyboard-previous']);
-        } else if (active_keys[39]) {  // right key
+        } else if (active_keys[39] || active_keys[32]) {  // right key or space
           $("#next").trigger('click');
         	_paq.push(['trackEvent', 'show_session', 'navigation', 'keyboard-next']);
         } else if (active_keys[18] && active_keys[77]) { // alt + m
