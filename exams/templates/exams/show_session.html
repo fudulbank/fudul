@@ -657,6 +657,7 @@
           $("#previous").trigger('click');
         	_paq.push(['trackEvent', 'show_session', 'navigation', 'keyboard-previous']);
         } else if (active_keys[39] || active_keys[32]) {  // right key or space
+          e.preventDefault() // prevent space scroll.
           $("#next").trigger('click');
         	_paq.push(['trackEvent', 'show_session', 'navigation', 'keyboard-next']);
         } else if (active_keys[18] && active_keys[77]) { // alt + m
