@@ -1,3 +1,5 @@
+{% load staticfiles %}
+<script src="{% static 'stack/vendors/js/charts/chart.min.js' %}"></script>
 <script>
 $(function () {
   var ctx = $('#performance-chart'),
@@ -10,7 +12,7 @@ $(function () {
     labels: ['Correct', 'Incorrect', 'Skipped'],
     datasets: [
       {
-        label: 'My First dataset',
+        label: 'My perfromance',
         data: [{{ correct_questions }}, {{ incorrect_questions }}, {{ skipped_questions }}],
         backgroundColor: [
           '#16D39A',

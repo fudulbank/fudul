@@ -524,14 +524,17 @@ def show_session_results(request, slugs, exam_pk, session_pk):
 
     question_pool = session.get_questions()
 
-    correct_questions = question_pool.correct_by_user(request.user)\
+    # We don't use the standard QuerySets as they don't filter per a
+    # specific session.
+    correct_questions = question_pool.filter(answer__choice__is_right=True,
+                                             answer__session=session)\
                                      .count()
-    incorrect_questions = question_pool.incorrect_by_user(request.user)\
+    incorrect_questions = question_pool.filter(answer__choice__is_right=False,
+                                               answer__session=session)\
                                        .count()
-    skipped_questions = question_pool.skipped_by_user(request.user)\
+    skipped_questions = question_pool.filter(answer__choice__isnull=True,
+                                             answer__session=session)\
                                      .count()
-
-
     context = {'session': session, 'exam': session.exam,
                'correct_questions': correct_questions,
                'incorrect_questions': incorrect_questions,
