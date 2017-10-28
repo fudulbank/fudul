@@ -338,13 +338,10 @@ class Revision(models.Model):
         return self.choice_set.filter(is_right=True).exists()
 
     def get_relevant_highlight(self, session):
-        try:
-            highlight = Highlight.objects.select_related('revision')\
-                                         .get(revision__question=self.question,
-                                              session=session)
-        except Highlight.DoesNotExist:
-            highlight = None
-        return highlight
+        return Highlight.objects.select_related('revision')\
+                                .filter(revision__question=self.question,
+                                        session=session)\
+                                .last()
 
     def save(self, *args, **kwargs):
         if self.is_approved:

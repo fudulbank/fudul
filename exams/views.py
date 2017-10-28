@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404, render
 from django.template.loader import get_template
 from django.views.decorators import csrf
 from django.views.decorators.http import require_POST, require_safe
-from htmlmin.decorators import minified_response
+from htmlmin.minify import html_minify
 import json
 
 from core import decorators
@@ -452,21 +452,59 @@ def create_session(request, slugs, exam_pk):
 
     return render(request, "exams/create_session.html", context)
 
-@minified_response
 @decorators.ajax_only
 @require_safe
 @login_required
-def list_session_questions(request):
-    question_pk = request.GET.get('question_pk')
-    session_pk = request.GET.get('session_pk')
-    session = get_object_or_404(Session.objects.undeleted(),
+def list_partial_session_questions(request, slugs, exam_pk, session_pk):
+    session = get_object_or_404(Session.objects.select_related('exam',
+                                                               'exam__category')\
+                                               .undeleted(),
                                 pk=session_pk)
 
-    current_question = session.get_current_question(question_pk)
+    # PERMISSION CHECK
+    if not session.can_user_access(request.user):
+        raise PermissionDenied
 
-    return render(request, "exams/partials/session_question_list.html",
-                  {'session': session,
-                   'current_question': current_question})
+    questions = session.get_questions().order_global_sequence()
+
+    exclude_pks_raw = request.GET.get('exclude')
+    if exclude_pks_raw:
+        exclude_pks = json.loads(exclude_pks_raw)
+        questions = questions.exclude(pk__in=exclude_pks)
+
+    # It would be more logical to use 'global_sequence' since it's the
+    # one that's actually used in ordering, but pk is the one rendered
+    # by session_question.html and thus accessible via the JavaScript,
+    # and it functions just as well!
+    since_pk = request.GET.get('since_pk')
+    if since_pk:
+        questions = questions.filter(pk__gt=since_pk)
+
+    count = request.GET.get('count') or 100
+    questions = questions[:count]
+
+    first_question = questions.first()
+    if first_question:
+        start_sequence = session.get_question_sequence(first_question)
+    else:
+        start_sequence = None
+
+    template = get_template("exams/partials/partial_session_question_list.html")
+    context = {'session': session,
+               'questions': questions,
+               'category_slugs': slugs}
+    html = template.render(context)
+    minified_html = html_minify(html)
+
+    if count  > questions.count():
+        done = True
+    else:
+        done = False
+
+    return {'html': minified_html,
+            'start_sequence': start_sequence,
+            'done': done}
+
 
 @login_required
 @require_safe
@@ -488,12 +526,23 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     current_question = session.get_current_question(question_pk)
     current_question_sequence = session.get_question_sequence(current_question)
 
+    # We need 10 initial questions (idealy: five before and 10 after)
+    if current_question_sequence >= 5:
+        start_sequence = current_question_sequence - 5
+        end_sequence = current_question_sequence + 5
+    else:
+        start_sequence = 0
+        end_sequence = 11 - current_question_sequence
+    initial_questions = session.get_questions()\
+                               .order_global_sequence()[start_sequence:end_sequence]
+    initial_question_sequence_start = session.get_question_sequence(initial_questions.first())
+
     context = {'session': session,
+               'initial_questions': initial_questions,
+               'initial_question_sequence_start': initial_question_sequence_start,
+               'category_slugs': slugs,
                'current_question': current_question,
                'current_question_sequence': current_question_sequence}
-
-    if question_pk:
-        context['current_question_pk'] = question_pk
 
     return render(request, "exams/show_session.html", context)
 
