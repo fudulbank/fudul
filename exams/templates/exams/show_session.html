@@ -315,6 +315,7 @@
         <script src="{% static 'js/toastr.js' %}"></script>
         <script>
     toastr.options.positionClass = "toast-top-left";
+    toastr.options.preventDuplicates = true;
     active_keys = {};
     was_solved_cell = '<i class="fa fa-check-square-o" aria-hidden="true"></i>';
     is_marked_cell = '<i class="icon-flag7" aria-hidden="true"></i>';
