@@ -1,0 +1,66 @@
+{% extends 'base_new.html' %}{% load bootstrap3 %}
+{% block title %}Fudul | Send a new message{% endblock %}
+
+{% block header_title %}
+<h1>Send a new message</h1>
+{% endblock %}
+
+{% block breadcrumb %}
+      <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'mailer:list_messages' %}">Mailer</a></li>
+      <li class="breadcrumb-item active">Send a new message</li>
+{% endblock %}
+
+{% block content %}
+    <div class="card">
+      <div class="card-body">
+        <div class="card-block">
+          <form method="POST">
+            {% csrf_token %}
+            {% bootstrap_form form %}
+            <button type="submit" class="btn btn-primary float-sm-right"><i class="ft-check"></i> Send <i class="icon-circle-right2 position-right"></i></button>
+          </form>
+        </div>
+      </div>
+    </div>
+{% endblock %}
+{% block customscript %}
+{{ form.media }}
+
+<script>
+function controlTargetFields(){
+  selector_to_show = null;
+  selector_to_hide = null;
+
+  target = $('#id_target').val();
+  if (target == 'ALL'){
+    selector_to_hide = "#id_institutions, #id_colleges";
+  } else if (target == 'COLLEGES'){
+    selector_to_show = "#id_colleges";
+    selector_to_hide = "#id_institutions";
+  } else if (target == 'INSTITUTIONS'){
+    selector_to_show = "#id_institutions";
+    selector_to_hide = "#id_colleges";
+  } else if (target == ''){
+    if ($('#id_college').val()){
+      selector_to_show = "#id_colleges";
+    } else if ($('#id_institutions').val()){
+      selector_to_show = "#id_institutions";
+    } else {
+      selector_to_hide = "#id_institutions, #id_colleges";
+    }
+  }
+
+  $(selector_to_show).closest('.form-group').show();
+  $(selector_to_show).attr('required', true);
+  $(selector_to_hide).attr('required', false).val('').trigger('change');
+  $(selector_to_hide).closest('.form-group').hide();
+}
+
+$(function(){
+  $('#id_target').change(controlTargetFields);
+  controlTargetFields();
+});
+</script>
+
+{% endblock %}

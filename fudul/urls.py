@@ -8,6 +8,7 @@ urlpatterns = [
     url(r'^admin/', include('loginas.urls')),
     url(r'^admin/', admin.site.urls),
     url(r'^accounts/', include('accounts.urls')),
+    url(r'^mailer/', include('mailer.urls', namespace="mailer")),
     url(r'^exams/admin/', include(editor_site.urls)),
     url(r'^exams/', include('exams.urls', namespace="exams")),
     url(r'', include('core.urls')),

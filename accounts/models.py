@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Count
 from django.contrib.auth.models import User
 import re
 from userena.models import UserenaBaseProfile
@@ -50,6 +51,10 @@ class Institution(models.Model):
     name = models.CharField(max_length=100)
     email_regex = models.CharField(max_length=100, blank=True,
                                    default="")
+
+    def get_total_users(self):
+        return self.college_set\
+                   .aggregate(total_users=Count('profile'))['total_users']
 
     def is_email_allowed(self, email):
         if not self.email_regex:
