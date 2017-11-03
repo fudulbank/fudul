@@ -13,11 +13,15 @@
       	<link href="{% static 'limitless/assets/css/icons/icomoon/styles.css' %}" rel="stylesheet" type="text/css">
         <link href="https://fonts.googleapis.com/css?family=Montserrat:300,300i,400,400i,500,500i%7COpen+Sans:300,300i,400,400i,600,600i,700,700i" rel="stylesheet">
 
+
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw" crossorigin="anonymous">
         <link rel="stylesheet" type="text/css" href="{% static 'stack/fonts/font-awesome/css/font-awesome.min.css' %}">
         <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
         {% include 'partials/piwik.html' %}
+
+        <link rel="stylesheet" type="text/css" href="{% static 'stack/vendors/css/tables/datatable/dataTables.bootstrap4.min.css' %}">
+
         <style>
     body, html, #container{
         height: 100%
@@ -99,7 +103,7 @@
         color: yellow;
     }
 
-    #top-options {
+    #top-options  {
         background-color: #929EB4;
         border-top: 1px solid #fff;
         line-height: 32px;
@@ -246,6 +250,11 @@
     .mobile-slide.previous{
       left: 0
     }
+
+    #normal-values{
+        align-items: center;
+    }
+
   </style>
     </head>
     <body data-session-mode="{{ session.session_mode }}" data-has-finished="{% if session.has_finished %}true{% else %}false{% endif %}">
@@ -268,11 +277,22 @@
 
                </div>
           </div>
-          <div class="col-sm-6 text-sm-right">
+          <div class="col-sm-6 text-sm-right order-1 order-sm-2">
+          <div class="row justify-content-end no-gutters">
+           <div class="col-sm-auto col-5">
                <div data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> you can also press <kbd>Alt+M</kbd> to toggle question mark." id="mark" class="option{% if current_question|is_question_marked:user %} marked{% endif %}">
                   <i id="mark-loading" class="fa fa-spinner fa-pulse fa-fw"></i>
                   <i id="mark-icon" class="icon-flag7"></i> Mark
                </div>
+           </div>
+
+           <div  id="normal-values" class="col-sm-auto col-2">
+               <div data-toggle="modal" data-target="#NormalValues">
+
+                  <i  id="normals-icon" class="fa fa-file-o"></i>
+               </div>
+           </div>
+          </div>
           </div>
         </div><!--top-options-->
 
@@ -306,11 +326,14 @@
               <div class="col-sm-auto col-5">
                  <div data-action="next" data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> You can also <span class='d-inline d-sm-none'>tap the right screen side</span><span class='d-none d-sm-inline'>press the right keyboard arrow (<kbd>→</kbd>)</span> to go next." id="next" class="float-right float-sm-none option">Next <i class="icon-circle-right2" aria-hidden="true"></i></div>
               </div>
+            </div>
           </div>
-        </div>
       </div><!--footer-->
     </div><!--container-fluid-->
 
+    <script src="{% static 'stack/vendors/js/tables/jquery.dataTables.min.js' %}" type="text/javascript"></script>
+    <script src="{% static 'stack/vendors/js/tables/datatable/dataTables.bootstrap4.min.js' %}" type="text/javascript"></script>
+    <script src="{% static 'stack/vendors/js/tables/datatable/dataTables.responsive.min.js' %}" type="text/javascript"></script>
 
         <script src="{% static 'js/toastr.js' %}"></script>
         <script>
@@ -879,9 +902,12 @@
           $(document).off('keydown keydup');
         });
 
+
+
     });
 
         </script>
+        {% include 'exams/partials/normal_values.html' %}
 
         {% with modal_id='confirm-end-modal' is_small=True confirm_link=True modal_title="End session" modal_content="<i class='text-danger icon-exit3'></i> Are you sure you want to end this session, and mark unsubmitted questions as unsolved?" %}
             {% include "exams/modals/common_modal_v4.html" %}
@@ -902,6 +928,7 @@
         {% with modal_id='navigate-modal' no_footer=True modal_title="Navigate session" modal_content="<table id='navigation-table' class='table table-sm table-hover'><thead class='text-center thead-dark'><tr><th>Sequence</th><th class='d-sm-table-cell d-none'>ID</th><th class='d-sm-table-cell d-none'>Marked?</th><th>Answered?</th></tr></thead><tbody></tbody></table>" %}
             {% include "exams/modals/common_modal_v4.html" %}
         {% endwith %}
+
 
         <div class="d-none">
           <div id="help-me-tooltip">
