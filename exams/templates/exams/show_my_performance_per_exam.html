@@ -3,7 +3,6 @@
 {% block title %}Fudul | My performance in {{ exam.name }} {% endblock %}
 
 {% block head %}
-<link rel="stylesheet" type="text/css" href="{% static 'stack/vendors/css/tables/datatable/dataTables.bootstrap4.min.css' %}">
 <link rel="stylesheet" href="{% static 'stack/vendors/css/charts/chartist.css' %}">
 {% endblock %}
 
@@ -62,9 +61,7 @@
 </div><!--card-->
 {% endblock %}
 {% block customscript %}
-<script src="{% static 'stack/vendors/js/tables/jquery.dataTables.min.js' %}" type="text/javascript"></script>
-<script src="{% static 'stack/vendors/js/tables/datatable/dataTables.bootstrap4.min.js' %}" type="text/javascript"></script>
-<script src="{% static 'stack/vendors/js/tables/datatable/dataTables.responsive.min.js' %}" type="text/javascript"></script>
+{% include 'partials/import_datatables.html' %}
 
 {% include 'exams/partials/performance_chart.html' %}
 <script>
