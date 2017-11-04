@@ -1,5 +1,9 @@
-{% extends 'base_new.html' %}{% load bootstrap3 %}
+{% extends 'base_new.html' %}{% load static bootstrap3 %}
 {% block title %}Fudul | Send a new message{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
+{% endblock %}
 
 {% block header_title %}
 <h1>Send a new message</h1>
@@ -15,10 +19,11 @@
     <div class="card">
       <div class="card-body">
         <div class="card-block">
-          <form method="POST">
+          <form id="message-form" method="POST">
             {% csrf_token %}
             {% bootstrap_form form %}
-            <button type="submit" class="btn btn-primary float-sm-right"><i class="ft-check"></i> Send <i class="icon-circle-right2 position-right"></i></button>
+            <button id="send-test" type="button" class="btn btn-success float-sm-right"><i class="fa fa-flask"></i> Email me a test message</button>
+            <button type="submit" class="btn btn-danger float-sm-right"><i class="ft-check"></i> Confirm</button>
           </form>
         </div>
       </div>
@@ -26,6 +31,8 @@
 {% endblock %}
 {% block customscript %}
 {{ form.media }}
+
+<script src="{% static 'js/toastr.js' %}"></script>
 
 <script>
 function controlTargetFields(){
@@ -60,6 +67,27 @@ function controlTargetFields(){
 $(function(){
   $('#id_target').change(controlTargetFields);
   controlTargetFields();
+
+  $("#send-test").click(function(){
+    var formData = new FormData($("#message-form")[0]);
+
+    $.ajax({
+        url: "{% url 'mailer:send_test_message' %}",
+        type: 'POST',
+        data: {body: CKEDITOR.instances.id_body.getData(),
+               subject: $("#id_subject").val(),
+               from_address: $("#id_from_address").val()},
+        cache: false,
+        success: function (data) {
+            if (data.success == 1) {
+              toastr.success("A test message was just sent to you.");
+            } else {
+                toastr.warning(data.message);
+            }
+          }
+    });
+
+  });
 });
 </script>
 

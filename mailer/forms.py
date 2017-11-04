@@ -46,3 +46,8 @@ class MessageForm(forms.ModelForm):
         fields = ['from_address', 'subject', 'body', 'target',
                   'institutions', 'colleges']
         widgets = {'from_address': autocomplete.Select2()}
+
+class MessageTestForm(forms.ModelForm):
+    class Meta:
+        model = models.Message
+        fields = ['from_address', 'subject', 'body']
