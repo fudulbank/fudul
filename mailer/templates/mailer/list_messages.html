@@ -31,7 +31,7 @@
               <tr>
                 <td>{{ message.pk }}</td>
                 <td>{{ message.subject }}</td>
-                <td>{{ message.text|safe }}</td>
+                <td class="none">{{ message.body|safe }}</td>
                 <td>{% if message.target == 'ALL' %}{{ message.get_target_display }}{% elif message.target == 'COLLEGES' %}<ul>{% for college in message.colleges.all %}<li>{{ college.name }}</li>{% endfor %}</ul>{% elif message.target == 'INSTITUTIONS' %}<ul>{% for institution in message.institutions.all %}<li>{{ institution.name }}</li>{% endfor %}</ul>{% endif %}</td>
                 <td>{{ message.get_status_display }}</td>
               </tr>

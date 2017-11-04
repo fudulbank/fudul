@@ -23,7 +23,7 @@ class Message(models.Model):
     institutions = models.ManyToManyField('accounts.Institution', blank=True)
     colleges = models.ManyToManyField('accounts.College', blank=True)
 
-    status = models.CharField(max_length=20, default="PENDING")
+    status = models.CharField(max_length=20, default="PENDING", choices=status_choices)
     submitter = models.ForeignKey(User)
     submission_date = models.DateTimeField(auto_now_add=True)
 
