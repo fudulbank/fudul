@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand
+from django.utils.html import strip_tags
 from post_office import mail
 from post_office.models import EmailTemplate
 
@@ -18,9 +19,13 @@ class Command(BaseCommand):
 
             # Create post-office EmailTemplate
             template_name = "mailer_{}".format(message.pk)
+            while EmailTemplate.objects.filter(name=template_name).exists():
+                template_name = template_name + "_"
+
             template = EmailTemplate.objects.create(name=template_name,
                                                     subject=message.subject,
                                                     description="Automatically generated template for Message #{}".format(message.pk),
+                                                    content=strip_tags(message.body),
                                                     html_content=message.body)
 
             from_address = "Fudul <{}>".format(message.from_address)
