@@ -20,4 +20,5 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         while True:
             call_command('send_queued_mail', lockfile="/home/fudul/.post_office.lock")
+            call_command('process_messages')
             time.sleep(5)

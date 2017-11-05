@@ -43,14 +43,16 @@ class Command(BaseCommand):
                     receipts |= user_pool.filter(profile__college__institution=institution)
 
             # Aaand send!
-            emails = receipts.values_list('email', 'profile__alternative_email')
-            for email, alternative_email in emails:
-                cc_address = alternative_email or None
-                try:
-                    mail.send(email, from_address, template=template_name,
-                              cc=cc_address, render_on_delivery=True)
-                except ValidationError:
-                    pass
+            email_addresses = receipts.values_list('email', 'profile__alternative_email')
+            messages = []
+            for email, alternative_email in email_addresses:
+                message = {'sender': from_address,
+                           'recipients': email,
+                           'cc': alternative_email or None,
+                           'render_on_delivery': True,
+                           'template': template_name}
+                messages.append(message)
+            mail.send_many(messages)
 
             message.status = 'SENT'
             message.save()
