@@ -19,7 +19,11 @@
 			</div>
 		</div>
 
-                      <h3 style="font-weight: bold">Question Choices</h3><a data-placement="left" class="circle" data-toggle="tooltip" title="Make sure to check the box for the right answer."> ? </a>
+        {% if not revisionchoiceformset.total_form_count == 0  %}
+
+        <h3 style="font-weight: bold">Question Choices</h3><a data-placement="left" class="circle" data-toggle="tooltip" title="Make sure to check the box for the right answer."> ? </a>
+        {% endif %}
+
         <div style="margin-left: 10%">
                         {{ revisionchoiceformset.management_form }}
                         {{ revisionchoiceformset.non_form_errors.as_ul }}
@@ -121,6 +125,10 @@ display:inline-block;
     content: url("{% static 'images/success(1).png' %}");
     display:block;
 }
+.add-row , .delete-row{
+    display: none;
+}
+
 </style>
 {% block customscript %}
      <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
@@ -143,7 +151,7 @@ display:inline-block;
     });
     $('#choice_formset input[type=checkbox]').change(function(){
             $('#choice_formset input[type=checkbox]').not(this).prop('checked', false);
-        });
+    });
     // FIXME
     $('#choice_formset div.checkbox label').append( "<span></span>" );
 

@@ -135,7 +135,7 @@ RevisionChoiceFormset = inlineformset_factory(models.Revision,
 ContributedRevisionChoiceFormset = inlineformset_factory(models.Revision,
                                               models.Choice,
                                               formset=CustomRevisionChoiceFormset,
-                                              extra=1,
+                                              extra=0,
                                               fields=['text','is_right'])
 
 class SessionForm(forms.ModelForm):
