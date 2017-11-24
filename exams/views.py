@@ -332,6 +332,9 @@ def show_explanation_revision(request, pk):
 @require_safe
 @login_required
 def list_revisions(request, slugs, exam_pk, pk):
+    # PERMISSION CHECK
+    # No need.  Similar to list_contributions
+
     category = Category.objects.get_from_slugs(slugs)
     if not category:
         raise Http404
@@ -1008,15 +1011,23 @@ def show_credits(request,pk):
 @login_required
 @require_safe
 def list_contributions(request,user_pk=None):
+    # PERMISSION CHECK
+    # No need.  Similar to list_revisions
+
     if user_pk:
-        user = get_object_or_404(User,pk=user_pk)
+        contributor = get_object_or_404(User,pk=user_pk)
     else:
-        user = request.user
+        contributor = request.user
 
-    revisions = Revision.objects.filter(submitter=user)
-    exams = Exam.objects.all()
+    revisions = Revision.objects.select_related('question',
+                                                'question__exam',
+                                                'question__exam__category')\
+                                .undeleted()\
+                                .filter(submitter=contributor)\
+                                .order_by('-submission_date')
+    context = {'revisions':revisions, 'contributor': contributor}
 
-    return render(request, 'exams/list_contributions.html',{'revisions':revisions,'exams':exams})
+    return render(request, 'exams/list_contributions.html', context)
 
 @require_safe
 @login_required
