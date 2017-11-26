@@ -14,6 +14,7 @@ import json
 
 from core import decorators
 from .models import *
+from teams.models import *
 from . import forms, utils
 import teams.utils
 from django.views.decorators.http import require_http_methods
@@ -85,6 +86,43 @@ def show_category(request, slugs, indicators=False):
     })
 
     return render(request, "exams/show_category.html", context)
+
+
+@require_safe
+@login_required
+def show_indicator_index(request):
+    # PERMISSION CHECK
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+    context = {'is_indicators_active': True}
+
+    return render(request, "exams/show_indicator_index.html", context)
+
+@require_safe
+@login_required
+def list_team_indicators(request):
+    # PERMISSION CHECK
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+    teams = Team.objects.all()
+
+    context = {'is_indicators_active': True, 'teams': teams}
+    return render(request, "exams/list_team_indicators.html", context)
+
+@require_safe
+@login_required
+def show_team_indicators(request, team_pk):
+    # PERMISSION CHECK
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+    team = get_object_or_404(Team, pk=team_pk)
+    context = {'is_indicators_active': True,
+               'team': team}
+
+    return render(request, "exams/show_team_indicators.html", context)
 
 @require_safe
 @login_required

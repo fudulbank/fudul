@@ -32,6 +32,9 @@ urlpatterns =[
 
     url(r'^search/$', views.search, name='search'),
 
+    url(r'^indicators/$', views.show_indicator_index, name='show_indicator_index'),
+    url(r'^indicators/teams/$', views.list_team_indicators, name='list_team_indicators'),
+    url(r'^indicators/teams/(?P<team_pk>\d+)/$', views.show_team_indicators, name='show_team_indicators'),
     url(r'^indicators/categories/$', views.list_meta_categories, {'indicators': True}, name='list_category_indicators'),
     url(r'^indicators/categories/(?P<slugs>[/\d\w\-]+)/$', views.show_category, {'indicators': True}, name='show_category_indicators'),
     url(r'^contributions/(?:(?P<user_pk>\d+)/)?$',views.list_contributions, name='list_contributions'),

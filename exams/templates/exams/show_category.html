@@ -15,8 +15,10 @@
 {% block breadcrumb %}
       <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
 			{% if is_indicators_active and category %}
+			<li class="breadcrumb-item"><a href="{% url 'exams:show_indicator_index' %}">Indicators</a></li>
       <li class="breadcrumb-item"><a href="{% url 'exams:list_category_indicators' %}">Category indicators</a></li>
 			{% elif is_indicators_active and not category %}
+			<li class="breadcrumb-item"><a href="{% url 'exams:show_indicator_index' %}">Indicators</a></li>
 			<li class="breadcrumb-item active">Category indicators</li>
 			{% elif category %}
       <li class="breadcrumb-item"><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
