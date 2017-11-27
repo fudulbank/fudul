@@ -42,7 +42,8 @@
 {% include 'partials/import_datatables.html' %}
   <script>
     $(function(){
-       $('[data-toggle="tooltip"]').tooltip();
+       $('th[data-toggle="tooltip"]').tooltip();
+       $('a[data-toggle="tooltip"]').tooltip({html: true, delay: {show: 100, hide: 1500}});
        $('.datatable').dataTable({order: [[1, 'desc']]});
     });
     </script>
