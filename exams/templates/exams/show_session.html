@@ -6,14 +6,14 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
         <title>Fudul | {{ session.exam.name }} session #{{ session.pk }}</title>
-      	<script src="{% static 'limitless/assets/js/core/libraries/jquery.min.js' %}"></script>
+
+        <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha384-xBuQ/xzmlsLoJpyjoggmTEz8OWUFM0/RC5BsqQBDX2v5cMvDHcMakNTNrHIW2I5f" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+
         <link rel="shortcut icon" href="{% static 'img/logo-monkey.png' %}">
-      	<link href="{% static 'limitless/assets/css/icons/icomoon/styles.css' %}" rel="stylesheet" type="text/css">
-        <link href="https://fonts.googleapis.com/css?family=Montserrat:300,300i,400,400i,500,500i%7COpen+Sans:300,300i,400,400i,600,600i,700,700i" rel="stylesheet">
 
-
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:300,300i,400,400i,500,500i%7COpen+Sans:300,300i,400,400i,600,600i,700,700i">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw" crossorigin="anonymous">
         <link rel="stylesheet" type="text/css" href="{% static 'stack/fonts/font-awesome/css/font-awesome.min.css' %}">
@@ -270,7 +270,7 @@
         <div id="top-options" class="row text-center">
           <div class="col-6 text-sm-left">
                <div class="option" id="contribute">
-                   <a data-placement="left" data-toggle="tooltip" title=" If you have any improvements on the question you can help us with, please submit it here.Your edits will be quickly available to public."> <i class="icon-pencil"></i> Edit</a>
+                   <a data-placement="left" data-toggle="tooltip" title=" If you have any improvements on the question you can help us with, please submit it here.Your edits will be quickly available to public."> <i class="fa fa-pencil" aria-hidden="true"></i> Edit</a>
                </div>
           </div>
           <div class="col-6 text-sm-right">
@@ -278,7 +278,7 @@
              <div class="col-auto">
                  <div data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> you can also press <kbd>Alt+M</kbd> to toggle question mark." id="mark" class="option{% if current_question|is_question_marked:user %} marked{% endif %}">
                     <i id="mark-loading" class="fa fa-spinner fa-pulse fa-fw"></i>
-                    <i id="mark-icon" class="icon-flag7"></i> Mark
+                    <i class="fa fa-flag" aria-hidden="true"></i> Mark
                  </div>
              </div>
 
@@ -299,27 +299,27 @@
             {% endwith %}
             {% endfor %}
           </div>
-          <button type="button" id="submit" class="btn">Submit <i class=" icon-circle-right2"></i></button>
-          <button class="btn btn-outline-primary" id="explain"><i class=" icon-brain"></i> Improve this explanation!</button>
+          <button type="button" id="submit" class="btn">Submit <i class="fa fa-angle-right" aria-hidden="true"></i></button>
+          <button class="btn btn-outline-primary" id="explain">Improve this explanation!</button>
         </div>
         <div id="footer" class="row text-center font-weight-bold">
           <div class="col-sm-6 text-sm-left order-2 order-sm-1">
-           <a id="back" class="float-left float-sm-none option" href="{% url 'exams:create_session' category_slugs session.exam.pk %}"><i class="icon-exit3"></i> Back</a>
+           <a id="back" class="float-left float-sm-none option" href="{% url 'exams:create_session' category_slugs session.exam.pk %}"><i class="fa fa-sign-out" aria-hidden="true"></i> Back</a>
            <a id="results" class="float-left float-sm-none option" href="{% url 'exams:show_session_results' category_slugs session.exam.pk session.pk %}"><i class="fa fa-check-square-o" aria-hidden="true"></i> Results</a>
-           <div id="end" class="float-left float-sm-none option"><i class="icon-exit3"></i> End</div>
-           <div id="contributors" class="float-right float-sm-none option"><i class="icon-stars"></i> Contributors</div>
+           <div id="end" class="float-left float-sm-none option"><i class="fa fa-sign-out" aria-hidden="true"></i> End</div>
+           <div id="contributors" class="float-right float-sm-none option"><i class="fa fa-star" aria-hidden="true"></i> Contributors</div>
            <div id="help-me" class="float-right float-sm-none option d-none d-sm-inline-block"><i class="fa fa-comment"></i> Get help</div>
           </div>
           <div class="col-sm-6 text-sm-right order-1 order-sm-2">
             <div class="row justify-content-end no-gutters">
               <div class="col-sm-auto col-5">
-                 <div data-action="previous" data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> You can also <span class='d-inline d-sm-none'>tap the left screen side</span><span class='d-none d-sm-inline'>press the left keyboard arrow (<kbd>←</kbd>)</span> to go back." id="previous" class="float-left float-sm-none option"><i class="icon-circle-left2" aria-hidden="true"></i> Previous</div>
+                 <div data-action="previous" data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> You can also <span class='d-inline d-sm-none'>tap the left screen side</span><span class='d-none d-sm-inline'>press the left keyboard arrow (<kbd>←</kbd>)</span> to go back." id="previous" class="float-left float-sm-none option"><i class="fa fa-chevron-circle-left" aria-hidden="true"></i> Previous</div>
               </div>
               <div class="col-sm-auto col-2">
-                 <div id="open-navigation" data-toggle="tooltip" data-html="true" data-title="Give us a second!  We are loading all questions for you. <img height='17' alt='🐣' src='https://cdnjs.cloudflare.com/ajax/libs/emojione/2.2.7/assets/png/1f423.png'>" class="option"><i class="icon-list3" aria-hidden="true"></i> <span class="d-none d-sm-inline">Navigate</span></div>
+                 <div id="open-navigation" data-toggle="tooltip" data-html="true" data-title="Give us a second!  We are loading all questions for you. <img height='17' alt='🐣' src='https://cdnjs.cloudflare.com/ajax/libs/emojione/2.2.7/assets/png/1f423.png'>" class="option"><i class="fa fa-list-alt" style="font-weight: 400;" aria-hidden="true"></i> <span class="d-none d-sm-inline">Navigate</span></div>
               </div>
               <div class="col-sm-auto col-5">
-                 <div data-action="next" data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> You can also <span class='d-inline d-sm-none'>tap the right screen side</span><span class='d-none d-sm-inline'>press the right keyboard arrow (<kbd>→</kbd>)</span> to go next." id="next" class="float-right float-sm-none option">Next <i class="icon-circle-right2" aria-hidden="true"></i></div>
+                 <div data-action="next" data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> You can also <span class='d-inline d-sm-none'>tap the right screen side</span><span class='d-none d-sm-inline'>press the right keyboard arrow (<kbd>→</kbd>)</span> to go next." id="next" class="float-right float-sm-none option">Next <i class="fa fa-chevron-circle-right" aria-hidden="true"></i></div>
               </div>
             </div>
           </div>
@@ -331,7 +331,7 @@
     toastr.options.preventDuplicates = true;
     active_keys = {};
     was_solved_cell = '<i class="fa fa-check-square-o" aria-hidden="true"></i>';
-    is_marked_cell = '<i class="icon-flag7" aria-hidden="true"></i>';
+    is_marked_cell = '<i class="fa fa-flag" aria-hidden="true"></i>';
 
     function updateData(){
         current_sequence =  parseInt($("#question-sequence").html());
@@ -899,7 +899,7 @@
         </script>
         {% include 'exams/partials/normal_values.html' %}
 
-        {% with modal_id='confirm-end-modal' is_small=True confirm_link=True modal_title="End session" modal_content="<i class='text-danger icon-exit3'></i> Are you sure you want to end this session, and mark unsubmitted questions as unsolved?" %}
+        {% with modal_id='confirm-end-modal' is_small=True confirm_link=True modal_title="End session" modal_content="<i class='text-danger fa fa-sign-out'></i> Are you sure you want to end this session, and mark unsubmitted questions as unsolved?" %}
             {% include "exams/modals/common_modal_v4.html" %}
         {% endwith %}
 
@@ -930,7 +930,7 @@
             </div>
             <div class="row justify-content-center mt-3 mb-2">
               <div class="col-12">
-                <a href="mailto:support@fudulbank.com"><i class="fa-2x  icon-envelop5"></i><br>Support Email</a>
+                <a href="mailto:support@fudulbank.com"><i class="fa fa-2x fa-envelope" aria-hidden="true"></i><br>Support Email</a>
               </div>
             </div>
           </div>
