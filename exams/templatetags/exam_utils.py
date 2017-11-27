@@ -132,23 +132,27 @@ def can_oppose_correction(user, correction):
     return correction.submitter != user and not correction.opposing_users.filter(pk=user.pk).exists()
 
 @register.filter
-def get_question_created_count(user):
-    return models.Question.objects\
-                          .undeleted()\
-                          .filter(revision__is_first=True,
-                                  revision__is_deleted=False,
-                                  revision__submitter=user)\
-                          .distinct().count()
+def get_question_created_count(user, question_pool=None):
+    if not question_pool:
+        question_pool = models.Question.objects\
+                                       .undeleted()
+
+    return question_pool.filter(revision__is_first=True,
+                                revision__is_deleted=False,
+                                revision__submitter=user)\
+                        .distinct().count()
 
 @register.filter
-def get_question_edited_count(user):
-    return models.Question.objects\
-                          .undeleted()\
-                          .exclude(revision__is_first=True,
-                                   revision__is_deleted=False,
-                                   revision__submitter=user)\
-                          .filter(revision__is_first=False,
-                                  revision__is_deleted=False,
-                                  revision__submitter=user)\
-                          .distinct().count()
+def get_question_edited_count(user, question_pool=None):
+    if not question_pool:
+        question_pool = models.Question.objects\
+                                       .undeleted()
+
+    return question_pool.exclude(revision__is_first=True,
+                                 revision__is_deleted=False,
+                                 revision__submitter=user)\
+                        .filter(revision__is_first=False,
+                                revision__is_deleted=False,
+                                revision__submitter=user)\
+                        .distinct().count()
 

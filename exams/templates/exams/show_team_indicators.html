@@ -20,16 +20,16 @@
 				    <thead>
 				        <tr>
 				            <th data-priority="1">Member</th>
-                    <th data-priority="1">Added questions</th>
-                    <th data-priority="2">Edited questions</th>
+                    <th data-priority="1">Added questions in team categories</th>
+                    <th data-priority="2">Edited questions in team categories</th>
 				        </tr>
 				    </thead>
 				    <tbody>
 				       {% for member in team.members.all %}
 				            <tr>
 				                <td><a data-toggle="tooltip" title="<a href='mailto:{{ member.email }}'>{{ member.email }}</a>" href="{% url 'exams:list_contributions' member.pk %}">{{ member|get_user_credit:user }}</a></td>
-                        <td>{{ member|get_question_created_count }}</td>
-                        <td>{{ member|get_question_edited_count }}</td>
+                        <td>{{ member|get_question_created_count:team_question_pool }}</td>
+                        <td>{{ member|get_question_edited_count:team_question_pool }}</td>
 			            </tr>
 				       {% endfor %}
 				    </tbody>

@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models import Q, Count
 import accounts.utils
+from . import utils
 from itertools import chain
 
 class QuestionQuerySet(models.QuerySet):
@@ -153,6 +154,19 @@ class QuestionQuerySet(models.QuerySet):
         return self.with_blocking_issues() | \
                self.unsolved() | \
                self.lacking_choices()
+
+    def under_categories(self, categories):
+        deepest_category_level = utils.get_deepest_category_level()
+        queries = Q()
+        for category in categories:
+            count = 1
+            level = 'exam__category'
+            while deepest_category_level >= count:
+                kwarg = {level: category}
+                level +=  '__parent_category'
+                queries |= Q(**kwarg)
+                count += 1
+        return self.filter(queries)
 
 class RevisionQuerySet(models.QuerySet):
     def order_by_submission(self):

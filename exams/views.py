@@ -119,8 +119,15 @@ def show_team_indicators(request, team_pk):
         raise PermissionDenied
 
     team = get_object_or_404(Team, pk=team_pk)
+    categories = team.categories.all()
+
+    team_question_pool = Question.objects\
+                                 .undeleted()\
+                                 .under_categories(categories)\
+
     context = {'is_indicators_active': True,
-               'team': team}
+               'team': team,
+               'team_question_pool': team_question_pool}
 
     return render(request, "exams/show_team_indicators.html", context)
 
