@@ -21,6 +21,7 @@ class Team(models.Model):
         return exams.models.Question.objects\
                                     .undeleted()\
                                     .under_categories(categories)\
+                                    .distinct()\
                                     .count()
 
     def __str__(self):
