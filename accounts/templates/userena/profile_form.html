@@ -4,7 +4,7 @@
 {% block content %}
 {% bootstrap_form_errors form %}
 
-<div class="card-body collapse in">
+<div class="card-body">
     <div class="card-block">
         <form enctype="multipart/form-data" method="post" class="form-horizontal form-simple" novalidate>
           {% csrf_token %}
@@ -17,8 +17,8 @@
 </div>
 <div class="card-footer">
     <div class="">
-        <p class="float-sm-left text-xs-center m-0"><a href="{% url 'userena_email_change' user.username %}">Change email</a></p>
-        <p class="float-sm-right text-xs-center m-0"><a href="{% url 'userena_password_change' user.username %}">Change password</a></p>
+        <p class="float-sm-left text-center m-0"><a href="{% url 'userena_email_change' user.username %}">Change email</a></p>
+        <p class="float-sm-right text-center m-0"><a href="{% url 'userena_password_change' user.username %}">Change password</a></p>
     </div>
 </div>
 {% endblock %}

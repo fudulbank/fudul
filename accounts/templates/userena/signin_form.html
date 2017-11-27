@@ -4,7 +4,7 @@
 {% block content %}
 {% bootstrap_form_errors form %}
 
-<div class="card-body collapse in">
+<div class="card-body">
     <div class="card-block">
         <form method="post" class="form-horizontal form-simple" novalidate>
           {% csrf_token %}
@@ -21,13 +21,13 @@
                 </div>
             </fieldset>
             <fieldset class="form-group row">
-                <div class="col-md-6 col-xs-12 text-xs-center text-md-left">
+                <div class="col-md-6 col-xs-12 text-center text-md-left">
                     <fieldset>
                         <input type="checkbox" id="remember-me" name="remember_me" class="chk-remember">
                         <label for="remember-me"> Remember Me</label>
                     </fieldset>
                 </div>
-                <div class="col-md-6 col-xs-12 text-xs-center text-md-right"><a href="{% url 'userena_password_reset' %}" class="card-link">Forgot Password?</a></div>
+                <div class="col-md-6 col-xs-12 text-center text-md-right"><a href="{% url 'userena_password_reset' %}" class="card-link">Forgot Password?</a></div>
             </fieldset>
             <button type="submit" class="btn btn-primary btn-lg btn-block"><i class="ft-unlock"></i> Login</button>
         </form>
@@ -35,8 +35,8 @@
 </div>
 <div class="card-footer">
     <div class="">
-        <p class="float-sm-left text-xs-center m-0"><a href="{% url 'userena_password_reset' %}" class="card-link">Recover password</a></p>
-        <p class="float-sm-right text-xs-center m-0">New to Fudul? <a href="{% url 'userena_signup' %}" class="card-link">Sign Up</a></p>
+        <p class="float-sm-left text-center m-0"><a href="{% url 'userena_password_reset' %}" class="card-link">Recover password</a></p>
+        <p class="float-sm-right text-center m-0">New to Fudul? <a href="{% url 'userena_signup' %}" class="card-link">Sign Up</a></p>
     </div>
 </div>
 {% endblock %}
