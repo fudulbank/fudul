@@ -123,7 +123,7 @@ def show_team_indicators(request, team_pk):
 
     team_question_pool = Question.objects\
                                  .undeleted()\
-                                 .under_categories(categories)\
+                                 .under_categories(categories)
 
     context = {'is_indicators_active': True,
                'team': team,

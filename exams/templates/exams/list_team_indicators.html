@@ -21,6 +21,7 @@
 				            <th data-priority="1">Team</th>
                     <th data-priority="1">Members</th>
                     <th data-priority="2">Categories</th>
+                    <th title="Number of questions under team categories" data-priority="3"># questions</th>
 				        </tr>
 				    </thead>
 				    <tbody>
@@ -39,6 +40,7 @@
                           None
                           {% endif %}
                         </td>
+                        <td>{{ team.get_question_count }}</td>
 			            </tr>
 				       {% endfor %}
 				    </tbody>
