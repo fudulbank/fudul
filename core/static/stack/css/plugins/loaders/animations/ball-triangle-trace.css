@@ -24,7 +24,7 @@
 
 .ball-triangle-path {
   position: relative;
-  transform: translate(-29.994px, -37.50938px); }
+  transform: translate(-29.994001px, -37.509377px); }
   .ball-triangle-path > div:nth-child(1) {
     animation-name: ball-triangle-path-1;
     animation-delay: 0;

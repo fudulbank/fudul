@@ -35,33 +35,35 @@
 
 {% block content %}
 {% if not is_indicators_active and exams.exists %}
+<div class="row">
 {% for exam in exams %}
-<div class="col-xl-4 col-md-6 col-sm-12">
-	<div class="card height-150">
-		<div class="card-header">
-			<h4 class="card-title"><a href="{% url 'exams:create_session' category.get_slugs exam.pk %}">{{ exam.name }}</a></h4>
-			{% if category|is_editor:user %}
-			<div class="heading-elements">
-				{% include 'exams/partials/exam_editor_buttons.html' %}
-			</div>
-			{% endif %}
+	<div class="col-xl-4 col-md-6 col-sm-12">
+		<div class="card height-150">
+			<div class="card-header">
+				<h4 class="card-title"><a href="{% url 'exams:create_session' category.get_slugs exam.pk %}">{{ exam.name }}</a></h4>
+				{% if category|is_editor:user %}
+				<div class="heading-elements">
+					{% include 'exams/partials/exam_editor_buttons.html' %}
+				</div>
+				{% endif %}
 
-		</div>
-		<div class="card-body">
-			<div class="card-block text-muted">
-				<div class="card-text">
-						<span>{{ exam.question_set.available.count }} questions</span>
-						{% if not exam|was_ever_taken_by_user:user %}
-						<span class="float-xs-right">
-							<span class="tag tag-warning">New!</span>
-						</span>
-						{% endif %}
+			</div>
+			<div class="card-body">
+				<div class="card-block text-muted">
+					<div class="card-text">
+							<span>{{ exam.question_set.available.count }} questions</span>
+							{% if not exam|was_ever_taken_by_user:user %}
+							<span class="float-right">
+								<span class="tag tag-warning">New!</span>
+							</span>
+							{% endif %}
+					</div>
 				</div>
 			</div>
 		</div>
-	</div>
-</div>
+	</div><!--col-->
 {% endfor %}
+</div><!--row-->
 {% endif %}
 {% if subcategories.exists %}
 {% for subcategory in subcategories %}

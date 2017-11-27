@@ -13,7 +13,8 @@
   position: fixed;
   height: 100%;
   overflow: scroll;
-  width: 291px; }
+  width: 291px;
+  background: #FFFFFF; }
 
 .email-application .email-app-details {
   overflow-y: scroll;
@@ -22,7 +23,12 @@
     border-bottom: 1px solid #E4E7ED; }
 
 .email-application .sidebar {
-  width: 499px; }
+  width: 499px;
+  display: table;
+  height: 100%; }
+  .email-application .sidebar .email-app-sidebar {
+    display: table;
+    height: 100%; }
 
 .email-application .content-right {
   width: calc(100% - 500px); }
@@ -35,7 +41,9 @@
 
 .email-application .sidebar-left {
   border-right: 1px solid #E4E7ED;
-  z-index: 999; }
+  z-index: 999;
+  display: table;
+  height: 100%; }
 
 .email-application .chat-fixed-search {
   position: fixed;
@@ -59,3 +67,8 @@
   .email-application .chat-fixed-search,
   .email-application .email-app-list #users-list {
     width: 100%; } }
+
+.horizontal-layout.email-application .app-content {
+  height: calc(100% - 144px) !important;
+  min-height: calc(100% - 144px) !important;
+  margin-top: 0 !important; }

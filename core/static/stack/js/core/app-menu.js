@@ -4,9 +4,9 @@
   initialization and manipulations
   ----------------------------------------------------------------------------------------
   Item Name: Stack - Responsive Admin Theme
-  Version: 1.1
-  Author: GeeksLabs
-  Author URL: http://www.themeforest.net/user/geekslabs
+  Version: 2.0
+  Author: Pixinvent
+  Author URL: hhttp://www.themeforest.net/user/pixinvent
 ==========================================================================================*/
 (function(window, document, $) {
   'use strict';
@@ -197,13 +197,13 @@
       // ---------------------------------------------------------------
       if(currentBreakpoint.name == 'xl'){
         $('body[data-open="hover"] .dropdown').on('mouseenter', function(){
-          if (!($(this).hasClass('open'))) {
-            $(this).addClass('open');
+          if (!($(this).hasClass('show'))) {
+            $(this).addClass('show');
           }else{
-            $(this).removeClass('open');
+            $(this).removeClass('show');
           }
         }).on('mouseleave', function(event){
-          $(this).removeClass('open');
+          $(this).removeClass('show');
         });
 
         $('body[data-open="hover"] .dropdown a').on('click', function(e){
@@ -234,8 +234,8 @@
           event.preventDefault();
         }
         event.stopPropagation();
-        $(this).parent().siblings().removeClass('open');
-        $(this).parent().toggleClass('open');
+        $(this).parent().siblings().removeClass('show');
+        $(this).parent().toggleClass('show');
       });
 
       // Horizontal Fixed Nav Sticky hight issue on small screens

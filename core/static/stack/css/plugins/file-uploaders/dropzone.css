@@ -10,8 +10,9 @@
     width: 100%;
     height: 300px;
     margin-top: -30px;
-    color: #00B5B8; }
-  .dropzone .dz-default.dz-message:before {
+    color: #00B5B8;
+    text-align: center; }
+  .dropzone .dz-message:before {
     content: "\e94b";
     font-family: 'feather';
     font-size: 80px;

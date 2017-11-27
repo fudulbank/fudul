@@ -18,12 +18,10 @@
                 $(this).parent(".form-group-style").removeClass('focus');
             }
             if($(this).val() !== ""){
-                // $('.form-group-style label').addClass("filled");
                 $(this).parent(".form-group-style").children("label").addClass("filled");
             }
             else{
                 $(this).parent(".form-group-style").children("label").removeClass("filled");
-                // $('.form-group-style label').removeClass("filled");
             }
         });
     });

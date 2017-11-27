@@ -4,9 +4,9 @@
                 pagination component.
     ----------------------------------------------------------------------------------------
     Item Name: Stack - Responsive Admin Theme
-    Version: 1.1
-    Author: GeeksLabs
-    Author URL: http://www.themeforest.net/user/geekslabs
+    Version: 2.0
+    Author: Pixinvent
+    Author URL: hhttp://www.themeforest.net/user/pixinvent
 ==========================================================================================*/
 (function(window, document, $) {
     'use strict';

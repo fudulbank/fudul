@@ -39,15 +39,15 @@
 			    {% for subject in exam.subject_set.all %}
 			      <tr>
 			        <td>{{ subject.name }}</td>
-			        <td data-order="{% get_user_question_stats subject user 'correct' %}" class="text-xs-center">
+			        <td data-order="{% get_user_question_stats subject user 'correct' %}" class="text-center">
                 <span class="font-small-2">{% get_user_question_stats subject user 'correct' %} ({% get_user_question_stats subject user 'correct' percent=True %}%)</span>
                 <progress class="progress progress-sm progress-success mb-0" value="{% get_user_question_stats subject user 'correct' percent=True %}" max="100"></progress>
               </td>
-              <td data-order="{% get_user_question_stats subject user 'incorrect' %}" class="text-xs-center">
+              <td data-order="{% get_user_question_stats subject user 'incorrect' %}" class="text-center">
                 <span class="font-small-2">{% get_user_question_stats subject user 'incorrect' %} ({% get_user_question_stats subject user 'incorrect' percent=True %}%)</span>
                 <progress class="progress progress-sm progress-danger mb-0" value="{% get_user_question_stats subject user 'incorrect' percent=True %}" max="100"></progress>
               </td>
-              <td data-order="{% get_user_question_stats subject user 'skipped' %}" class="text-xs-center">
+              <td data-order="{% get_user_question_stats subject user 'skipped' %}" class="text-center">
                 <span class="font-small-2">{% get_user_question_stats subject user 'skipped' %} ({% get_user_question_stats subject user 'skipped' percent=True %}%)</span>
                 <progress class="progress progress-sm progress-warning mb-0" value="{% get_user_question_stats subject user 'skipped' percent=True %}" max="100"></progress>
               </td>

@@ -3,9 +3,9 @@
   Description: Template related app JS.
   ----------------------------------------------------------------------------------------
   Item Name: Stack - Responsive Admin Theme
-  Version: 1.1
-  Author: GeeksLabs
-  Author URL: http://www.themeforest.net/user/geekslabs
+  Version: 2.0
+  Author: Pixinvent
+  Author URL: hhttp://www.themeforest.net/user/pixinvent
 ==========================================================================================*/
 
 (function(window, document, $) {
@@ -47,7 +47,7 @@
 
         // Top Navbars - Hide on Scroll
         if ($(".navbar-hide-on-scroll").length > 0) {
-            $(".navbar-hide-on-scroll.navbar-fixed-top").headroom({
+            $(".navbar-hide-on-scroll.fixed-top").headroom({
               "offset": 205,
               "tolerance": 5,
               "classes": {
@@ -60,7 +60,7 @@
               }
             });
             // Bottom Navbars - Hide on Scroll
-            $(".navbar-hide-on-scroll.navbar-fixed-bottom").headroom({
+            $(".navbar-hide-on-scroll.fixed-bottom").headroom({
               "offset": 205,
               "tolerance": 5,
               "classes": {
@@ -77,15 +77,15 @@
         // Collapsible Card
         $('a[data-action="collapse"]').on('click',function(e){
             e.preventDefault();
-            $(this).closest('.card').children('.card-body').collapse('toggle');
-            $(this).closest('.card').find('[data-action="collapse"] i').toggleClass('icon-minus4 icon-plus4');
+            $(this).closest('.card').children('.card-content').collapse('toggle');
+            $(this).closest('.card').find('[data-action="collapse"] i').toggleClass('ft-minus ft-plus');
 
         });
 
         // Toggle fullscreen
         $('a[data-action="expand"]').on('click',function(e){
             e.preventDefault();
-            $(this).closest('.card').find('[data-action="expand"] i').toggleClass('icon-expand2 icon-contract');
+            $(this).closest('.card').find('[data-action="expand"] i').toggleClass('ft-maximize ft-minimize');
             $(this).closest('.card').toggleClass('card-fullscreen');
         });
 
@@ -134,7 +134,6 @@
             card = $this.closest('.card');
             var cardHeight;
 
-            console.log(parseInt(card[0].style.height,10));
             if(parseInt(card[0].style.height,10) > 0){
                 cardHeight = card.css('height');
                 card.css('height','').attr('data-height', cardHeight);
@@ -277,10 +276,10 @@
         if (screenfull.enabled) {
             $(document).on(screenfull.raw.fullscreenchange, function(){
                 if(screenfull.isFullscreen){
-                    $('.nav-link-expand').find('i').toggleClass('icon-contract icon-expand2');
+                    $('.nav-link-expand').find('i').toggleClass('ft-minimize ft-maximize');
                 }
                 else{
-                    $('.nav-link-expand').find('i').toggleClass('icon-expand2 icon-contract');
+                    $('.nav-link-expand').find('i').toggleClass('ft-maximize ft-minimize');
                 }
             });
         }

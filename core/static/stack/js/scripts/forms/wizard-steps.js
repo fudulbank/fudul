@@ -3,7 +3,7 @@
     Description: wizard steps page specific js
     ----------------------------------------------------------------------------------------
     Item Name: Stack - Responsive Admin Theme
-    Version: 1.1
+    Version: 2.0
     Author: PIXINVENT
     Author URL: http://www.themeforest.net/user/pixinvent
 ==========================================================================================*/
@@ -121,7 +121,11 @@ $(".steps-validation").validate({
 
 // Initialize plugins
 // ------------------------------
-// Date & Time
+
+// Pick a date
+$('.pickadate').pickadate();
+
+// Date & Time Range
 $('.datetime').daterangepicker({
     timePicker: true,
     timePickerIncrement: 30,
