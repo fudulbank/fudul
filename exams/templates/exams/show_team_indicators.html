@@ -20,8 +20,8 @@
 				    <thead>
 				        <tr>
 				            <th data-priority="1">Member</th>
-                    <th data-priority="1">Added questions in team categories</th>
-                    <th data-priority="2">Edited questions in team categories</th>
+                    <th data-toggle="tooltip" title="Number of questions added in team categories" data-priority="1"># questions added</th>
+                    <th data-toggle="tooltip" title="Number of questions edited in team categories" data-priority="2"># questions edited</th>
 				        </tr>
 				    </thead>
 				    <tbody>
@@ -42,7 +42,7 @@
 {% include 'partials/import_datatables.html' %}
   <script>
     $(function(){
-       $('[data-toggle="tooltip"]').tooltip({html: true, delay: {show: 100, hide: 1500}})
+       $('[data-toggle="tooltip"]').tooltip();
        $('.datatable').dataTable({order: [[1, 'desc']]});
     });
     </script>
