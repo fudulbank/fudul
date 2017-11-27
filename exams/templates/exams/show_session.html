@@ -526,8 +526,8 @@
       was_solved = $(".question-body.show").data('was-solved');
       if (!was_solved || (session_mode == 'UNEXPLAINED' && !$('body').data('has-finished'))){
         $(".question-body.show .explanation-container, #explain").hide()
-      } else if ($('.question-body.show .explanation-content').text().length){
-        $("#explain").show().html("Improve this explanation!");
+      } else if ($('.question-body.show .explanation-content').text().trim().length){
+        $("#explain").show().html('<i class="fa fa-cubes" aria-hidden="true"></i> Improve this explanation!');
         $(".question-body.show .explanation-container").show();
       } else {
         $(".question-body.show .explanation-container").hide();
