@@ -11,8 +11,8 @@
       <tbody>
         {% for choice in best_latest_revision.choice_set.order_by_alphabet %}
             <tr data-choice-pk="{{ choice.pk }}">
-               <td class="correct">{% if not session.question_filter == 'INCOMPLETE' and not choice.answer_correction %}<i{% if not choice.is_right %} class="icon-hand"{% endif %}></i>{% endif %}</td>
-               <td class="check">{% if choice.is_right %}<i class="icon-checkmark2 text-success"></i>{% elif not choice.is_right and choice.answer_correction %}<i class="icon-notification2 text-warning answer-correction-notification"></i>{% include 'exams/partials/show_answer_correction.html' %}{% elif not choice.is_right %}<i class="icon-cross3 text-danger"></i>{% endif %}</td>
+               <td class="correct">{% if not session.question_filter == 'INCOMPLETE' and not choice.answer_correction %}<i{% if not choice.is_right %} class="fa fa-hand-paper-o"{% endif %}></i>{% endif %}</td>
+               <td class="check">{% if choice.is_right %}<i class="fa fa-check text-success"></i>{% elif not choice.is_right and choice.answer_correction %}<i class="fa fa-exclamation-triangle text-warning answer-correction-notification"></i>{% include 'exams/partials/show_answer_correction.html' %}{% elif not choice.is_right %}<i class="fa fa-times text-danger"></i>{% endif %}</td>
                <td><input {% if choice|was_chosen:session %}checked {% endif %}{% if was_solved %}disabled {% endif %}class="question-choice" name="question-choice" type="checkbox"></td>
                <td><span class="choice-text {% stricken_choice_class choice highlight session %}">{{ choice.text }}</span></td>
             </tr>
