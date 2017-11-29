@@ -32,20 +32,20 @@
         font-weight: 400;
     }
 
-    .question-body .check i,
-    .question-body .correct i{
-      display: none;
-    }
-
     #top-info, .tooltip-inner, #footer{
       background-color: #404E67;
+    }
+
+    .question-body[data-was-solved="false"] .check i,
+    .question-body[data-was-solved="false"] .correct i{
+      visibility: hidden;
     }
 
     body:not([data-session-mode="UNEXPLAINED"]) .question-body[data-was-solved="true"] .check i,
     body:not([data-session-mode="UNEXPLAINED"]) .question-body[data-was-solved="true"] .correct i,
     body[data-session-mode="UNEXPLAINED"][data-has-finished="true"] .question-body[data-was-solved="true"] .check i,
     body[data-session-mode="UNEXPLAINED"][data-has-finished="true"] .question-body[data-was-solved="true"] .correct i{
-      display: inline-block;
+      visibility: visible;
     }
 
     #results, #end, #back{
