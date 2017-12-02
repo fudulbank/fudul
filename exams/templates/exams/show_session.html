@@ -291,6 +291,7 @@
           </div>
         </div><!--top-options-->
 
+
         <div id="question-container">
           <div id="question-pool" class="mx-4 mx-sm-0">
             {% for question in initial_questions %}
@@ -299,9 +300,16 @@
             {% endwith %}
             {% endfor %}
           </div>
+            <div>
+    </div>
+
           <button type="button" id="submit" class="btn">Submit <i class=" icon-circle-right2"></i></button>
           <button class="btn btn-outline-primary" id="explain"><i class=" icon-brain"></i> Improve this explanation!</button>
         </div>
+
+
+
+
         <div id="footer" class="row text-center font-weight-bold">
           <div class="col-sm-6 text-sm-left order-2 order-sm-1">
            <a id="back" class="float-left float-sm-none option" href="{% url 'exams:create_session' category_slugs session.exam.pk %}"><i class="icon-exit3"></i> Back</a>

@@ -1,11 +1,18 @@
 {% load static exam_utils account_utils %}
+
 {% with explanation_revision=question.get_latest_explanation_revision best_latest_revision=question.get_best_latest_revision was_solved=question|was_solved_in_session:session %}
+
 {% with highlight=best_latest_revision|get_relevant_highlight:session %}
 <div class="question-body well-sm{% if question == current_question %} show{% endif %}" data-best-latest-revision-pk="{{ best_latest_revision.pk }}" data-list-revision-url="{% url 'exams:list_revisions' category_slugs session.exam.pk question.pk %}" data-url="{{ question|get_session_url:session }}" {% if question_sequence %}data-question-sequence="{{ question_sequence }}"{% endif %} data-question-pk="{{ question.pk }}" data-is-marked="{% if question|is_question_marked:user %}true{% else %}false{% endif %}" data-was-solved="{% if was_solved %}true{% else %}false{% endif %}">
   {% if best_latest_revision.figure %}
      <img class="img-fluid center-block" src="{{ best_latest_revision.figure.url }}">
   {% endif %}
-
+                        <div class="alert alert-icon-right alert-blue-grey alert-dismissible" role="alert">
+									<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+										<span aria-hidden="true">×</span>
+									</button>
+									<strong>Great!</strong> You are using some gorgeous custom colors.
+		</div>
     <p class="question-text">{% get_question_text highlight best_latest_revision session %}</p>
     <table>
       <tbody>
