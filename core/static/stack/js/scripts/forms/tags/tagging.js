@@ -3,7 +3,7 @@
     Description: tagging js initialization
     ----------------------------------------------------------------------------------------
     Item Name: Stack - Responsive Admin Theme
-    Version: 1.1
+    Version: 2.0
     Author: PIXINVENT
     Author URL: http://www.themeforest.net/user/pixinvent
 ==========================================================================================*/
@@ -64,13 +64,13 @@ $(document).ready(function(){
     });
 
     // Tag On Blur
-    $(".tag-on-blur").tagging({
-        "tag-on-blur": false,
+    $(".badge-on-blur").tagging({
+        "badge-on-blur": false,
     });
 
     // Tag Char
-    $(".tag-char").tagging({
-        "tag-char": "*",
+    $(".badge-char").tagging({
+        "badge-char": "*",
     });
 
     // Type zone class

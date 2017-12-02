@@ -3,15 +3,14 @@
 {% block subtitle %}Create account at Fudul!{% endblock %}
 
 {% block content %}
-<div class="card-body collapse in">
+<div class="card-body">
     <div class="card-block text-center">
-
 
 {% bootstrap_form_errors form %}
 <form method="post">
 	{% csrf_token %}
 
-    <h6 class="line-on-side text-muted text-xs-center font-small-2"><span>Your name</span></h6>
+    <h6 class="line-on-side text-muted text-center font-small-2"><span>Your name</span></h6>
 		<fieldset class="form-group position-relative has-icon-left mb-1">
 			{% bootstrap_field form.first_name show_label=False %}
 			<div class="form-control-position">
@@ -34,7 +33,7 @@
 		</fieldset>
 
 
-    <h6 class="line-on-side text-muted text-xs-center font-small-2"><span>Your nickname</span></h6>
+    <h6 class="line-on-side text-muted text-center font-small-2"><span>Your nickname</span></h6>
     <p><i class="icon-info"></i>Fudul is cooperative, and you can contribute to it.  Instead of showing your real name, and <strong>to protect your privacy</strong>, we will show your nickname whenever you add a contribution to give you credit.</p>
 		<fieldset class="form-group position-relative has-icon-left mb-1">
 			{% bootstrap_field form.nickname show_label=False %}
@@ -44,7 +43,7 @@
 		</fieldset>
 
 
-    <h6 class="line-on-side text-muted text-xs-center font-small-2"><span>Your contact</span></h6>
+    <h6 class="line-on-side text-muted text-center font-small-2"><span>Your contact</span></h6>
 		<p><i class="icon-info"></i>Parts of this question bank are solely available to a given university.  Make sure you use your correct <strong>university address</strong> to get an access to these parts.</p>
 
 		<fieldset class="form-group position-relative has-icon-left mb-1">
@@ -70,7 +69,7 @@
 			</div>
 		</fieldset>
 
-    <h6 class="line-on-side text-muted text-xs-center font-small-2"><span>Your institution</span></h6>
+    <h6 class="line-on-side text-muted text-center font-small-2"><span>Your institution</span></h6>
 
 		<div class="form-group has-feedback has-feedback-left">
                         <select {% if form.institution.value and not form.institution.errors %}value="{{ form.institution.value }}" {% endif %} title="" id="institution-list" class="form-control">
@@ -98,7 +97,7 @@
 			</div>
 		</div>
 
-    <h6 class="line-on-side text-muted text-xs-center font-small-2"><span>Your secret</span></h6>
+    <h6 class="line-on-side text-muted text-center font-small-2"><span>Your secret</span></h6>
 
 		<fieldset class="form-group position-relative has-icon-left mb-1">
 			{% bootstrap_field form.password1 show_label=False %}
@@ -114,7 +113,7 @@
 			</div>
 		</fieldset>
 
-    <h6 class="line-on-side text-muted text-xs-center font-small-2"><span>One last thing...</span></h6>
+    <h6 class="line-on-side text-muted text-center font-small-2"><span>One last thing...</span></h6>
 
 		<div class="form-group">
 			<div class="checkbox">
@@ -132,7 +131,7 @@
 </div>
 <div class="card-footer">
     <div class="">
-        <p class="float-sm-right text-xs-center m-0">Any trouble signing-up? <a target="_blank" href="https://t.me/FudulBot" class="card-link">Try our live chat</a> or <a href="mailto:support@fudulbank.com">email us</a></p>
+        <p class="float-sm-right text-center m-0">Any trouble signing-up? <a target="_blank" href="https://t.me/FudulBot" class="card-link">Try our live chat</a> or <a href="mailto:support@fudulbank.com">email us</a></p>
     </div>
 </div>
 {% endblock %}

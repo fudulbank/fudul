@@ -3,10 +3,12 @@
 	Description: Compact menu page level only
 	----------------------------------------------------------------------------------------
 	Item Name: Stack - Responsive Admin Theme
-	Version: 1.1
-	Author: GeeksLabs
-	Author URL: http://www.themeforest.net/user/geekslabs
+	Version: 2.0
+	Author: Pixinvent
+	Author URL: hhttp://www.themeforest.net/user/pixinvent
 ==========================================================================================*/
-$(window).load(function(){
-	$.app.menu.collapse();
+$(document).ready(function(){
+	setTimeout(function(){
+		$.app.menu.collapse();
+	}, 100);
 });

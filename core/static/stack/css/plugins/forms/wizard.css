@@ -1,6 +1,5 @@
 .app-content .wizard {
-  width: 100%;
-  overflow: hidden; }
+  width: 100%; }
   .app-content .wizard .content {
     margin-left: 0 !important; }
   .app-content .wizard > .steps {
@@ -84,7 +83,6 @@
       z-index: 10;
       text-align: center; }
   .app-content .wizard > .content {
-    overflow: hidden;
     position: relative;
     width: auto;
     padding: 0;

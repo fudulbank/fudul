@@ -41,13 +41,13 @@ def get_user_privileged_exams(user):
         deepest_category_level = get_deepest_category_level()
         count = 1
         level = 'category'
-        querys = Q()
+        queries = Q()
         while deepest_category_level >= count:
             kwarg = {level + '__privileged_teams__members': user}
             level  = level + '__parent_category'
-            querys |= Q(**kwarg)
+            queries |= Q(**kwarg)
             count += 1
-        exams = models.Exam.objects.filter(querys)
+        exams = models.Exam.objects.filter(queries)
     else:
         exams = models.Exam.objects.none()
 

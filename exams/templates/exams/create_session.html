@@ -140,7 +140,7 @@
 {% endif %}
     <label class="control-label"><h5>Number of questions</h5></label>
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col-12">
           <div class="form-group has-feedback has-feedback-left" style="display: inline-block;">
 {% bootstrap_field sessionform.number_of_questions show_label=False  %}
           </div>
@@ -166,7 +166,7 @@
                             <div id="session-list">
                             {% if not session.has_finished %}
 						<li class="list-group-item">
-							<a  href="{% url 'exams:show_session' exam.category.get_slugs exam.pk session.pk %}" ><span class="tag tag-default tag-pill bg-primary float-xs-right">{{ session.pk }}</span></a>
+							<a  href="{% url 'exams:show_session' exam.category.get_slugs exam.pk session.pk %}" ><span class="tag tag-default tag-pill bg-primary float-right">{{ session.pk }}</span></a>
 							{% if not session.session_mode == 'SOLVED'%}({{ session.get_unused_questions.count }}/{{ session.get_questions.count }}) {% endif %}<strong>Subjects:</strong>{% if session.subjects.count == 1 %}{{ session.subjects.first.name }}{% elif not session.exam.subject_set.exists %} {{ session.exam.name }}{% else %} Multiple {% endif %}
 						</li>
                             {% endif %}

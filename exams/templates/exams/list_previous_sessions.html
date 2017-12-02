@@ -50,7 +50,7 @@ tr td:last-child{
              <td data-html="true" data-toggle="tooltip" title="{{ session.get_questions.count }} questions on: <ul>{% for subject in session|get_session_subjects %}<li>{{ subject.name }}</li>{% endfor %}</ul>"><a href="{% url 'exams:show_session' session.exam.category.get_slugs session.exam.pk session.pk %}">{{ session.exam.name }} ({{ session.pk }})</a></td>
              <td data-order="{{ session.submission_date|date:'U' }}">{{ session.submission_date }}</td>
              <td>{{ session.get_questions.count }}</td>
-             <td class="text-xs-center">
+             <td class="text-center">
          {% if session.session_mode == 'SOLVED' %}
              <span data-toggle="tooltip" title="Solved sessions have no scores.">N/A<span>
          {% elif session.has_finished %}
@@ -132,7 +132,7 @@ tr td:last-child{
             });
 				});
 
-       $('.confirm-delete-session').tooltip({title: "<div style='direction: rtl'>أنا أخطيت ما أنكر<br>ولا فيه عذر يكفيني<br>سوى إني أحبك حيل<br>وإني دايما إنسان 🎶</div>",
+       $('.confirm-delete-session').tooltip({title: "<div style='direction: rtl' >أنا أخطيت ما أنكر<br>ولا فيه عذر يكفيني<br>سوى إني أحبك حيل<br>وإني دايما إنسان 🎶</div>",
                                              html: true})
 
         $deleteConfirmationButton = $("#confirm-delete-session-modal .submit-button")

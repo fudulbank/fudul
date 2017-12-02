@@ -127,7 +127,7 @@
         {% for revision in question.revision_set.undeleted.order_by_submission %}
             <tr data-url="{% url 'exams:show_revision_comparison' revision.pk %}" data-pk="{{ revision.pk }}">
             <td>{{ revision.pk }}</td>
-            <td>{{ revision.submitter|get_user_credit:user }}</td>
+            <td>{% if revision.submitter %}<a href="{% url 'exams:list_contributions' revision.submitter.pk %}">{{ revision.submitter|get_user_credit:user }}</a>{% else %}N/A{% endif %}</td>
             <td data-order="{{ revision.submission_date|date:'U' }}">{{ revision.submission_date }}</td>
             <td class="approval_status {% if revision.is_approved %}text-success{% else %}text-danger{% endif %}">{% if revision.is_approved %}Yes {% if revision.approved_by %}({% get_user_representation revision.approved_by %}){% endif %}{% else %}No{% endif %}</td>
             <td>{{ revision.change_summary|default:'-' }}</td>
@@ -194,45 +194,17 @@
         $revision_table = $(".datatable").DataTable({
 	            order: [[ 2, "desc" ]]
 	      });
-        // initialize project edit modal
-        $('#show-revision-modal').modal({
-          keyboard: false,
-          backdrop: 'static',
-          show    : false,
-        });
-
-        $('#show-revision-modal').on('hidden.bs.modal', function(){
-          $(this).find('.modal-body').html($('#ajax-loader').html());
-        });
-
-        $('.datatable tbody').on('click','tr td:not(:last-child)',function () {
-					  $row = $(this).closest('tr')
-            revision_pk =  $row.data("pk");
-            url = $row.data('url');
-            title_part = $row.children('td:nth-child(2)').html();
-
-            $("#show-revision-modal").modal('show');
-
-            $("#show-revision-modal .modal-title").html("Revision #" + revision_pk);
-            $("#show-revision-modal .modal-body").load(url);
-            $("#show-revision-modal .modal-header").addClass('bg-primary')
-
-        });
     });
-{% include 'exams/modals/adjust_modal_size.js' %}
 </script>
-{% with modal_id='show-revision-modal' no_footer=True %}
-    {% include "exams/modals/common_edit_modal.html" %}
-{% endwith %}
 
 {% include 'exams/partials/initialize_revision_review.html' %}
-
+{% with row_selector="tr td:not(:last-child):not(:nth-child(2))" %}
+  {% include 'exams/partials/initialize_show_revision.html' %}
+{% endwith %}
 {% with category_pk=exam.category.pk  parent_category_pk=exam.category.parent_category.pk %}
   {% include 'exams/partials/dynamic_sidebar.html' %}
 {% endwith %}
 
-<div id="ajax-loader" style="display: none">
-  {% include "exams/modals/ajax-loader.html" %}
-</div>
+
 
 {% endblock %}

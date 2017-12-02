@@ -3,7 +3,7 @@
     Description: Bootstrap tags input initialization js
     ----------------------------------------------------------------------------------------
     Item Name: Stack - Responsive Admin Theme
-    Version: 1.1
+    Version: 2.0
     Author: PIXINVENT
     Author URL: http://www.themeforest.net/user/pixinvent
 ==========================================================================================*/
@@ -126,11 +126,11 @@ $(document).ready(function(){
     elt.tagsinput({
             tagClass: function(item) {
             switch (item.continent) {
-                case 'Europe'   : return 'tag tag-primary';
-                case 'America'  : return 'tag tag-danger tag-important';
-                case 'Australia': return 'tag tag-success';
-                case 'Africa'   : return 'tag tag-default';
-                case 'Asia'     : return 'tag tag-warning';
+                case 'Europe'   : return 'badge badge-primary';
+                case 'America'  : return 'badge badge-danger badge-important';
+                case 'Australia': return 'badge badge-success';
+                case 'Africa'   : return 'badge badge-default';
+                case 'Asia'     : return 'badge badge-warning';
             }
         },
         itemValue: 'value',
@@ -153,12 +153,12 @@ $(document).ready(function(){
     }, elt));
 
     // Add Tag
-    $('.add-tag-btn').on('click',function(){
+    $('.add-badge-btn').on('click',function(){
         $('.add-tag').tagsinput('add', 'Sydney');
     });
 
     // Remove Tag
-    $('.remove-tag-btn').on('click',function(){
+    $('.remove-badge-btn').on('click',function(){
         $('.remove-tag').tagsinput('remove', 'Sydney');
     });
 
@@ -168,7 +168,7 @@ $(document).ready(function(){
     });
 
     // Set focus in the tagsinput
-    $('.focus-tag-btn').on('click',function(){
+    $('.focus-badge-btn').on('click',function(){
         $('.focus-taginput').tagsinput('focus');
     });
 

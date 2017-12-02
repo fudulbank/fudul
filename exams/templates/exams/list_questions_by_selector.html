@@ -98,10 +98,10 @@ tbody tr td:last-child{
 {% include 'exams/modals/adjust_modal_size.js' %}
 </script>
 {% with modal_id='show-question-modal' no_footer=True %}
-    {% include "exams/modals/common_edit_modal.html" %}
+    {% include "exams/modals/common_modal_v4.html" %}
 {% endwith %}
 {% with modal_id='confirm-delete-question-modal' is_small=True modal_content="Are you sure you want to delete this question?" %}
-    {% include "exams/modals/common_edit_modal.html" %}
+    {% include "exams/modals/common_modal_v4.html" %}
 {% endwith %}
 {% with category_pk=exam.category.pk  parent_category_pk=exam.category.parent_category.pk %}
   {% include 'exams/partials/dynamic_sidebar.html' %}

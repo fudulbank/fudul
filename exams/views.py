@@ -14,6 +14,7 @@ import json
 
 from core import decorators
 from .models import *
+from teams.models import *
 from . import forms, utils
 import teams.utils
 from django.views.decorators.http import require_http_methods
@@ -85,6 +86,50 @@ def show_category(request, slugs, indicators=False):
     })
 
     return render(request, "exams/show_category.html", context)
+
+
+@require_safe
+@login_required
+def show_indicator_index(request):
+    # PERMISSION CHECK
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+    context = {'is_indicators_active': True}
+
+    return render(request, "exams/show_indicator_index.html", context)
+
+@require_safe
+@login_required
+def list_team_indicators(request):
+    # PERMISSION CHECK
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+    teams = Team.objects.all()
+
+    context = {'is_indicators_active': True, 'teams': teams}
+    return render(request, "exams/list_team_indicators.html", context)
+
+@require_safe
+@login_required
+def show_team_indicators(request, team_pk):
+    # PERMISSION CHECK
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+    team = get_object_or_404(Team, pk=team_pk)
+    categories = team.categories.all()
+
+    team_question_pool = Question.objects\
+                                 .undeleted()\
+                                 .under_categories(categories)
+
+    context = {'is_indicators_active': True,
+               'team': team,
+               'team_question_pool': team_question_pool}
+
+    return render(request, "exams/show_team_indicators.html", context)
 
 @require_safe
 @login_required
@@ -332,6 +377,9 @@ def show_explanation_revision(request, pk):
 @require_safe
 @login_required
 def list_revisions(request, slugs, exam_pk, pk):
+    # PERMISSION CHECK
+    # No need.  Similar to list_contributions
+
     category = Category.objects.get_from_slugs(slugs)
     if not category:
         raise Http404
@@ -1008,15 +1056,23 @@ def show_credits(request,pk):
 @login_required
 @require_safe
 def list_contributions(request,user_pk=None):
+    # PERMISSION CHECK
+    # No need.  Similar to list_revisions
+
     if user_pk:
-        user = get_object_or_404(User,pk=user_pk)
+        contributor = get_object_or_404(User,pk=user_pk)
     else:
-        user = request.user
+        contributor = request.user
 
-    revisions = Revision.objects.filter(submitter=user)
-    exams = Exam.objects.all()
+    revisions = Revision.objects.select_related('question',
+                                                'question__exam',
+                                                'question__exam__category')\
+                                .undeleted()\
+                                .filter(submitter=contributor)\
+                                .order_by('-submission_date')
+    context = {'revisions':revisions, 'contributor': contributor}
 
-    return render(request, 'exams/list_contributions.html',{'revisions':revisions,'exams':exams})
+    return render(request, 'exams/list_contributions.html', context)
 
 @require_safe
 @login_required

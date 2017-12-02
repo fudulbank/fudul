@@ -1,0 +1,33 @@
+<script>
+// initialize project edit modal
+$('#show-revision-modal').modal({
+  keyboard: false,
+  backdrop: 'static',
+  show    : false,
+});
+
+$('#show-revision-modal').on('hidden.bs.modal', function(){
+  $(this).find('.modal-body').html($('#ajax-loader').html());
+});
+
+$('.datatable tbody').on('click','{{ row_selector }}',function () {
+    $row = $(this).closest('tr')
+    revision_pk =  $row.data("pk");
+    url = $row.data('url');
+
+    $("#show-revision-modal").modal('show');
+
+    $("#show-revision-modal .modal-title").html("Revision #" + revision_pk);
+    $("#show-revision-modal .modal-body").load(url);
+    $("#show-revision-modal .modal-header").addClass('bg-primary')
+
+});
+</script>
+
+{% with modal_id='show-revision-modal' no_footer=True %}
+    {% include "exams/modals/common_modal_v4.html" %}
+{% endwith %}
+
+<div id="ajax-loader" style="display: none">
+  {% include "exams/modals/ajax-loader.html" %}
+</div>

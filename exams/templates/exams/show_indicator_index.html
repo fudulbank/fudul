@@ -1,0 +1,34 @@
+{% extends 'base_new.html' %}{% load staticfiles bootstrap3 exam_utils %}
+{% block title %}Fudul | Indicators{% endblock %}
+
+{% block header_title %}
+<h1>{{ team.name }} indicators</h1>
+{% endblock %}
+
+{% block breadcrumb %}
+      <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
+      <li class="breadcrumb-item active">Indicators</li>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+	<div class="card-body">
+		<div class="card-block">
+      <ul>
+        <li><a href="{% url 'exams:list_team_indicators' %}">Teams</a></li>
+        <li><a href="{% url 'exams:list_category_indicators' %}">Categories</a></li>
+      </ul>
+		</div><!--card-block-->
+	</div><!--card-body-->
+</div><!--card-->
+{% endblock %}
+{% block customscript %}
+{% include 'partials/import_datatables.html' %}
+  <script>
+    $(function(){
+       $('[data-toggle="tooltip"]').tooltip()
+       $('.datatable').dataTable({order: [[1, 'desc']]});
+    });
+    </script>
+
+{% endblock %}

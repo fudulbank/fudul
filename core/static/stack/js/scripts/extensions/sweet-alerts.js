@@ -3,9 +3,9 @@
 	Description: A beautiful replacement for javascript alerts
 	----------------------------------------------------------------------------------------
 	Item Name: Stack - Responsive Admin Theme
-	Version: 1.1
-	Author: GeeksLabs
-	Author URL: http://www.themeforest.net/user/geekslabs
+	Version: 2.0
+	Author: Pixinvent
+	Author URL: hhttp://www.themeforest.net/user/pixinvent
 ==========================================================================================*/
 $(document).ready(function(){
 
@@ -18,10 +18,15 @@ $(document).ready(function(){
 	});
 
 	$('#html-alert').on('click',function(){
+		var el = document.createElement('span'),
+		t = document.createTextNode("Custom HTML Message!!");
+		el.style.cssText = 'color:#F6BB42';
+		el.appendChild(t);
 		swal({
-			title: 'HTML <small>Title</small>!',
-			text: 'A custom <span style="color:#F6BB42">html<span> message.',
-			html: true
+			title: 'HTML Alert!',
+			content: {
+				element: el,
+			}
 		});
 	});
 
@@ -42,7 +47,7 @@ $(document).ready(function(){
 	});
 
 	$('#custom-icon').on('click',function(){
-		swal({   title: "Sweet!",   text: "Here's a custom image.",   imageUrl: "../../../app-assets/images/icons/thumbs-up.jpg" });
+		swal({   title: "Sweet!",   text: "Here's a custom image.",   icon: "../../../app-assets/images/icons/thumbs-up.jpg" });
 	});
 
 	$('#auto-close').on('click',function(){
@@ -53,7 +58,7 @@ $(document).ready(function(){
 		swal({
 			title: 'Click outside to close!',
 			text: 'This is a cool message!',
-			allowOutsideClick: true
+			closeOnClickOutside: true
 		});
 	});
 
@@ -61,69 +66,114 @@ $(document).ready(function(){
 		swal({
 		    title: "Are you sure?",
 		    text: "You will not be able to recover this imaginary file!",
-		    type: "warning",
-		    showCancelButton: true,
-		    confirmButtonColor: "#F6BB42",
-		    confirmButtonText: "Yes, delete it!",
-		    cancelButtonText: "No, cancel plx!",
-		    closeOnConfirm: false,
-		    closeOnCancel: false
-		}, function(isConfirm) {
+		    icon: "warning",
+		    buttons: {
+                cancel: {
+                    text: "No, cancel plx!",
+                    value: null,
+                    visible: true,
+                    className: "",
+                    closeModal: false,
+                },
+                confirm: {
+                    text: "Yes, delete it!",
+                    value: true,
+                    visible: true,
+                    className: "",
+                    closeModal: false
+                }
+		    }
+		})
+		.then((isConfirm) => {
 		    if (isConfirm) {
 		        swal("Deleted!", "Your imaginary file has been deleted.", "success");
 		    } else {
-		        swal("Cancelled", "Your imaginary file is safe :)", "error");
+		        swal("Cancelled", "Your imaginary file is safe", "error");
 		    }
 		});
 
 	});
 
 	$('#prompt-function').on('click',function(){
-		swal({
-		    title: "An input!",
-		    text: "Write something interesting:",
-		    type: "input",
-		    showCancelButton: true,
-		    closeOnConfirm: false,
-		    animation: "slide-from-top",
-		    inputPlaceholder: "Write something"
-		}, function(inputValue) {
-		    if (inputValue === false) return false;
-		    if (inputValue === "") {
-		        swal.showInputError("You need to write something!");
-		        return false
-		    }
-		    swal("Nice!", "You wrote: " + inputValue, "success");
-		});
+        swal("Write something interesting:", {
+                content: "input",
+            })
+            .then((value) => {
+            	if (value === false) return false;
+			    if (value === "") {
+			        swal("You need to write something!", "", "error");
+			        return false;
+			    }
+                swal(`You typed: ${value}`);
+            })
 
 	});
 
 	$('#ajax-request').on('click',function(){
-		swal({
-		    title: "Ajax request example",
-		    text: "Submit to run ajax request",
-		    type: "info",
-		    showCancelButton: true,
-		    closeOnConfirm: false,
-		    showLoaderOnConfirm: true,
-		}, function() {
-		    setTimeout(function() {
-		        swal("Ajax request finished!");
-		    }, 2000);
-		});
+        swal({
+                text: 'Search for a movie. e.g. "La La Land".',
+                content: "input",
+                button: {
+                    text: "Search!",
+                    closeModal: false,
+                },
+            })
+            .then(name => {
+                if (!name) throw null;
+
+                return fetch(`https://itunes.apple.com/search?term=${name}&entity=movie`);
+            })
+            .then(results => {
+                return results.json();
+            })
+            .then(json => {
+                const movie = json.results[0];
+
+                if (!movie) {
+                    return swal("No movie was found!");
+                }
+
+                const name = movie.trackName;
+                const imageURL = movie.artworkUrl100;
+
+                swal({
+                    title: "Top result:",
+                    text: name,
+                    icon: imageURL,
+                });
+            })
+            .catch(err => {
+                if (err) {
+                    swal("Oh noes!", "The AJAX request failed!", "error");
+                } else {
+                    swal.stopLoading();
+                    swal.close();
+                }
+            });
 	});
 
 	$('#confirm-text').on('click',function(){
 		swal({
 		    title: "Confirm Button Text",
 		    text: "See the confirm button text! Have you noticed the Change?",
-		    type: "warning",
-		    showCancelButton: true,
-		    confirmButtonText: "Text Changed!!!",
-		    cancelButtonText: "No, cancel plx!",
-		    closeOnConfirm: false,
-		    closeOnCancel: false
-		}, function(isConfirm) {
+		    icon: "warning",
+		    buttons: {
+                cancel: {
+                    text: "No, cancel plx!",
+                    value: null,
+                    visible: true,
+                    className: "",
+                    closeModal: false,
+                },
+                confirm: {
+                    text: "Text Changed!!!",
+                    value: true,
+                    visible: true,
+                    className: "",
+                    closeModal: false
+                }
+		    }
+		}).then(isConfirm => {
 		    if (isConfirm) {
 		        swal("Changed!", "Confirm button text was changed!!", "success");
 		    } else {
@@ -136,44 +186,30 @@ $(document).ready(function(){
 		swal({
 		    title: "Are you sure?",
 		    text: "You will not be able to recover this imaginary file!",
-		    type: "warning",
+		    icon: "warning",
 		    showCancelButton: true,
-		    confirmButtonColor: "#DA4453",
-		    confirmButtonText: "Yes, delete it!",
-		    cancelButtonText: "No, cancel plx!",
-		    closeOnConfirm: false,
-		    closeOnCancel: false
-		}, function(isConfirm) {
+		    buttons: {
+                cancel: {
+                    text: "No, cancel plx!",
+                    value: null,
+                    visible: true,
+                    className: "btn-warning",
+                    closeModal: false,
+                },
+                confirm: {
+                    text: "Yes, delete it!",
+                    value: true,
+                    visible: true,
+                    className: "",
+                    closeModal: false
+                }
+		    }
+		}).then(isConfirm => {
 		    if (isConfirm) {
 		        swal("Deleted!", "Your imaginary file has been deleted.", "success");
 		    } else {
 		        swal("Cancelled", "Your imaginary file is safe :)", "error");
 		    }
-		});
-	});
-
-	$('#pop-animation').on('click',function(){
-		swal({
-			title: 'Default Animation',
-			text: "POP Animation!",
-			animation: "pop",
-		});
-	});
-
-	$('#slide-top-animation').on('click',function(){
-		swal({
-			title: 'Slide Animation',
-			text: "Slide From Top Animation",
-			animation: "slide-from-top",
-		});
-
-	});
-
-	$('#slide-bottom-animation').on('click',function(){
-		swal({
-			title: 'Slide Animation',
-			text: "Slide From Bottom Animation",
-			animation: "slide-from-bottom",
 		});
 	});
 

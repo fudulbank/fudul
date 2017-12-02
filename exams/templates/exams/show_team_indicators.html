@@ -1,0 +1,51 @@
+{% extends 'base_new.html' %}{% load staticfiles bootstrap3 exam_utils account_utils %}
+{% block title %}Fudul | {{ team.name }} indicators{% endblock %}
+
+{% block header_title %}
+<h1>{{ team.name }} indicators</h1>
+{% endblock %}
+
+{% block breadcrumb %}
+      <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:show_indicator_index' %}">Indicators</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:list_team_indicators' %}">Team indicators</a></li>
+			<li class="breadcrumb-item active">{{ team.name }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+	<div class="card-body">
+		<div class="card-block">
+				<table class="table table-striped table-bordered datatable dt-responsive">
+				    <thead>
+				        <tr>
+				            <th data-priority="1">Member</th>
+                    <th data-toggle="tooltip" title="Number of questions added in team categories" data-priority="1"># questions added</th>
+                    <th data-toggle="tooltip" title="Number of questions edited in team categories" data-priority="2"># questions edited</th>
+				        </tr>
+				    </thead>
+				    <tbody>
+				       {% for member in team.members.all %}
+				            <tr>
+				                <td><a data-toggle="tooltip" title="<a href='mailto:{{ member.email }}'>{{ member.email }}</a>" href="{% url 'exams:list_contributions' member.pk %}">{{ member|get_user_credit:user }}</a></td>
+                        <td>{{ member|get_question_created_count:team_question_pool }}</td>
+                        <td>{{ member|get_question_edited_count:team_question_pool }}</td>
+			            </tr>
+				       {% endfor %}
+				    </tbody>
+				</table>
+		</div><!--card-block-->
+	</div><!--card-body-->
+</div><!--card-->
+{% endblock %}
+{% block customscript %}
+{% include 'partials/import_datatables.html' %}
+  <script>
+    $(function(){
+       $('th[data-toggle="tooltip"]').tooltip();
+       $('a[data-toggle="tooltip"]').tooltip({html: true, delay: {show: 100, hide: 1500}});
+       $('.datatable').dataTable({order: [[1, 'desc']]});
+    });
+    </script>
+
+{% endblock %}

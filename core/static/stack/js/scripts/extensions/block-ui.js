@@ -3,7 +3,7 @@
     Description: Block UI jQuery Plugin Intialization
     --------------------------------------------------------------------------------------
     Item Name: Stack - Responsive Admin Theme
-    Version: 1.1
+    Version: 2.0
     Author: PIXINVENT
     Author URL: http://www.themeforest.net/user/pixinvent
 ==========================================================================================*/
@@ -101,6 +101,25 @@ $(document).ready(function(){
         var block_ele = $(this).closest('.card');
         $(block_ele).block({
             message: '<span class="semibold"> Loading...</span>',
+            timeout: 2000, //unblock after 2 seconds
+            overlayCSS: {
+                backgroundColor: '#fff',
+                opacity: 0.8,
+                cursor: 'wait'
+            },
+            css: {
+                border: 0,
+                padding: 0,
+                backgroundColor: 'transparent'
+            }
+        });
+    });
+
+    // Custom Message
+    $('.block-custom-message').on('click', function() {
+        var block_ele = $(this).closest('.card');
+        $(block_ele).block({
+            message: '<span class="semibold"> Custom Message...</span>',
             timeout: 2000, //unblock after 2 seconds
             overlayCSS: {
                 backgroundColor: '#fff',

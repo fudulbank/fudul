@@ -15,8 +15,10 @@
 {% block breadcrumb %}
       <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
 			{% if is_indicators_active and category %}
+			<li class="breadcrumb-item"><a href="{% url 'exams:show_indicator_index' %}">Indicators</a></li>
       <li class="breadcrumb-item"><a href="{% url 'exams:list_category_indicators' %}">Category indicators</a></li>
 			{% elif is_indicators_active and not category %}
+			<li class="breadcrumb-item"><a href="{% url 'exams:show_indicator_index' %}">Indicators</a></li>
 			<li class="breadcrumb-item active">Category indicators</li>
 			{% elif category %}
       <li class="breadcrumb-item"><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
@@ -33,46 +35,51 @@
 
 {% block content %}
 {% if not is_indicators_active and exams.exists %}
+<div class="row">
 {% for exam in exams %}
-<div class="col-xl-4 col-md-6 col-sm-12">
-	<div class="card height-150">
-		<div class="card-header">
-			<h4 class="card-title"><a href="{% url 'exams:create_session' category.get_slugs exam.pk %}">{{ exam.name }}</a></h4>
-			{% if category|is_editor:user %}
-			<div class="heading-elements">
-				{% include 'exams/partials/exam_editor_buttons.html' %}
-			</div>
-			{% endif %}
+	<div class="col-xl-4 col-md-6 col-sm-12">
+		<div class="card height-150">
+			<div class="card-header">
+				<h4 class="card-title"><a href="{% url 'exams:create_session' category.get_slugs exam.pk %}">{{ exam.name }}</a></h4>
+				{% if category|is_editor:user %}
+				<div class="heading-elements">
+					{% include 'exams/partials/exam_editor_buttons.html' %}
+				</div>
+				{% endif %}
 
-		</div>
-		<div class="card-body">
-			<div class="card-block text-muted">
-				<div class="card-text">
-						<span>{{ exam.question_set.available.count }} questions</span>
-						{% if not exam|was_ever_taken_by_user:user %}
-						<span class="float-xs-right">
-							<span class="tag tag-warning">New!</span>
-						</span>
-						{% endif %}
+			</div>
+			<div class="card-body">
+				<div class="card-block text-muted">
+					<div class="card-text">
+							<span>{{ exam.question_set.available.count }} questions</span>
+							{% if not exam|was_ever_taken_by_user:user %}
+							<span class="float-right">
+								<span class="tag tag-warning">New!</span>
+							</span>
+							{% endif %}
+					</div>
 				</div>
 			</div>
 		</div>
-	</div>
-</div>
+	</div><!--col-->
 {% endfor %}
+</div><!--row-->
 {% endif %}
 {% if subcategories.exists %}
-{% for subcategory in subcategories %}
-<div class="col-xl-4 col-md-6 col-sm-12">
-	<div class="card">
-		<div class="card-body">
-			<div class="card-block">
-				<h4 class="card-title"><a href="{% url show_category_url subcategory.get_slugs %}">{{ subcategory.name }}</a></h4>
+<div class="row">
+	{% for subcategory in subcategories %}
+	<div class="col-xl-4 col-md-6 col-sm-12">
+		<div class="card">
+			<div class="card-body">
+				<div class="card-block">
+					<h4 class="card-title"><a href="{% url show_category_url subcategory.get_slugs %}">{{ subcategory.name }}</a></h4>
+				</div>
 			</div>
 		</div>
-	</div>
-</div>
-{% endfor %}
+	</div><!--col-->
+	{% endfor %}
+</div><!--row-->
+
 {% endif %}
 {% if not subcategories.exists and not exams.exists %}
    <p>No subdivisions!</p>

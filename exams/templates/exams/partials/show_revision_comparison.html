@@ -1,9 +1,7 @@
 {% load bootstrap3 staticfiles exam_utils core_utils %}
 {% with previous_revision=revision.get_previous %}
-<div class="card">
-  <div class="card-body">
-    <div class="card-block new-revision">
-      <h2 class="card-title">Changes</h2>
+    <div class="new-revision">
+      <h3 class="text-bold-600">Changes</h3>
       {% if previous_revision %}
       {% with previous_right_choice=previous_revision.get_right_choice new_right_choice=revision.get_right_choice %}
       <ul>
@@ -49,11 +47,11 @@
       <p>This was the first revision in question #{{ revision.question.pk }}</p>
       {% endif %}
     </div>
-    <div class="card-block new-revision">
+    <div class="new-revision">
       {% if review %}
-      <h2 class="card-title">Newer revision of <a href="{% url 'exams:list_revisions' revision.question.exam.category.get_slugs revision.question.exam.pk revision.question.pk %}">question #{{ revision.question.pk }}</a></h2>
+      <h3 class="text-bold-600">Newer revision of <a href="{% url 'exams:list_revisions' revision.question.exam.category.get_slugs revision.question.exam.pk revision.question.pk %}">question #{{ revision.question.pk }}</a></h3>
       {% else %}
-      <h2 class="card-title">Revision #{{ revision.pk }}</h2>
+      <h3 class="text-bold-600">Revision #{{ revision.pk }}</h3>
       {% endif %}
       {% if revision.figure %}<img class="img-fluid" src="{{ revision.figure.url }}">{% endif %}
       <p class="revision-text">{{ revision.text }}</p>
@@ -64,8 +62,8 @@
       </ul>
     </div>
     {% if review %}
-      <div class="card-block previous-revision">
-        <h2 class="card-title">Previous revision of <a href="{% url 'exams:list_revisions' revision.question.exam.category.get_slugs revision.question.exam.pk revision.question.pk %}">question #{{ revision.question.pk }}</a></h2>
+      <div class="previous-revision">
+        <h3 class="text-bold-600">Previous revision of <a href="{% url 'exams:list_revisions' revision.question.exam.category.get_slugs revision.question.exam.pk revision.question.pk %}">question #{{ revision.question.pk }}</a></h3>
         {% if previous_revision.figure %}<img class="img-fluid"  src="{{ previous_revision.figure.url }}">{% endif %}
         <p class="revision-text">{{ previous_revision.text }}</p>
         <ul>
@@ -75,14 +73,13 @@
         </ul>
       </div>
     {% endif %}
-  </div>
-</div>
+
 {% if review %}
  <div class="row">
      <div class="col-sm-4">
          <button data-pk="{{ revision.pk }}" data-url="{% url 'exams:delete_revision' revision.pk %}" type="button" class="btn btn-danger btn-rounded btn-sm pull-left confirm-delete-revision"><i class="ft-trash-2"></i> Delete revision</button>
      </div>
-     <div class="col-sm-4 text-xs-center">
+     <div class="col-sm-4 text-center">
          <a href="{% url 'exams:submit_revision' revision.question.exam.category.get_slugs revision.question.exam.pk revision.question.pk %}" class="btn btn-warning btn-rounded btn-sm"><i class="ft-edit-2"></i> Edit question</a>
      </div>
      <div class="col-sm-4">

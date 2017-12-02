@@ -101,3 +101,10 @@
 @media (max-width: 767px) {
   .chat-application .chat-app-window {
     height: calc(100% - 132px); } }
+
+.horizontal-layout.chat-application .app-content {
+  height: calc(100% - 144px) !important;
+  min-height: calc(100% - 144px) !important;
+  margin-top: 0 !important; }
+  .horizontal-layout.chat-application .app-content .chat-app-window {
+    height: -webkit-calc(100% - 83px) !important; }

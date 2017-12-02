@@ -3,7 +3,7 @@
     Description: Bootstrap DateTime Picker, Pick a date/time Picker, Date Range Picker 
     ----------------------------------------------------------------------------------------
     Item Name: Stack - Responsive Admin Theme
-    Version: 1.1
+    Version: 2.0
     Author: GeeksLabs
     Author URL: http://www.themeforest.net/user/geekslabs
 ==========================================================================================*/

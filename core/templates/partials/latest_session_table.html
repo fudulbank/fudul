@@ -16,7 +16,7 @@
                  <a href="{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}"> {{ session.exam.name }} (#{{ session.pk }})</a>
          {% endif %}
        </td>
-       <td class="text-xs-center">
+       <td class="text-center">
    {% if session.session_mode == 'SOLVED' %}
        <span data-toggle="tooltip" title="Solved sessions have no scores.">N/A<span>
    {% elif session.has_finished %}

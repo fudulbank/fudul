@@ -1,74 +1,63 @@
-{% extends 'base.html' %}{% load staticfiles %}
-{% block title %}Fudul | Contributions{% endblock %}
+{% extends 'base_new.html' %}{% load staticfiles exam_utils account_utils core_utils %}
+{% block title %}Fudul | {{ contributor|get_user_credit:user }}'s contributions{% endblock %}
+
+{% block header_title %}
+<h1>{{ contributor|get_user_credit:user }}'s contributions</h1>
+{% endblock %}
+
 {% block breadcrumb %}
-
+      <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
+      <li class="breadcrumb-item active">{{ contributor|get_user_credit }}'s contributions</li>
 {% endblock %}
+
 {% block content %}
-<style>
-    .hide {
-        display:none;
-    }
-</style>
-{% for exam in exams %}
-<div id="all-div">
-<div id="exams-panel" class="panel panel-flat border-top-info border-bottom-info">
-    <div class="panel-heading">
-                         <div class="panel-title" ><a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}"><h5>{{ exam.name }}</h5></a> <a class="heading-elements-toggle"></a></div>
-                                <div class="heading-elements">
-								<ul class="icons-list">
-			                		<li><a data-action="collapse" class="rotate-180" ></a></li>
-			                		<li><a data-action="close"></a></li>
-			                	</ul>
-                                </div>
 
-    </div>
-    <div class="panel-body">
+<div class="card">
+    <div class="card-body">
+      <div class="card-block">
+        <table style="width: 100%" class="table table-striped table-bordered datatable dt-responsive">
+          <thead>
+            <tr>
+              <th>Revision id</th>
+              <th>Question id</th>
+              <th>Exam</th>
+              <th>Change summary</th>
+              <th>Date of Submission</th>
+            </tr>
+          </thead>
+          <tbody>
             {% for revision in revisions %}
-                {% if revision.question.exam == exam %}
-            <div {% if revision.is_approved %} class="panel panel-success panel-bordered panel-collapsed" {% else %}class="panel panel-flat panel-collapsed" {% endif %}>
-             <div class="panel-heading">
-                 <div class="panel-title" ><a href="{% url 'exams:list_revisions' revision.question.exam.category.get_slugs revision.question.exam.pk revision.question.pk %}"><strong>{{ revision.pk }}:</strong>{{ revision.question.exam }}{{ revision.text|truncatewords:10 }}</a> <a class="heading-elements-toggle"></a></div>
-                                <div class="heading-elements">
-								<ul class="icons-list">
-			                		<li><a data-action="collapse" class="rotate-180" ></a></li>
-			                		<li><a data-action="close"></a></li>
-			                	</ul>
-		                	</div>
-             </div>
-                       <div class="panel-body">
-                       {% if revision.figure %}
-                           <img class="img-responsive center-block"  src="{{ revision.figure.url }}">
-                       {% endif %}
-       <p class="question-text">{{ revision.text|linebreaksbr }}</p>
-            <ul>
-                       {% for choice in revision.choice_set.order_by_alphabet %}
-                               <li {% if choice.is_right %}class="is-answer text-success-800"{% endif %}>{{ choice.text|linebreaksbr }}</li>
-                           {% endfor %}
-            </ul>
-                       {% if revision.explanation %}<b> Explanation :</b><br>{{ revision.explanation| urlize }} {% endif %}
-        {% if revision.reference %}<br><b> Reference:</b><br>{{ revision.reference| urlize }} {% endif %}
-                </div>
-            </div>
-
-                {% endif %}
-        {% endfor %}
-
+            <tr data-url="{% url 'exams:show_revision_comparison' revision.pk %}" data-pk="{{ revision.pk }}">
+              <td>{{ revision.pk }}</td>
+              <td><a href="{% url 'exams:list_revisions' revision.question.exam.category.get_slugs revision.question.exam.pk revision.question.pk %}">{{ revision.question.pk }}</a></td>
+              <td>{{ revision.question.exam.name }}</td>
+              <td>{{ revision.change_summary|urlize_target_blank|linebreaksbr|default:"N/A" }}</td>
+              <td data-order="{{ revision.submission_date|date:'U' }}">{{ revision.submission_date }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
- </div>
-    </div>
-    {% endfor %}
+</div>
+
+
 {% endblock %}
+
 {% block customscript %}
-    <script type="text/javascript">
-    $(function(){
-        $('.panel-body').each(function() {
-            var div= $(this);
-            if (!$.trim($(div).html()).length) {
-                $(div).parent().hide();
-            }
-        });
+{% include 'partials/import_datatables.html' %}
 
-
+<script>
+    $(function () {
+      $(".datatable").DataTable({
+            order: [[ 4, "desc" ]]
+      });
     });
-    </script>
+</script>
+
+{% with row_selector="tr td:not(:nth-child(2))" %}
+  {% include 'exams/partials/initialize_show_revision.html' %}
+{% endwith %}
+
 {% endblock %}

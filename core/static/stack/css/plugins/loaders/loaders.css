@@ -645,7 +645,7 @@
 
 .ball-triangle-path {
   position: relative;
-  transform: translate(-29.994px, -37.50938px); }
+  transform: translate(-29.994001px, -37.509377px); }
   .ball-triangle-path > div:nth-child(1) {
     animation-name: ball-triangle-path-1;
     animation-delay: 0;
@@ -731,32 +731,32 @@
 .ball-grid-beat {
   width: 57px; }
   .ball-grid-beat > div:nth-child(1) {
-    animation-delay: 0.56s;
-    animation-duration: 1.55s; }
+    animation-delay: 0.17s;
+    animation-duration: 0.9s; }
   .ball-grid-beat > div:nth-child(2) {
-    animation-delay: -0.17s;
-    animation-duration: 1.41s; }
+    animation-delay: 0.14s;
+    animation-duration: 1.48s; }
   .ball-grid-beat > div:nth-child(3) {
-    animation-delay: 0.79s;
-    animation-duration: 0.64s; }
+    animation-delay: 0.08s;
+    animation-duration: 0.77s; }
   .ball-grid-beat > div:nth-child(4) {
-    animation-delay: 0.32s;
-    animation-duration: 0.8s; }
+    animation-delay: 0.41s;
+    animation-duration: 1.59s; }
   .ball-grid-beat > div:nth-child(5) {
-    animation-delay: 0.19s;
-    animation-duration: 1.49s; }
+    animation-delay: 0.33s;
+    animation-duration: 1.51s; }
   .ball-grid-beat > div:nth-child(6) {
-    animation-delay: 0.3s;
-    animation-duration: 0.76s; }
+    animation-delay: 0.45s;
+    animation-duration: 1.29s; }
   .ball-grid-beat > div:nth-child(7) {
-    animation-delay: 0.43s;
-    animation-duration: 1.38s; }
+    animation-delay: 0.32s;
+    animation-duration: 1.3s; }
   .ball-grid-beat > div:nth-child(8) {
-    animation-delay: 0.8s;
-    animation-duration: 1.02s; }
+    animation-delay: 0.56s;
+    animation-duration: 0.76s; }
   .ball-grid-beat > div:nth-child(9) {
-    animation-delay: 0.49s;
-    animation-duration: 1.22s; }
+    animation-delay: 0.39s;
+    animation-duration: 1.03s; }
   .ball-grid-beat > div {
     background-color: #404E67;
     width: 15px;
@@ -783,32 +783,32 @@
 .ball-grid-pulse {
   width: 57px; }
   .ball-grid-pulse > div:nth-child(1) {
-    animation-delay: 0.56s;
-    animation-duration: 1.27s; }
+    animation-delay: 0.45s;
+    animation-duration: 1.42s; }
   .ball-grid-pulse > div:nth-child(2) {
-    animation-delay: -0.17s;
-    animation-duration: 1.56s; }
+    animation-delay: -0.04s;
+    animation-duration: 0.96s; }
   .ball-grid-pulse > div:nth-child(3) {
-    animation-delay: 0.03s;
-    animation-duration: 0.81s; }
+    animation-delay: 0.76s;
+    animation-duration: 1.56s; }
   .ball-grid-pulse > div:nth-child(4) {
-    animation-delay: 0.8s;
-    animation-duration: 1.25s; }
+    animation-delay: 0.45s;
+    animation-duration: 0.91s; }
   .ball-grid-pulse > div:nth-child(5) {
-    animation-delay: 0.23s;
-    animation-duration: 1.44s; }
+    animation-delay: 0.44s;
+    animation-duration: 1.14s; }
   .ball-grid-pulse > div:nth-child(6) {
-    animation-delay: -0.14s;
-    animation-duration: 0.94s; }
+    animation-delay: 0.32s;
+    animation-duration: 0.71s; }
   .ball-grid-pulse > div:nth-child(7) {
-    animation-delay: 0s;
-    animation-duration: 0.84s; }
+    animation-delay: -0.17s;
+    animation-duration: 1.15s; }
   .ball-grid-pulse > div:nth-child(8) {
-    animation-delay: 0.15s;
-    animation-duration: 1.13s; }
+    animation-delay: 0.23s;
+    animation-duration: 1.46s; }
   .ball-grid-pulse > div:nth-child(9) {
-    animation-delay: 0.2s;
-    animation-duration: 0.87s; }
+    animation-delay: 0.33s;
+    animation-duration: 1.3s; }
   .ball-grid-pulse > div {
     background-color: #404E67;
     width: 15px;
@@ -839,32 +839,32 @@
     left: 0;
     animation: ball-spin-fade-loader 1s -0.96s infinite linear; }
   .ball-spin-fade-loader > div:nth-child(2) {
-    top: 17.04545px;
-    left: 17.04545px;
+    top: 17.045455px;
+    left: 17.045455px;
     animation: ball-spin-fade-loader 1s -0.84s infinite linear; }
   .ball-spin-fade-loader > div:nth-child(3) {
     top: 0;
     left: 25px;
     animation: ball-spin-fade-loader 1s -0.72s infinite linear; }
   .ball-spin-fade-loader > div:nth-child(4) {
-    top: -17.04545px;
-    left: 17.04545px;
+    top: -17.045455px;
+    left: 17.045455px;
     animation: ball-spin-fade-loader 1s -0.6s infinite linear; }
   .ball-spin-fade-loader > div:nth-child(5) {
     top: -25px;
     left: 0;
     animation: ball-spin-fade-loader 1s -0.48s infinite linear; }
   .ball-spin-fade-loader > div:nth-child(6) {
-    top: -17.04545px;
-    left: -17.04545px;
+    top: -17.045455px;
+    left: -17.045455px;
     animation: ball-spin-fade-loader 1s -0.36s infinite linear; }
   .ball-spin-fade-loader > div:nth-child(7) {
     top: 0;
     left: -25px;
     animation: ball-spin-fade-loader 1s -0.24s infinite linear; }
   .ball-spin-fade-loader > div:nth-child(8) {
-    top: 17.04545px;
-    left: -17.04545px;
+    top: 17.045455px;
+    left: -17.045455px;
     animation: ball-spin-fade-loader 1s -0.12s infinite linear; }
   .ball-spin-fade-loader > div {
     background-color: #404E67;
@@ -888,32 +888,32 @@
     left: 0;
     animation: ball-spin-loader 2s 0.9s infinite linear; }
   .ball-spin-loader > span:nth-child(2) {
-    top: 30.68182px;
-    left: 30.68182px;
+    top: 30.681818px;
+    left: 30.681818px;
     animation: ball-spin-loader 2s 1.8s infinite linear; }
   .ball-spin-loader > span:nth-child(3) {
     top: 0;
     left: 45px;
     animation: ball-spin-loader 2s 2.7s infinite linear; }
   .ball-spin-loader > span:nth-child(4) {
-    top: -30.68182px;
-    left: 30.68182px;
+    top: -30.681818px;
+    left: 30.681818px;
     animation: ball-spin-loader 2s 3.6s infinite linear; }
   .ball-spin-loader > span:nth-child(5) {
     top: -45px;
     left: 0;
     animation: ball-spin-loader 2s 4.5s infinite linear; }
   .ball-spin-loader > span:nth-child(6) {
-    top: -30.68182px;
-    left: -30.68182px;
+    top: -30.681818px;
+    left: -30.681818px;
     animation: ball-spin-loader 2s 5.4s infinite linear; }
   .ball-spin-loader > span:nth-child(7) {
     top: 0;
     left: -45px;
     animation: ball-spin-loader 2s 6.3s infinite linear; }
   .ball-spin-loader > span:nth-child(8) {
-    top: 30.68182px;
-    left: -30.68182px;
+    top: 30.681818px;
+    left: -30.681818px;
     animation: ball-spin-loader 2s 7.2s infinite linear; }
   .ball-spin-loader > div {
     animation-fill-mode: both;
@@ -1049,19 +1049,19 @@
     transform: scale(1); } }
 
 .line-scale-party > div:nth-child(1) {
-  animation-delay: 0.45s;
-  animation-duration: 0.54s; }
+  animation-delay: 0.06s;
+  animation-duration: 0.34s; }
 
 .line-scale-party > div:nth-child(2) {
-  animation-delay: 0.24s;
-  animation-duration: 0.37s; }
+  animation-delay: 0.7s;
+  animation-duration: 0.59s; }
 
 .line-scale-party > div:nth-child(3) {
-  animation-delay: -0.11s;
-  animation-duration: 0.45s; }
+  animation-delay: -0.16s;
+  animation-duration: 1.03s; }
 
 .line-scale-party > div:nth-child(4) {
-  animation-delay: 0.42s;
+  animation-delay: -0.09s;
   animation-duration: 0.54s; }
 
 .line-scale-party > div {
@@ -1136,8 +1136,8 @@
     left: 0;
     animation: line-spin-fade-loader 1.2s -0.84s infinite ease-in-out; }
   .line-spin-fade-loader > div:nth-child(2) {
-    top: 13.63636px;
-    left: 13.63636px;
+    top: 13.636364px;
+    left: 13.636364px;
     transform: rotate(-45deg);
     animation: line-spin-fade-loader 1.2s -0.72s infinite ease-in-out; }
   .line-spin-fade-loader > div:nth-child(3) {
@@ -1146,8 +1146,8 @@
     transform: rotate(90deg);
     animation: line-spin-fade-loader 1.2s -0.6s infinite ease-in-out; }
   .line-spin-fade-loader > div:nth-child(4) {
-    top: -13.63636px;
-    left: 13.63636px;
+    top: -13.636364px;
+    left: 13.636364px;
     transform: rotate(45deg);
     animation: line-spin-fade-loader 1.2s -0.48s infinite ease-in-out; }
   .line-spin-fade-loader > div:nth-child(5) {
@@ -1155,8 +1155,8 @@
     left: 0;
     animation: line-spin-fade-loader 1.2s -0.36s infinite ease-in-out; }
   .line-spin-fade-loader > div:nth-child(6) {
-    top: -13.63636px;
-    left: -13.63636px;
+    top: -13.636364px;
+    left: -13.636364px;
     transform: rotate(-45deg);
     animation: line-spin-fade-loader 1.2s -0.24s infinite ease-in-out; }
   .line-spin-fade-loader > div:nth-child(7) {
@@ -1165,8 +1165,8 @@
     transform: rotate(90deg);
     animation: line-spin-fade-loader 1.2s -0.12s infinite ease-in-out; }
   .line-spin-fade-loader > div:nth-child(8) {
-    top: 13.63636px;
-    left: -13.63636px;
+    top: 13.636364px;
+    left: -13.636364px;
     transform: rotate(45deg);
     animation: line-spin-fade-loader 1.2s 0s infinite ease-in-out; }
   .line-spin-fade-loader > div {

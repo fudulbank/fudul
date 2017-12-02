@@ -30,8 +30,8 @@
 			<p>Fudul is the comprehensive, collective, free-of-charge <strong>question bank</strong> built by and for examiners.</p>
 		</div>
 		<div class="row justify-content-center">
-			<div class="col-xs-12 offset-sm-2 col-sm-4 offset-md-3 col-md-3">
-				<div class="card height-150 text-xs-center">
+			<div class="col-12 col-sm-4 col-md-3">
+				<div class="card height-100 text-center">
 					<div class="card-body">
                         <a href="{% url 'exams:list_meta_categories' %}">
 						<i class="font-large-3 ft-list"></i>
@@ -42,8 +42,8 @@
 					</div>
 				</div>
 			</div>
-			<div class="col-xs-12 col-sm-4 col-md-3">
-				<div class="card height-150 text-xs-center">
+			<div class="col-12 col-sm-4 col-md-3">
+				<div class="card height-100 text-center">
 					<div class="card-body">
                         <a href="{% url 'exams:show_my_performance' %}">
 						<i class="font-large-3 ft-bar-chart-2"></i>
@@ -61,7 +61,7 @@
 
 <div class="row">
 
-  <div class="col-md-5 col-xs-12">
+  <div class="col-md-5 col-12">
        <div class="card">
            <div class="card-header">
                <h4 class="card-title">Latest sessions</h4>
@@ -88,7 +88,7 @@
        </div>
    </div>
 	 {% if user|is_editor %}
-	 <div class="col-md-7 col-xs-12">
+	 <div class="col-md-7 col-12">
         <div class="card">
             <div class="card-header">
                 <h4 class="card-title">Editing access</h4>
@@ -111,35 +111,39 @@
 										{% endif %}
 								</div><!--card-block-->
 								<div class="card-block">
-									<div class="row">
-										<div class="col-xs-12 col-sm-8 offset-sm-2 col-md-6 offset-md-0">
+									<div class="row justify-content-center">
+										<div class="col-12 col-sm-8 col-md-6">
 											<div class="card border-primary">
+												<div class="card-content">
 							            <div class="card-body">
-							                <div class="media">
-							                    <div class="p-2 text-xs-center media-left media-middle">
-							                        <i class="ft-file-plus font-large-2"></i>
-							                    </div>
-							                    <div class="p-2 media-body">
-																			<p class="h4 text-bold-400">{{ added_question_count }}</p>
-																			<p class="h6 text-muted">questions added</p>
+							                <div class="media d-flex">
+																	<div class="align-self-center">
+						                        <i class="ft-file-plus font-large-2 float-left"></i>
+						                      </div>
+							                    <div class="media-body text-right">
+																			<h3>{{ added_question_count }}</h3>
+																			<span>questions added</span>
 							                    </div>
 							                </div>
 							            </div>
+												</div><!--card-content-->
 							        </div><!--card-->
 										</div><!--col-->
-										<div class="col-xs-12 col-sm-8 offset-sm-2 col-md-6 offset-md-0">
+										<div class="col-12 col-sm-8 col-md-6">
 											<div class="card border-primary">
+												<div class="card-content">
 							            <div class="card-body">
-							                <div class="media">
-							                    <div class="p-2 text-xs-center media-left media-middle">
-							                        <i class="ft-edit font-large-2"></i>
-							                    </div>
-							                    <div class="p-2 media-body">
-																			<p class="h4 text-bold-400">{{ edited_question_count }}</p>
-																			<p class="h6 text-muted">questions edited</p>
+							                <div class="media d-flex">
+																<div class="align-self-center">
+					                        <i class="ft-edit font-large-2 float-left"></i>
+					                      </div>
+							                    <div class="media-body text-right">
+																			<h3>{{ edited_question_count }}</h3>
+																			<span>questions edited</span>
 							                    </div>
 							                </div>
 							            </div>
+												</div><!--card-content-->
 							        </div><!--card-->
 										</div><!--col-->
 									</div><!--row-->
