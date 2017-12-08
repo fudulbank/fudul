@@ -60,8 +60,9 @@ tbody tr td:last-child{
           show    : false,
         });
         $('tbody').on('click','tr td:not(:last-child)',function () {
-            url = $(this).closest('tr').data('url');
-            title_part = $(this).closest('tr').children('td:nth-child(1)').html();
+            row_node = tables.row(this).node();
+            url = $(row_node).data('url');
+            title_part = tables.row(this).cell('.question-id').data();
             $("#show-question-modal").modal('show');
             $("#show-question-modal .modal-title").html("Question #" + title_part);
             $("#show-question-modal .modal-body").load(url);

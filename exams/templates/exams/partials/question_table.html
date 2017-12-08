@@ -12,7 +12,7 @@
 {% for question in questions %}
 {% with latest_revision=question.get_latest_revision %}
   <tr data-pk="{{ question.pk }}" data-url="{% url 'exams:show_question' question.pk %}">
-    <td>{{ question.pk }}</td>
+    <td class="question-id">{{ question.pk }}</td>
     <td> {{ latest_revision.text|truncatewords:20|linebreaksbr }}</td>
     <td>
       {% if question.issues.exists %}
