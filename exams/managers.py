@@ -206,6 +206,9 @@ class ChoiceQuerySet(models.QuerySet):
     def order_by_alphabet(self):
         return self.order_by('text')
 
+    def order_randomly(self):
+        return self.order_by('?')
+
 class MetaInformationQuerySet(models.QuerySet):
     def order_by_exam_questions(self, exam):
         return self.with_approved_questions(exam)\
