@@ -1214,12 +1214,13 @@ def delete_session(request):
     elif deletion_type == 'session':
         session_pk = request.POST.get('pk')
         session = Session.objects.get(pk=session_pk)
+
         # PERMISSION CHECK
-        if session.submitter == request.user:
-            session.is_deleted = True
-            session.save()
-        else:
+        if session.submitter != request.user:
             raise Exception("You cannot ask for forgiveness for this session.")
+
+        session.is_deleted = True
+        session.save()
 
         # Unmark questions that are only in this session.
         other_user_sessions = Session.objects.filter(submitter=request.user)\
