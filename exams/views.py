@@ -1203,10 +1203,14 @@ def delete_session(request):
 
     if deletion_type == 'all':
         request.user.session_set.update(is_deleted=True)
+        request.user.marked_questions.clear()
     elif deletion_type == 'exam':
         exam_pk = request.POST.get('pk')
         exam = Exam.objects.get(pk=exam_pk)
         request.user.session_set.filter(exam=exam).update(is_deleted=True)
+        questions_to_unmark = request.user.marked_questions\
+                                          .filter(exam=exam)
+        request.user.marked_questions.remove(*questions_to_unmark)
     elif deletion_type == 'session':
         session_pk = request.POST.get('pk')
         session = Session.objects.get(pk=session_pk)
@@ -1216,6 +1220,14 @@ def delete_session(request):
             session.save()
         else:
             raise Exception("You cannot ask for forgiveness for this session.")
+
+        # Unmark questions that are only in this session.
+        other_user_sessions = Session.objects.filter(submitter=request.user)\
+                                             .exclude(pk=session_pk)
+        questions_to_unmark = request.user.marked_questions\
+                                          .filter(session=session)\
+                                          .exclude(session__in=other_user_sessions)
+        request.user.marked_questions.remove(*questions_to_unmark)
 
     return {}
 
