@@ -67,7 +67,13 @@ def show_about(request):
     answer_count = utils.round_to(exams_models.Answer.objects.count(), 100)
     session_count = utils.round_to(exams_models.Session.objects.count(), 10)
     exam_count = utils.round_to(exams_models.Exam.objects.count(), 5)
-    editor_count = utils.round_to(User.objects.filter(team_memberships__isnull=False).count(), 5)
+
+    # An editor is someone who has ever submitted a revision without
+    # it being considered a guest contribution.
+    editor_count = User.objects.filter(revision__is_contribution=False)\
+                               .distinct()\
+                               .count()
+    editor_count = utils.round_to(editor_count, 5)
 
     context = {'team': team,
                'question_count': question_count,
