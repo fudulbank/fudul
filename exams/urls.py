@@ -1,6 +1,7 @@
 from django.conf.urls import url
 from . import views
 from django.views.generic import TemplateView
+from django.views.generic.base import RedirectView
 
 urlpatterns =[
     url(r'^$', views.list_meta_categories, name='list_meta_categories'),
@@ -32,11 +33,13 @@ urlpatterns =[
 
     url(r'^search/$', views.search, name='search'),
 
-    url(r'^indicators/$', views.show_indicator_index, name='show_indicator_index'),
-    url(r'^indicators/teams/$', views.list_team_indicators, name='list_team_indicators'),
-    url(r'^indicators/teams/(?P<team_pk>\d+)/$', views.show_team_indicators, name='show_team_indicators'),
-    url(r'^indicators/categories/$', views.list_meta_categories, {'indicators': True}, name='list_category_indicators'),
-    url(r'^indicators/categories/(?P<slugs>[/\d\w\-]+)/$', views.show_category, {'indicators': True}, name='show_category_indicators'),
+    # Indicators were moved to the core app
+    url(r'^indicators/$', RedirectView.as_view(pattern_name='show_indicators')),
+    url(r'^indicators/teams/$', RedirectView.as_view(pattern_name='list_team_indicators')),
+    url(r'^indicators/teams/(?P<team_pk>\d+)/$', RedirectView.as_view(pattern_name='show_team_indicators')),
+    url(r'^indicators/categories/$', RedirectView.as_view(pattern_name='list_category_indicators')),
+    url(r'^indicators/categories/(?P<slugs>[/\d\w\-]+)/$', RedirectView.as_view(pattern_name='show_category_indicators')),
+
     url(r'^contributions/(?:(?P<user_pk>\d+)/)?$',views.list_contributions, name='list_contributions'),
 
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/(?P<pk>\d+)/control/approve$', views.approve_question, name='approve_question'),

@@ -3,13 +3,14 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_POST, require_safe
 import math
 
 from . import utils
 from .models import CoreMember
-from exams import models as exams_models
+from exams import models as exam_models
+from teams import models as team_models
 import accounts.utils
 import teams.utils
 
@@ -25,7 +26,7 @@ def show_index(request):
                                                   .order_by('-pk')[:8]
         context = {'latest_sessions': latest_sessions}
         if teams.utils.is_editor(request.user):
-            revision_pool = exams_models.Revision.objects.undeleted()\
+            revision_pool = exam_models.Revision.objects.undeleted()\
                                                          .filter(submitter=request.user)
             added_question_count = revision_pool.filter(is_first=True).count()
             context['added_question_count'] = added_question_count
@@ -34,8 +35,8 @@ def show_index(request):
         return render(request, 'index.html', context)
 
     else:
-        question_count = exams_models.Question.objects.undeleted().count()
-        answer_count = exams_models.Answer.objects\
+        question_count = exam_models.Question.objects.undeleted().count()
+        answer_count = exam_models.Answer.objects\
                                           .filter(choice__isnull=False)\
                                           .count()
         context = {'question_count': question_count,
@@ -58,15 +59,58 @@ class UserAutocomplete(autocomplete.Select2QuerySetView):
     def get_result_label(self, item):
         return accounts.utils.get_user_representation(item)
 
+@require_safe
+@login_required
+def show_indicator_index(request):
+    # PERMISSION CHECK
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+    context = {'is_indicators_active': True}
+
+    return render(request, "indicators/show_indicator_index.html", context)
+
+@require_safe
+@login_required
+def list_team_indicators(request):
+    # PERMISSION CHECK
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+    teams = team_models.Team.objects.all()
+
+    context = {'is_indicators_active': True, 'teams': teams}
+    return render(request, "indicators/list_team_indicators.html", context)
+
+@require_safe
+@login_required
+def show_team_indicators(request, team_pk):
+    # PERMISSION CHECK
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+    team = get_object_or_404(team_models.Team, pk=team_pk)
+    categories = team.categories.all()
+
+    team_question_pool = exam_models.Question.objects\
+                                             .undeleted()\
+                                             .under_categories(categories)
+
+    context = {'is_indicators_active': True,
+               'team': team,
+               'team_question_pool': team_question_pool}
+
+    return render(request, "indicators/show_team_indicators.html", context)
+
 @login_required
 @require_safe
 def show_about(request):
     team = CoreMember.objects.order_by('?')
 
-    question_count = utils.round_to(exams_models.Question.objects.undeleted().count(), 100)
-    answer_count = utils.round_to(exams_models.Answer.objects.count(), 100)
-    session_count = utils.round_to(exams_models.Session.objects.count(), 10)
-    exam_count = utils.round_to(exams_models.Exam.objects.count(), 5)
+    question_count = utils.round_to(exam_models.Question.objects.undeleted().count(), 100)
+    answer_count = utils.round_to(exam_models.Answer.objects.count(), 100)
+    session_count = utils.round_to(exam_models.Session.objects.count(), 10)
+    exam_count = utils.round_to(exam_models.Exam.objects.count(), 5)
 
     # An editor is someone who has ever submitted a revision without
     # it being considered a guest contribution.

@@ -28,7 +28,7 @@ def list_meta_categories(request, indicators=False):
         raise PermissionDenied
 
     if indicators:
-        show_category_url = 'exams:show_category_indicators'
+        show_category_url = 'show_category_indicators'
     else:
         show_category_url = 'exams:show_category'
 
@@ -57,7 +57,7 @@ def show_category(request, slugs, indicators=False):
     subcategories = category.children.user_accessible(request.user)
 
     if indicators:
-        show_category_url = 'exams:show_category_indicators'
+        show_category_url = 'show_category_indicators'
         if subcategories.count() == 0:
             return show_category_indicators(request, category)
     else:
@@ -86,50 +86,6 @@ def show_category(request, slugs, indicators=False):
     })
 
     return render(request, "exams/show_category.html", context)
-
-
-@require_safe
-@login_required
-def show_indicator_index(request):
-    # PERMISSION CHECK
-    if not request.user.is_superuser:
-        raise PermissionDenied
-
-    context = {'is_indicators_active': True}
-
-    return render(request, "exams/show_indicator_index.html", context)
-
-@require_safe
-@login_required
-def list_team_indicators(request):
-    # PERMISSION CHECK
-    if not request.user.is_superuser:
-        raise PermissionDenied
-
-    teams = Team.objects.all()
-
-    context = {'is_indicators_active': True, 'teams': teams}
-    return render(request, "exams/list_team_indicators.html", context)
-
-@require_safe
-@login_required
-def show_team_indicators(request, team_pk):
-    # PERMISSION CHECK
-    if not request.user.is_superuser:
-        raise PermissionDenied
-
-    team = get_object_or_404(Team, pk=team_pk)
-    categories = team.categories.all()
-
-    team_question_pool = Question.objects\
-                                 .undeleted()\
-                                 .under_categories(categories)
-
-    context = {'is_indicators_active': True,
-               'team': team,
-               'team_question_pool': team_question_pool}
-
-    return render(request, "exams/show_team_indicators.html", context)
 
 @require_safe
 @login_required
@@ -757,7 +713,7 @@ def show_category_indicators(request, category):
 
     context = {'category': category,
                'is_indicators_active': True}
-    return render(request, 'exams/show_category_indicators.html', context)
+    return render(request, 'indicators/show_category_indicators.html', context)
 
 @login_required
 @decorators.ajax_only
