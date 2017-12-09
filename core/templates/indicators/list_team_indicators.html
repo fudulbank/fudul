@@ -7,7 +7,7 @@
 
 {% block breadcrumb %}
       <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'show_indicators' %}">Indicators</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'show_indicator_index' %}">Indicators</a></li>
       <li class="breadcrumb-item active">Team indicators</li>
 {% endblock %}
 
@@ -33,7 +33,7 @@
                           {% if team.categories.exists %}
                           <ul>
                             {% for category in team.categories.all %}
-                            <li><a href="{% url 'exams:show_category_indicators' category.get_slugs %}">{{ category }}</a></li>
+                            <li><a href="{% url 'show_category_indicators' category.get_slugs %}">{{ category }}</a></li>
                             {% endfor %}
                           </ul>
                           {% else %}
