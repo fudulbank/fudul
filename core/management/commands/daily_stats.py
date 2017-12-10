@@ -48,7 +48,11 @@ class Command(BaseCommand):
             answer_avg = 0
 
         yesterday = end_date - datetime.timedelta(1)
-        last_user_count, last_answer_avg = self.get_counts(yesterday, users)
+        last_user_count, last_answer_count = self.get_counts(yesterday, users)
+        try:
+            last_answer_avg = last_answer_count / last_user_count
+        except ZeroDivisionError:
+            last_answer_avg = 0
 
         if last_user_count != 0:
             user_difference = user_count - last_user_count
@@ -63,8 +67,8 @@ class Command(BaseCommand):
             answer_change = 0
 
         user_change = "{:0.1f}".format(user_change)
-        answer_change = "{:0.1f}".format(answer_change)
         answer_avg = "{:0.1f}".format(answer_avg)
+        answer_change = "{:0.1f}".format(answer_change)
 
         return [user_change, answer_avg, answer_change]
 
@@ -73,7 +77,7 @@ class Command(BaseCommand):
         calculated_stats = self.calculate_stats(end_date, users,
                                                 user_count,
                                                 answer_count)
-        return [str(user_count), str(answer_count)] + calculated_stats        
+        return [str(user_count)] + calculated_stats    
 
     def write_stats(self, end_date, college, csv_file):
         day_str = end_date.strftime('%Y-%m-%d')
