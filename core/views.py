@@ -11,6 +11,7 @@ from . import utils
 from .models import CoreMember
 from exams import models as exam_models
 from teams import models as team_models
+from accounts import models as account_models
 import accounts.utils
 import teams.utils
 
@@ -66,30 +67,20 @@ def show_indicator_index(request):
     if not request.user.is_superuser:
         raise PermissionDenied
 
-    context = {'is_indicators_active': True}
+    teams = team_models.Team.objects.all()
+
+    context = {'is_indicators_active': True, 'teams': teams}
 
     return render(request, "indicators/show_indicator_index.html", context)
 
 @require_safe
 @login_required
-def list_team_indicators(request):
+def show_team_indicators(request, pk):
     # PERMISSION CHECK
     if not request.user.is_superuser:
         raise PermissionDenied
 
-    teams = team_models.Team.objects.all()
-
-    context = {'is_indicators_active': True, 'teams': teams}
-    return render(request, "indicators/list_team_indicators.html", context)
-
-@require_safe
-@login_required
-def show_team_indicators(request, team_pk):
-    # PERMISSION CHECK
-    if not request.user.is_superuser:
-        raise PermissionDenied
-
-    team = get_object_or_404(team_models.Team, pk=team_pk)
+    team = get_object_or_404(team_models.Team, pk=pk)
     categories = team.categories.all()
 
     team_question_pool = exam_models.Question.objects\
@@ -101,6 +92,22 @@ def show_team_indicators(request, team_pk):
                'team_question_pool': team_question_pool}
 
     return render(request, "indicators/show_team_indicators.html", context)
+
+@require_safe
+@login_required
+def show_college_indicators(request, pk):
+    # PERMISSION CHECK
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+    college = get_object_or_404(account_models.College, pk=pk)
+    csv_filename = 'college-{}.csv'.format(college.pk)
+
+    context = {'is_indicators_active': True,
+               'csv_filename': csv_filename,
+               'college': college}
+
+    return render(request, "indicators/show_college_indicators.html", context)
 
 @login_required
 @require_safe

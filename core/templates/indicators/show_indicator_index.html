@@ -16,23 +16,73 @@
 
 {% block content %}
 <div class="card">
+  <div class="card-header">
+    <h2>The Great Health Metric</h2>
+  </div>
 	<div class="card-body">
     <div class="card-block">
-      <h2>The Great Health Metric</h2>
       <p>To track Fudul's health, we follow our <em>Great Health Metric</em>, which consists of two things: <strong>active users</strong> (defined as: users who created at least one new session) and <strong>average answers</strong> (defined as: answers submitted with a choice, i.e. not skipped, divided by number of active users).</p>
       <div id="great-metric" style="width:100%; height:600px;"></div>
     </div>
 		<div class="card-block">
       <ul>
-        <li><a href="{% url 'list_team_indicators' %}">Teams</a></li>
         <li><a href="{% url 'list_category_indicators' %}">Categories</a></li>
       </ul>
 		</div><!--card-block-->
 	</div><!--card-body-->
 </div><!--card-->
+
+
+<div class="card">
+  <div class="card-header">
+    <h2>Team indicators</h2>
+  </div>
+	<div class="card-body">
+		<div class="card-block">
+				<table class="table table-striped table-bordered datatable dt-responsive">
+				    <thead>
+				        <tr>
+				            <th data-priority="1">Team</th>
+                    <th data-priority="1">Members</th>
+                    <th data-priority="2">Categories</th>
+                    <th data-toggle="tooltip" title="Number of questions under team categories" data-priority="3"># questions</th>
+				        </tr>
+				    </thead>
+				    <tbody>
+				       {% for team in teams %}
+				            <tr>
+				                <td><a href="{% url 'show_team_indicators' team.pk %}">{{ team.name }}</a></td>
+				                <td>{{ team.members.count }}</td>
+                        <td>
+                          {% if team.categories.exists %}
+                          <ul>
+                            {% for category in team.categories.all %}
+                            <li><a href="{% url 'show_category_indicators' category.get_slugs %}">{{ category }}</a></li>
+                            {% endfor %}
+                          </ul>
+                          {% else %}
+                          None
+                          {% endif %}
+                        </td>
+                        <td>{{ team.get_question_count }}</td>
+			            </tr>
+				       {% endfor %}
+				    </tbody>
+				</table>
+		</div><!--card-block-->
+	</div><!--card-body-->
+</div><!--card-->
+
+
 {% endblock %}
 {% block customscript %}
+{% include 'partials/import_datatables.html' %}
+
   <script>
+    $(function(){
+       $('[data-toggle="tooltip"]').tooltip()
+       $('.datatable').dataTable({order: [[1, 'desc']]});
+    });
 
     Plotly.d3.csv("{% static 'great-metric.csv' %}", function(err, rows){
     function unpack(rows, key) {
