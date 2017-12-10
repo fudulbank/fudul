@@ -20,6 +20,7 @@
 <div class="card">
 	<div class="card-body">
 		<div class="card-block">
+      <p>These two graphs track <strong>active users</strong> (defined as: users who created at least one new session) and <strong>average answers</strong> (defined as: answers submitted with a choice, i.e. not skipped, divided by number of active users).  This only includes users in the {{ college.name }} at {{ college.institution.name }} and is broken down per batch.</p>
       <div id="college-user-plot" style="width:100%; height:600px;"></div>
       <div id="college-answer-plot" style="width:100%; height:600px;"></div>
 		</div><!--card-block-->
@@ -40,7 +41,18 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
         } else {
           return rows.map(function(row) { return row[key]; });
         }
+      }
 
+      function get_answer_hover(batch_pk){
+        return rows.map(function(row) {
+          return row['answer_avg_' + batch_pk] + ' (' + row['answer_change_' + batch_pk] + '%)'
+        });
+      }
+
+      function get_user_hover(batch_pk){
+        return rows.map(function(row) {
+          return row['user_count_' + batch_pk] + ' (' + row['user_change_' + batch_pk] + '%)'
+        });
       }
 
       function stackedArea(data) {
@@ -62,7 +74,7 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
           x: unpack(rows, 'date'),
           y: unpack(rows, 'user_count_' + batch_pk, true),
           hoverinfo: 'text+name+x',
-          hovertext: unpack(rows, 'user_count_' + batch_pk, true),
+          hovertext: get_user_hover(batch_pk),
         }
         user_data.push(trace);
       }
@@ -74,7 +86,7 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
           x: unpack(rows, 'date'),
           y: unpack(rows, 'answer_avg_' + batch_pk, true),
           hoverinfo: 'text+name+x',
-          hovertext: unpack(rows, 'answer_avg_' + batch_pk, true),
+          hovertext: get_answer_hover(batch_pk),
         }
         answer_data.push(trace);
       }
