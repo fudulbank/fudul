@@ -13,6 +13,7 @@
 
 {% block head %}
 <script src="https://cdn.plot.ly/plotly-1.31.2.min.js" integrity="sha384-pEbvKAAHroDnU/rb2+IiUrslRtrsAGTaQNZjaFWCY3d/h5FlaWxqMkhh8MX4m0dQ" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.19.3/moment.min.js" integrity="sha384-8xuC0/BWqiPX72DT7LJqj+QiH5eYVT5KsUOewB/DmXi7KPPEdt4Td3xu3lg+slER" crossorigin="anonymous"></script>
 {% endblock %}
 
 
@@ -43,15 +44,13 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
         }
       }
 
-      function get_answer_hover(batch_pk){
+      function get_hover(count_field, change_field, batch_pk){
         return rows.map(function(row) {
-          return row['answer_avg_' + batch_pk] + ' (' + row['answer_change_' + batch_pk] + '%)'
-        });
-      }
-
-      function get_user_hover(batch_pk){
-        return rows.map(function(row) {
-          return row['user_count_' + batch_pk] + ' (' + row['user_change_' + batch_pk] + '%)'
+          end_date = moment(row['date'])
+          start_date = moment(row['date']).subtract(30, 'days')
+          end_date_str = end_date.format('DD MMM')
+          start_date_str = start_date.format('DD MMM')
+          return row[count_field + '_' + batch_pk] + ' (' + row[change_field + '_' + batch_pk].trim() + '%)<br>' + start_date_str + '‒' + end_date_str
         });
       }
 
@@ -73,8 +72,8 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
           name: batch_names[batch_pk],
           x: unpack(rows, 'date'),
           y: unpack(rows, 'user_count_' + batch_pk, true),
-          hoverinfo: 'text+name+x',
-          hovertext: get_user_hover(batch_pk),
+          hoverinfo: 'text+name',
+          hovertext: get_hover('user_count', 'user_change', batch_pk),
         }
         user_data.push(trace);
       }
@@ -85,8 +84,8 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
           name: batch_names[batch_pk],
           x: unpack(rows, 'date'),
           y: unpack(rows, 'answer_avg_' + batch_pk, true),
-          hoverinfo: 'text+name+x',
-          hovertext: get_answer_hover(batch_pk),
+          hoverinfo: 'text+name',
+          hovertext: get_hover('answer_avg', 'answer_change', batch_pk),
         }
         answer_data.push(trace);
       }

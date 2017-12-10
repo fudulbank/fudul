@@ -12,6 +12,8 @@
 
 {% block head %}
 <script src="https://cdn.plot.ly/plotly-1.31.2.min.js" integrity="sha384-pEbvKAAHroDnU/rb2+IiUrslRtrsAGTaQNZjaFWCY3d/h5FlaWxqMkhh8MX4m0dQ" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.19.3/moment.min.js" integrity="sha384-8xuC0/BWqiPX72DT7LJqj+QiH5eYVT5KsUOewB/DmXi7KPPEdt4Td3xu3lg+slER" crossorigin="anonymous"></script>
+
 {% endblock %}
 
 {% block content %}
@@ -124,13 +126,25 @@
       return rows.map(function(row) { return row[key]; });
     }
 
+    function get_hover(count_field, change_field){
+      return rows.map(function(row) {
+        end_date = moment(row['date'])
+        start_date = moment(row['date']).subtract(30, 'days')
+        end_date_str = end_date.format('DD MMM')
+        start_date_str = start_date.format('DD MMM')
+        return row[count_field] + ' (' + row[change_field].trim() + '%)<br>' + start_date_str + '‒' + end_date_str
+      });
+    }
+
+
     var trace1 = {
       type: "scatter",
       mode: "lines",
       name: 'Active users in previous 30 days',
       x: unpack(rows, 'date'),
       y: unpack(rows, 'user_count'),
-      hovertext: unpack(rows, 'user_change')
+      hoverinfo: 'text+name',
+      hovertext: get_hover('user_count', 'user_change'),
     }
 
     var trace2 = {
@@ -139,7 +153,8 @@
       name: 'Avg answers in previous 30 days',
       x: unpack(rows, 'date'),
       y: unpack(rows, 'answer_avg'),
-      hovertext: unpack(rows, 'answer_change')
+      hoverinfo: 'text+name',
+      hovertext: get_hover('answer_avg', 'answer_change'),
     }
 
     var data = [trace1,trace2];
