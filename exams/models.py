@@ -124,6 +124,11 @@ class Exam(models.Model):
     credits = RichTextUploadingField(default='', blank=True)
     objects = managers.ExamQuerySet.as_manager()
 
+    def get_user_count(self):
+        return User.objects.filter(session__exam=self)\
+                           .distinct()\
+                           .count()
+
     def get_sources(self):
         sources = Source.objects.none()
         category = self.category

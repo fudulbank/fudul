@@ -79,7 +79,8 @@ class Command(BaseCommand):
         return [user_change, answer_avg, answer_change]
 
     def get_stats(self, end_date, users, exam=None):
-        user_count, answer_count = self.get_counts(end_date, users)
+        user_count, answer_count = self.get_counts(end_date, users,
+                                                   exam)
         calculated_stats = self.calculate_stats(end_date, users,
                                                 user_count,
                                                 answer_count, exam)

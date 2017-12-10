@@ -1,4 +1,4 @@
-{% extends 'base_new.html' %}{% load static %}
+{% extends 'base_new.html' %}{% load static account_utils %}
 {% block title %}Fudul | {{ exam.name }} indicators{% endblock %}
 
 {% block header_title %}
@@ -26,9 +26,48 @@
 		</div><!--card-block-->
 	</div><!--card-body-->
 </div><!--card-->
+
+<div class="card">
+  <div class="card-header">
+    <h2>Exam sessions ({{ exam.session_set.count }})</h2>
+  </div>
+	<div class="card-body">
+		<div class="card-block">
+      <table class="table table-striped table-bordered datatable dt-responsive">
+          <thead>
+              <tr>
+                  <th data-priority="1">ID</th>
+                  <th data-priority="1">User</th>
+                  <th data-priority="2"># questions</th>
+                  <th data-priority="2">Submission date</th>
+              </tr>
+          </thead>
+          <tbody>
+             {% for session in exam.session_set.all %}
+                  <tr>
+                      <td><a href="{% url 'exams:show_session' exam.category.get_slugs exam.pk session.pk %}">{{ session.pk }}</a></td>
+                      <td>{{ session.submitter|get_user_credit:user}}</td>
+                      <td>{{ session.get_questions.count }}</td>
+                      <td data-order="{{ session.submission_date|date:'U' }}">{{ session.submission_date }}</td>
+                </tr>
+             {% endfor %}
+          </tbody>
+      </table>
+		</div><!--card-block-->
+	</div><!--card-body-->
+</div><!--card-->
+
 {% endblock %}
 {% block customscript %}
+{% include 'partials/import_datatables.html' %}
+
 <script>
+
+$(function(){
+   $('[data-toggle="tooltip"]').tooltip()
+   $('.datatable').dataTable({order: [[3, 'desc']]});
+});
+
   Plotly.d3.csv("{% static csv_filename %}", function(err, rows){
       function unpack(rows, key, is_int) {
         if (is_int){

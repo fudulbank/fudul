@@ -69,7 +69,7 @@
 				            <th data-priority="1">Team</th>
                     <th data-priority="1">Members</th>
                     <th data-priority="2">Categories</th>
-                    <th data-toggle="tooltip" title="Number of questions under team categories" data-priority="3"># questions</th>
+                    <th data-toggle="tooltip" title="Total number of questions under team categories" data-priority="3"># questions</th>
 				        </tr>
 				    </thead>
 				    <tbody>
@@ -107,8 +107,9 @@
 				    <thead>
 				        <tr>
 				            <th data-priority="1">Exam</th>
-                    <th data-priority="3">Category</th>
+                    <th data-priority="5">Category</th>
                     <th data-priority="2"># questions</th>
+                    <th data-toggle="tooltip" title="Number of users who have ever created a session" data-priority="3"># users</th>
 				        </tr>
 				    </thead>
 				    <tbody>
@@ -117,6 +118,7 @@
 				                <td><a href="{% url 'show_exam_indicators' exam.pk %}">{{ exam.name }}</a></td>
 				                <td><a href="{% url 'show_category_indicators' exam.category.get_slugs %}">{{ exam.category }}</a></td>
                         <td>{{ exam.question_set.count }}</td>
+                        <td>{{ exam.get_user_count }}</td>
 			            </tr>
 				       {% endfor %}
 				    </tbody>
