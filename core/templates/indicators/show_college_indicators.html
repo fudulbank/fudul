@@ -61,7 +61,7 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
           name: batch_names[batch_pk],
           x: unpack(rows, 'date'),
           y: unpack(rows, 'user_count_' + batch_pk, true),
-          hoverinfo: 'text+name',
+          hoverinfo: 'text+name+x',
           hovertext: unpack(rows, 'user_count_' + batch_pk, true),
         }
         user_data.push(trace);
@@ -73,7 +73,7 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
           name: batch_names[batch_pk],
           x: unpack(rows, 'date'),
           y: unpack(rows, 'answer_avg_' + batch_pk, true),
-          hoverinfo: 'text+name',
+          hoverinfo: 'text+name+x',
           hovertext: unpack(rows, 'answer_avg_' + batch_pk, true),
         }
         answer_data.push(trace);
