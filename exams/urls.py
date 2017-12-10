@@ -34,8 +34,8 @@ urlpatterns =[
     url(r'^search/$', views.search, name='search'),
 
     # Indicators were moved to the core app
-    url(r'^indicators/$', RedirectView.as_view(pattern_name='show_indicators')),
-    url(r'^indicators/teams/$', RedirectView.as_view(pattern_name='list_team_indicators')),
+    url(r'^indicators/$', RedirectView.as_view(pattern_name='show_indicator_index')),
+    url(r'^indicators/teams/$', RedirectView.as_view(pattern_name='show_indicator_index')),
     url(r'^indicators/teams/(?P<team_pk>\d+)/$', RedirectView.as_view(pattern_name='show_team_indicators')),
     url(r'^indicators/categories/$', RedirectView.as_view(pattern_name='list_category_indicators')),
     url(r'^indicators/categories/(?P<slugs>[/\d\w\-]+)/$', RedirectView.as_view(pattern_name='show_category_indicators')),
