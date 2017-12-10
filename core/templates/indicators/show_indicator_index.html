@@ -29,6 +29,33 @@
 	</div><!--card-body-->
 </div><!--card-->
 
+<div class="card">
+  <div class="card-header">
+    <h2>College indicators</h2>
+  </div>
+	<div class="card-body">
+		<div class="card-block">
+      <table id="college-table" class="table table-striped table-bordered datatable dt-responsive">
+          <thead>
+              <tr>
+                  <th data-priority="1">College</th>
+                  <th data-priority="2">Institution</th>
+                  <th data-priority="1"># users</th>
+              </tr>
+          </thead>
+          <tbody>
+             {% for college in colleges %}
+                  <tr>
+                      <td><a href="{% url 'show_college_indicators' college.pk %}">{{ college.name }}</a></td>
+                      <td>{{ college.institution.name }}</td>
+                      <td>{{ college.profile_set.count }}</td>
+                </tr>
+             {% endfor %}
+          </tbody>
+      </table>
+		</div><!--card-block-->
+	</div><!--card-body-->
+</div><!--card-->
 
 <div class="card">
   <div class="card-header">
@@ -72,32 +99,31 @@
 
 <div class="card">
   <div class="card-header">
-    <h2>College indicators</h2>
+    <h2>Exam indicators</h2>
   </div>
 	<div class="card-body">
 		<div class="card-block">
-      <table id="college-table" class="table table-striped table-bordered datatable dt-responsive">
-          <thead>
-              <tr>
-                  <th data-priority="1">College</th>
-                  <th data-priority="2">Institution</th>
-                  <th data-priority="1"># users</th>
-              </tr>
-          </thead>
-          <tbody>
-             {% for college in colleges %}
-                  <tr>
-                      <td><a href="{% url 'show_college_indicators' college.pk %}">{{ college.name }}</a></td>
-                      <td>{{ college.institution.name }}</td>
-                      <td>{{ college.profile_set.count }}</td>
-                </tr>
-             {% endfor %}
-          </tbody>
-      </table>
+				<table id="exam-table" class="table table-striped table-bordered datatable dt-responsive">
+				    <thead>
+				        <tr>
+				            <th data-priority="1">Exam</th>
+                    <th data-priority="3">Category</th>
+                    <th data-priority="2"># questions</th>
+				        </tr>
+				    </thead>
+				    <tbody>
+				       {% for exam in exams %}
+				            <tr>
+				                <td><a href="{% url 'show_exam_indicators' exam.pk %}">{{ exam.name }}</a></td>
+				                <td><a href="{% url 'show_category_indicators' exam.category.get_slugs %}">{{ exam.category }}</a></td>
+                        <td>{{ exam.question_set.count }}</td>
+			            </tr>
+				       {% endfor %}
+				    </tbody>
+				</table>
 		</div><!--card-block-->
 	</div><!--card-body-->
 </div><!--card-->
-
 
 <div class="card">
   <div class="card-header">
@@ -118,7 +144,7 @@
     $(function(){
        $('[data-toggle="tooltip"]').tooltip()
        $('#team-table').dataTable({order: [[1, 'desc']]});
-       $('#college-table').dataTable({order: [[2, 'desc']]});
+       $('#exam-table, #college-table').dataTable({order: [[2, 'desc']]});
     });
 
     Plotly.d3.csv("{% static 'great-metric.csv' %}", function(err, rows){

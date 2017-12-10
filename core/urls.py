@@ -8,6 +8,7 @@ urlpatterns = [
 
     url(r'^indicators/$', views.show_indicator_index, name="show_indicator_index"),
     url(r'^indicators/teams/(?P<pk>\d+)/$', views.show_team_indicators, name='show_team_indicators'),
+    url(r'^indicators/exams/(?P<pk>\d+)/$', views.show_exam_indicators, name='show_exam_indicators'),
     url(r'^indicators/colleges/(?P<pk>\d+)/$', views.show_college_indicators, name='show_college_indicators'),
 
     url(r'^indicators/categories/$', exam_views.list_meta_categories, {'indicators': True}, name='list_category_indicators'),

@@ -70,9 +70,12 @@ def show_indicator_index(request):
     teams = team_models.Team.objects.all()
     colleges = account_models.College.objects.filter(profile__isnull=False)\
                                              .distinct()
+    exams = exam_models.Exam.objects.filter(session__isnull=False)\
+                                    .distinct()
 
     context = {'is_indicators_active': True,
                'teams': teams,
+               'exams': exams,
                'colleges': colleges}
 
     return render(request, "indicators/show_indicator_index.html", context)
@@ -104,7 +107,9 @@ def show_college_indicators(request, pk):
     if not request.user.is_superuser:
         raise PermissionDenied
 
-    college = get_object_or_404(account_models.College, pk=pk)
+    colleges = account_models.College.objects.filter(profile__isnull=False)\
+                                             .distinct()
+    college = get_object_or_404(colleges, pk=pk)
     csv_filename = 'college-{}.csv'.format(college.pk)
 
     context = {'is_indicators_active': True,
@@ -112,6 +117,25 @@ def show_college_indicators(request, pk):
                'college': college}
 
     return render(request, "indicators/show_college_indicators.html", context)
+
+@require_safe
+@login_required
+def show_exam_indicators(request, pk):
+    # PERMISSION CHECK
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+    exams = exam_models.Exam.objects.filter(session__isnull=False)\
+                                    .distinct()
+    exam = get_object_or_404(exams, pk=pk)
+    csv_filename = 'exam-{}.csv'.format(exam.pk)
+
+    context = {'is_indicators_active': True,
+               'csv_filename': csv_filename,
+               'exam': exam}
+
+    return render(request, "indicators/show_exam_indicators.html", context)
+
 
 @login_required
 @require_safe

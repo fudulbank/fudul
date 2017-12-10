@@ -29,7 +29,6 @@
 </div><!--card-->
 {% endblock %}
 {% block customscript %}
-{% include 'partials/import_datatables.html' %}
   <script>
 
 batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batch.name }}',{% endfor %}
