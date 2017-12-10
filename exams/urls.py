@@ -21,6 +21,7 @@ urlpatterns =[
     url(r'^ajax/examiners/submit_highlight$', views.submit_highlight, name='submit_highlight'),
     url(r'^ajax/examiners/toggle_marked$', views.toggle_marked, name='toggle_marked'),
     url(r'^ajax/examiners/explain$', views.contribute_explanation, name='contribute_explanation'),
+    url(r'^ajax/examiners/mnemonics$', views.contribute_mnemonics, name='contribute_mnemonics'),
     url(r'^ajax/examiners/correct_answer$', views.correct_answer, name='correct_answer'),
     url(r'^ajax/examiners/edit$', views.contribute_revision, name='contribute_revision'),
     url(r'^ajax/examiners/(?P<pk>\d+)/credits$', views.show_credits, name='show_credits'),

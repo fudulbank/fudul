@@ -1,7 +1,7 @@
 from dal import autocomplete
 from django import forms
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.forms.models import inlineformset_factory
+from django.forms.models import inlineformset_factory,formset_factory
 from accounts.utils import get_user_college
 from . import models, utils
 import itertools
@@ -319,3 +319,11 @@ class AnswerCorrectionForm(forms.ModelForm):
     class Meta:
         model = models.AnswerCorrection
         fields = ['justification']
+
+
+class ContributeMnemonic(forms.ModelForm):
+    class Meta:
+        model = models.Mnemonic
+        fields=['text','image']
+
+

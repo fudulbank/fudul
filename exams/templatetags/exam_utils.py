@@ -156,3 +156,7 @@ def get_question_edited_count(user, question_pool=None):
                                 revision__submitter=user)\
                         .distinct().count()
 
+@register.filter
+def is_mnemonic_submiiter(mnemonic,user):
+    if mnemonic.submitter == user :
+        return True

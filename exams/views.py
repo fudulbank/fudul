@@ -1227,3 +1227,56 @@ def count_answers(request):
                                   .filter(choice__isnull=False)\
                                   .count()
             }
+
+
+@login_required
+@decorators.ajax_only
+@csrf.csrf_exempt
+def contribute_mnemonics(request):
+    action = request.POST.get('action')
+    mnemonic_pk = request.POST.get('mnemonic_pk')
+    question_pk = request.GET.get('question_pk')
+    question = get_object_or_404(Question, pk=question_pk,
+                                 is_deleted=False)
+    exam = question.exam
+    mnemonics = question.mnemonic_set.filter(is_deleted=False)
+
+    if request.method == 'GET':
+        form = forms.ContributeMnemonic()
+    elif request.method == 'POST':
+        if action in ['add']:
+
+            instance = Mnemonic(submitter=request.user,
+                                question=question)
+            form = forms.ContributeMnemonic(request.POST, request.FILES,
+                                            instance=instance)
+            if form.is_valid():
+                form.save()
+        elif Mnemonic.objects.filter(question=question).exists():
+            mnemonic = get_object_or_404(Mnemonic, pk=mnemonic_pk)
+            if action in ['like']:
+                if mnemonic.submitter == request.user:
+                    raise Exception("You were the one that submitted this mnemonic, so you cannot vote.")
+
+                if mnemonic.likes.filter(pk=request.user.pk).exists():
+                    raise Exception("You have already liked this mnemonic.")
+                mnemonic.likes.add(request.user)
+                # TODO: Notify the submitter that people are supporting
+                # their contribution
+            elif action in ['delete']:
+                if not request.user.is_superuser and \
+                        not exam.category.is_user_editor(request.user) and \
+                        not mnemonic.submitter == request.user:
+                    raise Exception("You cannot delete that mnemonic!")
+
+                mnemonic.is_deleted = True
+                mnemonic.save()
+
+            else:
+                return HttpResponseBadRequest()
+            changed = True
+        else:
+            return HttpResponseBadRequest()
+
+    context = {'question': question, 'form': form, 'mnemonics':mnemonics,'exam':exam}
+    return render(request, 'exams/partials/contribute_mnemonics.html', context)
