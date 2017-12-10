@@ -1,0 +1,89 @@
+{% extends 'base_new.html' %}{% load static %}
+{% block title %}Fudul | Indicators{% endblock %}
+
+{% block header_title %}
+<h1>Indicators</h1>
+{% endblock %}
+
+{% block breadcrumb %}
+      <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
+      <li class="breadcrumb-item active">Indicators</li>
+{% endblock %}
+
+{% block head %}
+<script src="https://cdn.plot.ly/plotly-1.31.2.min.js" integrity="sha384-pEbvKAAHroDnU/rb2+IiUrslRtrsAGTaQNZjaFWCY3d/h5FlaWxqMkhh8MX4m0dQ" crossorigin="anonymous"></script>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+	<div class="card-body">
+    <div class="card-block">
+      <h2>The Great Health Metric</h2>
+      <p>To track Fudul's health, we follow our <em>Great Health Metric</em>, which consists of two things: <strong>active users</strong> (defined as: users who created at least one new session) and <strong>average answers</strong> (defined as: answers submitted with a choice, i.e. not skipped, divided by number of active users).</p>
+      <div id="great-metric" style="width:100%; height:600px;"></div>
+    </div>
+		<div class="card-block">
+      <ul>
+        <li><a href="{% url 'list_team_indicators' %}">Teams</a></li>
+        <li><a href="{% url 'list_category_indicators' %}">Categories</a></li>
+      </ul>
+		</div><!--card-block-->
+	</div><!--card-body-->
+</div><!--card-->
+{% endblock %}
+{% block customscript %}
+  <script>
+
+    Plotly.d3.csv("{% static 'great-metric.csv' %}", function(err, rows){
+    function unpack(rows, key) {
+      return rows.map(function(row) { return row[key]; });
+    }
+
+    var trace1 = {
+      type: "scatter",
+      mode: "lines",
+      name: 'Active users in previous 30 days',
+      x: unpack(rows, 'date'),
+      y: unpack(rows, 'user_count'),
+      hovertext: unpack(rows, 'user_change')
+    }
+
+    var trace2 = {
+      type: "scatter",
+      mode: "lines",
+      name: 'Avg answers in previous 30 days',
+      x: unpack(rows, 'date'),
+      y: unpack(rows, 'answer_avg'),
+      hovertext: unpack(rows, 'answer_change')
+    }
+
+    var data = [trace1,trace2];
+
+    var layout = {
+      title: "The Great Health Metric",
+      xaxis: {
+        rangeselector: {buttons: [
+            {
+              count: 1,
+              label: '1m',
+              step: 'month',
+              stepmode: 'backward'
+            },
+            {
+              count: 6,
+              label: '6m',
+              step: 'month',
+              stepmode: 'backward'
+            },
+            {step: 'all'}
+          ]},
+        rangeslider: {range: ['2017-09-1', '{% now "y-m-d" %}']},
+        type: 'date'
+      },
+    };
+
+    Plotly.newPlot('great-metric', data, layout);
+    })
+
+    </script>
+{% endblock %}

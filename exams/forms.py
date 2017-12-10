@@ -1,11 +1,15 @@
 from dal import autocomplete
 from django import forms
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.forms.models import inlineformset_factory,formset_factory
+
+from django.forms.models import inlineformset_factory
+import itertools
+import random
+
 from accounts.utils import get_user_college
 from . import models, utils
-import itertools
 import teams.utils
+
 
 class MetaChoiceField(forms.ModelMultipleChoiceField):
     def __init__(self, *args, **kwargs):
@@ -242,10 +246,20 @@ class SessionForm(forms.ModelForm):
         if not question_pool.exists():
             raise forms.ValidationError("No questions at all match your selection.  Please try other options.")
 
-        selected_slice = question_pool[:number_of_questions]
-        selected_pool = models.Question.objects.filter(pk__in=selected_slice)
+        # Ideally, randomization should be a database thing, but
+        # Django is buggy when it comes to slicing a randomzied query
+        # with many filters.  For this reason, we apply the filers,
+        # then get only the PKs of included quessions, shuffle them,
+        # and then slice the number we need.  Finally, we get the
+        # question objects per the shuffled PKs.
+        pool_pks = list(question_pool.values_list('pk', flat=True))
+        random.shuffle(pool_pks)
+        sliced_pks = pool_pks[:number_of_questions]
+
+        selected_pool = models.Question.objects.filter(pk__in=sliced_pks)
         questions_to_find_tree = selected_pool.filter(parent_question__isnull=False) | \
                                  selected_pool.filter(child_question__isnull=False)
+
         pks = []
         for question in questions_to_find_tree.distinct():
             tree = question.get_tree()
@@ -253,6 +267,7 @@ class SessionForm(forms.ModelForm):
             pks += new_pks
         self.questions_with_tree = models.Question.objects\
                                                   .filter(pk__in=pks)
+
         if question_filter != 'INCOMPLETE':
             self.questions_with_tree = self.questions_with_tree.approved()
 

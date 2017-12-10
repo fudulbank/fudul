@@ -7,8 +7,8 @@
 
 {% block breadcrumb %}
       <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'exams:show_indicator_index' %}">Indicators</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'exams:list_team_indicators' %}">Team indicators</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'show_indicator_index' %}">Indicators</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'list_team_indicators' %}">Team indicators</a></li>
 			<li class="breadcrumb-item active">{{ team.name }}</li>
 {% endblock %}
 

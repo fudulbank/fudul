@@ -28,7 +28,7 @@ def list_meta_categories(request, indicators=False):
         raise PermissionDenied
 
     if indicators:
-        show_category_url = 'exams:show_category_indicators'
+        show_category_url = 'show_category_indicators'
     else:
         show_category_url = 'exams:show_category'
 
@@ -57,7 +57,7 @@ def show_category(request, slugs, indicators=False):
     subcategories = category.children.user_accessible(request.user)
 
     if indicators:
-        show_category_url = 'exams:show_category_indicators'
+        show_category_url = 'show_category_indicators'
         if subcategories.count() == 0:
             return show_category_indicators(request, category)
     else:
@@ -86,50 +86,6 @@ def show_category(request, slugs, indicators=False):
     })
 
     return render(request, "exams/show_category.html", context)
-
-
-@require_safe
-@login_required
-def show_indicator_index(request):
-    # PERMISSION CHECK
-    if not request.user.is_superuser:
-        raise PermissionDenied
-
-    context = {'is_indicators_active': True}
-
-    return render(request, "exams/show_indicator_index.html", context)
-
-@require_safe
-@login_required
-def list_team_indicators(request):
-    # PERMISSION CHECK
-    if not request.user.is_superuser:
-        raise PermissionDenied
-
-    teams = Team.objects.all()
-
-    context = {'is_indicators_active': True, 'teams': teams}
-    return render(request, "exams/list_team_indicators.html", context)
-
-@require_safe
-@login_required
-def show_team_indicators(request, team_pk):
-    # PERMISSION CHECK
-    if not request.user.is_superuser:
-        raise PermissionDenied
-
-    team = get_object_or_404(Team, pk=team_pk)
-    categories = team.categories.all()
-
-    team_question_pool = Question.objects\
-                                 .undeleted()\
-                                 .under_categories(categories)
-
-    context = {'is_indicators_active': True,
-               'team': team,
-               'team_question_pool': team_question_pool}
-
-    return render(request, "exams/show_team_indicators.html", context)
 
 @require_safe
 @login_required
@@ -757,7 +713,7 @@ def show_category_indicators(request, category):
 
     context = {'category': category,
                'is_indicators_active': True}
-    return render(request, 'exams/show_category_indicators.html', context)
+    return render(request, 'indicators/show_category_indicators.html', context)
 
 @login_required
 @decorators.ajax_only
@@ -1203,19 +1159,32 @@ def delete_session(request):
 
     if deletion_type == 'all':
         request.user.session_set.update(is_deleted=True)
+        request.user.marked_questions.clear()
     elif deletion_type == 'exam':
         exam_pk = request.POST.get('pk')
         exam = Exam.objects.get(pk=exam_pk)
         request.user.session_set.filter(exam=exam).update(is_deleted=True)
+        questions_to_unmark = request.user.marked_questions\
+                                          .filter(exam=exam)
+        request.user.marked_questions.remove(*questions_to_unmark)
     elif deletion_type == 'session':
         session_pk = request.POST.get('pk')
         session = Session.objects.get(pk=session_pk)
+
         # PERMISSION CHECK
-        if session.submitter == request.user:
-            session.is_deleted = True
-            session.save()
-        else:
+        if session.submitter != request.user:
             raise Exception("You cannot ask for forgiveness for this session.")
+
+        session.is_deleted = True
+        session.save()
+
+        # Unmark questions that are only in this session.
+        other_user_sessions = Session.objects.filter(submitter=request.user)\
+                                             .exclude(pk=session_pk)
+        questions_to_unmark = request.user.marked_questions\
+                                          .filter(session=session)\
+                                          .exclude(session__in=other_user_sessions)
+        request.user.marked_questions.remove(*questions_to_unmark)
 
     return {}
 
