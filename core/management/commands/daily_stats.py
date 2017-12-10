@@ -15,8 +15,6 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('--initial', dest='is_initial',
                             action='store_true', default=False)
-        parser.add_argument('--college-pk', type=str,
-                            default=None)
 
     def get_counts(self, end_date, users):
         # This function is given a day (end_date) and it calculates
@@ -97,46 +95,45 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         user_count = answer_avg = None
         today_date = datetime.date.today()
+        colleges = [None] + list(College.objects.all())
 
-        if options['college_pk']:
-            pk = options['college_pk']
-            college = College.objects.get(pk=pk)
-            csv_filename = 'college-{}.csv'.format(pk)
-        else:
-            college = None
-            csv_filename = 'great-metric.csv'
-
-        csv_path = os.path.join(settings.STATIC_ROOT, csv_filename)
-        if options['is_initial']:
-            csv_file = open(csv_path, 'w')
-            fields = ['user_count', 'user_change',
-                       'answer_avg', 'answer_change']
-
-            headers = ['date']
-
+        for college in colleges:
             if college:
-                for batch in college.batch_set.all():
-                    for field in fields:
-                       new_field = field + "_" + str(batch.pk)
-                       headers.append(new_field)
+                csv_filename = 'college-{}.csv'.format(college.pk)
             else:
-                headers += fields
+                csv_filename = 'great-metric.csv'            
 
-            header_str = ",".join(headers)
-            csv_file.write(header_str + '\n')
+            csv_path = os.path.join(settings.STATIC_ROOT, csv_filename)
+            if options['is_initial']:
+                csv_file = open(csv_path, 'w')
+                fields = ['user_count', 'user_change',
+                           'answer_avg', 'answer_change']
 
-            # The day the website was lunched
-            end_date = datetime.date(2017, 9, 1)
+                headers = ['date']
 
-            while today_date > end_date:
+                if college:
+                    for batch in college.batch_set.all():
+                        for field in fields:
+                           new_field = field + "_" + str(batch.pk)
+                           headers.append(new_field)
+                else:
+                    headers += fields
+
+                header_str = ",".join(headers)
+                csv_file.write(header_str + '\n')
+
+                # The day the website was lunched
+                end_date = datetime.date(2017, 9, 1)
+
+                while today_date > end_date:
+                    self.write_stats(end_date, college, csv_file)
+                    end_date += datetime.timedelta(1)
+            else:
+                csv_file = open(csv_path, 'a')
+
+                # This script will run at 00:00 (per website timezone) to
+                # get the stats of the previous day.
+                end_date = today_date - datetime.timedelta(1)
                 self.write_stats(end_date, college, csv_file)
-                end_date += datetime.timedelta(1)
-        else:
-            csv_file = open(csv_path, 'a')
 
-            # This script will run at 00:00 (per website timezone) to
-            # get the stats of the previous day.
-            end_date = today_date - datetime.timedelta(1)
-            self.write_stats(end_date, college, csv_file)
-
-        csv_file.close()
+            csv_file.close()
