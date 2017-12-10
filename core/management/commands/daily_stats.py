@@ -90,7 +90,7 @@ class Command(BaseCommand):
             stats += self.get_stats(end_date, users)
 
         stat_str = ",".join(stats)
-        csv_file.write(stat_str + '\n')
+        csv_file.write('\n' + stat_str)
 
     def handle(self, *args, **options):
         user_count = answer_avg = None
@@ -120,7 +120,7 @@ class Command(BaseCommand):
                     headers += fields
 
                 header_str = ",".join(headers)
-                csv_file.write(header_str + '\n')
+                csv_file.write(header_str)
 
                 # The day the website was lunched
                 end_date = datetime.date(2017, 9, 1)
