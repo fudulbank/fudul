@@ -1111,6 +1111,30 @@ def correct_answer(request):
         context = {'choice': choice, 'form': form}
         return render(request, 'exams/partials/correct_answer.html', context)
 
+@login_required
+@decorators.ajax_only
+@csrf.csrf_exempt
+def delete_correction(request):
+    choice_pk = request.GET.get('choice_pk')
+    correction = get_object_or_404(AnswerCorrection, choice__pk=choice_pk)
+
+    # PERMISSION CHECK
+    if not correction.submitter == request.user and \
+       not exam.can_user_edit(request.user):
+        raise PermissionDenied
+
+    new_submitter = correction.supporting_users.first()
+    if new_submitter:
+        correction.submitter = new_submitter
+        correction.save()
+        correction.supporting_users.remove(new_submitter)
+        template = get_template('exams/partials/show_answer_correction.html')
+        context = {'choice': choice, 'user': request.user}
+        correction_html = template.render(context)
+        return {'correction_html': correction_html}
+    else:
+        correction.delete()
+        return {'correction_html': None}
 
 @csrf.csrf_exempt
 @require_POST
