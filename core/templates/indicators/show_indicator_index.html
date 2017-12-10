@@ -79,11 +79,9 @@
 				                <td>{{ team.members.count }}</td>
                         <td>
                           {% if team.categories.exists %}
-                          <ul>
                             {% for category in team.categories.all %}
-                            <li><a href="{% url 'show_category_indicators' category.get_slugs %}">{{ category }}</a></li>
+                            <a href="{% url 'show_category_indicators' category.get_slugs %}">{{ category }}</a>{% if not forloop.last %}, {% endif %}
                             {% endfor %}
-                          </ul>
                           {% else %}
                           None
                           {% endif %}
@@ -107,18 +105,18 @@
 				    <thead>
 				        <tr>
 				            <th data-priority="1">Exam</th>
-                    <th data-priority="5">Category</th>
-                    <th data-priority="2"># questions</th>
-                    <th data-toggle="tooltip" title="Number of users who have ever created a session" data-priority="3"># users</th>
+                    <th data-toggle="tooltip" title="Number of users who have ever created a session" data-priority="2"># users</th>
+                    <th data-priority="4">Category</th>
+                    <th data-priority="3"># questions</th>
 				        </tr>
 				    </thead>
 				    <tbody>
 				       {% for exam in exams %}
 				            <tr>
 				                <td><a href="{% url 'show_exam_indicators' exam.pk %}">{{ exam.name }}</a></td>
+                        <td>{{ exam.get_user_count }}</td>
 				                <td><a href="{% url 'show_category_indicators' exam.category.get_slugs %}">{{ exam.category }}</a></td>
                         <td>{{ exam.question_set.count }}</td>
-                        <td>{{ exam.get_user_count }}</td>
 			            </tr>
 				       {% endfor %}
 				    </tbody>
@@ -145,8 +143,8 @@
   <script>
     $(function(){
        $('[data-toggle="tooltip"]').tooltip()
-       $('#team-table').dataTable({order: [[1, 'desc']]});
-       $('#exam-table, #college-table').dataTable({order: [[2, 'desc']]});
+       $('#exam-table, #team-table').dataTable({order: [[1, 'desc']]});
+       $('#college-table').dataTable({order: [[2, 'desc']]});
     });
 
     Plotly.d3.csv("{% static 'great-metric.csv' %}", function(err, rows){
