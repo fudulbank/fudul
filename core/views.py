@@ -68,8 +68,12 @@ def show_indicator_index(request):
         raise PermissionDenied
 
     teams = team_models.Team.objects.all()
+    colleges = account_models.College.objects.filter(profile__isnull=False)\
+                                             .distinct()
 
-    context = {'is_indicators_active': True, 'teams': teams}
+    context = {'is_indicators_active': True,
+               'teams': teams,
+               'colleges': colleges}
 
     return render(request, "indicators/show_indicator_index.html", context)
 

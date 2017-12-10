@@ -57,22 +57,24 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
 
       for (batch_pk in batch_names){
         var trace = {
-          fill: 'tozeroy',
+          fill: 'tonextx',
           name: batch_names[batch_pk],
           x: unpack(rows, 'date'),
           y: unpack(rows, 'user_count_' + batch_pk, true),
-          hovertext: unpack(rows, 'user_change_' + batch_pk, true),
+          hoverinfo: 'text+name',
+          hovertext: unpack(rows, 'user_count_' + batch_pk, true),
         }
         user_data.push(trace);
       }
 
       for (batch_pk in batch_names){
         var trace = {
-          fill: 'tozeroy',
+          fill: 'tonextx',
           name: batch_names[batch_pk],
           x: unpack(rows, 'date'),
           y: unpack(rows, 'answer_avg_' + batch_pk, true),
-          hovertext: unpack(rows, 'answer_change_' + batch_pk, true),
+          hoverinfo: 'text+name',
+          hovertext: unpack(rows, 'answer_avg_' + batch_pk, true),
         }
         answer_data.push(trace);
       }
