@@ -38,13 +38,26 @@
         }
       }
 
-      function get_hover(count_field, change_field){
+      function get_hover(count_field){
         return rows.map(function(row) {
           end_date = moment(row['date'])
           start_date = moment(row['date']).subtract(30, 'days')
+
+          // Calculate change
+          yesterday = moment(row['date']).subtract(1, 'days')
+          yesterday_str = yesterday.format('YYYY-MM-DD')
+          previous_row = rows.find(function(item){ return item['date'] == yesterday_str });
+          if (row[count_field] == 0 || previous_row === 'undefined'){
+            percentage = 0
+          } else {
+            diff = row[count_field] - previous_row[count_field];
+            percentage = (diff / row[count_field]) * 100
+            percentage = percentage.toPrecision(2)
+          }
+
           end_date_str = end_date.format('DD MMM')
           start_date_str = start_date.format('DD MMM')
-          return row[count_field] + ' (' + row[change_field].trim() + '%)<br>' + start_date_str + '‒' + end_date_str
+          return row[count_field] + ' (' + percentage + '%)<br>' + start_date_str + '‒' + end_date_str
         });
       }
 
@@ -55,7 +68,7 @@
         x: unpack(rows, 'date'),
         y: unpack(rows, 'user_count'),
         hoverinfo: 'text+name',
-        hovertext: get_hover('user_count', 'user_change'),
+        hovertext: get_hover('user_count'),
       }
 
       var trace2 = {
@@ -65,7 +78,7 @@
         x: unpack(rows, 'date'),
         y: unpack(rows, 'answer_avg'),
         hoverinfo: 'text+name',
-        hovertext: get_hover('answer_avg', 'answer_change'),
+        hovertext: get_hover('answer_avg'),
       }
 
       data = [trace1, trace2];

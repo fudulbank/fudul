@@ -43,13 +43,27 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
         }
       }
 
-      function get_hover(count_field, change_field, batch_pk){
+      function get_hover(count_field, batch_pk){
+        count_field = count_field + '_' + batch_pk;
         return rows.map(function(row) {
           end_date = moment(row['date'])
           start_date = moment(row['date']).subtract(30, 'days')
+
+          // Calculate change
+          yesterday = moment(row['date']).subtract(1, 'days')
+          yesterday_str = yesterday.format('YYYY-MM-DD')
+          previous_row = rows.find(function(item){ return item['date'] == yesterday_str });
+          if (row[count_field] == 0 || previous_row === 'undefined'){
+            percentage = 0
+          } else {
+            diff = row[count_field] - previous_row[count_field];
+            percentage = (diff / row[count_field]) * 100
+            percentage = percentage.toPrecision(2)
+          }
+
           end_date_str = end_date.format('DD MMM')
           start_date_str = start_date.format('DD MMM')
-          return row[count_field + '_' + batch_pk] + ' (' + row[change_field + '_' + batch_pk].trim() + '%)<br>' + start_date_str + '‒' + end_date_str
+          return row[count_field] + ' (' + percentage + '%)<br>' + start_date_str + '‒' + end_date_str
         });
       }
 
@@ -72,7 +86,7 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
           x: unpack(rows, 'date'),
           y: unpack(rows, 'user_count_' + batch_pk, true),
           hoverinfo: 'text+name',
-          hovertext: get_hover('user_count', 'user_change', batch_pk),
+          hovertext: get_hover('user_count', batch_pk),
         }
         user_data.push(trace);
       }
@@ -84,7 +98,7 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
           x: unpack(rows, 'date'),
           y: unpack(rows, 'answer_avg_' + batch_pk, true),
           hoverinfo: 'text+name',
-          hovertext: get_hover('answer_avg', 'answer_change', batch_pk),
+          hovertext: get_hover('answer_avg', batch_pk),
         }
         answer_data.push(trace);
       }
