@@ -43,48 +43,13 @@ class Command(BaseCommand):
             kwargs['session__exam'] = exam
         answer_count = Answer.objects.filter(**kwargs)\
                                  .distinct().count()
-
-        return user_count, answer_count
-
-    def calculate_stats(self, end_date, users, user_count,
-                        answer_count, exam=None):
         try:
             answer_avg = answer_count / user_count
         except ZeroDivisionError:
             answer_avg = 0
-
-        yesterday = end_date - datetime.timedelta(1)
-        last_user_count, last_answer_count = self.get_counts(yesterday, users, exam)
-        try:
-            last_answer_avg = last_answer_count / last_user_count
-        except ZeroDivisionError:
-            last_answer_avg = 0
-
-        if last_user_count != 0:
-            user_difference = user_count - last_user_count
-            user_change = (user_difference / last_user_count) * 100
-        else:
-            user_change = 0
-
-        if last_answer_avg != 0:
-            answer_difference = answer_avg - last_answer_avg
-            answer_change = (answer_difference / last_answer_avg) * 100
-        else:
-            answer_change = 0
-
-        user_change = "{:0.1f}".format(user_change)
         answer_avg = "{:0.1f}".format(answer_avg)
-        answer_change = "{:0.1f}".format(answer_change)
 
-        return [user_change, answer_avg, answer_change]
-
-    def get_stats(self, end_date, users, exam=None):
-        user_count, answer_count = self.get_counts(end_date, users,
-                                                   exam)
-        calculated_stats = self.calculate_stats(end_date, users,
-                                                user_count,
-                                                answer_count, exam)
-        return [str(user_count)] + calculated_stats    
+        return str(user_count), answer_avg
 
     def write_stats(self, end_date, target, csv_file):
         day_str = end_date.strftime('%Y-%m-%d')
@@ -93,14 +58,13 @@ class Command(BaseCommand):
         if type(target) is College:
             for batch in target.batch_set.all():
                 users = User.objects.filter(profile__batch=batch)
-                stats += self.get_stats(end_date, users)
+                stats += self.get_counts(end_date, users)
         if type(target) is Exam:
             users = User.objects.all()
-            exam = target
-            stats += self.get_stats(end_date, users, exam)
+            stats += self.get_counts(end_date, users, exam=target)
         else:
             users = User.objects.all()
-            stats += self.get_stats(end_date, users)
+            stats += self.get_counts(end_date, users)
 
         stat_str = ",".join(stats)
         csv_file.write(stat_str + '\n')
@@ -124,8 +88,7 @@ class Command(BaseCommand):
             csv_path = os.path.join(settings.STATIC_ROOT, csv_filename)
             if options['is_initial']:
                 csv_file = open(csv_path, 'w')
-                fields = ['user_count', 'user_change',
-                           'answer_avg', 'answer_change']
+                fields = ['user_count', 'answer_avg']
 
                 headers = ['date']
 
