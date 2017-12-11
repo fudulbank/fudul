@@ -147,7 +147,7 @@
        $('#college-table').dataTable({order: [[2, 'desc']]});
     });
 
-    Plotly.d3.csv("{% url 'get_privileged_file' 'great-metric.csv' %}", function(err, rows){
+    Plotly.d3.csv("{% url 'get_privileged_file' 'indicators/great-metric.csv' %}", function(err, rows){
     function unpack(rows, key) {
       return rows.map(function(row) { return row[key]; });
     }
