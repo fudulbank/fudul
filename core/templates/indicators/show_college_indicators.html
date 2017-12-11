@@ -37,7 +37,7 @@
 batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batch.name }}',{% endfor %}
 }
 
-  Plotly.d3.csv("{% static csv_filename %}", function(err, rows){
+  Plotly.d3.csv("{% url 'get_privileged_file' csv_filename %}", function(err, rows){
       function unpack(rows, key, is_int) {
         if (is_int){
           return rows.map(function(row) { return parseInt(row[key]); });

@@ -1,10 +1,12 @@
 from dal import autocomplete
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_POST, require_safe
+from django.views.static import serve
 import math
 
 from . import utils
@@ -110,7 +112,7 @@ def show_college_indicators(request, pk):
     colleges = account_models.College.objects.filter(profile__isnull=False)\
                                              .distinct()
     college = get_object_or_404(colleges, pk=pk)
-    csv_filename = 'college-{}.csv'.format(college.pk)
+    csv_filename = 'indicators/college-{}.csv'.format(college.pk)
 
     context = {'is_indicators_active': True,
                'csv_filename': csv_filename,
@@ -128,7 +130,7 @@ def show_exam_indicators(request, pk):
     exams = exam_models.Exam.objects.filter(session__isnull=False)\
                                     .distinct()
     exam = get_object_or_404(exams, pk=pk)
-    csv_filename = 'exam-{}.csv'.format(exam.pk)
+    csv_filename = 'indicators/exam-{}.csv'.format(exam.pk)
 
     context = {'is_indicators_active': True,
                'csv_filename': csv_filename,
@@ -136,6 +138,14 @@ def show_exam_indicators(request, pk):
 
     return render(request, "indicators/show_exam_indicators.html", context)
 
+@login_required
+@require_safe
+def get_privileged_file(request, path):
+    # PERMISSION CHECK
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+    return serve(request, path, settings.PRIVILEGED_DIR, show_indexes=False)
 
 @login_required
 @require_safe
