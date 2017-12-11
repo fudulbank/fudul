@@ -24,6 +24,9 @@
       <p>These two graphs track <strong>active users</strong> (defined as: users who created at least one new session) and <strong>average answers</strong> (defined as: answers submitted with a choice, i.e. not skipped, divided by number of active users).  This only includes users in the {{ college.name }} at {{ college.institution.name }} and is broken down per batch.</p>
       <div id="college-user-plot" style="width:100%; height:600px;"></div>
       <div id="college-answer-plot" style="width:100%; height:600px;"></div>
+      <div id="college-contributor-plot" style="width:100%; height:600px;"></div>
+      <div id="college-revision-plot" style="width:100%; height:600px;"></div>
+      <div id="college-explanation-plot" style="width:100%; height:600px;"></div>
 		</div><!--card-block-->
 	</div><!--card-body-->
 </div><!--card-->
@@ -78,6 +81,9 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
 
       user_data = [];
       answer_data = [];
+      contributor_data = [];
+      revision_data = [];
+      explanation_data = [];
 
       for (batch_pk in batch_names){
         var trace = {
@@ -103,8 +109,48 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
         answer_data.push(trace);
       }
 
+      for (batch_pk in batch_names){
+        var trace = {
+          fill: 'tonextx',
+          name: batch_names[batch_pk],
+          x: unpack(rows, 'date'),
+          y: unpack(rows, 'contributor_count_' + batch_pk, true),
+          hoverinfo: 'text+name',
+          hovertext: get_hover('contributor_count_', batch_pk),
+        }
+        contributor_data.push(trace);
+      }
+
+      for (batch_pk in batch_names){
+        var trace = {
+          fill: 'tonextx',
+          name: batch_names[batch_pk],
+          x: unpack(rows, 'date'),
+          y: unpack(rows, 'revision_avg_' + batch_pk, true),
+          hoverinfo: 'text+name',
+          hovertext: get_hover('revision_avg', batch_pk),
+        }
+        revision_data.push(trace);
+      }
+
+      for (batch_pk in batch_names){
+        var trace = {
+          fill: 'tonextx',
+          name: batch_names[batch_pk],
+          x: unpack(rows, 'date'),
+          y: unpack(rows, 'explanation_avg_' + batch_pk, true),
+          hoverinfo: 'text+name',
+          hovertext: get_hover('explanation_avg', batch_pk),
+        }
+        explanation_data.push(trace);
+      }
+
       Plotly.newPlot('college-user-plot', stackedArea(user_data), {title: "{{ college.name}} user plot"});
       Plotly.newPlot('college-answer-plot', stackedArea(answer_data), {title: "{{ college.name}} answer plot"});
+
+      Plotly.newPlot('college-contributor-plot', stackedArea(contributor_data), {title: "{{ college.name}} contributor plot"});
+      Plotly.newPlot('college-revision-plot', stackedArea(revision_data), {title: "{{ college.name}} revision plot"});
+      Plotly.newPlot('college-explanation-plot', stackedArea(explanation_data), {title: "{{ college.name}} explanation plot"});
   })
     </script>
 
