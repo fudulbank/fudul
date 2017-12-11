@@ -116,7 +116,7 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
           x: unpack(rows, 'date'),
           y: unpack(rows, 'contributor_count_' + batch_pk, true),
           hoverinfo: 'text+name',
-          hovertext: get_hover('contributor_count_', batch_pk),
+          hovertext: get_hover('contributor_count', batch_pk),
         }
         contributor_data.push(trace);
       }
