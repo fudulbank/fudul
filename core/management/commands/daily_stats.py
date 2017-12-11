@@ -16,58 +16,94 @@ class Command(BaseCommand):
         parser.add_argument('--initial', dest='is_initial',
                             action='store_true', default=False)
 
-    def get_counts(self, end_date, users, exam=None):
+    def set_dates(self, end_date):
         # This function is given a day (end_date) and it calculates
         # the activity in the preceding 30 days.
 
         start_date = end_date - datetime.timedelta(30)
         start_datetime = datetime.datetime.combine(start_date, datetime.time.min)
-        aware_start_datetime = timezone.make_aware(start_datetime, current_timezone)
+        self.aware_start_datetime = timezone.make_aware(start_datetime, current_timezone)
 
         end_datetime = datetime.datetime.combine(end_date, datetime.time.max)
-        aware_end_datetime = timezone.make_aware(end_datetime, current_timezone)
+        self.aware_end_datetime = timezone.make_aware(end_datetime, current_timezone)
 
-        kwargs = {'session__submission_date__gte': aware_start_datetime,
-                  'session__submission_date__lte': aware_end_datetime}
-
+    def get_usage_counts(self, users=None, exam=None):
+        # Shared query parameters
+        kwargs = {'session__submission_date__gte': self.aware_start_datetime,
+                  'session__submission_date__lte': self.aware_end_datetime}
         if exam:
             kwargs['session__exam'] = exam
-        user_count = users.filter(**kwargs)\
-                          .distinct().count()
 
-        kwargs = {'session__submitter__in': users,
-                  'session__submission_date__gte': aware_start_datetime,
-                  'session__submission_date__lte': aware_end_datetime,
-                  'choice__isnull': False}
-        if exam:
-            kwargs['session__exam'] = exam
-        answer_count = Answer.objects.filter(**kwargs)\
+        # Calculate active users
+        if users:
+            target_users = users
+        else:
+            target_users = User.objects.all()
+        user_count = target_users.filter(**kwargs)\
                                  .distinct().count()
+
+        # Calculate average answers
+
+        # Exclude skipped answers (i.e. those without a choice)
+        kwargs['choice__isnull'] = False
+        if users:
+            kwargs['session__submitter__in'] = users
+
+        answer_count = Answer.objects.filter(**kwargs)\
+                                     .distinct().count()
         try:
             answer_avg = answer_count / user_count
         except ZeroDivisionError:
             answer_avg = 0
         answer_avg = "{:0.1f}".format(answer_avg)
 
-        return str(user_count), answer_avg
+        return user_count, answer_avg
+
+    def get_contribution_counts(self, users=None, exam=None):
+        explanation_kwargs = {'submitted_explanations__submission_date__gte': self.aware_start_datetime,
+                              'submitted_explanations__submission_date__lte': self.aware_end_datetime}
+        revision_kwargs = {'revision__submission_date__gte': self.aware_start_datetime,
+                           'revision__submission_date__lte': self.aware_end_datetime}
+
+        if exam:
+            revision_kwargs['revision__question__exam'] = exam
+            explanation_kwargs['submitted_explanations__question__exam'] = exam
+
+        if users:
+            target_users = users
+        else:
+            target_users = User.objects.all()
+
+        explainer_count = target_users.filter(**explanation_kwargs)\
+                                      .distinct().count()
+        editor_count = users.filter(**revision_kwargs)\
+                            .distinct().count()
+
+        return explainer_count, editor_count
 
     def write_stats(self, end_date, target, csv_file):
+        self.set_dates(end_date)
         day_str = end_date.strftime('%Y-%m-%d')
         stats = [day_str]
 
         if type(target) is College:
             for batch in target.batch_set.all():
                 users = User.objects.filter(profile__batch=batch)
-                stats += self.get_counts(end_date, users)
+                user_count, answer_avg = self.get_usage_counts(users)
+                explainer_count, editor_count = self.get_contribution_counts(users)
         if type(target) is Exam:
-            users = User.objects.all()
-            stats += self.get_counts(end_date, users, exam=target)
+            user_count, answer_avg = self.get_usage_counts(exam=target)
+            explainer_count, editor_count = self.get_contribution_counts(exam=target)
         else:
-            users = User.objects.all()
-            stats += self.get_counts(end_date, users)
+            user_count, answer_avg = self.get_usage_counts()
+            explainer_count, editor_count = self.get_contribution_counts()
 
-        stat_str = ",".join(stats)
-        csv_file.write(stat_str + '\n')
+        stats += [user_count, answer_avg, explainer_count,
+                  editor_count]
+
+        stat_str = [str(stat) for stat in stats]
+        row = ",".join(stat_str)
+        csv_file.write(row + '\n')
 
     def handle(self, *args, **options):
         user_count = answer_avg = None
