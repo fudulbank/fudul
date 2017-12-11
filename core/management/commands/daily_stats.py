@@ -1,11 +1,12 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
+from django.db.models import Q, Count, Avg
 from django.utils import timezone
 from django.conf import settings
 import datetime
 import os.path
 
-from exams.models import Exam, Answer
+from exams.models import Exam, Answer, Revision, ExplanationRevision
 from accounts.models import College
 
 
@@ -14,6 +15,8 @@ current_timezone = timezone.get_current_timezone()
 class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('--initial', dest='is_initial',
+                            action='store_true', default=False)
+        parser.add_argument('--dry', dest='is_dry',
                             action='store_true', default=False)
 
     def set_dates(self, end_date):
@@ -55,31 +58,45 @@ class Command(BaseCommand):
             answer_avg = answer_count / user_count
         except ZeroDivisionError:
             answer_avg = 0
-        answer_avg = "{:0.1f}".format(answer_avg)
 
-        return user_count, answer_avg
+        return [user_count, answer_avg]
 
     def get_contribution_counts(self, users=None, exam=None):
-        explanation_kwargs = {'submitted_explanations__submission_date__gte': self.aware_start_datetime,
-                              'submitted_explanations__submission_date__lte': self.aware_end_datetime}
-        revision_kwargs = {'revision__submission_date__gte': self.aware_start_datetime,
-                           'revision__submission_date__lte': self.aware_end_datetime}
-
+        basic_kwargs = {'submission_date__gte': self.aware_start_datetime,
+                        'submission_date__lte': self.aware_end_datetime}
         if exam:
-            revision_kwargs['revision__question__exam'] = exam
-            explanation_kwargs['submitted_explanations__question__exam'] = exam
+            basic_kwargs['question__exam'] = exam
+    
+        editor_kwargs = {}
+        explainer_kwargs = {}
+
+        for kwarg in basic_kwargs:
+            value = basic_kwargs[kwarg]
+            editor_kwargs['revision__' + kwarg] = value
+            explainer_kwargs['submitted_explanations__' + kwarg] = value
 
         if users:
             target_users = users
+            basic_kwargs['submitter__in'] = users
         else:
             target_users = User.objects.all()
 
-        explainer_count = target_users.filter(**explanation_kwargs)\
-                                      .distinct().count()
-        editor_count = users.filter(**revision_kwargs)\
-                            .distinct().count()
+        condition = Q(**editor_kwargs) | Q(**explainer_kwargs)
+        contributor_count = target_users.filter(condition)\
+                                        .distinct().count()
+        if contributor_count == 0:
+            revision_avg = 0
+            explanation_avg = 0
+        else:
+            revision_count = Revision.objects.filter(**basic_kwargs)\
+                                             .distinct().count()
+            explanation_count = ExplanationRevision.objects.filter(**basic_kwargs)\
+                                                           .distinct()\
+                                                           .count()
+            revision_avg = revision_count / contributor_count
+            explanation_avg = explanation_count / contributor_count
 
-        return explainer_count, editor_count
+        return [contributor_count, revision_avg, explanation_avg]
 
     def write_stats(self, end_date, target, csv_file):
         self.set_dates(end_date)
@@ -89,27 +106,40 @@ class Command(BaseCommand):
         if type(target) is College:
             for batch in target.batch_set.all():
                 users = User.objects.filter(profile__batch=batch)
-                user_count, answer_avg = self.get_usage_counts(users)
-                explainer_count, editor_count = self.get_contribution_counts(users)
-        if type(target) is Exam:
-            user_count, answer_avg = self.get_usage_counts(exam=target)
-            explainer_count, editor_count = self.get_contribution_counts(exam=target)
+                stats += self.get_usage_counts(users)
+                stats += self.get_contribution_counts(users)
+        elif type(target) is Exam:
+            stats += self.get_usage_counts(exam=target)
+            stats += self.get_contribution_counts(exam=target)
         else:
-            user_count, answer_avg = self.get_usage_counts()
-            explainer_count, editor_count = self.get_contribution_counts()
+            stats += self.get_usage_counts()
+            stats += self.get_contribution_counts()
 
-        stats += [user_count, answer_avg, explainer_count,
-                  editor_count]
+        stat_str = []
+        for stat in stats:
+            if type(stat) is float:
+                stat = "{:0.1f}".format(stat)
+            else:
+                stat = str(stat)
+            stat_str.append(stat)
 
-        stat_str = [str(stat) for stat in stats]
         row = ",".join(stat_str)
-        csv_file.write(row + '\n')
+        if csv_file:
+            csv_file.write(row + '\n')
+        else:
+            print(self.header_str)
+            print(row)
 
     def handle(self, *args, **options):
+        is_dry = options['is_dry']
         user_count = answer_avg = None
         today_date = datetime.date.today()
-        exams = Exam.objects.filter(session__isnull=False).distinct()
-        colleges = College.objects.filter(profile__isnull=False).distinct()
+        exams = Exam.objects.filter(session__isnull=False)\
+                            .order_by('pk')\
+                            .distinct()
+        colleges = College.objects.filter(profile__isnull=False)\
+                                  .order_by('pk')\
+                                  .distinct()
         targets = [None] + list(colleges)\
                          + list(exams)
 
@@ -121,23 +151,29 @@ class Command(BaseCommand):
             else:
                 csv_filename = 'great-metric.csv'            
 
-            csv_path = os.path.join(settings.STATIC_ROOT, csv_filename)
+            fields = ['user_count', 'answer_avg',
+                      'contributor_count', 'revision_avg',
+                      'explanation_avg']
+
+            headers = ['date']
+
+            if type(target) is College:
+                for batch in target.batch_set.all():
+                    for field in fields:
+                       new_field = field + "_" + str(batch.pk)
+                       headers.append(new_field)
+            else:
+                headers += fields
+
+            self.header_str = ",".join(headers)
+
+            csv_path = os.path.join(settings.PRIVILEGED_DIR, 'indicators', csv_filename)
             if options['is_initial']:
-                csv_file = open(csv_path, 'w')
-                fields = ['user_count', 'answer_avg']
-
-                headers = ['date']
-
-                if type(target) is College:
-                    for batch in target.batch_set.all():
-                        for field in fields:
-                           new_field = field + "_" + str(batch.pk)
-                           headers.append(new_field)
+                if not is_dry:
+                    csv_file = open(csv_path, 'w')
+                    csv_file.write(self.header_str + '\n')
                 else:
-                    headers += fields
-
-                header_str = ",".join(headers)
-                csv_file.write(header_str + '\n')
+                    csv_file = None
 
                 # The day the website was lunched
                 end_date = datetime.date(2017, 9, 1)
@@ -146,11 +182,15 @@ class Command(BaseCommand):
                     self.write_stats(end_date, target, csv_file)
                     end_date += datetime.timedelta(1)
             else:
-                csv_file = open(csv_path, 'a')
+                if not is_dry:
+                    csv_file = open(csv_path, 'a')
+                else:
+                    csv_file = None
 
                 # This script will run at 00:00 (per website timezone) to
                 # get the stats of the previous day.
                 end_date = today_date - datetime.timedelta(1)
                 self.write_stats(end_date, target, csv_file)
 
-            csv_file.close()
+            if not is_dry:
+                csv_file.close()
