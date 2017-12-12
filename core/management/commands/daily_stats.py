@@ -63,7 +63,8 @@ class Command(BaseCommand):
 
     def get_contribution_counts(self, users=None, exam=None):
         basic_kwargs = {'submission_date__gte': self.aware_start_datetime,
-                        'submission_date__lte': self.aware_end_datetime}
+                        'submission_date__lte': self.aware_end_datetime,
+                        'is_deleted': False}
         if exam:
             basic_kwargs['question__exam'] = exam
 
