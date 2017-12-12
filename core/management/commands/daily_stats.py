@@ -6,7 +6,7 @@ from django.conf import settings
 import datetime
 import os.path
 
-from exams.models import Exam, Answer, Revision, ExplanationRevision
+from exams.models import Exam, Answer, Revision, ExplanationRevision, AnswerCorrection
 from accounts.models import College
 
 
@@ -63,8 +63,7 @@ class Command(BaseCommand):
 
     def get_contribution_counts(self, users=None, exam=None):
         basic_kwargs = {'submission_date__gte': self.aware_start_datetime,
-                        'submission_date__lte': self.aware_end_datetime,
-                        'is_deleted': False}
+                        'submission_date__lte': self.aware_end_datetime}
         if exam:
             basic_kwargs['question__exam'] = exam
 
@@ -77,9 +76,10 @@ class Command(BaseCommand):
         editor_kwargs = {}
         explainer_kwargs = {}
 
-        revision_kwargs = basic_kwargs.copy()
-        revision_kwargs['is_contribution'] = True
         explanation_kwargs = basic_kwargs.copy()
+        explanation_kwargs['is_deleted'] = False
+        revision_kwargs = explanation_kwargs.copy()
+        revision_kwargs['is_contribution'] = True
 
         for kwarg in revision_kwargs:
             editor_kwargs['revision__' + kwarg] = revision_kwargs[kwarg]
@@ -96,8 +96,12 @@ class Command(BaseCommand):
         explanation_count = ExplanationRevision.objects.filter(**explanation_kwargs)\
                                                        .distinct()\
                                                        .count()
+        correction_count = AnswerCorrection.objects.filter(**basic_kwargs)\
+                                                   .distinct()\
+                                                   .count()
 
-        return [contributor_count, revision_count, explanation_count]
+        return [contributor_count, revision_count, explanation_count,
+                correction_count]
 
     def write_stats(self, end_date, target, csv_file):
         self.set_dates(end_date)
@@ -153,7 +157,8 @@ class Command(BaseCommand):
                 csv_filename = 'great-metric.csv'            
 
             fields = ['user_count', 'answer_avg', 'contributor_count',
-                      'revision_count', 'explanation_count']
+                      'revision_count', 'explanation_count',
+                      'correction_count']
 
             headers = ['date']
 
