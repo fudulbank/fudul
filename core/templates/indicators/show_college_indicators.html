@@ -25,8 +25,7 @@
       <div id="college-user-plot" style="width:100%; height:600px;"></div>
       <div id="college-answer-plot" style="width:100%; height:600px;"></div>
       <div id="college-contributor-plot" style="width:100%; height:600px;"></div>
-      <div id="college-revision-plot" style="width:100%; height:600px;"></div>
-      <div id="college-explanation-plot" style="width:100%; height:600px;"></div>
+      <div id="college-contribution-plot" style="width:100%; height:600px;"></div>
 		</div><!--card-block-->
 	</div><!--card-body-->
 </div><!--card-->
@@ -46,6 +45,30 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
         }
       }
 
+      function get_contribution_data(batch_pk){
+        revision_field = 'revision_count_' + batch_pk
+        explanation_field = 'explanation_count_' + batch_pk
+        return rows.map(function(row){
+          contribution_count = parseInt(row[revision_field]) + parseInt(row[explanation_field])
+          return contribution_count
+        })
+      }
+
+      function get_change_percentage(count_field, row){
+        yesterday = moment(row['date']).subtract(1, 'days')
+        yesterday_str = yesterday.format('YYYY-MM-DD')
+
+        previous_row = rows.find(function(item){ return item['date'] == yesterday_str });
+        if (row[count_field] == 0 || previous_row === undefined){
+          percentage = 0
+        } else {
+          diff = row[count_field] - previous_row[count_field];
+          percentage = (diff / row[count_field]) * 100
+          percentage = percentage.toPrecision(2)
+        }
+        return percentage
+      }
+
       function get_hover(count_field, batch_pk){
         count_field = count_field + '_' + batch_pk;
         return rows.map(function(row) {
@@ -53,20 +76,28 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
           start_date = moment(row['date']).subtract(30, 'days')
 
           // Calculate change
-          yesterday = moment(row['date']).subtract(1, 'days')
-          yesterday_str = yesterday.format('YYYY-MM-DD')
-          previous_row = rows.find(function(item){ return item['date'] == yesterday_str });
-          if (row[count_field] == 0 || previous_row == undefined){
-            percentage = 0
-          } else {
-            diff = row[count_field] - previous_row[count_field];
-            percentage = (diff / row[count_field]) * 100
-            percentage = percentage.toPrecision(2)
-          }
+          percentage = get_change_percentage(count_field, row)
 
           end_date_str = end_date.format('DD MMM')
           start_date_str = start_date.format('DD MMM')
           return row[count_field] + ' (' + percentage + '%)<br>' + start_date_str + '‒' + end_date_str
+        });
+      }
+
+      function get_contribution_hover(batch_pk){
+        explanation_field = 'explanation_count_' + batch_pk;
+        revision_field = 'revision_count_' + batch_pk;
+        return rows.map(function(row) {
+          end_date = moment(row['date'])
+          start_date = moment(row['date']).subtract(30, 'days')
+
+          // Calculate change
+          explanation_percentage = get_change_percentage(explanation_field, row)
+          revision_percentage = get_change_percentage(revision_field, row)
+
+          end_date_str = end_date.format('DD MMM')
+          start_date_str = start_date.format('DD MMM')
+          return 'Revisions added: ' + row[revision_field] + ' (' + revision_percentage + '%)<br>' + 'Explanations added: ' + row[explanation_field] + ' (' + explanation_percentage + '%)<br>' + start_date_str + '‒' + end_date_str
         });
       }
 
@@ -82,14 +113,15 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
       user_data = [];
       answer_data = [];
       contributor_data = [];
-      revision_data = [];
-      explanation_data = [];
+      contribution_data = [];
+
+      dates = unpack(rows, 'date');
 
       for (batch_pk in batch_names){
         var trace = {
           fill: 'tonextx',
           name: batch_names[batch_pk],
-          x: unpack(rows, 'date'),
+          x: dates,
           y: unpack(rows, 'user_count_' + batch_pk, true),
           hoverinfo: 'text+name',
           hovertext: get_hover('user_count', batch_pk),
@@ -101,7 +133,7 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
         var trace = {
           fill: 'tonextx',
           name: batch_names[batch_pk],
-          x: unpack(rows, 'date'),
+          x: dates,
           y: unpack(rows, 'answer_avg_' + batch_pk, true),
           hoverinfo: 'text+name',
           hovertext: get_hover('answer_avg', batch_pk),
@@ -113,7 +145,7 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
         var trace = {
           fill: 'tonextx',
           name: batch_names[batch_pk],
-          x: unpack(rows, 'date'),
+          x: dates,
           y: unpack(rows, 'contributor_count_' + batch_pk, true),
           hoverinfo: 'text+name',
           hovertext: get_hover('contributor_count', batch_pk),
@@ -125,32 +157,19 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
         var trace = {
           fill: 'tonextx',
           name: batch_names[batch_pk],
-          x: unpack(rows, 'date'),
-          y: unpack(rows, 'revision_avg_' + batch_pk, true),
+          x: dates,
+          y: get_contribution_data(batch_pk),
           hoverinfo: 'text+name',
-          hovertext: get_hover('revision_avg', batch_pk),
+          hovertext: get_contribution_hover(batch_pk),
         }
-        revision_data.push(trace);
-      }
-
-      for (batch_pk in batch_names){
-        var trace = {
-          fill: 'tonextx',
-          name: batch_names[batch_pk],
-          x: unpack(rows, 'date'),
-          y: unpack(rows, 'explanation_avg_' + batch_pk, true),
-          hoverinfo: 'text+name',
-          hovertext: get_hover('explanation_avg', batch_pk),
-        }
-        explanation_data.push(trace);
+        contribution_data.push(trace);
       }
 
       Plotly.newPlot('college-user-plot', stackedArea(user_data), {title: "{{ college.name}} user plot"});
       Plotly.newPlot('college-answer-plot', stackedArea(answer_data), {title: "{{ college.name}} answer plot"});
 
       Plotly.newPlot('college-contributor-plot', stackedArea(contributor_data), {title: "{{ college.name}} contributor plot"});
-      Plotly.newPlot('college-revision-plot', stackedArea(revision_data), {title: "{{ college.name}} revision plot"});
-      Plotly.newPlot('college-explanation-plot', stackedArea(explanation_data), {title: "{{ college.name}} explanation plot"});
+      Plotly.newPlot('college-contribution-plot', stackedArea(contribution_data), {title: "{{ college.name}} revision plot"});
   })
     </script>
 
