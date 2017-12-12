@@ -66,14 +66,6 @@ class Command(BaseCommand):
                         'submission_date__lte': self.aware_end_datetime}
         if exam:
             basic_kwargs['question__exam'] = exam
-    
-        editor_kwargs = {}
-        explainer_kwargs = {}
-
-        for kwarg in basic_kwargs:
-            value = basic_kwargs[kwarg]
-            editor_kwargs['revision__' + kwarg] = value
-            explainer_kwargs['submitted_explanations__' + kwarg] = value
 
         if users:
             target_users = users
@@ -81,22 +73,30 @@ class Command(BaseCommand):
         else:
             target_users = User.objects.all()
 
+        editor_kwargs = {}
+        explainer_kwargs = {}
+
+        revision_kwargs = basic_kwargs.copy()
+        revision_kwargs['is_contribution'] = True
+        explanation_kwargs = basic_kwargs.copy()
+
+        for kwarg in revision_kwargs:
+            editor_kwargs['revision__' + kwarg] = revision_kwargs[kwarg]
+
+        for kwarg in explanation_kwargs:
+            explainer_kwargs['submitted_explanations__' + kwarg] = explanation_kwargs[kwarg]
+
         condition = Q(**editor_kwargs) | Q(**explainer_kwargs)
         contributor_count = target_users.filter(condition)\
                                         .distinct().count()
-        if contributor_count == 0:
-            revision_avg = 0
-            explanation_avg = 0
-        else:
-            revision_count = Revision.objects.filter(**basic_kwargs)\
-                                             .distinct().count()
-            explanation_count = ExplanationRevision.objects.filter(**basic_kwargs)\
-                                                           .distinct()\
-                                                           .count()
-            revision_avg = revision_count / contributor_count
-            explanation_avg = explanation_count / contributor_count
 
-        return [contributor_count, revision_avg, explanation_avg]
+        revision_count = Revision.objects.filter(**revision_kwargs)\
+                                         .distinct().count()
+        explanation_count = ExplanationRevision.objects.filter(**explanation_kwargs)\
+                                                       .distinct()\
+                                                       .count()
+
+        return [contributor_count, revision_count, explanation_count]
 
     def write_stats(self, end_date, target, csv_file):
         self.set_dates(end_date)
@@ -151,9 +151,8 @@ class Command(BaseCommand):
             else:
                 csv_filename = 'great-metric.csv'            
 
-            fields = ['user_count', 'answer_avg',
-                      'contributor_count', 'revision_avg',
-                      'explanation_avg']
+            fields = ['user_count', 'answer_avg', 'contributor_count',
+                      'revision_count', 'explanation_count']
 
             headers = ['date']
 
