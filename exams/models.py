@@ -165,8 +165,9 @@ class Exam(models.Model):
 
 class ExamDate(models.Model):
     name = models.CharField(max_length=100)
-    exam = models.ForeignKey(Exam)
-    batch = models.ForeignKey('accounts.Batch')
+    exam = models.ForeignKey(Exam, related_name='exam_dates')
+    batch = models.ForeignKey('accounts.Batch',
+                              related_name='exam_dates')
     date = models.DateField()
 
     def __str__(self):
