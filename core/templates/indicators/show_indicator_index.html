@@ -161,7 +161,7 @@
         yesterday = moment(row['date']).subtract(1, 'days')
         yesterday_str = yesterday.format('YYYY-MM-DD')
         previous_row = rows.find(function(item){ return item['date'] == yesterday_str });
-        if (row[count_field] == 0 || previous_row === 'undefined'){
+        if (row[count_field] == 0 || previous_row === undefined){
           percentage = 0
         } else {
           diff = row[count_field] - previous_row[count_field];
@@ -175,12 +175,13 @@
       });
     }
 
+    dates = unpack(rows, 'date');
 
     var trace1 = {
       type: "scatter",
       mode: "lines",
       name: 'Active users in previous 30 days',
-      x: unpack(rows, 'date'),
+      x: dates,
       y: unpack(rows, 'user_count'),
       hoverinfo: 'text+name',
       hovertext: get_hover('user_count'),
@@ -190,7 +191,7 @@
       type: "scatter",
       mode: "lines",
       name: 'Avg answers in previous 30 days',
-      x: unpack(rows, 'date'),
+      x: dates,
       y: unpack(rows, 'answer_avg'),
       hoverinfo: 'text+name',
       hovertext: get_hover('answer_avg'),
