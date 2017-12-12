@@ -62,10 +62,10 @@ class Command(BaseCommand):
         return [user_count, answer_avg]
 
     def get_contribution_counts(self, users=None, exam=None):
+        editor_kwargs = {}
+        explainer_kwargs = {}
         basic_kwargs = {'submission_date__gte': self.aware_start_datetime,
                         'submission_date__lte': self.aware_end_datetime}
-        if exam:
-            basic_kwargs['question__exam'] = exam
 
         if users:
             target_users = users
@@ -73,11 +73,10 @@ class Command(BaseCommand):
         else:
             target_users = User.objects.all()
 
-        editor_kwargs = {}
-        explainer_kwargs = {}
-
         explanation_kwargs = basic_kwargs.copy()
         explanation_kwargs['is_deleted'] = False
+        if exam:
+            explanation_kwargs['question__exam'] = exam
         revision_kwargs = explanation_kwargs.copy()
         revision_kwargs['is_contribution'] = True
 
