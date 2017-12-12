@@ -52,7 +52,7 @@ function get_contribution_data(batch_pk){
   }
 
   return rows.map(function(row){
-    contribution_count = parseInt(row[revision_field]) + parseInt(row[explanation_field] + parseInt(row[correction_field])
+    contribution_count = parseInt(row[revision_field]) + parseInt(row[explanation_field]) + parseInt(row[correction_field])
     return contribution_count
   })
 }
