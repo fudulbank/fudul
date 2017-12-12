@@ -65,7 +65,7 @@ class ExamAdmin(EditorModelAdmin):
     search_fields = ['name', 'category__name']
     list_display = ['__str__', 'category']
     list_filter = ['category']
-    inlines = [SubjectInline]
+    inlines = [SubjectInline, ExamDateInline]
     readonly_fields = ['is_deleted']
 
 class CategoryAdmin(EditorModelAdmin):
