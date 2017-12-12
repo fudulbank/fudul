@@ -22,7 +22,8 @@
 	<div class="card-body">
 		<div class="card-block">
       <p>These two graphs track <strong>active users</strong> (defined as: users who created at least one new session) and <strong>average answers</strong> (defined as: answers submitted with a choice, i.e. not skipped, divided by number of active users).</p>
-      <div id="exam-plot" style="width:100%; height:600px;"></div>
+      <div id="exam-usage-plot" style="width:100%; height:600px;"></div>
+      <div id="exam-contribution-plot" style="width:100%; height:600px;"></div>
 		</div><!--card-block-->
 	</div><!--card-body-->
 </div><!--card-->
@@ -30,60 +31,56 @@
 {% block customscript %}
 <script>
   Plotly.d3.csv("{% url 'get_privileged_file' csv_filename %}", function(err, rows){
-      function unpack(rows, key, is_int) {
-        if (is_int){
-          return rows.map(function(row) { return parseInt(row[key]); });
-        } else {
-          return rows.map(function(row) { return row[key]; });
-        }
-      }
 
-      function get_hover(count_field){
-        return rows.map(function(row) {
-          end_date = moment(row['date'])
-          start_date = moment(row['date']).subtract(30, 'days')
+{% include 'indicators/partials/shared_functions.js' %}
 
-          // Calculate change
-          yesterday = moment(row['date']).subtract(1, 'days')
-          yesterday_str = yesterday.format('YYYY-MM-DD')
-          previous_row = rows.find(function(item){ return item['date'] == yesterday_str });
-          if (row[count_field] == 0 || previous_row === 'undefined'){
-            percentage = 0
-          } else {
-            diff = row[count_field] - previous_row[count_field];
-            percentage = (diff / row[count_field]) * 100
-            percentage = percentage.toPrecision(2)
-          }
+      dates = unpack('date');
 
-          end_date_str = end_date.format('DD MMM')
-          start_date_str = start_date.format('DD MMM')
-          return row[count_field] + ' (' + percentage + '%)<br>' + start_date_str + '‒' + end_date_str
-        });
-      }
-
-      var trace1 = {
+      var user_data = {
         type: "scatter",
         mode: "lines",
         name: 'Active users in previous 30 days',
-        x: unpack(rows, 'date'),
-        y: unpack(rows, 'user_count'),
+        x: dates,
+        y: unpack('user_count'),
         hoverinfo: 'text+name',
         hovertext: get_hover('user_count'),
       }
 
-      var trace2 = {
+      var answer_data = {
         type: "scatter",
         mode: "lines",
         name: 'Avg answers in previous 30 days',
-        x: unpack(rows, 'date'),
-        y: unpack(rows, 'answer_avg'),
+        x: dates,
+        y: unpack('answer_avg'),
         hoverinfo: 'text+name',
         hovertext: get_hover('answer_avg'),
       }
 
-      data = [trace1, trace2];
+      var contributor_data = {
+        type: "scatter",
+        mode: "lines",
+        name: 'Active contributors in previous 30 days',
+        x: dates,
+        y: unpack('contributor_count'),
+        hoverinfo: 'text+name',
+        hovertext: get_hover('contributor_count'),
+      }
 
-      Plotly.newPlot('exam-plot', data, {title: "{{ exam.name}} plot"});
+      var contribution_data = {
+        type: "scatter",
+        mode: "lines",
+        name: 'Number of new contributions in previous 30 days',
+        x: dates,
+        y: get_contribution_data(),
+        hoverinfo: 'text+name',
+        hovertext: get_contribution_hover(),
+      }
+
+      usage_data = [user_data, answer_data];
+      contribution_data = [contributor_data, contribution_data]
+
+      Plotly.newPlot('exam-usage-plot', usage_data, {title: "{{ exam.name}} usage plot"});
+      Plotly.newPlot('exam-contribution-plot', contribution_data, {title: "{{ exam.name}} contribution plot"});
   })
     </script>
 

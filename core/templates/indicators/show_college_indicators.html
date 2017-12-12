@@ -37,52 +37,8 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
 }
 
   Plotly.d3.csv("{% url 'get_privileged_file' csv_filename %}", function(err, rows){
-      function unpack(rows, key, is_int) {
-        if (is_int){
-          return rows.map(function(row) { return parseInt(row[key]); });
-        } else {
-          return rows.map(function(row) { return row[key]; });
-        }
-      }
 
-      function get_contribution_data(batch_pk){
-        revision_field = 'revision_count_' + batch_pk
-        explanation_field = 'explanation_count_' + batch_pk
-        return rows.map(function(row){
-          contribution_count = parseInt(row[revision_field]) + parseInt(row[explanation_field])
-          return contribution_count
-        })
-      }
-
-      function get_change_percentage(count_field, row){
-        yesterday = moment(row['date']).subtract(1, 'days')
-        yesterday_str = yesterday.format('YYYY-MM-DD')
-
-        previous_row = rows.find(function(item){ return item['date'] == yesterday_str });
-        if (row[count_field] == 0 || previous_row === undefined){
-          percentage = 0
-        } else {
-          diff = row[count_field] - previous_row[count_field];
-          percentage = (diff / row[count_field]) * 100
-          percentage = percentage.toPrecision(2)
-        }
-        return percentage
-      }
-
-      function get_hover(count_field, batch_pk){
-        count_field = count_field + '_' + batch_pk;
-        return rows.map(function(row) {
-          end_date = moment(row['date'])
-          start_date = moment(row['date']).subtract(30, 'days')
-
-          // Calculate change
-          percentage = get_change_percentage(count_field, row)
-
-          end_date_str = end_date.format('DD MMM')
-          start_date_str = start_date.format('DD MMM')
-          return row[count_field] + ' (' + percentage + '%)<br>' + start_date_str + '‒' + end_date_str
-        });
-      }
+{% include 'indicators/partials/shared_functions.js' %}
 
       function get_contribution_hover(batch_pk){
         explanation_field = 'explanation_count_' + batch_pk;
@@ -134,7 +90,7 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
           fill: 'tonextx',
           name: batch_names[batch_pk],
           x: dates,
-          y: unpack(rows, 'answer_avg_' + batch_pk, true),
+          y: unpack('answer_avg_' + batch_pk, true),
           hoverinfo: 'text+name',
           hovertext: get_hover('answer_avg', batch_pk),
         }
@@ -146,7 +102,7 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
           fill: 'tonextx',
           name: batch_names[batch_pk],
           x: dates,
-          y: unpack(rows, 'contributor_count_' + batch_pk, true),
+          y: unpack('contributor_count_' + batch_pk, true),
           hoverinfo: 'text+name',
           hovertext: get_hover('contributor_count', batch_pk),
         }

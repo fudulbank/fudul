@@ -148,41 +148,17 @@
     });
 
     Plotly.d3.csv("{% url 'get_privileged_file' 'indicators/great-metric.csv' %}", function(err, rows){
-    function unpack(rows, key) {
-      return rows.map(function(row) { return row[key]; });
-    }
 
-    function get_hover(count_field){
-      return rows.map(function(row) {
-        end_date = moment(row['date'])
-        start_date = moment(row['date']).subtract(30, 'days')
+{% include 'indicators/partials/shared_functions.js' %}
 
-        // Calculate change
-        yesterday = moment(row['date']).subtract(1, 'days')
-        yesterday_str = yesterday.format('YYYY-MM-DD')
-        previous_row = rows.find(function(item){ return item['date'] == yesterday_str });
-        if (row[count_field] == 0 || previous_row === undefined){
-          percentage = 0
-        } else {
-          diff = row[count_field] - previous_row[count_field];
-          percentage = (diff / row[count_field]) * 100
-          percentage = percentage.toPrecision(2)
-        }
-
-        end_date_str = end_date.format('DD MMM')
-        start_date_str = start_date.format('DD MMM')
-        return row[count_field] + ' (' + percentage + '%)<br>' + start_date_str + '‒' + end_date_str
-      });
-    }
-
-    dates = unpack(rows, 'date');
+    dates = unpack('date');
 
     var trace1 = {
       type: "scatter",
       mode: "lines",
       name: 'Active users in previous 30 days',
       x: dates,
-      y: unpack(rows, 'user_count'),
+      y: unpack('user_count'),
       hoverinfo: 'text+name',
       hovertext: get_hover('user_count'),
     }
@@ -192,7 +168,7 @@
       mode: "lines",
       name: 'Avg answers in previous 30 days',
       x: dates,
-      y: unpack(rows, 'answer_avg'),
+      y: unpack('answer_avg'),
       hoverinfo: 'text+name',
       hovertext: get_hover('answer_avg'),
     }
