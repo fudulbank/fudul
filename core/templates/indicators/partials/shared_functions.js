@@ -23,7 +23,10 @@ function get_change_percentage(count_field, row){
 }
 
 function get_hover(count_field, batch_pk){
-  count_field = count_field + '_' + batch_pk;
+  if (batch_pk){
+    count_field = count_field + '_' + batch_pk;
+  }
+
   return rows.map(function(row) {
     end_date = moment(row['date'])
     start_date = moment(row['date']).subtract(30, 'days')
