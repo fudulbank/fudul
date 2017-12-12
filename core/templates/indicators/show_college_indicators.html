@@ -40,23 +40,6 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
 
 {% include 'indicators/partials/shared_functions.js' %}
 
-      function get_contribution_hover(batch_pk){
-        explanation_field = 'explanation_count_' + batch_pk;
-        revision_field = 'revision_count_' + batch_pk;
-        return rows.map(function(row) {
-          end_date = moment(row['date'])
-          start_date = moment(row['date']).subtract(30, 'days')
-
-          // Calculate change
-          explanation_percentage = get_change_percentage(explanation_field, row)
-          revision_percentage = get_change_percentage(revision_field, row)
-
-          end_date_str = end_date.format('DD MMM')
-          start_date_str = start_date.format('DD MMM')
-          return 'Revisions added: ' + row[revision_field] + ' (' + revision_percentage + '%)<br>' + 'Explanations added: ' + row[explanation_field] + ' (' + explanation_percentage + '%)<br>' + start_date_str + '‒' + end_date_str
-        });
-      }
-
       function stackedArea(data) {
       	for(var i=1; i<data.length; i++) {
       		for(var j=0; j<(Math.min(data[i]['y'].length, data[i-1]['y'].length)); j++) {
@@ -71,14 +54,14 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
       contributor_data = [];
       contribution_data = [];
 
-      dates = unpack(rows, 'date');
+      dates = unpack('date');
 
       for (batch_pk in batch_names){
         var trace = {
           fill: 'tonextx',
           name: batch_names[batch_pk],
           x: dates,
-          y: unpack(rows, 'user_count_' + batch_pk, true),
+          y: unpack('user_count_' + batch_pk, true),
           hoverinfo: 'text+name',
           hovertext: get_hover('user_count', batch_pk),
         }
@@ -122,10 +105,10 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
       }
 
       Plotly.newPlot('college-user-plot', stackedArea(user_data), {title: "{{ college.name}} user plot"});
-      Plotly.newPlot('college-answer-plot', stackedArea(answer_data), {title: "{{ college.name}} answer plot"});
+      Plotly.newPlot('college-answer-plot', stackedArea(answer_data), {title: "{{ college.name}} answer-depth plot"});
 
       Plotly.newPlot('college-contributor-plot', stackedArea(contributor_data), {title: "{{ college.name}} contributor plot"});
-      Plotly.newPlot('college-contribution-plot', stackedArea(contribution_data), {title: "{{ college.name}} revision plot"});
+      Plotly.newPlot('college-contribution-plot', stackedArea(contribution_data), {title: "{{ college.name}} contribution plot"});
   })
     </script>
 
