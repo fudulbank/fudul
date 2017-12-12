@@ -153,7 +153,7 @@
 
     dates = unpack('date');
 
-    var trace1 = {
+    var user_data = {
       type: "scatter",
       mode: "lines",
       name: 'Active users in previous 30 days',
@@ -163,7 +163,7 @@
       hovertext: get_hover('user_count'),
     }
 
-    var trace2 = {
+    var answer_data = {
       type: "scatter",
       mode: "lines",
       name: 'Avg answers in previous 30 days',
@@ -173,7 +173,29 @@
       hovertext: get_hover('answer_avg'),
     }
 
-    var data = [trace1,trace2];
+    var contributor_data = {
+      visible: 'legendonly',
+      type: "scatter",
+      mode: "lines",
+      name: 'Active contributors in previous 30 days',
+      x: dates,
+      y: unpack('contributor_count'),
+      hoverinfo: 'text+name',
+      hovertext: get_hover('contributor_count'),
+    }
+
+    var contribution_data = {
+      visible: 'legendonly',
+      type: "scatter",
+      mode: "lines",
+      name: 'New contributions in previous 30 days',
+      x: dates,
+      y: get_contribution_data(),
+      hoverinfo: 'text+name',
+      hovertext: get_contribution_hover(),
+    }
+
+    var data = [user_data, answer_data, contributor_data, contribution_data];
 
     var layout = {
       title: "The Great Health Metric",
