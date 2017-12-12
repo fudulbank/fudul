@@ -22,8 +22,7 @@
 	<div class="card-body">
 		<div class="card-block">
       <p>These two graphs track <strong>active users</strong> (defined as: users who created at least one new session) and <strong>average answers</strong> (defined as: answers submitted with a choice, i.e. not skipped, divided by number of active users).</p>
-      <div id="exam-usage-plot" style="width:100%; height:600px;"></div>
-      <div id="exam-contribution-plot" style="width:100%; height:600px;"></div>
+      <div id="exam-plot" style="width:100%; height:600px;"></div>
 		</div><!--card-block-->
 	</div><!--card-body-->
 </div><!--card-->
@@ -76,11 +75,9 @@
         hovertext: get_contribution_hover(),
       }
 
-      usage_data = [user_data, answer_data];
-      contribution_data = [contributor_data, contribution_data]
+      data = [user_data, answer_data, contributor_data, contribution_data];
 
-      Plotly.newPlot('exam-usage-plot', usage_data, {title: "{{ exam.name}} usage plot"});
-      Plotly.newPlot('exam-contribution-plot', contribution_data, {title: "{{ exam.name}} contribution plot"});
+      Plotly.newPlot('exam-plot', data, {title: "{{ exam.name}} usage plot"});
   })
     </script>
 
