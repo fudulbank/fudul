@@ -84,4 +84,22 @@ function get_contribution_hover(batch_pk){
   });
 }
 
+
+{% if exam_dates %}
+annotations = [{% for exam_date in exam_dates %}
+    {
+      x: "{{ exam_date.date|date:'Y-m-d' }}",
+      y: rows.find(function(row){ return row['date'] == "{{ exam_date.date|date:'Y-m-d' }}"  })['user_count'],
+      xref: 'x',
+      yref: 'y',
+      hovertext: '<b>{{ exam_date.name }}</b><br>{{ exam_date.batch }}',
+      //showarrow: true,
+      //arrowhead: 7,
+      ax: 0,
+      ay: -30
+    },{% endfor %}
+]
+{% else %}
+annotations = []
+{% endif %}
 // END OF SHARED FUNCTIONS
