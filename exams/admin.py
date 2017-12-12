@@ -44,6 +44,10 @@ class SubjectInline(admin.TabularInline):
     extra = 0
     readonly_fields = ['is_deleted']
 
+class ExamDateInline(admin.TabularInline):
+    model= models.ExamDate
+    extra = 0
+
 class SourceInline(admin.TabularInline):
     model= models.Source
     extra = 0

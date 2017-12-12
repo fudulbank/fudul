@@ -37,7 +37,8 @@ class Batch(models.Model):
     college = models.ForeignKey('College')
 
     def __str__(self):
-        return "{} ({})".format(self.name, self.college.name)
+        return "{} ({} in {})".format(self.name, self.college.name,
+                                      self.college.institution.name)
 
 class College(models.Model):
     name = models.CharField(max_length=50)
