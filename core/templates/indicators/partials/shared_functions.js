@@ -43,14 +43,16 @@ function get_hover(count_field, batch_pk){
 function get_contribution_data(batch_pk){
   revision_field = 'revision_count'
   explanation_field = 'explanation_count'
+  correction_field = 'correction_count'
 
   if (batch_pk){
     revision_field += '_' + batch_pk
     explanation_field += '_' + batch_pk
+    correction_field += '_' + batch_pk
   }
 
   return rows.map(function(row){
-    contribution_count = parseInt(row[revision_field]) + parseInt(row[explanation_field])
+    contribution_count = parseInt(row[revision_field]) + parseInt(row[explanation_field]) + parseInt(row[correction_field])
     return contribution_count
   })
 }
@@ -59,10 +61,12 @@ function get_contribution_data(batch_pk){
 function get_contribution_hover(batch_pk){
   revision_field = 'revision_count'
   explanation_field = 'explanation_count'
+  correction_field = 'correction_count'
 
   if (batch_pk){
     revision_field += '_' + batch_pk
     explanation_field += '_' + batch_pk
+    correction_field += '_' + batch_pk
   }
 
   return rows.map(function(row) {
@@ -72,11 +76,30 @@ function get_contribution_hover(batch_pk){
     // Calculate change
     explanation_percentage = get_change_percentage(explanation_field, row)
     revision_percentage = get_change_percentage(revision_field, row)
+    correction_percentage = get_change_percentage(correction_field, row)
 
     end_date_str = end_date.format('DD MMM')
     start_date_str = start_date.format('DD MMM')
-    return 'Revisions added: ' + row[revision_field] + ' (' + revision_percentage + '%)<br>' + 'Explanations added: ' + row[explanation_field] + ' (' + explanation_percentage + '%)<br>' + start_date_str + '‒' + end_date_str
+    return 'Revisions added: ' + row[revision_field] + ' (' + revision_percentage + '%)<br>' + 'Explanations added: ' + row[explanation_field] + ' (' + explanation_percentage + '%)<br>' + 'Corrections added: ' + row[correction_field] + ' (' + correction_percentage + '%)<br>' + start_date_str + '‒' + end_date_str
   });
 }
 
+
+{% if exam_dates %}
+annotations = [{% for exam_date in exam_dates %}
+    {
+      x: "{{ exam_date.date|date:'Y-m-d' }}",
+      y: rows.find(function(row){ return row['date'] == "{{ exam_date.date|date:'Y-m-d' }}"  })['user_count'],
+      xref: 'x',
+      yref: 'y',
+      hovertext: '<b>{{ exam_date.name }}</b><br>{{ exam_date.batch }}',
+      //showarrow: true,
+      //arrowhead: 7,
+      ax: 0,
+      ay: -30
+    },{% endfor %}
+]
+{% else %}
+annotations = []
+{% endif %}
 // END OF SHARED FUNCTIONS

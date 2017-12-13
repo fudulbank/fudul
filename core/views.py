@@ -74,10 +74,13 @@ def show_indicator_index(request):
                                              .distinct()
     exams = exam_models.Exam.objects.filter(session__isnull=False)\
                                     .distinct()
+    exam_dates = exam_models.ExamDate.objects.filter(exam__session__isnull=False)\
+                                             .distinct()
 
     context = {'is_indicators_active': True,
                'teams': teams,
                'exams': exams,
+               'exam_dates': exam_dates,
                'colleges': colleges}
 
     return render(request, "indicators/show_indicator_index.html", context)

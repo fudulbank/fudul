@@ -163,6 +163,17 @@ class Exam(models.Model):
     def __str__(self):
         return self.name
 
+class ExamDate(models.Model):
+    name = models.CharField(max_length=100)
+    exam = models.ForeignKey(Exam, related_name='exam_dates')
+    batch = models.ForeignKey('accounts.Batch',
+                              related_name='exam_dates')
+    date = models.DateField()
+
+    def __str__(self):
+        data_str = self.date.strftime('%Y-%m-%d')
+        return "{} on {}".format(self.name, data_str)
+
 class Subject(models.Model):
     name = models.CharField(max_length=100)
     exam = models.ForeignKey(Exam)

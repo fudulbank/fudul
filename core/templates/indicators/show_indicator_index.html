@@ -218,6 +218,7 @@
         rangeslider: {range: ['2017-09-1', '{% now "y-m-d" %}']},
         type: 'date'
       },
+      annotations: annotations,
     };
 
     Plotly.newPlot('great-metric', data, layout);
