@@ -301,6 +301,8 @@ class Question(models.Model):
 
         return tree
 
+    def get_available_mnemonics(self):
+        return self.mnemonic_set.filter(is_deleted=False)
 
 
 
@@ -539,4 +541,4 @@ class Mnemonic(models.Model):
     submitter = models.ForeignKey(User)
     submission_date = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
-
+    objects = managers.MnemonicQuerySet.as_manager()

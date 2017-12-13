@@ -1240,6 +1240,7 @@ def contribute_mnemonics(request):
 
                 mnemonic.is_deleted = True
                 mnemonic.save()
+                return {"message": "success"}
 
             else:
                 return HttpResponseBadRequest()
@@ -1249,3 +1250,4 @@ def contribute_mnemonics(request):
 
     context = {'question': question, 'form': form, 'mnemonics':mnemonics,'exam':exam}
     return render(request, 'exams/partials/contribute_mnemonics.html', context)
+
