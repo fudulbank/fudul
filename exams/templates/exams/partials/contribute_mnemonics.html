@@ -1,6 +1,6 @@
 {% load bootstrap3 static exam_utils %}
 <style>
-    .bg-primary{
+    .bg-secondary{
         text-align: center;
         font-weight: bolder;
     }
@@ -13,7 +13,7 @@
 	    {% csrf_token %}
 
         {% bootstrap_form_errors form %}
-            <div class="bg-primary"> {% if mnemonics %} Submit a new one {% else %} You will be the first to add a mnemonic {% endif %}</div>
+            <div class="bg-secondary"> {% if question.get_available_mnemonics.exists %} Submit an easier one {% else %} You will be the first to add a mnemonic {% endif %}</div>
              <div class="form-group has-feedback has-feedback-left">
             <label class="control-label">Text:</label>
 
@@ -28,7 +28,7 @@
 			<div class="form-control-feedback">
 			</div>
 		    </div>
-            <button type="submit" class="btn btn-primary btn-block btn-lg">Submit mnenonic <i class="icon-circle-right2 position-right"></i></button>
+            <button type="submit" class="btn btn-secondary btn-block btn-lg">Submit mnenonic <i class="icon-circle-right2 position-right"></i></button>
 
         </form>
         </div>
