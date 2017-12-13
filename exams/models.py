@@ -306,6 +306,8 @@ class Question(models.Model):
 
         return tree
 
+    def get_available_mnemonics(self):
+        return self.mnemonic_set.filter(is_deleted=False)
 
 
 
@@ -530,3 +532,18 @@ class ExplanationRevision(models.Model):
     def __str__(self):
         return textwrap.shorten(self.explanation_text, 70,
                                 placeholder='...')
+
+
+class Mnemonic(models.Model):
+    question = models.ForeignKey(Question)
+    image = models.ImageField(upload_to="mnemonic_images",
+                              blank=True)
+    text = models.TextField(default="")
+    likes = models.ManyToManyField(User, blank=True,
+                                   related_name="liked_mnemonic")
+    # reports = models.ManyToManyField(User, blank=True,
+    #                                         related_name="reported_mnemonic")
+    submitter = models.ForeignKey(User)
+    submission_date = models.DateTimeField(auto_now_add=True)
+    is_deleted = models.BooleanField(default=False)
+    objects = managers.MnemonicQuerySet.as_manager()

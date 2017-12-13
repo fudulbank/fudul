@@ -164,8 +164,11 @@
         word-wrap: break-word;
     }
 
-    #submit, #explain{
+    #submit, #explain, #add-mnemonics{
         margin-top: 20px;
+    }
+    #add-mnemonics{
+        margin-left: 2%;
     }
 
     #submit{
@@ -176,7 +179,7 @@
         font-family: Arial, Verdana, Helvetica;
     }
 
-    .tooltip-container, #mark-loading, .explanation-container, #explain, #submit, #contribute, .answer-correction-tooltip-container{
+    .tooltip-container, #mark-loading, .explanation-container, #explain, #submit, #contribute, #add-mnemonics,.answer-correction-tooltip-container,.mnemonics-container{
       display: none;
     }
 
@@ -196,7 +199,7 @@
       display: block;
     }
 
-    .explanation-container{
+    .explanation-container,.mnemonics-container{
       margin-top: 20px;
     }
 
@@ -287,6 +290,8 @@
                     <i class="fa fa-flask" aria-hidden="true"></i>  <span class="d-sm-inline d-none">Lab values</span>
                  </div>
              </div>
+
+
             </div>
           </div>
         </div><!--top-options-->
@@ -300,7 +305,12 @@
             {% endfor %}
           </div>
           <button type="button" id="submit" class="btn">Submit <i class="fa fa-angle-right" aria-hidden="true"></i></button>
+<div class="row">
           <button class="btn btn-outline-primary" id="explain">Improve this explanation!</button>
+          <button class="btn btn-outline-primary" id="add-mnemonics">{% if question.mnemonic_set.exists %}See a mnemonic!{% else %} Add a mnemonic!{% endif %}</button>
+
+</div>
+</div>
         </div>
         <div id="footer" class="row text-center font-weight-bold">
           <div class="col-sm-6 text-sm-left order-2 order-sm-1">
@@ -504,8 +514,8 @@
       context.find(".correct i").click(function () {
           _paq.push(['trackEvent', 'show_session', 'answer_correction', 'click-correct']);
           $("#correct-answer-modal").modal('show');
-          choice_pk = $(this).closest('tr').data('choice-pk')
-          url = "{% url 'exams:correct_answer' %}?" + $.param({choice_pk: choice_pk})
+          choice_pk = $(this).closest('tr').data('choice-pk');
+          url = "{% url 'exams:correct_answer' %}?" + $.param({choice_pk: choice_pk});
           $("#correct-answer-modal .modal-body").load(url);
       });
 
@@ -526,12 +536,26 @@
       was_solved = $(".question-body.show").data('was-solved');
       if (!was_solved || (session_mode == 'UNEXPLAINED' && !$('body').data('has-finished'))){
         $(".question-body.show .explanation-container, #explain").hide()
-      } else if ($('.question-body.show .explanation-content').text().trim().length){
+      }
+      else if ($('.question-body.show .explanation-content').text().trim().length){
         $("#explain").show().html('<i class="fa fa-cubes" aria-hidden="true"></i> Improve this explanation!');
         $(".question-body.show .explanation-container").show();
-      } else {
+      }
+      else {
         $(".question-body.show .explanation-container").hide();
         $("#explain").show().html("Add an explanation!");
+      }
+    }
+    function controlMnemonic(){
+      was_solved = $(".question-body.show").data('was-solved');
+      if (!was_solved || (session_mode == 'UNEXPLAINED' && !$('body').data('has-finished'))){
+        $(".mnemonics-container, #add-mnemonics").hide()
+      } else if( $.trim( $('.mnemonics-content').text() ).length ) {
+        $("#add-mnemonics").show().html('<i class="fa fa-book" aria-hidden="true"></i> Add a mnemonic !');
+        $(".mnemonics-container").show();
+      } else {
+        $(".mnemonics-container").hide();
+        $("#add-mnemonics").show().html("Add an mnemonic!");
       }
     }
 
@@ -592,14 +616,15 @@
         // Disable interaction if question was solved.
 
         controlExplanation();
+        controlMnemonic();
         was_solved = $question.data('was-solved');
         if (was_solved){
-          $("#contribute").show();
+          $("#contribute,#add-mnemonics").show();
           $("#submit").hide();
           $question.find(".highlight").removeClass('active').off('click');
           $question.find(".question-choice").prop("disabled", "disabled");
         } else {
-            $("#contribute").hide();
+            $("#contribute,#add-mnemonics").hide();
             $("#submit").show();
             // We turn off handlers first to ensure they don't get
             // triggered more than once as the user navigates and
@@ -674,7 +699,8 @@
                     }
 
                     controlExplanation();
-                    $("#contribute").show();
+                    controlMnemonic();
+                    $("#contribute,#add-mnemonics").show();
                 } else {
                   toastr.error(data.message);
                 }
@@ -864,7 +890,7 @@
         $('#previous, #next').click(navigate);
         $('#mark').click(toggleMarked);
             // initialize project edit modal
-        $('#modify-question-modal, #explain-question-modal').modal({
+        $('#modify-question-modal, #explain-question-modal,#add-mnemonics-modal').modal({
           keyboard: false,
           backdrop: 'static',
           show    : false,
@@ -878,11 +904,17 @@
         // initialize project edit modal
         $("#explain, a.explain").click(function () {
             $("#explain-question-modal").modal('show');
-            url = "{% url 'exams:contribute_explanation' %}?" + $.param({question_pk: data.question_pk})
+            url = "{% url 'exams:contribute_explanation' %}?" + $.param({question_pk: data.question_pk});
             $("#explain-question-modal .modal-body").load(url);
         });
 
-        modal_selectors = '#explain-question-modal, #modify-question-modal, #correct-answer-modal';
+        $("#add-mnemonics").click(function () {
+            $("#add-mnemonics-modal").modal('show');
+            url = "{% url 'exams:contribute_mnemonics' %}?" + $.param({question_pk: data.question_pk});
+            $("#add-mnemonics-modal .modal-body").load(url);
+        });
+
+        modal_selectors = '#explain-question-modal, #modify-question-modal, #correct-answer-modal, #add-mnemonics-modal';
 
         $(modal_selectors).on("hidden.bs.modal", function(){
           initializeKeyboard();
@@ -891,7 +923,6 @@
         $(modal_selectors).on("show.bs.modal", function(){
           $(document).off('keydown keydup');
         });
-
 
 
     });
@@ -919,6 +950,9 @@
             {% include "exams/modals/common_modal_v4.html" %}
         {% endwith %}
 
+        {% with modal_id='add-mnemonics-modal' no_footer=True modal_title="Mnemonics" %}
+            {% include "exams/modals/common_modal_v4.html" %}
+        {% endwith %}
 
         <div class="d-none">
           <div id="help-me-tooltip">
@@ -937,3 +971,5 @@
         </div>
     </body>
 </html>
+
+

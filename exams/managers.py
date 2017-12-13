@@ -288,3 +288,7 @@ class AnswerQuerySet(models.QuerySet):
 
     def of_undeleted_questions(self):
         return self.filter(question__is_deleted=False)
+
+class MnemonicQuerySet(models.QuerySet):
+    def undeleted(self,question):
+        self.filter(question=question,is_deleted=False)

@@ -1,0 +1,122 @@
+{% load bootstrap3 static exam_utils %}
+<style>
+    .bg-primary{
+        text-align: center;
+        font-weight: bolder;
+    }
+</style>
+
+    <div class="panel panel-flat" id="add-new-mnemonic" >
+     <div class="panel-body"  >
+         <div class="form-body" style="padding: 5%">
+        <form method="post" data-action="add" enctype="multipart/form-data" id="add-mnemonics-form" action="post">
+	    {% csrf_token %}
+
+        {% bootstrap_form_errors form %}
+            <div class="bg-primary"> {% if mnemonics %} Submit a new one {% else %} You will be the first to add a mnemonic {% endif %}</div>
+             <div class="form-group has-feedback has-feedback-left">
+            <label class="control-label">Text:</label>
+
+			{% bootstrap_field form.text show_label=False %}
+			<div class="form-control-feedback">
+			</div>
+		</div>
+             <div class="form-group has-feedback has-feedback-left">
+            <label class="control-label">Image:</label>
+
+			<div style="margin-left: 3%">{% bootstrap_field form.image show_label=False %}</div>
+			<div class="form-control-feedback">
+			</div>
+		    </div>
+            <button type="submit" class="btn btn-primary btn-block btn-lg">Submit mnenonic <i class="icon-circle-right2 position-right"></i></button>
+
+        </form>
+        </div>
+     </div>
+    </div>
+<div> {% include 'exams/partials/show_mnemonics.html' %}</div>
+
+{% block customscript %}
+    <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
+    <script src="{% static 'js/jquery.formset.js' %}"></script>
+    <script src="{% static 'js/jquery.autogrowtextarea.min.js' %}"></script>
+    <script src="{% static 'js/toastr.js' %}"></script>
+
+   <script type="text/javascript">
+       $(function() {
+           $("textarea").autoGrow();
+{#           $("input:file").addClass("custom-file-input");#}
+
+           $("form#add-mnemonics-form").submit(function (event) {
+           /* stop form from submitting normally */
+               event.preventDefault();
+               /* get some values from elements on the page: */
+               var formData = new FormData($(this)[0]);
+               action = $(this).data('action');
+               formData.append('action',action);
+               question_pk = {{ question.pk }};
+               url = "{% url 'exams:contribute_mnemonics' %}?" + $.param({question_pk: question_pk});
+               /* Send the data */
+
+               $.ajax({
+                   url: url,
+                   type: 'POST',
+                   data: formData,
+                   cache: false,
+                   contentType: false,
+                   processData: false,
+                   success: function (data) {
+                       if (data.success == 1) {
+                           // show success message (using toastr)
+                           toastr.success("Thank you!  Your contribution is highly appreciated!");
+                           $("#add-mnemonics-modal").modal('hide');
+                           $("#add-new-mnemonic").hide();
+                       } else {
+                           $("#add-mnemonics-modal .modal-body").html(data);
+                       }
+                   }
+               });
+           });
+           $(".like").click(function(){
+                action = $(this).data('action');
+                question_pk = {{ question.pk }};
+                mnemonic_pk = $(this).data('mnemonic-pk');
+                url = "{% url 'exams:contribute_mnemonics' %}?" + $.param({question_pk: question_pk});
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: {'action': action,'mnemonic_pk':mnemonic_pk},
+                    success: function(data){
+                      if (data.success == 1){
+                        toastr.success("Your vote was submitted.");
+                      } else {
+                        toastr.error(data.message)
+                      }
+                    }
+                });
+           });
+           $(".delete").click(function(){
+                action = $(this).data('action');
+                question_pk = {{ question.pk }};
+                mnemonic_pk = $(this).data('mnemonic-pk');
+                url = "{% url 'exams:contribute_mnemonics' %}?" + $.param({question_pk: question_pk});
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: {'action': action,'mnemonic_pk':mnemonic_pk},
+                    success: function(data){
+                      if (data.success == 1){
+                        toastr.success("Your mnemonic is deleted.");
+                      } else {
+                        toastr.error(data.message)
+                      }
+                    }
+                });
+           });
+
+       });
+   </script>
+
+{% endblock %}

@@ -1,11 +1,18 @@
 {% load static exam_utils account_utils %}
+
 {% with explanation_revision=question.get_latest_explanation_revision best_latest_revision=question.get_best_latest_revision was_solved=question|was_solved_in_session:session %}
+
 {% with highlight=best_latest_revision|get_relevant_highlight:session %}
 <div class="question-body well-sm{% if question == current_question %} show{% endif %}" data-best-latest-revision-pk="{{ best_latest_revision.pk }}" data-list-revision-url="{% url 'exams:list_revisions' category_slugs session.exam.pk question.pk %}" data-url="{{ question|get_session_url:session }}" {% if question_sequence %}data-question-sequence="{{ question_sequence }}"{% endif %} data-question-pk="{{ question.pk }}" data-is-marked="{% if question|is_question_marked:user %}true{% else %}false{% endif %}" data-was-solved="{% if was_solved %}true{% else %}false{% endif %}">
   {% if best_latest_revision.figure %}
      <img class="img-fluid center-block" src="{{ best_latest_revision.figure.url }}">
   {% endif %}
 
+<div>
+    {% if question.sources.count > 1 %}
+    <span style="float: right;display: block" class="badge badge-default badge-success">Repeated {{ question.sources.count }} times </span>
+    {% endif %}
+    </div>
     <p class="question-text">{% get_question_text highlight best_latest_revision session %}</p>
     <table>
       <tbody>
@@ -19,11 +26,24 @@
         {% endfor %}
       </tbody>
     </table>
-
-    <div class="explanation-container">
-      <h3>Explanation</h3>
+<div class="row">
+  <div class="col-sm-8">
+     <div class="explanation-container">
+      <h3>Explanation:</h3>
       <div class="explanation-content">{% include 'exams/partials/show_explanation.html' %}</div>
     </div>
+  </div>
+  <div class="col-sm-4">
+      <div class="mnemonics-container" style="display: block">
+          {% if question.get_available_mnemonics.exists %}
+
+          <h3 >Mnemonics:</h3>
+        {% endif %}
+          <div class="mnemonics-content"> {% include 'exams/partials/show_mnemonics.html' %}</div>
+      </div>
+  </div>
+</div>
+
 {% endwith %}{# with highlight #}
 {% endwith %}{# with others #}
 <div class="tooltip-container">

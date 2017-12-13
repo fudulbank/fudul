@@ -1,6 +1,7 @@
 from dal import autocomplete
 from django import forms
 from django.core.validators import MaxValueValidator, MinValueValidator
+
 from django.forms.models import inlineformset_factory
 import itertools
 import random
@@ -333,3 +334,11 @@ class AnswerCorrectionForm(forms.ModelForm):
     class Meta:
         model = models.AnswerCorrection
         fields = ['justification']
+
+
+class ContributeMnemonic(forms.ModelForm):
+    class Meta:
+        model = models.Mnemonic
+        fields=['text','image']
+
+

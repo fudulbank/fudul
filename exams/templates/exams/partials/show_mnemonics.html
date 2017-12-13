@@ -1,0 +1,203 @@
+{% load static exam_utils %}
+<style>
+    /*Eliminates padding, centers the thumbnail */
+
+.mnemonics-content body, html {
+padding: 0;
+margin: 0;
+text-align: center;
+}
+
+/* Styles the thumbnail */
+
+.mnemonics-content a.lightbox img {
+height: 150px;
+border: 3px solid white;
+box-shadow: 0px 0px 8px rgba(0,0,0,.3);
+margin: 94px 20px 20px 20px;
+}
+
+/* Styles the lightbox, removes it from sight and adds the fade-in transition */
+
+.mnemonics-content .lightbox-target {
+position: fixed;
+top: -100%;
+width: 100%;
+background: rgba(0,0,0,.7);
+width: 100%;
+opacity: 0;
+-webkit-transition: opacity .5s ease-in-out;
+-moz-transition: opacity .5s ease-in-out;
+-o-transition: opacity .5s ease-in-out;
+transition: opacity .5s ease-in-out;
+overflow: hidden;
+}
+
+/* Styles the lightbox image, centers it vertically and horizontally, adds the zoom-in transition and makes it responsive using a combination of margin and absolute positioning */
+
+.mnemonics-content .lightbox-target img {
+margin: auto;
+position: absolute;
+top: 0;
+left:0;
+right:0;
+bottom: 0;
+max-height: 0%;
+max-width: 0%;
+border: 3px solid white;
+box-shadow: 0px 0px 8px rgba(0,0,0,.3);
+box-sizing: border-box;
+-webkit-transition: .5s ease-in-out;
+-moz-transition: .5s ease-in-out;
+-o-transition: .5s ease-in-out;
+transition: .5s ease-in-out;
+}
+
+/* Styles the close link, adds the slide down transition */
+
+.mnemonics-content a.lightbox-close {
+display: block;
+width:50px;
+height:50px;
+box-sizing: border-box;
+background: white;
+color: black;
+text-decoration: none;
+position: absolute;
+top: -80px;
+right: 0;
+-webkit-transition: .5s ease-in-out;
+-moz-transition: .5s ease-in-out;
+-o-transition: .5s ease-in-out;
+transition: .5s ease-in-out;
+}
+
+/* Provides part of the "X" to eliminate an image from the close link */
+
+.mnemonics-content a.lightbox-close:before {
+content: "";
+display: block;
+height: 30px;
+width: 1px;
+background: black;
+position: absolute;
+left: 26px;
+top:10px;
+-webkit-transform:rotate(45deg);
+-moz-transform:rotate(45deg);
+-o-transform:rotate(45deg);
+transform:rotate(45deg);
+}
+
+/* Provides part of the "X" to eliminate an image from the close link */
+
+.mnemonics-content a.lightbox-close:after {
+content: "";
+display: block;
+height: 30px;
+width: 1px;
+background: black;
+position: absolute;
+left: 26px;
+top:10px;
+-webkit-transform:rotate(-45deg);
+-moz-transform:rotate(-45deg);
+-o-transform:rotate(-45deg);
+transform:rotate(-45deg);
+}
+
+/* Uses the :target pseudo-class to perform the animations upon clicking the .lightbox-target anchor */
+
+.mnemonics-content .lightbox-target:target {
+opacity: 1;
+top: 0;
+bottom: 0;
+}
+
+.mnemonics-content .lightbox-target:target img {
+max-height: 100%;
+max-width: 100%;
+}
+
+.mnemonics-content .lightbox-target:target a.lightbox-close {
+top: 0px;
+}
+
+
+</style>
+
+{% if question.get_available_mnemonics.exists %}
+{% for mnemonic in question.get_available_mnemonics %}
+
+
+    <div class="card-content">
+                {% if mnemonic.image %}
+{#                      <a class="lightbox" href="#dog">#}
+{#   <img src="{{ mnemonic.image.url }}"/>#}
+{#</a>#}
+{#<div class="lightbox-target" id="dog">#}
+{#   <img src="{{ mnemonic.image.url }}"/>#}
+{#   <a class="lightbox-close" href="#"></a>#}
+{#</div>#}
+                    <img class="img-fluid" src="{{ mnemonic.image.url }}"/>
+                {% endif %}
+                  <div class="card-body"  style="margin-bottom: 5%">
+                     {% if mnemonic.text %}<h6 class="card-text">{{ mnemonic.text }} </h6>{% endif %}
+{#                    <h6 class="card-subtitle text-muted">Submitted by <strong>{{ mnemonic.submitter.profile.nickname }}</strong></h6>#}
+                  <button id='like'{% if mnemonic|is_mnemonic_submiiter:user %} disabled {% endif %} data-mnemonic-pk="{{ mnemonic.pk }}" data-action="like" style="float: right"  class="like btn btn-outline-primary">{% if mnemonic.likes.count != 0 %} {{ mnemonic.likes.count }}{% endif %} <i class="fa fa-thumbs-up"></i></button>
+                  {% if exam.category|is_editor:user or mnemonic|is_mnemonic_submiiter:user %} <a id='delete' data-mnemonic-pk="{{ mnemonic.pk }}" data-action="delete" style="float: right; margin-right: 2%"  class="delete btn btn-outline-danger"><i class="fa fa-trash"></i></a>{% endif %}
+                  </div>
+
+    </div>
+
+{% endfor %}
+{% else %}
+
+{% endif %}
+
+<script type="text/javascript">
+
+$(function() {
+   $(".like").click(function(){
+        action = $(this).data('action');
+        question_pk = {{ question.pk }};
+        mnemonic_pk = $(this).data('mnemonic-pk');
+        url = "{% url 'exams:contribute_mnemonics' %}?" + $.param({question_pk: question_pk});
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: {'action': action,'mnemonic_pk':mnemonic_pk},
+            success: function(data){
+              console.log(mnemonic_pk);
+              if (data.success == 1){
+                toastr.success("Your vote was submitted.");
+              } else {
+                toastr.error(data.message)
+              }
+            }
+        });
+   });
+   $(".delete").click(function(){
+        action = $(this).data('action');
+        question_pk = {{ question.pk }};
+        mnemonic_pk = $(this).data('mnemonic-pk');
+        url = "{% url 'exams:contribute_mnemonics' %}?" + $.param({question_pk: question_pk});
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: {'action': action,'mnemonic_pk':mnemonic_pk},
+            success: function(data){
+              console.log(mnemonic_pk);
+              if (data.message == "success") {
+                toastr.success("Your mnemonic is deleted.");
+              } else {
+                toastr.error(data.message)
+              }
+            }
+        });
+   });
+});
+
+</script>
