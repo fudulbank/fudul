@@ -75,7 +75,7 @@
         hovertext: get_contribution_hover(),
       }
 
-      data = [user_data, answer_data, contributor_data, contribution_data];
+      data = [user_data, answer_data, contributor_data, contribution_data, exam_date_data];
 
       Plotly.newPlot('exam-plot', data, {title: "{{ exam.name}} usage plot"});
   })

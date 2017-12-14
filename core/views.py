@@ -7,9 +7,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_POST, require_safe
 from django.views.static import serve
-import datetime
 import math
-import json
 
 from . import utils
 from .models import CoreMember
@@ -76,23 +74,7 @@ def show_indicator_index(request):
                                              .distinct()
     exams = exam_models.Exam.objects.filter(session__isnull=False)\
                                     .distinct()
-
-    pool_exam_dates = exam_models.ExamDate.objects\
-                                          .filter(exam__session__isnull=False,
-                                                  date__lt=datetime.date.today())\
-                                          .order_by('date')\
-                                          .distinct()
-
-    dates = pool_exam_dates.values_list('date', flat=True)
-    exam_dates = {}
-    for date in dates:
-        date_str = date.strftime('%Y-%m-%d')
-        hovertext = []
-        for exam_date in pool_exam_dates.filter(date=date):
-            hovertext.append('<b>{}</b><br>{}'.format(exam_date.name, str(exam_date.batch)))
-        hovertext_str = '<br>'.join(hovertext)
-        exam_dates[date_str] = hovertext_str
-    exam_date_json = json.dumps(exam_dates)
+    exam_date_json = utils.get_exam_date_json()
 
     context = {'is_indicators_active': True,
                'teams': teams,
@@ -146,14 +128,15 @@ def show_exam_indicators(request, pk):
     # PERMISSION CHECK
     if not request.user.is_superuser:
         raise PermissionDenied
-
     exams = exam_models.Exam.objects.filter(session__isnull=False)\
                                     .distinct()
     exam = get_object_or_404(exams, pk=pk)
+    exam_date_json = utils.get_exam_date_json(exam)
     csv_filename = 'indicators/exam-{}.csv'.format(exam.pk)
 
     context = {'is_indicators_active': True,
                'csv_filename': csv_filename,
+               'exam_date_json': exam_date_json,
                'exam': exam}
 
     return render(request, "indicators/show_exam_indicators.html", context)

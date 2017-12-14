@@ -1,6 +1,11 @@
 from django.db import models
-import operator
+import datetime
+import json
 import math
+import operator
+
+from exams.models import ExamDate
+
 
 BASIC_SEARCH_FIELDS = ['user__pk', 'user__username', 'user__email',
                        'user__profile__first_name',
@@ -9,6 +14,29 @@ BASIC_SEARCH_FIELDS = ['user__pk', 'user__username', 'user__email',
                        'user__profile__mobile_number',
                        'user__profile__alternative_email',
                        'user__profile__nickname']
+
+def get_exam_date_json(exam=None):
+    pool_exam_dates = ExamDate.objects\
+                              .filter(exam__session__isnull=False,
+                                      date__lt=datetime.date.today())\
+                              .order_by('date')\
+                              .distinct()
+
+    if exam:
+        pool_exam_dates = pool_exam_dates.filter(exam=exam)
+
+    dates = pool_exam_dates.values_list('date', flat=True)
+    exam_dates = {}
+    for date in dates:
+        date_str = date.strftime('%Y-%m-%d')
+        hovertext = []
+        for exam_date in pool_exam_dates.filter(date=date):
+            hovertext.append('<b>{}</b><br>{}'.format(exam_date.name, str(exam_date.batch)))
+        hovertext_str = '<br>'.join(hovertext)
+        exam_dates[date_str] = hovertext_str
+    exam_date_json = json.dumps(exam_dates)
+
+    return exam_date_json
 
 def get_search_queryset(queryset, search_fields, search_term):
     # Based on the Django app search functionality found in the
