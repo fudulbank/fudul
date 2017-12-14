@@ -18,6 +18,7 @@ BASIC_SEARCH_FIELDS = ['user__pk', 'user__username', 'user__email',
 def get_exam_date_json(exam=None):
     pool_exam_dates = ExamDate.objects\
                               .filter(exam__session__isnull=False,
+                                      date__gte=datetime.date(2017, 9, 1),
                                       date__lt=datetime.date.today())\
                               .order_by('date')\
                               .distinct()
