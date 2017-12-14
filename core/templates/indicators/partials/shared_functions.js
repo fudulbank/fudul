@@ -84,22 +84,22 @@ function get_contribution_hover(batch_pk){
   });
 }
 
-
-{% if exam_dates %}
-annotations = [{% for exam_date in exam_dates %}
-    {
-      x: "{{ exam_date.date|date:'Y-m-d' }}",
-      y: rows.find(function(row){ return row['date'] == "{{ exam_date.date|date:'Y-m-d' }}"  })['user_count'],
-      xref: 'x',
-      yref: 'y',
-      hovertext: '<b>{{ exam_date.name }}</b><br>{{ exam_date.batch }}',
-      //showarrow: true,
-      //arrowhead: 7,
-      ax: 0,
-      ay: -30
-    },{% endfor %}
-]
+{% if exam_date_json %}
+exam_date_input = JSON.parse('{{ exam_date_json|safe }}')
+exam_dates = Object.keys(exam_date_input)
+exam_dates_hovertexts = Object.values(exam_date_input)
+exam_dates_counts = exam_dates.map(function(date){ row = rows.find(function(row){ return row['date'] == date}); return row['user_count']})
+var exam_date_data = {
+  x: exam_dates,
+  y: exam_dates_counts,
+  text: exam_dates_hovertexts,
+  mode: 'markers',
+  type: 'scatter',
+  hoverinfo: 'text',
+  showlegend: false,
+  marker: { size: 12 },
+}
 {% else %}
-annotations = []
+var exam_date_data = {}
 {% endif %}
 // END OF SHARED FUNCTIONS

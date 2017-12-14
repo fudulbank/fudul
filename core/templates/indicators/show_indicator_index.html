@@ -195,7 +195,7 @@
       hovertext: get_contribution_hover(),
     }
 
-    var data = [user_data, answer_data, contributor_data, contribution_data];
+    var data = [user_data, answer_data, contributor_data, contribution_data, exam_date_data];
 
     var layout = {
       title: "The Great Health Metric",
@@ -218,7 +218,6 @@
         rangeslider: {range: ['2017-09-1', '{% now "y-m-d" %}']},
         type: 'date'
       },
-      annotations: annotations,
     };
 
     Plotly.newPlot('great-metric', data, layout);
