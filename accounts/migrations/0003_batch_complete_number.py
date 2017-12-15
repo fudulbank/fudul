@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='batch',
             name='complete_number',
-            field=models.PositiveIntegerField(null=True),
+            field=models.PositiveIntegerField(null=True, blank=True),
         ),
     ]
