@@ -19,6 +19,9 @@ function get_change_percentage(count_field, row){
     percentage = (diff / row[count_field]) * 100
     percentage = percentage.toPrecision(2)
   }
+  if (percentage > 0){
+    percentage = '+' + percentage
+  }
   return percentage
 }
 

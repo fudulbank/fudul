@@ -35,6 +35,7 @@ class Profile(UserenaBaseProfile):
 class Batch(models.Model):
     name = models.CharField(max_length=50)
     college = models.ForeignKey('College')
+    complete_number = models.PositiveIntegerField(null=True)
 
     def __str__(self):
         return "{} ({} at {})".format(self.name, self.college.name,

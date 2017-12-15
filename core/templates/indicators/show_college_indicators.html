@@ -33,12 +33,37 @@
 {% block customscript %}
   <script>
 
-batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batch.name }}',{% endfor %}
+batches = { {% for batch in college.batch_set.all %}{{ batch.pk }}: {name: '{{ batch.name }}', complete_number: {{ batch.complete_number|default:'null'}} },{% endfor %}
 }
 
   Plotly.d3.csv("{% url 'get_privileged_file' csv_filename %}", function(err, rows){
 
 {% include 'indicators/partials/shared_functions.js' %}
+
+      function get_user_count_hover(count_field, batch_pk){
+        if (batch_pk){
+          count_field = count_field + '_' + batch_pk;
+        }
+
+        return rows.map(function(row) {
+          end_date = moment(row['date'])
+          start_date = moment(row['date']).subtract(30, 'days')
+
+          // Calculate change
+          change_percentage = get_change_percentage(count_field, row)
+          if (batches[batch_pk].complete_number){
+            penetration_percentage = (row[count_field] / batches[batch_pk].complete_number) * 100
+            penetration_percentage = penetration_percentage.toPrecision(2)
+            penetration_str = penetration_percentage + "% penetration in " + batches[batch_pk].name + "<br>"
+          } else {
+            penetration_str = ""
+          }
+
+          end_date_str = end_date.format('DD MMM')
+          start_date_str = start_date.format('DD MMM')
+          return row[count_field] + ' (' + change_percentage + '%)<br>' + penetration_str + start_date_str + '‒' + end_date_str
+        });
+      }
 
       function stackedArea(data) {
       	for(var i=1; i<data.length; i++) {
@@ -56,22 +81,22 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
 
       dates = unpack('date');
 
-      for (batch_pk in batch_names){
+      for (batch_pk in batches){
         var trace = {
           fill: 'tonextx',
-          name: batch_names[batch_pk],
+          name: batches[batch_pk].name,
           x: dates,
           y: unpack('user_count_' + batch_pk, true),
           hoverinfo: 'text+name',
-          hovertext: get_hover('user_count', batch_pk),
+          hovertext: get_user_count_hover('user_count', batch_pk),
         }
         user_data.push(trace);
       }
 
-      for (batch_pk in batch_names){
+      for (batch_pk in batches){
         var trace = {
           fill: 'tonextx',
-          name: batch_names[batch_pk],
+          name: batches[batch_pk].name,
           x: dates,
           y: unpack('answer_avg_' + batch_pk, true),
           hoverinfo: 'text+name',
@@ -80,10 +105,10 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
         answer_data.push(trace);
       }
 
-      for (batch_pk in batch_names){
+      for (batch_pk in batches){
         var trace = {
           fill: 'tonextx',
-          name: batch_names[batch_pk],
+          name: batches[batch_pk].name,
           x: dates,
           y: unpack('contributor_count_' + batch_pk, true),
           hoverinfo: 'text+name',
@@ -92,10 +117,10 @@ batch_names = { {% for batch in college.batch_set.all %}{{ batch.pk }}: '{{ batc
         contributor_data.push(trace);
       }
 
-      for (batch_pk in batch_names){
+      for (batch_pk in batches){
         var trace = {
           fill: 'tonextx',
-          name: batch_names[batch_pk],
+          name: batches[batch_pk].name,
           x: dates,
           y: get_contribution_data(batch_pk),
           hoverinfo: 'text+name',
