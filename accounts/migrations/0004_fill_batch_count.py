@@ -16,7 +16,7 @@ def fill_batch_counts(apps, schema_editor):
         count = batch_counts[batch_name]
         try:
             batch = Batch.objects.get(name=batch_name,
-                                      college__name="College of Medicine"
+                                      college__name="College of Medicine",
                                       college__institution__name="KSAU-HS")
         except Batch.DoesNotExist:
             continue
