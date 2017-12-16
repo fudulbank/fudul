@@ -1,6 +1,11 @@
 {% extends 'base_new.html' %}{% load static %}
 {% block title %}Fudul | {{ college.name }} indicators{% endblock %}
 
+{% block head %}
+<script src="https://cdn.plot.ly/plotly-1.31.2.min.js" integrity="sha384-pEbvKAAHroDnU/rb2+IiUrslRtrsAGTaQNZjaFWCY3d/h5FlaWxqMkhh8MX4m0dQ" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.19.3/moment.min.js" integrity="sha384-8xuC0/BWqiPX72DT7LJqj+QiH5eYVT5KsUOewB/DmXi7KPPEdt4Td3xu3lg+slER" crossorigin="anonymous"></script>
+{% endblock %}
+
 {% block header_title %}
 <h1>{{ college.name }} indicators</h1>
 {% endblock %}
@@ -10,12 +15,6 @@
       <li class="breadcrumb-item"><a href="{% url 'show_indicator_index' %}">Indicators</a></li>
 			<li class="breadcrumb-item active">{{ college.name }}</li>
 {% endblock %}
-
-{% block head %}
-<script src="https://cdn.plot.ly/plotly-1.31.2.min.js" integrity="sha384-pEbvKAAHroDnU/rb2+IiUrslRtrsAGTaQNZjaFWCY3d/h5FlaWxqMkhh8MX4m0dQ" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.19.3/moment.min.js" integrity="sha384-8xuC0/BWqiPX72DT7LJqj+QiH5eYVT5KsUOewB/DmXi7KPPEdt4Td3xu3lg+slER" crossorigin="anonymous"></script>
-{% endblock %}
-
 
 {% block content %}
 <div class="card">
@@ -61,7 +60,7 @@ batches = { {% for batch in college.batch_set.all %}{{ batch.pk }}: {name: '{{ b
 
           end_date_str = end_date.format('DD MMM')
           start_date_str = start_date.format('DD MMM')
-          return row[count_field] + ' (' + change_percentage + '%)<br>' + penetration_str + start_date_str + '‒' + end_date_str
+          return '<span style=\'font-weight: 700; text-decoration: underline;\'>' + start_date_str + '‒' + end_date_str + '</span><br>' + row[count_field] + ' (' + change_percentage + '%)<br>' + penetration_str
         });
       }
 
