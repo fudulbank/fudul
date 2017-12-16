@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.fields import GenericRelation
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.shortcuts import get_object_or_404
@@ -407,6 +408,10 @@ class Session(models.Model):
     question_filter = models.CharField(max_length=20, choices=questions_choices, default=None)
     submission_date = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
+    notifications = GenericRelation('notifications.Notification',
+                                    content_type_field='actor_content_type',
+                                    object_id_field='actor_object_id',
+                                    related_query_name="sessions")
 
     objects = managers.SessionQuerySet.as_manager()
 
@@ -479,6 +484,9 @@ class Session(models.Model):
 
     def can_user_access(self, user):
         return self.submitter == user or user.is_superuser
+
+    def __str__(self):
+        return "Session #{}".format(self.pk)
 
 class Answer(models.Model):
     session = models.ForeignKey(Session)
