@@ -6,7 +6,7 @@ from django.conf import settings
 import datetime
 import os.path
 
-from exams.models import Exam, Answer, Revision, ExplanationRevision, AnswerCorrection
+from exams.models import *
 from accounts.models import College
 
 
@@ -64,21 +64,31 @@ class Command(BaseCommand):
     def get_contribution_counts(self, users=None, exam=None):
         editor_kwargs = {}
         explainer_kwargs = {}
+        mnemonicer_kwargs = {}
+
         basic_kwargs = {'submission_date__gte': self.aware_start_datetime,
-                        'submission_date__lte': self.aware_end_datetime}
+                        'submission_date__lte': self.aware_end_datetime,
+                        'is_deleted': False}
 
         if users:
             target_users = users
             basic_kwargs['submitter__in'] = users
         else:
             target_users = User.objects.all()
-
-        explanation_kwargs = basic_kwargs.copy()
-        explanation_kwargs['is_deleted'] = False
         if exam:
-            explanation_kwargs['question__exam'] = exam
-        revision_kwargs = explanation_kwargs.copy()
+            basic_kwargs['question__exam'] = exam
+
+        mnemonic_kwargs = basic_kwargs.copy()
+        explanation_kwargs = basic_kwargs.copy()
+        explanation_kwargs['is_contribution'] = True
+        revision_kwargs = basic_kwargs.copy()
         revision_kwargs['is_contribution'] = True
+
+        # Answer does not have 'is_deleted' and 'question' fields        
+        answer_kwargs = basic_kwargs.copy()
+        del answer_kwargs['is_deleted']
+        if 'question__exam' in answer_kwargs:
+            del answer_kwargs['question__exam']
 
         for kwarg in revision_kwargs:
             editor_kwargs['revision__' + kwarg] = revision_kwargs[kwarg]
@@ -86,7 +96,13 @@ class Command(BaseCommand):
         for kwarg in explanation_kwargs:
             explainer_kwargs['submitted_explanations__' + kwarg] = explanation_kwargs[kwarg]
 
-        condition = Q(**editor_kwargs) | Q(**explainer_kwargs)
+        for kwarg in mnemonic_kwargs:
+            mnemonicer_kwargs['mnemonic__' + kwarg] = mnemonic_kwargs[kwarg]
+
+        condition = Q(**editor_kwargs) |\
+                    Q(**explainer_kwargs) |\
+                    Q(**mnemonicer_kwargs)
+
         contributor_count = target_users.filter(condition)\
                                         .distinct().count()
 
@@ -95,12 +111,15 @@ class Command(BaseCommand):
         explanation_count = ExplanationRevision.objects.filter(**explanation_kwargs)\
                                                        .distinct()\
                                                        .count()
-        correction_count = AnswerCorrection.objects.filter(**basic_kwargs)\
+        correction_count = AnswerCorrection.objects.filter(**answer_kwargs)\
                                                    .distinct()\
                                                    .count()
+        mnemonic_count = ExplanationRevision.objects.filter(**mnemonic_kwargs)\
+                                                    .distinct()\
+                                                    .count()
 
         return [contributor_count, revision_count, explanation_count,
-                correction_count]
+                correction_count, mnemonic_count]
 
     def write_stats(self, end_date, target, csv_file):
         self.set_dates(end_date)
@@ -157,7 +176,7 @@ class Command(BaseCommand):
 
             fields = ['user_count', 'answer_avg', 'contributor_count',
                       'revision_count', 'explanation_count',
-                      'correction_count']
+                      'correction_count', 'mnemonic_count']
 
             headers = ['date']
 
