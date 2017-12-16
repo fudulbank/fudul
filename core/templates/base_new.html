@@ -98,7 +98,7 @@
                         <div class="media-left align-self-center"><i class="ft-x icon-bg-circle bg-red"></i></div>
                         {% endif %}
                         <div class="media-body">
-                          <h6 class="media-heading">{% if notification.actor == user %}You{% else %}{{ notification.actor|get_user_credit }}{% endif %} {{ notification.verb }}{% if notification.target %} {{ notification.target }}{% endif %}</h6>
+                          <h6 class="media-heading">{% if notification.actor == user %}You{% else %}{{ notification.actor }}{% endif %} {{ notification.verb }}{% if notification.target %} {{ notification.target }}{% endif %}</h6>
                           {% if notification.description %}
                           <p class="notification-text font-small-3 text-muted">{{ notification.description }}</p>
                           {% endif %}
