@@ -114,9 +114,9 @@ class Command(BaseCommand):
         correction_count = AnswerCorrection.objects.filter(**answer_kwargs)\
                                                    .distinct()\
                                                    .count()
-        mnemonic_count = ExplanationRevision.objects.filter(**mnemonic_kwargs)\
-                                                    .distinct()\
-                                                    .count()
+        mnemonic_count = Mnemonic.objects.filter(**mnemonic_kwargs)\
+                                         .distinct()\
+                                         .count()
 
         return [contributor_count, revision_count, explanation_count,
                 correction_count, mnemonic_count]
