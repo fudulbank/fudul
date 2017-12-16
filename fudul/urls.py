@@ -13,6 +13,7 @@ urlpatterns = [
     url(r'^exams/', include('exams.urls', namespace="exams")),
     url(r'', include('core.urls')),
     url(r'^ckeditor/', include('ckeditor_uploader.urls')),
+    url(r'^notifications/', include('notifications.urls', namespace='notifications')),
 ]
 
 if settings.DEBUG:
