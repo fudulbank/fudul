@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_POST, require_safe
 from django.views.static import serve
 import math
+from django.core.exceptions import PermissionDenied
 
 from . import utils
 from .models import CoreMember
