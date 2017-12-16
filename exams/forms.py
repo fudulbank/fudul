@@ -317,6 +317,7 @@ class ExplanationForm(forms.ModelForm):
         new_explanation.pk = None
         new_explanation.is_first = False
         new_explanation.is_last = True
+        new_explanation.is_contribution = not teams.utils.is_editor(user)
         new_explanation.submitter = user
         new_explanation.question = question
         new_explanation.save()

@@ -540,7 +540,7 @@ class ExplanationRevision(models.Model):
     reference = models.TextField(default="", blank=True)
     explanation_figure = models.ImageField(upload_to="explanation_images",
                                            blank=True)
-
+    is_contribution = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
     is_first = models.BooleanField(default=False)
     is_last = models.BooleanField(default=False)
