@@ -39,7 +39,7 @@ function get_hover(count_field, batch_pk){
 
     end_date_str = end_date.format('DD MMM')
     start_date_str = start_date.format('DD MMM')
-    return row[count_field] + ' (' + percentage + '%)<br>' + start_date_str + '‒' + end_date_str
+    return '<span style=\'font-weight: 700; text-decoration: underline;\'>' + start_date_str + '‒' + end_date_str + '</span><br>' +  row[count_field] + ' (' + percentage + '%)'
   });
 }
 
@@ -83,7 +83,7 @@ function get_contribution_hover(batch_pk){
 
     end_date_str = end_date.format('DD MMM')
     start_date_str = start_date.format('DD MMM')
-    return 'Revisions added: ' + row[revision_field] + ' (' + revision_percentage + '%)<br>' + 'Explanations added: ' + row[explanation_field] + ' (' + explanation_percentage + '%)<br>' + 'Corrections added: ' + row[correction_field] + ' (' + correction_percentage + '%)<br>' + start_date_str + '‒' + end_date_str
+    return '<span style=\'font-weight: 700; text-decoration: underline;\'>' + start_date_str + '‒' + end_date_str + '</span>' + 'Revisions added: ' + row[revision_field] + ' (' + revision_percentage + '%)<br>' + 'Explanations added: ' + row[explanation_field] + ' (' + explanation_percentage + '%)<br>' + 'Corrections added: ' + row[correction_field] + ' (' + correction_percentage + '%)'
   });
 }
 
