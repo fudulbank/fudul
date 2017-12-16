@@ -5,6 +5,12 @@ import re
 from userena.models import UserenaBaseProfile
 from django.utils.translation import ugettext as _
 
+display_full_name_choices = (
+    ('Y', 'Display my full name'),
+    ('N', 'Only display nickname'),
+)
+
+
 class Profile(UserenaBaseProfile):
     user = models.OneToOneField(User)
     first_name = models.CharField(max_length=30)
@@ -18,6 +24,7 @@ class Profile(UserenaBaseProfile):
     alternative_email = models.EmailField(blank=True)
     submission_date = models.DateTimeField(auto_now_add=True)
     modification_date = models.DateTimeField(auto_now=True, null=True)
+    display_full_name = models.CharField(max_length=1, choices=display_full_name_choices,default="N")
 
     def __str__(self):
         return self.user.username
