@@ -88,7 +88,7 @@ function get_contribution_hover(batch_pk){
 
     end_date_str = end_date.format('DD MMM')
     start_date_str = start_date.format('DD MMM')
-    return '<span style=\'font-weight: 700; text-decoration: underline;\'>' + start_date_str + '‒' + end_date_str + '</span>' + 'Revisions added: ' + row[revision_field] + ' (' + revision_percentage + '%)<br>' + 'Explanations added: ' + row[explanation_field] + ' (' + explanation_percentage + '%)<br>' + 'Corrections added: ' + row[correction_field] + ' (' + correction_percentage + '%)<br>' + 'Mnemonics added: ' + row[mnemonic_field] + ' (' + mnemonic_percentage + '%)'
+    return '<span style=\'font-weight: 700; text-decoration: underline;\'>' + start_date_str + '‒' + end_date_str + '</span><br>' + 'Revisions added: ' + row[revision_field] + ' (' + revision_percentage + '%)<br>' + 'Explanations added: ' + row[explanation_field] + ' (' + explanation_percentage + '%)<br>' + 'Corrections added: ' + row[correction_field] + ' (' + correction_percentage + '%)<br>' + 'Mnemonics added: ' + row[mnemonic_field] + ' (' + mnemonic_percentage + '%)'
   });
 }
 
