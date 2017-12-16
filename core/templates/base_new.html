@@ -55,109 +55,7 @@
           <div id="navbar-mobile" class="collapse navbar-collapse">
             <ul class="nav navbar-nav mr-auto float-left">
               <li class="nav-item hidden-sm-down"><a href="#" class="nav-link nav-menu-main menu-toggle hidden-xs"><i class="ft-menu"></i></a></li>
-              <!--
-              <li class="dropdown nav-item mega-dropdown"><a href="#" data-toggle="dropdown" class="dropdown-toggle nav-link">Mega</a>
-                <ul class="mega-dropdown-menu dropdown-menu row">
-                  <li class="col-md-2">
-                    <h6 class="dropdown-menu-header text-uppercase mb-1"><i class="fa fa-newspaper-o"></i> News</h6>
-                    <div id="mega-menu-carousel-example">
-                      <div><img src="{% static 'stack/images/slider/slider-2.png' %}" alt="First slide" class="rounded img-fluid mb-1"><a href="#" class="news-title mb-0">Poster Frame PSD</a>
-                        <p class="news-content"><span class="font-small-2">January 26, 2016</span></p>
-                      </div>
-                    </div>
-                  </li>
-                  <li class="col-md-3">
-                    <h6 class="dropdown-menu-header text-uppercase"><i class="fa fa-random"></i> Drill down menu</h6>
-                    <ul class="drilldown-menu">
-                      <li class="menu-list">
-                        <ul>
-                          <li><a href="layout-2-columns.html" class="dropdown-item"><i class="ft-file"></i> Page layouts & Templates</a></li>
-                          <li><a href="#"><i class="ft-align-left"></i> Multi level menu</a>
-                            <ul>
-                              <li><a href="#" class="dropdown-item"><i class="fa fa-bookmark-o"></i>  Second level</a></li>
-                              <li><a href="#"><i class="fa fa-lemon-o"></i> Second level menu</a>
-                                <ul>
-                                  <li><a href="#" class="dropdown-item"><i class="fa fa-heart-o"></i>  Third level</a></li>
-                                  <li><a href="#" class="dropdown-item"><i class="fa fa-file-o"></i> Third level</a></li>
-                                  <li><a href="#" class="dropdown-item"><i class="fa fa-trash-o"></i> Third level</a></li>
-                                  <li><a href="#" class="dropdown-item"><i class="fa fa-clock-o"></i> Third level</a></li>
-                                </ul>
-                              </li>
-                              <li><a href="#" class="dropdown-item"><i class="fa fa-hdd-o"></i> Second level, third link</a></li>
-                              <li><a href="#" class="dropdown-item"><i class="fa fa-floppy-o"></i> Second level, fourth link</a></li>
-                            </ul>
-                          </li>
-                          <li><a href="color-palette-primary.html" class="dropdown-item"><i class="ft-camera"></i> Color pallet system</a></li>
-                          <li><a href="sk-2-columns.html" class="dropdown-item"><i class="ft-edit"></i> Page starter kit</a></li>
-                          <li><a href="changelog.html" class="dropdown-item"><i class="ft-minimize-2"></i> Change log</a></li>
-                          <li><a href="https://pixinvent.ticksy.com/" class="dropdown-item"><i class="fa fa-life-ring"></i> Customer support center</a></li>
-                        </ul>
-                      </li>
-                    </ul>
-                  </li>
-                  <li class="col-md-3">
-                    <h6 class="dropdown-menu-header text-uppercase"><i class="fa fa-list-ul"></i> Accordion</h6>
-                    <div id="accordionWrap" role="tablist" aria-multiselectable="true">
-                      <div class="card no-border box-shadow-0 collapse-icon accordion-icon-rotate">
-                        <div id="headingOne" role="tab" class="card-header p-0 pb-2 no-border"><a data-toggle="collapse" data-parent="#accordionWrap" href="#accordionOne" aria-expanded="true" aria-controls="accordionOne">Accordion Item #1</a></div>
-                        <div id="accordionOne" role="tabpanel" aria-labelledby="headingOne" aria-expanded="true" class="card-collapse collapse in">
-                          <div class="card-body">
-                            <p class="accordion-text text-small-3">Caramels dessert chocolate cake pastry jujubes bonbon. Jelly wafer jelly beans. Caramels chocolate cake liquorice cake wafer jelly beans croissant apple pie.</p>
-                          </div>
-                        </div>
-                        <div id="headingTwo" role="tab" class="card-header p-0 pb-2 no-border"><a data-toggle="collapse" data-parent="#accordionWrap" href="#accordionTwo" aria-expanded="false" aria-controls="accordionTwo" class="collapsed">Accordion Item #2</a></div>
-                        <div id="accordionTwo" role="tabpanel" aria-labelledby="headingTwo" aria-expanded="false" class="card-collapse collapse">
-                          <div class="card-body">
-                            <p class="accordion-text">Sugar plum bear claw oat cake chocolate jelly tiramisu dessert pie. Tiramisu macaroon muffin jelly marshmallow cake. Pastry oat cake chupa chups.</p>
-                          </div>
-                        </div>
-                        <div id="headingThree" role="tab" class="card-header p-0 pb-2 no-border"><a data-toggle="collapse" data-parent="#accordionWrap" href="#accordionThree" aria-expanded="false" aria-controls="accordionThree" class="collapsed">Accordion Item #3</a></div>
-                        <div id="accordionThree" role="tabpanel" aria-labelledby="headingThree" aria-expanded="false" class="card-collapse collapse">
-                          <div class="card-body">
-                            <p class="accordion-text">Candy cupcake sugar plum oat cake wafer marzipan jujubes lollipop macaroon. Cake dragée jujubes donut chocolate bar chocolate cake cupcake chocolate topping.</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </li>
-                  <li class="col-md-4">
-                    <h6 class="dropdown-menu-header text-uppercase mb-1"><i class="fa fa-envelope-o"></i> Contact Us</h6>
-                    <form>
-                      <fieldset class="form-group">
-                        <label for="inputName1" class="col-sm-3 form-control-label">Name</label>
-                        <div class="col-sm-9">
-                          <div class="position-relative has-icon-left">
-                            <input type="text" id="inputName1" placeholder="John Doe" class="form-control">
-                            <div class="form-control-position"><i class="fa fa-user-o pl-1"></i></div>
-                          </div>
-                        </div>
-                      </fieldset>
-                      <fieldset class="form-group">
-                        <label for="inputEmail1" class="col-sm-3 form-control-label">Email</label>
-                        <div class="col-sm-9">
-                          <div class="position-relative has-icon-left">
-                            <input type="email" id="inputEmail1" placeholder="john@example.com" class="form-control">
-                            <div class="form-control-position pl-1"><i class="fa fa-envelope-o"></i></div>
-                          </div>
-                        </div>
-                      </fieldset>
-                      <fieldset class="form-group">
-                        <label for="inputMessage1" class="col-sm-3 form-control-label">Message</label>
-                        <div class="col-sm-9">
-                          <div class="position-relative has-icon-left">
-                            <textarea id="inputMessage1" rows="2" placeholder="Simple Textarea" class="form-control"></textarea>
-                            <div class="form-control-position pl-1"><i class="fa fa-commenting-o"></i></div>
-                          </div>
-                        </div>
-                      </fieldset>
-                      <div class="col-sm-12 mb-1">
-                        <button type="button" class="btn btn-primary float-xs-right"><i class="fa fa-paper-plane-o"></i> Send</button>
-                      </div>
-                    </form>
-                  </li>
-                </ul>
-              </li>
-              -->
+
               <li class="nav-item d-none d-md-block"><a href="#" class="nav-link nav-link-expand"><i class="ficon ft-maximize"></i></a></li>
               <li class="nav-item nav-search"><a href="#" class="nav-link nav-link-search"><i class="ficon ft-search"></i></a>
                 <div class="search-input">
@@ -168,6 +66,66 @@
               </li>
             </ul>
             <ul class="nav navbar-nav float-right">
+
+              {% with notification_count=user.notifications.unread.count %}
+
+              <li class="dropdown dropdown-notification nav-item">
+                <a href="#" data-toggle="dropdown" class="nav-link nav-link-label"><i class="ficon ft-bell"></i>
+                  {% if notification_count %}
+                  <span id="notification-count-outer" class="badge badge-pill badge-default badge-danger badge-default badge-up">{{ notification_count }}</span>
+                  {% endif %}
+                </a>
+                <ul id="notification-dropdown" class="dropdown-menu dropdown-menu-media dropdown-menu-right{% if not notification_count %} pb-0{% endif %}">
+                  <li class="dropdown-menu-header">
+                    <h6 class="dropdown-header m-0">
+                      <span class="grey darken-2">Notifications</span>
+                      {% if notification_count %}
+                      <span id="notification-count-new" class="notification-tag badge badge-default badge-danger float-right m-0">{{ notification_count }} New</span>
+                      {% endif %}
+                    </h6>
+                  </li>
+                  <li id="notification-list" class="scrollable-container media-list" style="width: 100%">
+                    {% for notification in  user.notifications.unread.all  %}
+                    <a href="{% if notification.data.url %}{{ notification.data.url }}{% else %}javascript:void(0){% endif %}">
+                      <div class="media">
+                        {% if notification.level == 'warning' %}
+                        <div class="media-left align-self-center"><i class="ft-alert-triangle icon-bg-circle bg-yellow bg-darken-3"></i></div>
+                        {% elif notification.level == 'success' %}
+                        <div class="media-left align-self-center"><i class="ft-check-circle icon-bg-circle bg-cyan"></i></div>
+                        {% elif notification.level == 'info' %}
+                        <div class="media-left align-self-center"><i class="ft-info icon-bg-circle bg-teal"></i></div>
+                        {% elif notification.level == 'error' %}
+                        <div class="media-left align-self-center"><i class="ft-x icon-bg-circle bg-red"></i></div>
+                        {% endif %}
+                        <div class="media-body">
+                          <h6 class="media-heading">{% if notification.actor == user %}You{% else %}{{ notification.actor|get_user_credit }}{% endif %} {{ notification.verb }}{% if notification.target %} {{ notification.target }}{% endif %}</h6>
+                          {% if notification.description %}
+                          <p class="notification-text font-small-3 text-muted">{{ notification.description }}</p>
+                          {% endif %}
+                          <small>
+                            <time datetime="{{ notification.timestamp|date:'c' }}" class="media-meta text-muted">{{ notification.timesince }}</time>
+                          </small>
+                        </div>
+                      </div>
+                    </a>
+                    {% endfor %}
+                    <a id="empty-notification"{% if notification_count %} class="d-none"{% endif %} href="javascript:void(0)">
+                      <div class="media">
+                        <div class="media-left align-self-center"><i class="ft-check-circle icon-bg-circle bg-black"></i></div>
+                        <div class="media-body">
+                          <h6 style="color: black;" class="media-heading">You do not have any notificaitons.</h6>
+                          <p class="notification-text font-small-3 text-muted">Enjoy Fudul!</p>
+                        </div>
+                      </div>
+                    </a>
+                  </li>
+                  {% if notification_count %}
+                  <li id="mark-read" class="dropdown-menu-footer"><a class="pt-1 dropdown-item text-muted text-center">Mark all notifications as read</a></li>
+                  {% endif %}
+                </ul>
+              </li>
+              {% endwith %}
+
               <!--
               <li class="dropdown dropdown-notification nav-item"><a href="#" data-toggle="dropdown" class="nav-link nav-link-label"><i class="ficon ft-bell"></i><span class="tag tag-pill tag-default tag-danger tag-default tag-up">5</span></a>
                 <ul class="dropdown-menu dropdown-menu-media dropdown-menu-right">
@@ -330,6 +288,23 @@
     <!-- BEGIN VENDOR JS-->
     <script src="{% static 'stack/vendors/js/vendors.min.js' %}" type="text/javascript"></script>
     <!-- END VENDOR JS-->
+
+<script>
+$(function(){
+ $("#mark-read").click(function(){
+   $.ajax({url: '{% url "notifications:mark_all_as_read" %}',
+           success: function(){
+             empty_html = $("#empty-notification").removeClass('d-none').prop('outerHTML');
+             $("#notification-list").html(empty_html);
+             $("#notification-dropdown").addClass('pb-0');
+             $("#notification-count-new, #notification-count-outer").hide();
+             console.log(empty_html);
+             $("#mark-read").hide();
+           }
+   })
+ });
+});
+</script>
 
 {% block customscript %}{% endblock %}
 
