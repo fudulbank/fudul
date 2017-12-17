@@ -10,15 +10,18 @@ from django.template.loader import get_template
 from django.views.decorators import csrf
 from django.views.decorators.http import require_POST, require_safe
 from htmlmin.minify import html_minify
+from notifications.models import Notification
 import json
 
 from core import decorators
-from .models import *
 from teams.models import *
+from .models import *
 from . import forms, utils
-import teams.utils
-from django.views.decorators.http import require_http_methods
 import core.utils
+import teams.utils
+
+
+
 # from reversion.helpers import genericpath
 
 @require_safe
@@ -900,6 +903,7 @@ def mark_revision_approved(request, pk):
     if not exam.can_user_edit(request.user):
         raise Exception("You cannot change the approval status.")
 
+
     revision.is_approved = True
     revision.approved_by= request.user
     revision.save()
@@ -1034,7 +1038,6 @@ def list_contributions(request,user_pk=None):
 
 @require_safe
 @login_required
-@require_http_methods(['GET'])
 def search(request):
     q = request.GET.get('q')
     categories= utils.get_user_allowed_categories(request.user)
@@ -1084,13 +1087,13 @@ def correct_answer(request):
                 elif correction.opposing_users.filter(pk=request.user.pk).exists():
                     correction.opposing_users.remove(request.user)
                 correction.supporting_users.add(request.user)
-                # TODO: Notify the submitter that people are supporting
-                # their contribution
+                correction.notify_submitter(request.user)
             elif action == 'oppose':
                 if correction.opposing_users.filter(pk=request.user.pk).exists():
                     raise Exception("You have already opposed this correction.")
                 elif correction.supporting_users.filter(pk=request.user.pk).exists():
                     correction.supporting_users.remove(request.user)
+                    correction.unnotify_submitter(request.user)
                 correction.opposing_users.add(request.user)
             else:
                 return HttpResponseBadRequest()
@@ -1249,23 +1252,24 @@ def contribute_mnemonics(request):
                 form.save()
         elif Mnemonic.objects.filter(question=question).exists():
             mnemonic = get_object_or_404(Mnemonic, pk=mnemonic_pk)
-            if action in ['like']:
+            if action == 'like':
                 if mnemonic.submitter == request.user:
                     raise Exception("You were the one that submitted this mnemonic, so you cannot vote.")
 
                 if mnemonic.likes.filter(pk=request.user.pk).exists():
                     raise Exception("You have already liked this mnemonic.")
                 mnemonic.likes.add(request.user)
-                # TODO: Notify the submitter that people are supporting
-                # their contribution
-            elif action in ['delete']:
+                mnemonic.notify_submitter(request.user)
+
+            elif action == 'delete':
                 if not request.user.is_superuser and \
-                        not exam.category.is_user_editor(request.user) and \
-                        not mnemonic.submitter == request.user:
+                   not exam.category.is_user_editor(request.user) and \
+                   not mnemonic.submitter == request.user:
                     raise Exception("You cannot delete that mnemonic!")
 
                 mnemonic.is_deleted = True
                 mnemonic.save()
+                Notifcation.objects.filter(target=mnemonic).delete()
                 return {"message": "success"}
 
             else:

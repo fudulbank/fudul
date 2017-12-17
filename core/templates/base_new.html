@@ -88,7 +88,11 @@
                     {% for notification in  user.notifications.unread.all  %}
                     <a href="{% if notification.data.url %}{{ notification.data.url }}{% else %}javascript:void(0){% endif %}">
                       <div class="media">
-                        {% if notification.level == 'warning' %}
+                        {% if notification.data.style == 'count' %}
+                        <div class="media-left align-self-center"><i class="ft-heart icon-bg-circle bg-red bg-darken-3"></i></div>
+                        {% elif notification.data.style == 'support' %}
+                        <div class="media-left align-self-center"><i class="ft-thumbs-up icon-bg-circle bg-success bg-darken-3"></i></div>
+                        {% elif notification.level == 'warning' %}
                         <div class="media-left align-self-center"><i class="ft-alert-triangle icon-bg-circle bg-yellow bg-darken-3"></i></div>
                         {% elif notification.level == 'success' %}
                         <div class="media-left align-self-center"><i class="ft-check-circle icon-bg-circle bg-cyan"></i></div>
@@ -98,9 +102,9 @@
                         <div class="media-left align-self-center"><i class="ft-x icon-bg-circle bg-red"></i></div>
                         {% endif %}
                         <div class="media-body">
-                          <h6 class="media-heading">{% if notification.actor == user %}You{% else %}{{ notification.actor }}{% endif %} {{ notification.verb }}{% if notification.target %} {{ notification.target }}{% endif %}</h6>
+                          <h6 class="media-heading">{% if notification.data.title %}{{ notification.data.title }}{% else %}{% if notification.actor == user %}You{% else %}{{ notification.actor }}{% endif %} {{ notification.verb }}{% if notification.target %} {{ notification.target }}{% endif %}{% endif %}</h6>
                           {% if notification.description %}
-                          <p class="notification-text font-small-3 text-muted">{{ notification.description }}</p>
+                          <p class="notification-text font-small-3 text-muted">{{ notification.description|safe }}</p>
                           {% endif %}
                           <small>
                             <time datetime="{{ notification.timestamp|date:'c' }}" class="media-meta text-muted">{{ notification.timesince }}</time>
