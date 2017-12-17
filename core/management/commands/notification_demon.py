@@ -9,6 +9,10 @@ from exams.models import *
 
 
 class Command(BaseCommand):
+    def add_arguments(self, parser):
+        parser.add_argument('--dry', dest='is_dry',
+                            action='store_true', default=False)
+
     def handle(self, *args, **options):
         # Notify users abouts sessions that have been pending for 48 hours.
         target_date = timezone.now() - datetime.timedelta(2)
@@ -23,8 +27,13 @@ class Command(BaseCommand):
                                           .exclude(session_mode__in=['INCOMPLETE', 'SOLVED'])
         for session in pending_sessions:
             url = session.get_absolute_url()
-            notify.send(session, recipient=session.submitter, verb='is still pending',
-                        timestamp=session.submission_date, url=url)
+            if not options['is_dry']:
+                notify.send(session, recipient=session.submitter,
+                            verb='is still pending',
+                            timestamp=session.submission_date,
+                            url=url)
+            else:
+                print("Notification for {}".format(str(session)))
 
         # Notify users who contribute explanations, mnemonics, edits
         # and corrections when there explanations are viewed at 100,
@@ -46,11 +55,14 @@ class Command(BaseCommand):
                                                                                                  explanation.question.exam.name,
                                                                                                  explanation.answer_count)
                 url = explanation.get_absolute_url()
-                notify.send(explanation,
-                            recipient=explanation.submitter,
-                            verb=verb, title=title,
-                            description=description, url=url,
-                            style='count')
+                if not options['is_dry']:
+                    notify.send(explanation,
+                                recipient=explanation.submitter,
+                                verb=verb, title=title,
+                                description=description, url=url,
+                                style='count')
+                else:
+                    print("Notification for {}".format(str(explanation)))
 
             revisions = Revision.objects.select_related('question',
                                                         'question__exam')\
@@ -67,10 +79,14 @@ class Command(BaseCommand):
                                                                                           revision.question.exam.name,
                                                                                           revision.answer_count)
                 url = revision.get_absolute_url()
-                notify.send(revision, recipient=revision.submitter,
-                            verb=verb, title=title,
-                            description=description, url=url,
-                            style='count')
+                if not options['is_dry']:
+                    notify.send(revision,
+                                recipient=revision.submitter,
+                                verb=verb, title=title,
+                                description=description, url=url,
+                                style='count')
+                else:
+                    print("Notification for {}".format(str(revision)))
 
             mnemonics = Mnemonic.objects.select_related('question',
                                                         'question__exam')\
@@ -86,10 +102,14 @@ class Command(BaseCommand):
                 description = "Your mnemonic to question #{} in {} was seen {} times.".format(mnemonic.question.pk,
                                                                                               mnemonic.question.exam.name,
                                                                                               mnemonic.answer_count)
-                notify.send(mnemonic, recipient=mnemonic.submitter,
-                            verb=verb, title=title,
-                            description=description, url=url,
-                            style='count')
+                if not options['is_dry']:
+                    notify.send(mnemonic,
+                                recipient=mnemonic.submitter,
+                                verb=verb, title=title,
+                                description=description, url=url,
+                                style='count')
+                else:
+                    print("Notification for {}".format(str(mnemonic)))
 
 
             corrections = AnswerCorrection.objects.select_related('choice',
@@ -108,7 +128,11 @@ class Command(BaseCommand):
                 description = "Your correction to question #{} in {} was seen {} times.".format(correction.choice.revision.question.pk,
                                                                                                 correction.choice.revision.question.exam.name,
                                                                                                 correction.answer_count)
-                notify.send(correction,
-                            recipient=correction.submitter, verb=verb,
-                            title=title, description=description,
-                            style='count')
+                if not options['is_dry']:
+                    notify.send(correction,
+                                recipient=correction.submitter,
+                                verb=verb, title=title,
+                                description=description,
+                                style='count')
+                else:
+                    print("Notification for {}".format(str(correction)))
