@@ -19,6 +19,7 @@ class Command(BaseCommand):
         pending_sessions = Session.objects.select_related('exam', 'exam__category')\
                                           .undeleted()\
                                           .filter(submission_date__lte=target_date,
+                                                  submitter__isnull=False,
                                                   has_finished=False)\
                                           .exclude(actor_notifications__verb='is still pending')\
                                           .exclude(session_mode__in=['INCOMPLETE', 'SOLVED'])
@@ -42,7 +43,8 @@ class Command(BaseCommand):
             explanations = ExplanationRevision.objects.select_related('question',
                                                                       'question__exam')\
                                                       .undeleted()\
-                                                      .filter(question__answer__submission_date__gte=F("submission_date"))\
+                                                      .filter(submitter__isnull=False,
+                                                              question__answer__submission_date__gte=F("submission_date"))\
                                                       .annotate(answer_count=Count('question__answer'))\
                                                       .filter(answer_count__gte=threshold)\
                                                       .exclude(actor_notifications__verb=verb)
@@ -65,6 +67,7 @@ class Command(BaseCommand):
                                                         'question__exam')\
                                         .undeleted()\
                                         .filter(is_approved=True,
+                                                submitter__isnull=False,
                                                 question__answer__submission_date__gte=F("submission_date"))\
                                         .annotate(answer_count=Count('question__answer'))\
                                         .filter(answer_count__gte=threshold)\
@@ -88,6 +91,7 @@ class Command(BaseCommand):
             mnemonics = Mnemonic.objects.select_related('question',
                                                         'question__exam')\
                                         .filter(is_deleted=False,
+                                                submitter__isnull=False,
                                                 question__answer__submission_date__gte=F("submission_date"))\
                                         .annotate(answer_count=Count('question__answer'))\
                                         .filter(answer_count__gte=threshold)\
@@ -113,7 +117,8 @@ class Command(BaseCommand):
                                                           'choice__revision',
                                                           'choice__revision__question',
                                                           'choice__revision__question__exam')\
-                                          .filter(choice__revision__question__is_deleted=False,
+                                          .filter(submitter__isnull=False,
+                                                  choice__revision__question__is_deleted=False,
                                                   choice__revision__question__answer__submission_date__gte=F("submission_date"))\
                                           .annotate(answer_count=Count('choice__revision__question__answer'))\
                                           .filter(answer_count__gte=threshold)\
