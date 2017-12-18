@@ -1,0 +1,86 @@
+{% extends 'base_new.html' %}
+
+{% block title %}Fudul | Notification Center {% endblock %}
+
+{% block header_title %}
+<h1>Notification Center</h1>
+{% if notifications.unread.exists %}
+<button type="button" class="btn btn-sm mark-all-as-read"><i class="ft-check"></i> Mark all as read</button>
+{% endif %}
+{% endblock %}
+
+{% block breadcrumb %}
+      <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
+      <li class="breadcrumb-item active">Notification Center</li>
+{% endblock %}
+
+{% block content %}
+
+
+<div class="list-group">
+  {% for notification in notifications %}
+  <div class="list-group-item list-group-item-action flex-column align-items-start">
+    <div class="d-flex w-100 justify-content-between">
+      <a style="color: inherit;" href="{% if notification.data.url %}{{ notification.data.url }}{% else %}javascript:void(0){% endif %}">
+        <h5 class="mb-1">{% if notification.data.title %}{{ notification.data.title }}{% else %}{% if notification.actor == user %}You{% else %}{{ notification.actor }}{% endif %} {{ notification.verb }}{% if notification.target %} {{ notification.target }}{% endif %}{% endif %}</h5>
+        {% if notification.description %}
+        <p class="mb-1 font-small-3">
+          {% if notification.data.style == 'count' %}
+          <i class="ft-heart red font-medium-2"></i>
+          {% elif notification.data.style == 'support' %}
+          <i class="ft-thumbs-up success font-medium-2"></i>
+          {% elif notification.level == 'warning' %}
+          <i class="ft-alert-triangle yellow font-medium-2"></i>
+          {% elif notification.level == 'success' %}
+          <i class="ft-check-circle cyan font-medium-2"></i>
+          {% elif notification.level == 'info' %}
+          <i class="ft-info teal font-medium-2"></i>
+          {% elif notification.level == 'error' %}
+          <i class="ft-x red font-medium-2"></i>
+          {% endif %}
+          {{ notification.description|safe }}
+        </p>
+        {% endif %}
+      </a>
+      <div>
+        <div>
+          <small>{{ notification.timesince }}</small>
+        </div>
+        <div class="text-center">
+          <button {% if not notification.unread %}style="visibility: hidden;" {% endif %}data-action="read" data-url="{% url 'notifications:mark_as_read' notification.slug %}" data-toggle="tooltip" title="Mark this notification as read" class="btn btn-sm mark-as-read"><i class="ft-check"></i></button>
+          <button data-action="delete" data-url="{% url 'notifications:delete' notification.slug %}" data-toggle="tooltip" title="Delete this notification"  class="btn btn-sm delete"><i class="ft-trash"></i></button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+
+{% endblock %}
+{% block customscript %}
+    <script>
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+
+        $("button.mark-as-read, button.delete").click(function(){
+          console.log('fuck')
+          $btn = $(this);
+          action = $btn.data('action');
+          url = $btn.data('url');
+          $.ajax({url: url,
+                 success: function(){
+                   if (action == 'delete'){
+                     $btn.closest('.list-group-item').hide();
+                   } else if (action == 'read') {
+                     $btn.css('visibility', 'hidden');
+                     $btn.tooltip('dispose')
+                   }
+                 }
+          })
+        });
+    });
+
+    </script>
+{% endblock %}
