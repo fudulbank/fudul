@@ -572,13 +572,14 @@ def show_session_results(request, slugs, exam_pk, session_pk):
     if not session.can_user_access(request.user):
         raise PermissionDenied
 
-    if not session.has_finished() and \
+    if not session.has_finished and \
        request.user == session.submitter:
         answers = []
         for question in session.get_unused_questions():
             answer = Answer(session=session, question=question)
             answers.append(answer)
         Answer.objects.bulk_create(answers)
+        session.set_has_finished()
 
     question_pool = session.get_questions()
 
@@ -692,6 +693,7 @@ def submit_answer(request):
 
     answer = Answer.objects.create(session=session, question=question,
                                    choice=choice)
+    session.set_has_finished()
 
     return {}
 

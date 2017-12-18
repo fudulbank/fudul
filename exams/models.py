@@ -455,6 +455,13 @@ class Session(models.Model):
                                           object_id_field='actor_object_id',
                                           related_query_name="sessions")
 
+    # We store this value instead of calculating it dynamically,
+    # because this can tremendously enhance performance.  This only
+    # applies to sessions that have the exam mode enabled (does not
+    # apply to session.session_mode = 'SOLVED' and
+    # session.session_mode = 'INCOMPLETE')
+    has_finished = models.NullBooleanField(default=None)
+
     objects = managers.SessionQuerySet.as_manager()
 
     def get_score(self):
@@ -483,8 +490,18 @@ class Session(models.Model):
                               .distinct()\
                               .count()
 
-    def has_finished(self):
-        return not self.get_unused_questions().exists()
+    def set_has_finished(self):
+        # Session that are either 'INCOMPLETE' or 'SOLVED' cannot be
+        # considered 'finsihed'
+        if self.session_mode in ['INCOMPLETE', 'SOLVED']:
+            return
+
+        has_finished = not self.get_unused_questions().exists()
+
+        # Do not trigger save, unless the value has changed
+        if self.has_finished != has_finished:
+            self.has_finished = has_finished
+            self.save()
 
     def get_question_sequence(self, question):
         # global_sequence may not be set for freshly created
@@ -515,7 +532,7 @@ class Session(models.Model):
         # question.
         if question_pk:
             current_question = get_object_or_404(self.get_questions(), pk=question_pk)
-        elif not self.has_finished():
+        elif not self.has_finished:
             current_question = self.get_unused_questions().first()
         else:
             current_question = self.get_questions()\

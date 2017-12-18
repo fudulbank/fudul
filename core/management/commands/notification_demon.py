@@ -18,11 +18,8 @@ class Command(BaseCommand):
         target_date = timezone.now() - datetime.timedelta(2)
         pending_sessions = Session.objects.select_related('exam', 'exam__category')\
                                           .undeleted()\
-                                          .with_accessible_questions()\
-                                          .filter(submission_date__lte=target_date)\
-                                          .annotate(question_number=Count('questions'),
-                                                    answer_number=Count('answer'))\
-                                          .filter(question_number__gt=F('answer_number'))\
+                                          .filter(submission_date__lte=target_date,
+                                                  has_finished=False)\
                                           .exclude(actor_notifications__verb='is still pending')\
                                           .exclude(session_mode__in=['INCOMPLETE', 'SOLVED'])
         for session in pending_sessions:
