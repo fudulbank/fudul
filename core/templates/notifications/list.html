@@ -7,7 +7,7 @@
 {% if notifications.unread.exists %}
 <button type="button" class="btn btn-sm mark-all-as-read"><i class="ft-check"></i> Mark all as read</button>
 {% endif %}
-{% if notifications.all.exists %}
+{% if notifications.exists %}
 <button type="button" class="btn btn-sm btn-danger" id="mark-all-as-deleted"><i class="ft-trash"></i> Delete all notifications</button>
 {% endif %}
 {% endblock %}
@@ -20,6 +20,7 @@
 {% block content %}
 
 
+{% if notifications.exists %}
 <div class="list-group" id="notifications">
   {% for notification in notifications %}
   <div class="list-group-item list-group-item-action flex-column align-items-start">
@@ -54,13 +55,18 @@
           <button data-action="delete" data-url="{% url 'notifications:delete' notification.slug %}" data-toggle="tooltip" title="Delete this notification"  class="btn btn-sm delete"><i class="ft-trash"></i></button>
         </div>
       </div>
-
     </div>
   </div>
   {% endfor %}
 </div>
-
-
+{% else %}
+<div class="card">
+  <div class="card-body">
+    <h4 class="card-title">You do not have any notifications</h4>
+    <p>Go contribute to Fudul: edit questions, add explanations, add mnemonics, and correct answers.  We will inform you whenever examiners interact with your contributions!</p>
+  </div>
+</div>
+{% endif %}
 {% endblock %}
 {% block customscript %}
     <script>
