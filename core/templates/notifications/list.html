@@ -7,6 +7,9 @@
 {% if notifications.unread.exists %}
 <button type="button" class="btn btn-sm mark-all-as-read"><i class="ft-check"></i> Mark all as read</button>
 {% endif %}
+{% if notifications.all.exists %}
+<button type="button" class="btn btn-sm btn-danger" id="mark-all-as-deleted"><i class="ft-trash"></i> Delete all notifications</button>
+{% endif %}
 {% endblock %}
 
 {% block breadcrumb %}
@@ -17,7 +20,7 @@
 {% block content %}
 
 
-<div class="list-group">
+<div class="list-group" id="notifications">
   {% for notification in notifications %}
   <div class="list-group-item list-group-item-action flex-column align-items-start">
     <div class="d-flex w-100 justify-content-between">
@@ -64,8 +67,16 @@
     $(function () {
         $('[data-toggle="tooltip"]').tooltip();
 
+        $("#mark-all-as-deleted").click(function(){
+          $.ajax({url: "{% url 'mark_all_notifications_as_deleted' %}",
+                  method: 'POST',
+                  success: function(){
+                    $("#notifications").html("")
+                  }
+          });
+        });
+
         $("button.mark-as-read, button.delete").click(function(){
-          console.log('fuck')
           $btn = $(this);
           action = $btn.data('action');
           url = $btn.data('url');
