@@ -275,6 +275,11 @@
       background: 0 0;
       border: 0;
     }
+
+    /*Any list within a tooltip should be left-aligned*/
+    .tooltip-inner ul{
+      text-align: left;
+    }
   </style>
     </head>
     <body data-session-mode="{{ session.session_mode }}" data-has-finished="{% if session.has_finished %}true{% else %}false{% endif %}">
