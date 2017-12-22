@@ -545,6 +545,7 @@
         action = $(this).data('action');
         choice_pk = $(this).data('choice-pk');
         url = "{% url 'exams:correct_answer' %}?" + $.param({choice_pk: choice_pk})
+        _paq.push(['trackEvent', 'show_session', 'answer_correction', 'delete-notification']);
 
         $.ajax({
             url: url,
