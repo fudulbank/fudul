@@ -280,6 +280,11 @@
     .tooltip-inner ul{
       text-align: left;
     }
+
+    /*By default, Bootstrap has a maximum of 200px, but we look prettier at 250px*/
+    .tooltip-inner{
+      max-width: 250px
+    }
   </style>
     </head>
     <body data-session-mode="{{ session.session_mode }}" data-has-finished="{% if session.has_finished %}true{% else %}false{% endif %}">
