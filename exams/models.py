@@ -4,11 +4,15 @@ from django.core.urlresolvers import reverse
 from django.db import models
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from accounts.models import College, Batch
-from . import managers
-import accounts.utils
 import textwrap
+
+from . import managers
+from accounts.models import College, Batch
 from ckeditor_uploader.fields import RichTextUploadingField
+from notifications.models import Notification
+from notifications.signals import notify
+import accounts.utils
+
 
 class Source(models.Model):
     name = models.CharField(max_length=100)
@@ -345,6 +349,15 @@ class Revision(models.Model):
     #NOTE:colud be a model instead
     approved_by = models.ForeignKey(User,related_name="approved_revision",null=True, blank=True)
 
+    target_notifications = GenericRelation('notifications.Notification',
+                                           content_type_field='target_content_type',
+                                           object_id_field='target_object_id',
+                                           related_query_name="target_revisions")
+    actor_notifications = GenericRelation('notifications.Notification',
+                                           content_type_field='actor_content_type',
+                                           object_id_field='actor_object_id',
+                                           related_query_name="acting_revisions")
+
     def get_previous(self):
         return self.question.revision_set\
                             .filter(submission_date__lt=self.submission_date)\
@@ -362,14 +375,43 @@ class Revision(models.Model):
                                         session=session)\
                                 .last()
 
+    def get_shorten_text(self):
+        return textwrap.shorten(self.text, 70,
+                                placeholder='...')
+
     def save(self, *args, **kwargs):
         if self.is_approved:
             self.approval_date = timezone.now()
         super(Revision, self).save(*args, **kwargs)
 
+    def unnotify_submitter(self, user):
+        Notification.objects.filter(verb='approved',
+                                    target_revisions=self).delete()
+
+    def notify_submitter(self, actor):
+        if not self.approved_by:
+            return
+
+        title = "{} was approved".format(str(self))
+        user_credit = accounts.utils.get_user_credit(self.approved_by)
+        description = "Your edit to question #{} in {} was approved by {}".format(self.question.pk,
+                                                                                  self.question.exam.name,
+                                                                                  user_credit)
+        url = self.get_absolute_url()
+        notify.send(self.approved_by, recipient=self.submitter,
+                    target=self, verb='approved', title=title,
+                    description=description, url=url)
+
+    def get_absolute_url(self):
+        return reverse("exams:list_revisions",
+                       args=(self.question.exam.category.get_slugs(),
+                             self.question.exam.pk, self.question.pk))
+
     def __str__(self):
-        return textwrap.shorten(self.text, 70,
-                                placeholder='...')
+        if self.question:
+            return "Revision #{} of Q#{}".format(self.pk, self.question.pk)
+        else:
+            return "Revision #{}".format(self.pk)
 
 class Choice(models.Model):
     text = models.CharField(max_length=255)
@@ -408,10 +450,17 @@ class Session(models.Model):
     question_filter = models.CharField(max_length=20, choices=questions_choices, default=None)
     submission_date = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
-    notifications = GenericRelation('notifications.Notification',
-                                    content_type_field='actor_content_type',
-                                    object_id_field='actor_object_id',
-                                    related_query_name="sessions")
+    actor_notifications = GenericRelation('notifications.Notification',
+                                          content_type_field='actor_content_type',
+                                          object_id_field='actor_object_id',
+                                          related_query_name="sessions")
+
+    # We store this value instead of calculating it dynamically,
+    # because this can tremendously enhance performance.  This only
+    # applies to sessions that have the exam mode enabled (does not
+    # apply to session.session_mode = 'SOLVED' and
+    # session.session_mode = 'INCOMPLETE')
+    has_finished = models.NullBooleanField(default=None)
 
     objects = managers.SessionQuerySet.as_manager()
 
@@ -441,8 +490,18 @@ class Session(models.Model):
                               .distinct()\
                               .count()
 
-    def has_finished(self):
-        return not self.get_unused_questions().exists()
+    def set_has_finished(self):
+        # Session that are either 'INCOMPLETE' or 'SOLVED' cannot be
+        # considered 'finsihed'
+        if self.session_mode in ['INCOMPLETE', 'SOLVED']:
+            return
+
+        has_finished = not self.get_unused_questions().exists()
+
+        # Do not trigger save, unless the value has changed
+        if self.has_finished != has_finished:
+            self.has_finished = has_finished
+            self.save()
 
     def get_question_sequence(self, question):
         # global_sequence may not be set for freshly created
@@ -473,7 +532,7 @@ class Session(models.Model):
         # question.
         if question_pk:
             current_question = get_object_or_404(self.get_questions(), pk=question_pk)
-        elif not self.has_finished():
+        elif not self.has_finished:
             current_question = self.get_unused_questions().first()
         else:
             current_question = self.get_questions()\
@@ -484,6 +543,11 @@ class Session(models.Model):
 
     def can_user_access(self, user):
         return self.submitter == user or user.is_superuser
+
+    def get_absolute_url(self):
+        return reverse("exams:show_session",
+                       args=(self.exam.category.get_slugs(),
+                             self.exam.pk, self.pk))
 
     def __str__(self):
         return "Session #{}".format(self.pk)
@@ -530,6 +594,31 @@ class AnswerCorrection(models.Model):
     justification = models.TextField(default="")
     submission_date = models.DateTimeField(auto_now_add=True)
 
+    target_notifications = GenericRelation('notifications.Notification',
+                                           content_type_field='target_content_type',
+                                           object_id_field='target_object_id',
+                                           related_query_name="target_corrections")
+    actor_notifications = GenericRelation('notifications.Notification',
+                                           content_type_field='actor_content_type',
+                                           object_id_field='actor_object_id',
+                                           related_query_name="acting_corrections")
+
+    def unnotify_submitter(self, actor):
+        Notification.objects.filter(verb='supported',
+                                    target_corrections=self).delete()
+
+    def notify_submitter(self, actor):
+        title = "Your correction was supported by another Fuduli!"
+        user_credit = accounts.utils.get_user_credit(actor)
+        description = "Your correction for question #{} was supported by {}".format(self.choice.revision.question.pk,
+                                                                                    user_credit)
+        notify.send(actor, recipient=self.submitter, target=self,
+                    verb='supported', title=title,
+                    description=description, style='support')
+
+    def __str__(self):
+        return "Correction of Q#{}".format(self.choice.revision.question.pk)
+
 class ExplanationRevision(models.Model):
     question = models.ForeignKey(Question,
                                  related_name="explanation_revisions")
@@ -547,11 +636,29 @@ class ExplanationRevision(models.Model):
     submission_date = models.DateTimeField(auto_now_add=True)
 
     objects = managers.RevisionQuerySet.as_manager()
+    target_notifications = GenericRelation('notifications.Notification',
+                                           content_type_field='target_content_type',
+                                           object_id_field='target_object_id',
+                                           related_query_name="target_explanation_revisions")
+    actor_notifications = GenericRelation('notifications.Notification',
+                                           content_type_field='actor_content_type',
+                                           object_id_field='actor_object_id',
+                                           related_query_name="acting_explanation_revisions")
 
-    def __str__(self):
+    def get_absolute_url(self):
+        return reverse("exams:list_revisions",
+                       args=(self.question.exam.category.get_slugs(),
+                             self.question.exam.pk, self.question.pk))
+
+    def get_shorten_text(self):
         return textwrap.shorten(self.explanation_text, 70,
                                 placeholder='...')
 
+    def __str__(self):
+        if self.question:
+            return "Explanation revision #{} of Q#{}".format(self.pk, self.question.pk)
+        else:
+            return "Explanation revision #{}".format(self.pk)
 
 class Mnemonic(models.Model):
     question = models.ForeignKey(Question)
@@ -566,3 +673,27 @@ class Mnemonic(models.Model):
     submission_date = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
     objects = managers.MnemonicQuerySet.as_manager()
+
+    target_notifications = GenericRelation('notifications.Notification',
+                                           content_type_field='target_content_type',
+                                           object_id_field='target_object_id',
+                                           related_query_name="target_mnemonics")
+    actor_notifications = GenericRelation('notifications.Notification',
+                                           content_type_field='actor_content_type',
+                                           object_id_field='actor_object_id',
+                                           related_query_name="acting_mnemonics")
+
+    def notify_submitter(self, actor):
+        title = "Your mnemonic was liked by another Fuduli!"
+        user_credit = accounts.utils.get_user_credit(actor)
+        description = "Your mnemonic for question #{} was supported by {}".format(self.question.pk,
+                                                                                  user_credit)
+        notify.send(actor, recipient=self.submitter, target=self,
+                    verb='liked', title=title,
+                    description=description, style='support')
+
+    def __str__(self):
+        if self.question:
+            return "Mnemonic #{} of Q#{}".format(self.pk, self.question.pk)
+        else:
+            return "Mnemonic #{}".format(self.pk)

@@ -33,7 +33,7 @@ def get_user_credit(contributing_user, viewing_user=None):
         full = False
 
     if profile:
-        if profile.display_full_name == 'Y':
+        if profile.display_full_name == 'Y' or full:
             credit = utils.get_user_full_name(contributing_user)
             if profile.nickname:
                 credit += " ({})".format(profile.nickname)
@@ -45,4 +45,3 @@ def get_user_credit(contributing_user, viewing_user=None):
     else:  # not profile
         credit = contributing_user.username
     return credit
-

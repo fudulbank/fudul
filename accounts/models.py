@@ -7,7 +7,7 @@ from django.utils.translation import ugettext as _
 
 display_full_name_choices = (
     ('Y', 'Display my full name'),
-    ('N', 'Only display nickname'),
+    ('N', 'Display only nickname'),
 )
 
 
