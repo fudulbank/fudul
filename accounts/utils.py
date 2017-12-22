@@ -54,6 +54,7 @@ def get_user_college(user):
 
     return college
 
+
 def get_user_credit(contributing_user, viewing_user=None):
     if not contributing_user:
         return None
@@ -70,15 +71,18 @@ def get_user_credit(contributing_user, viewing_user=None):
     else:
         full = False
 
-    if profile and full:
-        credit  = get_user_full_name(contributing_user)
-        if profile.nickname:
-            credit += " ({})".format(profile.nickname)
-    elif profile and not full:
-        if profile.nickname:
-            credit = profile.nickname
-        else:
-            credit = contributing_user.username
-    else: # not profile
+    if profile:
+        if profile.display_full_name == 'Y' or full:
+            credit =get_user_full_name(contributing_user)
+            if profile.nickname:
+                credit += " ({})".format(profile.nickname)
+        elif profile.display_full_name == 'N':
+            if profile.nickname:
+                credit = profile.nickname
+            else:
+                credit = contributing_user.username
+    else:  # not profile
         credit = contributing_user.username
     return credit
+
+
