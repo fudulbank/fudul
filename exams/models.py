@@ -616,6 +616,10 @@ class AnswerCorrection(models.Model):
                     verb='supported', title=title,
                     description=description, style='support')
 
+    def can_user_delete(self, user):
+        return self.submitter == user or \
+               self.choice.revision.question.exam.can_user_edit(user)
+
     def __str__(self):
         return "Correction of Q#{}".format(self.choice.revision.question.pk)
 

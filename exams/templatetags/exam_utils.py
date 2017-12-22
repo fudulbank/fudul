@@ -132,6 +132,10 @@ def can_oppose_correction(user, correction):
     return correction.submitter != user and not correction.opposing_users.filter(pk=user.pk).exists()
 
 @register.filter
+def can_delete_correction(user, correction):
+    return correction.can_user_delete(user)
+
+@register.filter
 def get_question_created_count(user, question_pool=None):
     if not question_pool:
         question_pool = models.Question.objects\

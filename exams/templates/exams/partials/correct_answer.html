@@ -43,7 +43,7 @@
                        $choice_row.find('.check').html($notification);
                        $choice_row.find('.correct i').hide();
                        updateCorrectionTooltip(data.correction_html, choice_pk)
-                       handleCorrectionVotes(); {# defined in the main show_session.html #}
+                       handleCorrectionInteractions();
                    } else {
                        $("#correct-answer-modal .modal-body").html(data);
                    }

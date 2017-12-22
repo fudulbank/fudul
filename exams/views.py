@@ -1126,8 +1126,7 @@ def delete_correction(request):
     correction = get_object_or_404(AnswerCorrection, choice__pk=choice_pk)
 
     # PERMISSION CHECK
-    if not correction.submitter == request.user and \
-       not exam.can_user_edit(request.user):
+    if not correction.can_user_delete(request.user):
         raise PermissionDenied
 
     new_submitter = correction.supporting_users.first()
