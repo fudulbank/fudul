@@ -4,6 +4,11 @@ from django.contrib.auth.models import User
 import re
 from userena.models import UserenaBaseProfile
 from django.utils.translation import ugettext as _
+from userena.utils import generate_sha1,get_datetime_now,get_protocol
+from userena import settings as userena_settings
+from django.contrib.sites.models import Site
+from userena.mail import UserenaConfirmationMail
+import datetime
 
 display_full_name_choices = (
     ('Y', 'Display my full name'),
@@ -25,6 +30,16 @@ class Profile(UserenaBaseProfile):
     submission_date = models.DateTimeField(auto_now_add=True)
     modification_date = models.DateTimeField(auto_now=True, null=True)
     display_full_name = models.CharField(max_length=1, choices=display_full_name_choices,default="N")
+    personal_email_unconfirmed = models.EmailField(('unconfirmed email address'),
+                                                   blank=True,
+                                                   help_text='Temporary email address when the user requests an email change.')
+    personal_email_confirmation_key = models.CharField(_('unconfirmed email verification key'),
+                                                       max_length=40,
+                                                       blank=True)
+
+    personal_email_confirmation_key_created = models.DateTimeField(_('creation date of email confirmation key'),
+                                                                   blank=True,
+                                                                   null=True)
 
     def __str__(self):
         return self.user.username
@@ -38,6 +53,64 @@ class Profile(UserenaBaseProfile):
             full_name = " ".join([self.first_name, self.middle_name,
                                   self.last_name])
         return full_name
+
+#     ----------------PLAYGROUND----------------------
+
+    def change_personal_email(self, personal_email):
+        """
+        Changes the email address for a user.
+
+        A user needs to verify this new email address before it becomes
+        active. By storing the new email address in a temporary field --
+        ``temporary_email`` -- we are able to set this email address after the
+        user has verified it by clicking on the verification URI in the email.
+        This email gets send out by ``send_verification_email``.
+
+        :param email:
+            The new email address that the user wants to use.
+
+        """
+        self.personal_email_unconfirmed = personal_email
+
+        salt, hash = generate_sha1(self.first_name)
+        self.persona_email_confirmation_key = hash
+        self.personal_email_confirmation_key_created = get_datetime_now()
+        self.save()
+
+        # Send email for activation
+        self.send_confirmation_personal_email()
+
+    def send_confirmation_personal_email(self):
+        """
+        Sends an email to confirm the new email address.
+
+        This method sends out two emails. One to the new email address that
+        contains the ``email_confirmation_key`` which is used to verify this
+        this email address with :func:`UserenaUser.objects.confirm_email`.
+
+        The other email is to the old email address to let the user know that
+        a request is made to change this email address.
+
+        """
+        context = {'user': self.user,
+                  'without_usernames': userena_settings.USERENA_WITHOUT_USERNAMES,
+                  'new_email': self.personal_email_unconfirmed,
+                  'protocol': get_protocol(),
+                  'confirmation_key': self.personal_email_confirmation_key,
+                  'site': Site.objects.get_current()}
+
+        mailer = UserenaConfirmationMail(context=context)
+        mailer.generate_mail("confirmation", "_old")
+
+        if self.alternative_email:
+            mailer.send_mail(self.alternative_email)
+
+        mailer.generate_mail("confirmation", "_new")
+        mailer.send_mail(self.personal_email_unconfirmed)
+
+
+
+#     ------------------------------------
 
 class Batch(models.Model):
     name = models.CharField(max_length=50)

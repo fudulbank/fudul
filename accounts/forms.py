@@ -5,7 +5,7 @@ from . import models
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied, ValidationError
 
-
+attrs_dict = {'class': 'required'}
 
 
 class CustomSignupForm(SignupFormOnlyEmail):
@@ -27,7 +27,6 @@ class CustomSignupForm(SignupFormOnlyEmail):
 
         if 'alternative_email' in cleaned_data:
             alternative_email = self.cleaned_data['alternative_email']
-            email = self.cleaned_data.get('email')
             if alternative_email and User.objects.filter(profile__alternative_email=alternative_email).exists():
                 msg = " Personal email address already registered. "
                 self._errors['alternative_email'] = self.error_class([msg])
@@ -119,7 +118,7 @@ class CustomEditProfileForm(forms.ModelForm):
     class Meta:
         model = models.Profile
         fields = ['first_name', 'middle_name', 'last_name',
-                  'nickname', 'alternative_email', 'mobile_number','display_full_name']
+                  'nickname', 'mobile_number','display_full_name']
 
     def clean(self):
         cleaned_data = super(CustomEditProfileForm, self).clean()
@@ -175,4 +174,38 @@ class CustomEditProfileForm(forms.ModelForm):
 
         user_profile.save()
 
+
+
+class ChangePersonalEmailForm(forms.Form):
+    alternative_email = forms.EmailField(widget=forms.TextInput(attrs=dict(attrs_dict,maxlength=75)),label="New personal email")
+
+    def __init__(self, user, *args, **kwargs):
+        """
+        The current ``user`` is needed for initialisation of this form so
+        that we can check if the email address is still free and not always
+        returning ``True`` for this query because it's the users own e-mail
+        address.
+
+        """
+        super(ChangePersonalEmailForm, self).__init__(*args, **kwargs)
+        if not isinstance(user, User):
+            raise TypeError("user must be an instance of %s" % User)
+        else: self.user = user
+
+    def clean_email(self):
+        """ Validate that the email is not already registered with another user """
+        if self.cleaned_data['alternative_email'].lower() == self.alternative_email:
+            raise forms.ValidationError('You\'re already known under this email.')
+        if User.objects.filter(profile__alternative_email__iexact=self.cleaned_data['alternative_email']).exclude(profile__alternative_email__iexact=self.user.profile.alternative_email):
+            raise forms.ValidationError('This email is already in use. Please supply a different email.')
+        return self.cleaned_data['alternative_email']
+
+    def save(self):
+        """
+        Save method calls :func:`user.change_email()` method which sends out an
+        email with an verification key to verify and with it enable this new
+        email address.
+
+        """
+        return self.user.profile.change_personal_email(self.cleaned_data['alternative_email'])
 
