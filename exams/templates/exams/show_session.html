@@ -519,6 +519,7 @@
         url = "{% url 'exams:delete_correction' %}?" + $.param({choice_pk: choice_pk})
         pk_selector = "[data-choice-pk=" + choice_pk + "]";
         $choice_row = $(".question-body tr" + pk_selector);
+        $(this).tooltip('hide');
         $choice_row.find('.answer-correction-notification').tooltip('dispose');
 
         $.ajax({
