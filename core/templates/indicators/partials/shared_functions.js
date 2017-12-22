@@ -39,7 +39,7 @@ function get_hover(count_field, batch_pk){
 
     end_date_str = end_date.format('DD MMM')
     start_date_str = start_date.format('DD MMM')
-    return row[count_field] + ' (' + percentage + '%)<br>' + start_date_str + '‒' + end_date_str
+    return '<span style=\'font-weight: 700; text-decoration: underline;\'>' + start_date_str + '‒' + end_date_str + '</span><br>' +  row[count_field] + ' (' + percentage + '%)'
   });
 }
 
@@ -47,15 +47,17 @@ function get_contribution_data(batch_pk){
   revision_field = 'revision_count'
   explanation_field = 'explanation_count'
   correction_field = 'correction_count'
+  mnemonic_field = 'mnemonic_count'
 
   if (batch_pk){
     revision_field += '_' + batch_pk
     explanation_field += '_' + batch_pk
     correction_field += '_' + batch_pk
+    mnemonic_field += '_' + batch_pk
   }
 
   return rows.map(function(row){
-    contribution_count = parseInt(row[revision_field]) + parseInt(row[explanation_field]) + parseInt(row[correction_field])
+    contribution_count = parseInt(row[revision_field]) + parseInt(row[explanation_field]) + parseInt(row[correction_field]) + parseInt(row[mnemonic_field])
     return contribution_count
   })
 }
@@ -65,11 +67,13 @@ function get_contribution_hover(batch_pk){
   revision_field = 'revision_count'
   explanation_field = 'explanation_count'
   correction_field = 'correction_count'
+  mnemonic_field = 'mnemonic_count'
 
   if (batch_pk){
     revision_field += '_' + batch_pk
     explanation_field += '_' + batch_pk
     correction_field += '_' + batch_pk
+    mnemonic_field += '_' + batch_pk
   }
 
   return rows.map(function(row) {
@@ -80,10 +84,11 @@ function get_contribution_hover(batch_pk){
     explanation_percentage = get_change_percentage(explanation_field, row)
     revision_percentage = get_change_percentage(revision_field, row)
     correction_percentage = get_change_percentage(correction_field, row)
+    mnemonic_percentage = get_change_percentage(mnemonic_field, row)
 
     end_date_str = end_date.format('DD MMM')
     start_date_str = start_date.format('DD MMM')
-    return 'Revisions added: ' + row[revision_field] + ' (' + revision_percentage + '%)<br>' + 'Explanations added: ' + row[explanation_field] + ' (' + explanation_percentage + '%)<br>' + 'Corrections added: ' + row[correction_field] + ' (' + correction_percentage + '%)<br>' + start_date_str + '‒' + end_date_str
+    return '<span style=\'font-weight: 700; text-decoration: underline;\'>' + start_date_str + '‒' + end_date_str + '</span>' + 'Revisions added: ' + row[revision_field] + ' (' + revision_percentage + '%)<br>' + 'Explanations added: ' + row[explanation_field] + ' (' + explanation_percentage + '%)<br>' + 'Corrections added: ' + row[correction_field] + ' (' + correction_percentage + '%)' + 'Mnemonics added: ' + row[mnemonic_field] + ' (' + mnemonic_percentage + '%)<br>'
   });
 }
 

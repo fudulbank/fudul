@@ -199,7 +199,6 @@ def handle_question(request, exam_pk, question_pk=None):
         revision.save()
         revision_form.save_m2m()
 
-
         revisionchoiceformset.instance = revision
         revisionchoiceformset.save()
 
@@ -208,8 +207,11 @@ def handle_question(request, exam_pk, question_pk=None):
         revision.is_approved = utils.test_revision_approval(revision)
         revision.save()
 
-        explanation.question = question
-        explanation = explanation_form.save()
+        explanation = explanation_form.save(commit=False)
+        if explanation:
+            explanation.is_contribution = not teams.utils.is_editor(request.user)
+            explanation.question = question
+            explanation.save()
 
         template = get_template('exams/partials/exam_stats.html')
         context = {'exam': exam}

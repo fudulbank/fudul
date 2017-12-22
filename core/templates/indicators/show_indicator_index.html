@@ -1,6 +1,11 @@
 {% extends 'base_new.html' %}{% load static %}
 {% block title %}Fudul | Indicators{% endblock %}
 
+{% block head %}
+<script src="https://cdn.plot.ly/plotly-1.31.2.min.js" integrity="sha384-pEbvKAAHroDnU/rb2+IiUrslRtrsAGTaQNZjaFWCY3d/h5FlaWxqMkhh8MX4m0dQ" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.19.3/moment.min.js" integrity="sha384-8xuC0/BWqiPX72DT7LJqj+QiH5eYVT5KsUOewB/DmXi7KPPEdt4Td3xu3lg+slER" crossorigin="anonymous"></script>
+{% endblock %}
+
 {% block header_title %}
 <h1>Indicators</h1>
 {% endblock %}
@@ -8,12 +13,6 @@
 {% block breadcrumb %}
       <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
       <li class="breadcrumb-item active">Indicators</li>
-{% endblock %}
-
-{% block head %}
-<script src="https://cdn.plot.ly/plotly-1.31.2.min.js" integrity="sha384-pEbvKAAHroDnU/rb2+IiUrslRtrsAGTaQNZjaFWCY3d/h5FlaWxqMkhh8MX4m0dQ" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.19.3/moment.min.js" integrity="sha384-8xuC0/BWqiPX72DT7LJqj+QiH5eYVT5KsUOewB/DmXi7KPPEdt4Td3xu3lg+slER" crossorigin="anonymous"></script>
-
 {% endblock %}
 
 {% block content %}
