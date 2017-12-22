@@ -8,7 +8,8 @@
       {% endif %}
     </div>
 
-    <p class="mb-0">{{ correction.submitter.profile.nickname|default:correction.submitter.username }} suggests that <strong>"{{ choice }}"</strong> is the correct answer, giving the following justification: "{{ correction.justification }}"<br>{% if correction.supporting_users.exists %}<span data-toggle="tooltip" data-html="true" title="<ul>{% for voting_user in correction.supporting_users.all %}<li>{{ voting_user|get_user_credit:user }}</li>{% endfor %}</ul>">{{ correction.supporting_users.count }} users supported this correction</span>.{% endif %}{% if correction.opposing_users.exists %} <span data-toggle="tooltip" data-html="true" title="<ul>{% for voting_user in correction.opposing_users.all %}<li>{{ voting_user|get_user_credit:user }}</li>{% endfor %}</ul>">{{ correction.opposing_users.count }} users opposed this correction</span>.{% endif %}</p>
+    <p class="text-left">{{ correction.submitter.profile.nickname|default:correction.submitter.username }} suggests that <strong>"{{ choice }}"</strong> is the correct answer, giving the following justification: "{{ correction.justification }}"</p>
+    <p class="text-left">{% if correction.supporting_users.exists %}<span data-toggle="tooltip" data-html="true" title="<ul>{% for voting_user in correction.supporting_users.all %}<li>{{ voting_user|get_user_credit:user }}</li>{% endfor %}</ul>">{{ correction.supporting_users.count }} users supported this correction</span>.{% endif %}{% if correction.opposing_users.exists %} <span data-toggle="tooltip" data-html="true" title="<ul>{% for voting_user in correction.opposing_users.all %}<li>{{ voting_user|get_user_credit:user }}</li>{% endfor %}</ul>">{{ correction.opposing_users.count }} users opposed this correction</span>.{% endif %}</p>
 
     <div class="row justify-content-center">
       <div class="col-12">
