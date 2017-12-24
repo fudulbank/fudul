@@ -427,6 +427,10 @@ def create_session(request, slugs, exam_pk):
     if not category.can_user_access(request.user):
         raise PermissionDenied
 
+    if not exam.is_public and \
+       not category.is_user_editor(request.user):
+        return render(request, "exams/coming_soon.html", {'exam': exam})
+
     # If the exam has no approved questions, it doesn't exist for
     # users.
     if not exam.can_user_edit(request.user) and \

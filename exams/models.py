@@ -126,6 +126,8 @@ class Exam(models.Model):
     batches_allowed_to_take = models.ForeignKey(Batch, null=True, blank=True)
     exam_types = models.ManyToManyField('ExamType', blank=True)
     credits = RichTextUploadingField(default='', blank=True)
+    is_public = models.BooleanField("This exam is publicly available for users who are not editors",
+                                    default=True, blank=True)
     objects = managers.ExamQuerySet.as_manager()
 
     def get_user_count(self):
