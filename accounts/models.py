@@ -9,6 +9,7 @@ from userena import settings as userena_settings
 from django.contrib.sites.models import Site
 from userena.mail import UserenaConfirmationMail
 import datetime
+from accounts.managers import ProfileManger
 
 display_full_name_choices = (
     ('Y', 'Display my full name'),
@@ -40,6 +41,7 @@ class Profile(UserenaBaseProfile):
     personal_email_confirmation_key_created = models.DateTimeField(_('creation date of email confirmation key'),
                                                                    blank=True,
                                                                    null=True)
+    objects = ProfileManger()
 
     def __str__(self):
         return self.user.username

@@ -4,6 +4,8 @@ from userena.forms import SignupFormOnlyEmail, EditProfileForm
 from . import models
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied, ValidationError
+from userena.models import UserenaSignup
+
 
 attrs_dict = {'class': 'required'}
 
@@ -87,10 +89,10 @@ class CustomSignupForm(SignupFormOnlyEmail):
         user_profile.college = self.cleaned_data.get('college', None)
         user_profile.batch = self.cleaned_data.get('batch', None)
         user_profile.display_full_name = self.cleaned_data['display_full_name']
-
+        user_profile.alternative_email = self.cleaned_data['alternative_email']
 
         user_profile.save()
-
+        Profile.objects.generate_key_personal_email(new_user)
         # Userena expects to get the new user from this form, so
         # return the new user.
         return new_user

@@ -2,8 +2,27 @@ from django.db import models
 from django.contrib.auth.models import UserManager
 from userena.managers import UserenaManager,SHA1_RE
 from userena import signals as userena_signals
+from userena.utils import generate_sha1
+from django.utils.encoding import smart_text
+from django.utils.six import text_type
 
-class ProfileManger(UserenaManager):
+
+class ProfileManger(UserManager):
+
+    def generate_key_personal_email(self,user):
+
+        if isinstance(user.profile.first_name, text_type):
+            user.profile.first_name = smart_text(user.profile.first_name)
+        salt, activation_key = generate_sha1(user.profile.first_name)
+
+        try:
+            profile = self.filter(user=user)
+            profile.update(personal_email_confirmation_key=activation_key)
+        except self.model.DoesNotExist:
+            raise Exception("Profile doesnt exist")
+
+
+
     def confirm_personal_email(self, confirmation_key):
         """
         Confirm an email address by checking a ``confirmation_key``.
