@@ -255,6 +255,36 @@
         align-items: center;
     }
 
+    .answer-correction-header{
+      display: -ms-flexbox;
+      display: flex;
+      -ms-flex-align: center;
+      align-items: center;
+      -ms-flex-pack: justify;
+      justify-content: space-around;
+      padding: 5px;
+    }
+
+    .answer-correction-header .title{
+      margin-bottom: 0
+    }
+
+    .answer-correction-header .delete{
+      padding: 5px;
+      margin: -5px -5px -5px auto;
+      background: 0 0;
+      border: 0;
+    }
+
+    /*Any list within a tooltip should be left-aligned*/
+    .tooltip-inner ul{
+      text-align: left;
+    }
+
+    /*By default, Bootstrap has a maximum of 200px, but we look prettier at 250px*/
+    .tooltip-inner{
+      max-width: 250px
+    }
   </style>
     </head>
     <body data-session-mode="{{ session.session_mode }}" data-has-finished="{% if session.has_finished %}true{% else %}false{% endif %}">
@@ -340,8 +370,9 @@
     toastr.options.positionClass = "toast-top-left";
     toastr.options.preventDuplicates = true;
     active_keys = {};
-    was_solved_cell = '<i class="fa fa-check-square-o" aria-hidden="true"></i>';
-    is_marked_cell = '<i class="fa fa-flag" aria-hidden="true"></i>';
+    was_solved_markup = '<i class="fa fa-check-square-o" aria-hidden="true"></i>';
+    is_marked_markup = '<i class="fa fa-flag" aria-hidden="true"></i>';
+    wrong_answer_markup = '<i class="fa fa-times text-danger"></i>'
 
     function updateData(){
         current_sequence =  parseInt($("#question-sequence").html());
@@ -430,7 +461,7 @@
                $question.data('is-marked', data.is_marked);
                handleMarked(data.is_marked);
                if (data.is_marked){
-                 $question_row.find('td.is_marked').html(is_marked_cell);
+                 $question_row.find('td.is_marked').html(is_marked_markup);
                  _paq.push(['trackEvent', 'show_session', 'mark-question', 'add-mark']);
                } else {
                  $question_row.find('td.is_marked').html("");
@@ -480,21 +511,51 @@
 
     function updateCorrectionTooltip(html, choice_pk){
       pk_selector = "[data-choice-pk=" + choice_pk + "]";
-      $choice_row = $(".question-body.show tr" + pk_selector);
+      $choice_row = $(".question-body tr" + pk_selector);
       $choice_row.find('.answer-correction-notification').tooltip('dispose');
       $choice_row.find(".answer-correction-tooltip-container").remove();
       $choice_row.find('.check').append(html);
-      tooltip = $choice_row.find('.answer-correction-tooltip-body').get(0);
-      $choice_row.find('.answer-correction-notification').tooltip({html: true,
-                                                                   title: tooltip,
-                                                                   trigger: 'click'})
     }
 
     function handleCorrectionInteractions(context){
-      context.find(".support-correction, .oppose-correction").click(function(){
+      if (context === undefined){
+        context = $("#question-pool .question-body")
+      }
+
+      context.find('[data-toggle="tooltip"]').tooltip();
+
+      context.find(".delete").off('click').click(function(){
+        choice_pk = $(this).data('choice-pk');
+        url = "{% url 'exams:delete_correction' %}?" + $.param({choice_pk: choice_pk})
+        pk_selector = "[data-choice-pk=" + choice_pk + "]";
+        $choice_row = $(".question-body tr" + pk_selector);
+        $(this).tooltip('hide');
+        $choice_row.find('.answer-correction-notification').tooltip('dispose');
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            success: function(data){
+              if (data.success == 1){
+                toastr.success("Your correction was removed.")
+                if (data.correction_html){ // if we have a new submitter
+                  updateCorrectionTooltip(data.correction_html, choice_pk);
+                } else {
+                  // Before there was a correction, it was marked as a wrong answer
+                  $choice_row.find('.check').html(wrong_answer_markup);
+                }
+              } else {
+                toastr.error(data.message)
+              }
+            }
+        });
+      });
+
+      context.find(".support-correction, .oppose-correction").off('click').click(function(){
         action = $(this).data('action');
         choice_pk = $(this).data('choice-pk');
         url = "{% url 'exams:correct_answer' %}?" + $.param({choice_pk: choice_pk})
+        _paq.push(['trackEvent', 'show_session', 'answer_correction', 'delete-notification']);
 
         $.ajax({
             url: url,
@@ -511,7 +572,7 @@
         });
       });
 
-      context.find(".correct i").click(function () {
+      context.find(".correct i").off('click').click(function () {
           _paq.push(['trackEvent', 'show_session', 'answer_correction', 'click-correct']);
           $("#correct-answer-modal").modal('show');
           choice_pk = $(this).closest('tr').data('choice-pk');
@@ -520,7 +581,7 @@
       });
 
       context.find('.answer-correction-notification').each(function(){
-        $(this).click(function(){
+        $(this).off('click').click(function(){
           _paq.push(['trackEvent', 'show_session', 'answer_correction', 'click-notification']);
           $('.answer-correction-notification').not(this).tooltip('hide');
         });
@@ -669,7 +730,7 @@
         // be able to apply CSS.
         $question.data('was-solved', true).attr('data-was-solved', true);
         question_row = $('.navigate-row[data-question-sequence="' + current_sequence + '"]');
-        question_row.find('td.was_solved').html(was_solved_cell);
+        question_row.find('td.was_solved').html(was_solved_markup);
 
         // Disable choices upon submission
         $question.find(".question-choice").prop("disabled", "disabled")
@@ -788,8 +849,8 @@
          $('.question-body[data-question-sequence="' + i.toString() + '"]')
          $question = $('.question-body[data-question-sequence="' + i.toString() + '"]')
          question_pk = $question.data('question-pk');
-         was_solved = $question.data('was-solved') ? was_solved_cell : '<i class="fa fa-square-o" aria-hidden="true"></i>';
-         is_marked = $question.data('is-marked')  ? is_marked_cell : '';
+         was_solved = $question.data('was-solved') ? was_solved_markup : '<i class="fa fa-square-o" aria-hidden="true"></i>';
+         is_marked = $question.data('is-marked')  ? is_marked_markup : '';
          row = $("<tr class='navigate-row text-center' data-question-sequence='" + i.toString() + "'><td>" + i.toString() + "</td><td class='d-sm-table-cell d-none'>" + question_pk.toString() + "</td><td class='d-sm-table-cell d-none is_marked'>" + is_marked + "</td><td class='was_solved'>" + was_solved +"</td></tr>");
          row.click(function(){
            _paq.push(['trackEvent', 'show_session', 'navigation', 'click-navigate-row']);
@@ -848,9 +909,7 @@
         initializeKeyboard();
         updateData();
         initializeInteractions();
-
-        initial_context = $("#question-pool .question-body");
-        handleCorrectionInteractions(initial_context);
+        handleCorrectionInteractions();
 
         // Initialize tooltips
         $('[data-toggle="tooltip"]').tooltip()
@@ -971,5 +1030,3 @@
         </div>
     </body>
 </html>
-
-

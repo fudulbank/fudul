@@ -1,8 +1,16 @@
-{% with correction=choice.answer_correction %}{% load exam_utils account_utils%}
+{% with correction=choice.answer_correction %}{% load account_utils exam_utils %}
 <div class="answer-correction-tooltip-container">
   <div class="answer-correction-tooltip-body">
-    <h5>Answer correction</h5>
-    {{ correction.submitter|get_user_credit:user }} suggests that <strong>"{{ choice }}"</strong> is the correct answer.  {% if correction.supporting_users.exists %}{{ correction.supporting_users.count }} users supported this correction.{% endif %}{% if correction.opposing_users.exists %}{{ correction.opposing_users.count }} users opposed this correction.{% endif %}
+    <div class="answer-correction-header">
+      <h5 class="title">Answer correction</h5>
+      {% if user|can_delete_correction:correction %}
+      <button data-choice-pk="{{ choice.pk }}" data-toggle="tooltip" data-html="true" title="{% if correction.supporting_users.exists %}<strong>Delete this correction.</strong><br>Please note that other Fudul members have supported this correction.  By deleting this correction, your name will be removed from being the primary submitter and will be replaced by the name of another fellow Fudul member{% else %}Delete this correction{% endif %}." class="delete"><i class="fa fa-trash text-danger" aria-hidden="true"></i></button>
+      {% endif %}
+    </div>
+
+    <p class="text-left">{{ correction.submitter|get_user_credit:user }} suggests that <strong>"{{ choice }}"</strong> is the correct answer, giving the following justification: "{{ correction.justification }}"</p>
+    <p class="text-left">{% if correction.supporting_users.exists %}<span data-toggle="tooltip" data-html="true" title="<ul>{% for voting_user in correction.supporting_users.all %}<li>{{ voting_user|get_user_credit:user }}</li>{% endfor %}</ul>">{{ correction.supporting_users.count }} users supported this correction</span>.{% endif %}{% if correction.opposing_users.exists %} <span data-toggle="tooltip" data-html="true" title="<ul>{% for voting_user in correction.opposing_users.all %}<li>{{ voting_user|get_user_credit:user }}</li>{% endfor %}</ul>">{{ correction.opposing_users.count }} users opposed this correction</span>.{% endif %}</p>
+
     <div class="row justify-content-center">
       <div class="col-12">
         <button {% if not user|can_support_correction:correction %}disabled {% endif %}data-choice-pk="{{ choice.pk }}" data-action="support" class="support-correction btn btn-xs mr-2"><i class="fa fa-thumbs-up"></i></button>

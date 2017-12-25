@@ -427,6 +427,10 @@ def create_session(request, slugs, exam_pk):
     if not category.can_user_access(request.user):
         raise PermissionDenied
 
+    if not exam.is_public and \
+       not category.is_user_editor(request.user):
+        return render(request, "exams/coming_soon.html", {'exam': exam})
+
     # If the exam has no approved questions, it doesn't exist for
     # users.
     if not exam.can_user_edit(request.user) and \
@@ -501,7 +505,8 @@ def list_partial_session_questions(request, slugs, exam_pk, session_pk):
     template = get_template("exams/partials/partial_session_question_list.html")
     context = {'session': session,
                'questions': questions,
-               'category_slugs': slugs}
+               'category_slugs': slugs,
+               'user': request.user}
     html = template.render(context)
     minified_html = html_minify(html)
 
@@ -1126,8 +1131,7 @@ def delete_correction(request):
     correction = get_object_or_404(AnswerCorrection, choice__pk=choice_pk)
 
     # PERMISSION CHECK
-    if not correction.submitter == request.user and \
-       not exam.can_user_edit(request.user):
+    if not correction.can_user_delete(request.user):
         raise PermissionDenied
 
     new_submitter = correction.supporting_users.first()
