@@ -1,7 +1,14 @@
+# This script runs on Fudul's PostgreSQL-based production server to
+# update retention CSV statistics.  It is far more efficient to use
+# raw SQL to calculate the retention rather than Django-based
+# queryset.
+
 ROOT_DIR=`dirname $(dirname $0)`
 INDICATOR_FILE=$ROOT_DIR/privileged_files/indicators/retention.csv
+D_USERNAME="fudul_django"
+D_NAME="fudul_django"
 
-psql -d fudul_django fudul_django -c  "COPY(
+psql -d $D_USERNAME $D_NAME -c  "COPY(
     SELECT active_days, cumulative_sum FROM (
         SELECT active_days, cumulative_sum, MAX(cumulative_sum) OVER () as max_sum FROM (
             SELECT active_days, SUM(total_count) OVER (ORDER BY active_days DESC) as cumulative_sum FROM (
@@ -16,6 +23,6 @@ psql -d fudul_django fudul_django -c  "COPY(
                     ) as unique_dates GROUP BY id
                 ) as totals GROUP BY active_days
             ) as uncumulative
-        ) as cumulative 
+        ) as cumulative
     ) as top_totals WHERE cumulative_sum >= (max_sum * 0.05) ORDER BY active_days
 ) To STDOUT With CSV HEADER;" > $INDICATOR_FILE
