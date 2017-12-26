@@ -24,6 +24,8 @@
     <div class="card-block">
       <p>To track Fudul's health, we follow our <em>Great Health Metric</em>, which consists of two things: <strong>active users</strong> (defined as: users who created at least one new session) and <strong>average answers</strong> (defined as: answers submitted with a choice, i.e. not skipped, divided by number of active users).</p>
       <div id="great-metric" style="width:100%; height:600px;"></div>
+      <p>Are we successful at retaining Fudul's users?  The <em>Retention Metric</em> shows the number of users who are active for this long of days.  This curve exculdes the top active 5% of users.</p>
+      <div id="retention-metric" style="width:100%; height:600px;"></div>
 		</div><!--card-block-->
 	</div><!--card-body-->
 </div><!--card-->
@@ -145,6 +147,45 @@
        $('#exam-table, #team-table').dataTable({order: [[1, 'desc']]});
        $('#college-table').dataTable({order: [[2, 'desc']]});
     });
+
+    Plotly.d3.csv("{% url 'get_privileged_file' 'indicators/retention.csv' %}", function(err, rows){
+
+      function unpack(key) {
+        return rows.map(function(row) { return parseInt(row[key]); });
+      }
+
+      active_days = unpack('active_days');
+      sums = unpack('cumulative_sum');
+      max_sum = sums.reduce(function(a,b){return Math.max(a,b)})
+
+      function get_hover(){
+        return rows.map(function(row) {
+          days = row['active_days']
+          cumulative_sum = row['cumulative_sum']
+          percentage = (row['cumulative_sum'] / max_sum) * 100
+          return cumulative_sum + " (" + percentage.toPrecision(3) + "%) users were active for at least " +  days + " days."
+        })
+      }
+
+      var data = [{
+        type: "scatter",
+        mode: "lines",
+        name: 'Users kept being active',
+        x: active_days,
+        y: sums,
+        hovertext: get_hover(),
+        hoverinfo: 'text+x',
+      }]
+
+      var layout = {
+        title: "The Retention Metric",
+        xaxis : {title: 'Days of activity'},
+        yaxis: {title: 'Number of users'}
+      };
+
+      Plotly.newPlot('retention-metric', data, layout);
+
+    })
 
     Plotly.d3.csv("{% url 'get_privileged_file' 'indicators/great-metric.csv' %}", function(err, rows){
 
