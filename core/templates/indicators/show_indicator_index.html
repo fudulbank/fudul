@@ -155,27 +155,45 @@
       }
 
       active_days = unpack('active_days');
-      sums = unpack('cumulative_sum');
-      max_sum = sums.reduce(function(a,b){return Math.max(a,b)})
+      current_sums = unpack('current_cumulative_sum');
+      older_sums = unpack('older_cumulative_sum');
+      current_max_sum = current_sums.reduce(function(a,b){return Math.max(a,b)})
+      older_max_sum = older_sums.reduce(function(a,b){return Math.max(a,b)})
 
-      function get_hover(){
+      function get_hover(key, max_sum){
         return rows.map(function(row) {
           days = row['active_days']
-          cumulative_sum = row['cumulative_sum']
-          percentage = (row['cumulative_sum'] / max_sum) * 100
+          cumulative_sum = row[key]
+          percentage = (row[key] / max_sum) * 100
           return cumulative_sum + " (" + percentage.toPrecision(3) + "%) users were active for at least " +  days + " days."
         })
       }
 
-      var data = [{
+      var current_data = {
         type: "scatter",
         mode: "lines",
-        name: 'Users kept being active',
+        name: 'Users kept being active (current)',
         x: active_days,
-        y: sums,
-        hovertext: get_hover(),
+        y: current_sums,
+        hovertext: get_hover('current_cumulative_sum', current_max_sum),
         hoverinfo: 'text+x',
-      }]
+      }
+
+      var older_data = {
+        type: "scatter",
+        mode: "lines",
+        name: 'Users kept being active (one-month-old snapshot)',
+        line: {
+          dash: 'dot',
+          width: 4
+        },
+        x: active_days,
+        y: older_sums,
+        hovertext: get_hover('older_cumulative_sum', older_max_sum),
+        hoverinfo: 'text+x',
+      }
+
+      data = [current_data, older_data]
 
       var layout = {
         title: "The Retention Metric",
