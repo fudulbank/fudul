@@ -165,7 +165,7 @@
           days = row['active_days']
           cumulative_sum = row[key]
           percentage = (row[key] / max_sum) * 100
-          return cumulative_sum + " (" + percentage.toPrecision(3) + "%) users were active for at least " +  days + " days."
+          return cumulative_sum + " (" + percentage.toPrecision(3) + "%) users were active for at least " +  days + " different days."
         })
       }
 
