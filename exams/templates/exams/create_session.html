@@ -1,4 +1,4 @@
-{% extends 'base_new.html' %}{% load staticfiles bootstrap3 exam_utils %}
+{% extends 'base_new.html' %}{% load static bootstrap3 exam_utils cache %}
 {% block head %}
     <style>
     .mode li
@@ -91,6 +91,7 @@
           <div class='mode'>
             {{ sessionform.question_filter }}
           </div>
+{% cache 1200 session_options exam.pk %}
           <div class="row">
 {% if sessionform.subjects %}
             <div class="col-sm-6">
@@ -138,6 +139,7 @@
         {% bootstrap_field sessionform.exam_types show_label=False  %}
     </div>
 {% endif %}
+{% endcache %}
     <label class="control-label"><h5>Number of questions</h5></label>
     <div class="row">
         <div class="col-12">
@@ -185,8 +187,6 @@
 {% block customscript %}
 {{ sessionform.media }}
     <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
-    <script src="{% static 'js/jquery.formset.js' %}"></script>
-    <script src="{% static 'js/jquery.autogrowtextarea.min.js' %}"></script>
     <script src="{% static 'js/toastr.js' %}"></script>
     <script>
 
