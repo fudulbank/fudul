@@ -205,7 +205,7 @@
           <li class=" navigation-header"><span>Exams</span><i data-toggle="tooltip" data-placement="right" data-original-title="General" class=" ft-minus"></i>
           </li>
           <li class="nav-item has-sub{% if is_browse_active %} open{% endif %}"><a href="#"><i class="ft-align-left"></i><span data-i18n="" class="menu-title">Browse exams</span></a>
-{% cache 1200 meta_categories %}
+{% cache 3600 meta_categories %}{# Cache for one hour #}
             <ul class="menu-content">
               {% for meta_category in meta_categories %}
                   {% if meta_category.children.exists %}
