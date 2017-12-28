@@ -2,10 +2,11 @@ from dal import autocomplete
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.views.decorators import csrf
+from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
+from django.views.decorators import csrf
 from django.views.decorators.http import require_POST, require_safe
 from django.views.static import serve
 import math
