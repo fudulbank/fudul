@@ -160,6 +160,13 @@
       current_max_sum = current_sums.reduce(function(a,b){return Math.max(a,b)})
       older_max_sum = older_sums.reduce(function(a,b){return Math.max(a,b)})
 
+      function get_percentages(sums, max_sum){
+        return sums.map(function(sum) {
+          percentage = (sum / max_sum) * 100
+          return percentage.toPrecision(3) + "%"
+        })
+      }
+
       function get_hover(key, max_sum){
         return rows.map(function(row) {
           days = row['active_days']
@@ -174,7 +181,7 @@
         mode: "lines",
         name: 'Users kept being active (current)',
         x: active_days,
-        y: current_sums,
+        y: get_percentages(current_sums, current_max_sum),
         hovertext: get_hover('current_cumulative_sum', current_max_sum),
         hoverinfo: 'text+x',
       }
@@ -188,7 +195,7 @@
           width: 4
         },
         x: active_days,
-        y: older_sums,
+        y: get_percentages(older_sums, older_max_sum),
         hovertext: get_hover('older_cumulative_sum', older_max_sum),
         hoverinfo: 'text+x',
       }
@@ -198,7 +205,7 @@
       var layout = {
         title: "The Retention Metric",
         xaxis : {title: 'Days of activity'},
-        yaxis: {title: 'Number of users'}
+        yaxis: {title: 'Percentage of users'}
       };
 
       Plotly.newPlot('retention-metric', data, layout);
