@@ -8,6 +8,7 @@ from django.http import HttpResponseRedirect, Http404, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
 from django.template.loader import get_template
 from django.views.decorators import csrf
+from django.views.decorators.cache import cache_page
 from django.views.decorators.http import require_POST, require_safe
 from htmlmin.minify import html_minify
 from notifications.models import Notification
@@ -20,9 +21,6 @@ from . import forms, utils
 import core.utils
 import teams.utils
 
-
-
-# from reversion.helpers import genericpath
 
 @require_safe
 @login_required
@@ -562,6 +560,7 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
 
 @login_required
 @require_safe
+@cache_page(60 * 60 * 24 * 3) # 3 days
 def show_session_results(request, slugs, exam_pk, session_pk):
     category = Category.objects.get_from_slugs(slugs)
 
