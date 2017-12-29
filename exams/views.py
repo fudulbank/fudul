@@ -12,12 +12,13 @@ from django.views.decorators.cache import cache_page
 from django.views.decorators.http import require_POST, require_safe
 from htmlmin.minify import html_minify
 from notifications.models import Notification
+from rules.contrib.views import permission_required, objectgetter
 import json
 
 from core import decorators
 from teams.models import *
 from .models import *
-from . import forms, utils
+from . import forms, utils, app_rules
 import core.utils
 import teams.utils
 
@@ -455,15 +456,12 @@ def create_session(request, slugs, exam_pk):
 @decorators.ajax_only
 @require_safe
 @login_required
+@permission_required('can_access_session', fn=objectgetter(Session, 'session_pk'), raise_exception=True)
 def list_partial_session_questions(request, slugs, exam_pk, session_pk):
     session = get_object_or_404(Session.objects.select_related('exam',
                                                                'exam__category')\
                                                .undeleted(),
                                 pk=session_pk)
-
-    # PERMISSION CHECK
-    if not session.can_user_access(request.user):
-        raise PermissionDenied
 
     questions = session.get_questions().order_global_sequence()
 
@@ -509,6 +507,7 @@ def list_partial_session_questions(request, slugs, exam_pk, session_pk):
 
 @login_required
 @require_safe
+@permission_required('can_access_session', fn=objectgetter(Session, 'session_pk'), raise_exception=True)
 def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     category = Category.objects.get_from_slugs_or_404(slugs)
     session = get_object_or_404(Session.objects.select_related('exam',
@@ -516,10 +515,6 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
                                                .undeleted()\
                                                .with_accessible_questions(),
                                 pk=session_pk)
-
-    # PERMISSION CHECK
-    if not session.can_user_access(request.user):
-        raise PermissionDenied
 
     current_question = session.get_current_question(question_pk)
     current_question_sequence = session.get_question_sequence(current_question)
@@ -544,9 +539,10 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
 
     return render(request, "exams/show_session.html", context)
 
-#@cache_page(60 * 60 * 24 * 3) # 3 days
-@login_required
 @require_safe
+@login_required
+@permission_required('can_access_session', fn=objectgetter(Session, 'session_pk'), raise_exception=True)
+@cache_page(60 * 60 * 24 * 3) # 3 days
 def show_session_results(request, slugs, exam_pk, session_pk):
     category = Category.objects.get_from_slugs_or_404(slugs)
 
@@ -554,10 +550,6 @@ def show_session_results(request, slugs, exam_pk, session_pk):
                                                .select_related('exam')\
                                                .exclude(session_mode__in=['INCOMPLETE', 'SOLVED']),
                                 pk=session_pk)
-
-    # PERMISSION CHECK
-    if not session.can_user_access(request.user):
-        raise PermissionDenied
 
     if not session.has_finished and \
        request.user == session.submitter:
