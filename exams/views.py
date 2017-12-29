@@ -44,9 +44,7 @@ def list_meta_categories(request, indicators=False):
 @require_safe
 @login_required
 def show_category(request, slugs, indicators=False):
-    category = Category.objects.get_from_slugs(slugs)
-    if not category:
-        raise Http404
+    category = Category.objects.get_from_slugs_or_404(slugs)
 
     context = {'category': category,
                'is_indicators_active': indicators}
@@ -91,9 +89,7 @@ def show_category(request, slugs, indicators=False):
 @require_safe
 @login_required
 def add_question(request, slugs, pk):
-    category = Category.objects.get_from_slugs(slugs)
-    if not category:
-        raise Http404
+    category = Category.objects.get_from_slugs_or_404(slugs)
 
     # PERMISSION CHECK
     exam = get_object_or_404(Exam, pk=pk, category=category)
@@ -236,9 +232,7 @@ def handle_question(request, exam_pk, question_pk=None):
 @require_safe
 @login_required
 def list_questions(request, slugs, pk, selector=None):
-    category = Category.objects.get_from_slugs(slugs)
-    if not category:
-        raise Http404
+    category = Category.objects.get_from_slugs_or_404(slugs)
 
     exam = get_object_or_404(Exam, pk=pk, category=category)
 
@@ -339,9 +333,7 @@ def list_revisions(request, slugs, exam_pk, pk):
     # PERMISSION CHECK
     # No need.  Similar to list_contributions
 
-    category = Category.objects.get_from_slugs(slugs)
-    if not category:
-        raise Http404
+    category = Category.objects.get_from_slugs_or_404(slugs)
 
     question = get_object_or_404(Question.objects.select_related('exam',
                                                                  'exam__category'),
@@ -354,9 +346,7 @@ def list_revisions(request, slugs, exam_pk, pk):
 
 @login_required
 def submit_revision(request, slugs, exam_pk, pk):
-    category = Category.objects.get_from_slugs(slugs)
-    if not category:
-        raise Http404
+    category = Category.objects.get_from_slugs_or_404(slugs)
 
     exam = get_object_or_404(Exam, pk=exam_pk, category=category)
     question = get_object_or_404(Question, pk=pk, is_deleted=False)
@@ -416,9 +406,8 @@ def submit_revision(request, slugs, exam_pk, pk):
 
 @login_required
 def create_session(request, slugs, exam_pk):
-    category = Category.objects.get_from_slugs(slugs)
-    if not category:
-        raise Http404
+    category = Category.objects.get_from_slugs_or_404(slugs)
+
     exam = get_object_or_404(Exam, pk=exam_pk, category=category)
 
     # PERMISSION CHECK
@@ -521,15 +510,12 @@ def list_partial_session_questions(request, slugs, exam_pk, session_pk):
 @login_required
 @require_safe
 def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
-    category = Category.objects.get_from_slugs(slugs)
+    category = Category.objects.get_from_slugs_or_404(slugs)
     session = get_object_or_404(Session.objects.select_related('exam',
                                                                'exam__category')\
                                                .undeleted()\
                                                .with_accessible_questions(),
                                 pk=session_pk)
-
-    if not category:
-        raise Http404
 
     # PERMISSION CHECK
     if not session.can_user_access(request.user):
@@ -562,10 +548,7 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
 @login_required
 @require_safe
 def show_session_results(request, slugs, exam_pk, session_pk):
-    category = Category.objects.get_from_slugs(slugs)
-
-    if not category:
-        raise Http404
+    category = Category.objects.get_from_slugs_or_404(slugs)
 
     session = get_object_or_404(Session.objects.undeleted()\
                                                .select_related('exam')\
@@ -802,9 +785,7 @@ def contribute_revision(request):
 @login_required
 def approve_user_contributions(request,slugs,exam_pk):
 
-    category = Category.objects.get_from_slugs(slugs)
-    if not category:
-        raise Http404
+    category = Category.objects.get_from_slugs_or_404(slugs)
 
     exam = get_object_or_404(Exam, pk=exam_pk, category=category)
 
@@ -935,9 +916,7 @@ def mark_revision_pending(request, pk):
 
 @login_required
 def approve_question(request, slugs, exam_pk, pk):
-    category = Category.objects.get_from_slugs(slugs)
-    if not category:
-        raise Http404
+    category = Category.objects.get_from_slugs_or_404(slugs)
 
     # PERMISSION CHECK
     exam = get_object_or_404(Exam, pk=exam_pk, category=category)
