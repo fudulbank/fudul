@@ -10,7 +10,6 @@ from django.views.decorators import csrf
 from django.views.decorators.cache import cache_page
 from django.views.decorators.http import require_POST, require_safe
 from django.views.static import serve
-import math
 
 from . import decorators, utils
 from .models import CoreMember
