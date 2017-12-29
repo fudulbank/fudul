@@ -30,7 +30,7 @@ tr td:last-child{
   <div class="card-body">
     {% if sessions.exists %}
     <div class="card-block">
-      <button data-toggle="tooltip" data-html="true" title="<div style='direction: rtl'>وهمس لي قالي الحق عليه<br>نسيت ساعتها بعدنا ليه 🎶</div>" id="delete-all-sessions" class="btn btn-danger" style="float: right;"><i class="ft-trash-2"></i> Forgive me all previous sessions</button>
+      <button data-toggle="tooltip" data-html="true" title="<img class='img-fluid' src='{% static 'img/monerh/forgive-2.png' %}'><div style='direction: rtl'>وهمس لي قالي الحق عليه<br>نسيت ساعتها بعدنا ليه 🎶</div>" id="delete-all-sessions" class="btn btn-danger" style="float: right;"><i class="ft-trash-2"></i> Forgive me all previous sessions</button>
     </div>
     {% endif %}
     <div class="card-block">
@@ -132,7 +132,7 @@ tr td:last-child{
             });
 				});
 
-       $('.confirm-delete-session').tooltip({title: "<div style='direction: rtl' >أنا أخطيت ما أنكر<br>ولا فيه عذر يكفيني<br>سوى إني أحبك حيل<br>وإني دايما إنسان 🎶</div>",
+       $('.confirm-delete-session').tooltip({title: "<img class='img-fluid' src='{% static 'img/monerh/forgive-1.png' %}'><div style='direction: rtl' >أنا أخطيت ما أنكر<br>ولا فيه عذر يكفيني<br>سوى إني أحبك حيل<br>وإني دايما إنسان 🎶</div>",
                                              html: true})
 
         $deleteConfirmationButton = $("#confirm-delete-session-modal .submit-button")
