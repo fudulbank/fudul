@@ -7,6 +7,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators import csrf
+from django.views.decorators.cache import cache_page
 from django.views.decorators.http import require_POST, require_safe
 from django.views.static import serve
 import math
@@ -154,6 +155,7 @@ def get_privileged_file(request, path):
 
 @login_required
 @require_safe
+@cache_page(60 * 60 * 24) # One day
 def show_about(request):
     team = CoreMember.objects.order_by('?')
 
