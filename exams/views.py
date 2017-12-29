@@ -558,9 +558,9 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
 
     return render(request, "exams/show_session.html", context)
 
+#@cache_page(60 * 60 * 24 * 3) # 3 days
 @login_required
 @require_safe
-@cache_page(60 * 60 * 24 * 3) # 3 days
 def show_session_results(request, slugs, exam_pk, session_pk):
     category = Category.objects.get_from_slugs(slugs)
 
