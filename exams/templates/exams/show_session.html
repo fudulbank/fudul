@@ -335,13 +335,12 @@
             {% endfor %}
           </div>
           <button type="button" id="submit" class="btn">Submit <i class="fa fa-angle-right" aria-hidden="true"></i></button>
-<div class="row">
-          <button class="btn btn-outline-primary" id="explain">Improve this explanation!</button>
-          <button class="btn btn-outline-primary" id="add-mnemonics">{% if question.mnemonic_set.exists %}See a mnemonic!{% else %} Add a mnemonic!{% endif %}</button>
-
-</div>
-</div>
+          <div class="row">
+              <button class="btn btn-outline-primary" id="explain">Improve this explanation!</button>
+              <button class="btn btn-outline-primary" id="add-mnemonics">{% if question.mnemonic_set.exists %}See a mnemonic!{% else %} Add a mnemonic!{% endif %}</button>
+          </div>
         </div>
+
         <div id="footer" class="row text-center font-weight-bold">
           <div class="col-sm-6 text-sm-left order-2 order-sm-1">
            <a id="back" class="float-left float-sm-none option" href="{% url 'exams:create_session' category_slugs session.exam.pk %}"><i class="fa fa-sign-out" aria-hidden="true"></i> Back</a>
