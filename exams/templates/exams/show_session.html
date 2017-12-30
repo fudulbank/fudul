@@ -310,7 +310,7 @@
           </div>
         </div><!--top-options-->
 
-        <div class="row">
+        <div id="question-row" class="row">
           <div class="col-2 col-sm-1 d-lg-none mobile-slide previous order-1" id="slide-previous"></div>
           <div class="col-2 col-sm-1 d-lg-none mobile-slide next order-3" id="slide-next"></div>
           <div id="question-col" class="col-8 col-sm-10 col-lg-12 px-0 px-lg-5 order-2">
@@ -766,10 +766,14 @@
 
     }
 
-    function updateFooterMargins() {
+    function updateSizes() {
       $("#question-container").css({
         'padding-bottom': $('#footer').height() + 20
       })
+
+      // The question row should take all the space not taken by other elements
+      row_height = $("#container").height() - $('#top-info').height() - $('#top-options').height() - $('#footer').height();
+      $("#question-row").css({'height': row_height});
     }
 
     function initializeKeyboard(){
@@ -929,8 +933,8 @@
          });
 
          fetchList();
-         updateFooterMargins();
-         $(window).resize(updateFooterMargins);
+         updateSizes();
+         $(window).resize(updateSizes);
 
          $(".mobile-slide").click(function(){
           if ($(this).hasClass('previous')){
