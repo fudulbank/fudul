@@ -62,8 +62,29 @@
       display: inline-block;
     }
 
+    /* Bootstrap tries to reset the font; let's ignore it*/
+    .tooltip{
+      font-family: inherit;
+    }
+
     .tooltip.bs-tooltip-top .arrow::before{
       border-top-color: #404E67;
+    }
+
+    .tooltip.bs-tooltip-bottom .arrow::before{
+      border-bottom-color: #404E67;
+    }
+
+    .tooltip.hint.bs-tooltip-right .arrow::before{
+      border-right-color: #FFC107;
+    }
+
+    .tooltip.hint .tooltip-inner{
+      background: #FFC107;
+    }
+
+    .tooltip.hint .tooltip-inner{
+      color: black;
     }
 
     #top-info{
@@ -431,7 +452,7 @@
         }
 
         // Upon navigation, hide previous voting tooltips
-        $(".answer-correction-notification, .opposing-users, .supporting-users").tooltip('hide');
+        $(".check, .answer-correction-notification, .opposing-users, .supporting-users").tooltip('hide');
 
         showQuestion(targeted_sequence);
 
@@ -734,10 +755,27 @@
         $question.find(".question-text, .question-choice, .choice-text, .highlight").off();
 
         $checkedChoice = $question.find(".question-choice:checked");
+
         // Do we have a choice, or was it skipped?
         if ($checkedChoice.length) {
             // We store choice pk at the row.
             choice_pk = $checkedChoice.closest('tr').data("choice-pk");
+
+            // If there is a correction, we invite the user to vote:
+            $choice_row = $checkedChoice.closest('tr');
+            $correction_notification = $choice_row.find('.answer-correction-notification')
+            // Let's ensure that the support voting button is enabled
+            // (i.e. the user is not the submitter of the correction
+            // or a previous voter)
+            $support_button = $choice_row.find('button.support-correction:enabled')
+            if ($correction_notification.length && $support_button.length){
+              $choice_row.find('.check').tooltip({template: '<div class="tooltip hint" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>',
+                                                  html: true,
+                                                  title:"<strong>Are you sure that this is the right answer?</strong>  Vote to support this correction! <img height=\'17\' src=\'https://cdnjs.cloudflare.com/ajax/libs/emojione/2.2.7/assets/png/1f64a.png\'>",
+                                                  placement: 'right',
+                                                  trigger: 'manual'}).tooltip('show');
+              setTimeout(function(){$choice_row.find('.check').tooltip('hide')}, 5000);
+            }
         } else {
             choice_pk = null;
         }
