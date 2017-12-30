@@ -611,6 +611,12 @@
     }
 
     function controlNavigationButtons(){
+      // In case this is a tablet, we dispose the tooltips.
+      if (isTablet){
+        $("#next, #previous").tooltip('dispose');
+        return;
+      }
+
       // We dispose in all cases to allow for changes, if indicated,
       // to be applied.
       $("#next").tooltip('dispose');
