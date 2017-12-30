@@ -224,13 +224,6 @@
       font-weight: 500;
     }
 
-    .mobile-slide{
-      height: 100%;
-      width: 20%;
-      position: fixed;
-      z-index: 1;
-    }
-
     .question-body.show, #submit{
       z-index: 2;
       position: relative;
@@ -242,13 +235,6 @@
 
     #top-info, #top-options{
       position: relative;
-    }
-
-    .mobile-slide.next{
-      right: 0
-    }
-    .mobile-slide.previous{
-      left: 0
     }
 
     #normal-values{
@@ -289,8 +275,6 @@
     </head>
     <body data-session-mode="{{ session.session_mode }}" data-has-finished="{% if session.has_finished %}true{% else %}false{% endif %}">
     <div class="container-fluid" id="container">
-        <div class="d-sm-none mobile-slide previous" id="slide-previous"></div>
-        <div class="d-sm-none mobile-slide next " id="slide-next"></div>
         <div id="top-info" class="row align-items-center">
             <div class ="col-sm-3 text-sm-left text-center">
               <a href="/" class="navbar-brand">
@@ -326,18 +310,24 @@
           </div>
         </div><!--top-options-->
 
-        <div id="question-container">
-          <div id="question-pool" class="mx-4 mx-sm-0">
-            {% for question in initial_questions %}
-            {% with question_sequence=forloop.counter0|add:initial_question_sequence_start %}
-             {% include 'exams/partials/session_question.html' %}
-            {% endwith %}
-            {% endfor %}
-          </div>
-          <button type="button" id="submit" class="btn">Submit <i class="fa fa-angle-right" aria-hidden="true"></i></button>
-          <div class="row">
-              <button class="btn btn-outline-primary" id="explain">Improve this explanation!</button>
-              <button class="btn btn-outline-primary" id="add-mnemonics">{% if question.mnemonic_set.exists %}See a mnemonic!{% else %} Add a mnemonic!{% endif %}</button>
+        <div class="row">
+          <div class="col-2 col-sm-1 d-lg-none mobile-slide previous order-1" id="slide-previous"></div>
+          <div class="col-2 col-sm-1 d-lg-none mobile-slide next order-3" id="slide-next"></div>
+          <div id="question-col" class="col-8 col-sm-10 col-lg-12 px-0 px-lg-5 order-2">
+            <div id="question-container">
+              <div id="question-pool">
+                {% for question in initial_questions %}
+                {% with question_sequence=forloop.counter0|add:initial_question_sequence_start %}
+                 {% include 'exams/partials/session_question.html' %}
+                {% endwith %}
+                {% endfor %}
+              </div>
+              <button type="button" id="submit" class="btn">Submit <i class="fa fa-angle-right" aria-hidden="true"></i></button>
+              <div class="row">
+                  <button class="btn btn-outline-primary" id="explain">Improve this explanation!</button>
+                  <button class="btn btn-outline-primary" id="add-mnemonics">{% if question.mnemonic_set.exists %}See a mnemonic!{% else %} Add a mnemonic!{% endif %}</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -372,6 +362,7 @@
     was_solved_markup = '<i class="fa fa-check-square-o" aria-hidden="true"></i>';
     is_marked_markup = '<i class="fa fa-flag" aria-hidden="true"></i>';
     wrong_answer_markup = '<i class="fa fa-times text-danger"></i>'
+    isTablet = navigator.userAgent.match(/iPad/i) != null || (navigator.userAgent.match(/Android/i) != null && navigator.userAgent.match(/Mobile/i) == null);
 
     function updateData(){
         current_sequence =  parseInt($("#question-sequence").html());
@@ -898,6 +889,11 @@
                 }
               }
       });
+    }
+
+    if (isTablet){
+      $('.mobile-slide').removeClass('d-lg-none');
+      $('#question-col').removeClass('col-lg-12 px-lg-5');
     }
 
     $(function() {
