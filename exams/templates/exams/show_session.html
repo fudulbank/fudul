@@ -611,10 +611,9 @@
     }
 
     function controlNavigationButtons(){
-      // In case this is a tablet, we dispose the tooltips.
+      // In case this is a tablet, we do not want the tooltips
       if (isTablet){
-        $("#next, #previous").tooltip('dispose');
-        return;
+        return
       }
 
       // We dispose in all cases to allow for changes, if indicated,
@@ -916,8 +915,13 @@
         initializeInteractions();
         handleCorrectionInteractions();
 
-        // Initialize tooltips
-        $('[data-toggle="tooltip"]').tooltip()
+        // Initialize tooltips, except for navigation and mark buttons on mobile.
+        if (isTablet){
+          $('[data-toggle="tooltip"]').not("#next, #previous, #mark").tooltip();
+        } else {
+          $('[data-toggle="tooltip"]').tooltip();
+        }
+
         help_me_tooltip = $("#help-me-tooltip").get(0);
         $("#help-me").tooltip({html: true,
                                trigger: 'click',
