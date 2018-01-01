@@ -1,0 +1,24 @@
+{% extends 'userena/base_userena.html' %}{% load bootstrap3 %}
+{% block title %}Change email{% endblock %}
+{% block subtitle %}Change your alternative email{% endblock %}
+{% block content %}
+<div class="card-body">
+<p><em> Once you change your personal email you will need to verify it. </em></p>
+
+    <div class="card-block">
+        <form method="post" class="form-horizontal form-simple" novalidate>
+          {% csrf_token %}
+            <fieldset class="form-group position-relative has-icon-left mb-0">
+                {% bootstrap_form form show_label=False %}
+            </fieldset>
+            <button type="submit" class="btn btn-primary btn-lg btn-block"><i class="ft-edit"></i> Change personal email</button>
+        </form>
+    </div>
+</div>
+<div class="card-footer">
+    <div class="">
+        <p class="float-sm-left text-center m-0"><a href="{% url 'userena_password_change' user.username %}">Change password</a></p>
+        <p class="float-sm-right text-center m-0"><a href="{% url 'userena_profile_edit' user.username %}">Edit profile</a></p>
+    </div>
+</div>
+{% endblock %}
