@@ -21,7 +21,7 @@
 
         {% if not revisionchoiceformset.total_form_count == 0  %}
 
-        <h3 style="font-weight: bold">Question Choices</h3><a data-placement="left" class="circle" data-toggle="tooltip" title="Make sure to check the box for the right answer."> ? </a>
+        <h3 style="font-weight: bold">Question Choices</h3><a data-placement="left" class="help-tooltip circle" data-toggle="tooltip" title="Make sure to check the box for the right answer."> ? </a>
         {% endif %}
 
         <div style="margin-left: 10%">
@@ -139,7 +139,7 @@ display:inline-block;
         <script type="text/javascript">
 
     $(document).ready(function(){
-        $('[data-toggle="tooltip"]').tooltip();
+        $('.help-tooltip').tooltip();
     });
 
     $("#choice_formset .form-container").formset({

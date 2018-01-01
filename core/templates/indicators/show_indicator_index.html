@@ -2,7 +2,7 @@
 {% block title %}Fudul | Indicators{% endblock %}
 
 {% block head %}
-<script src="https://cdn.plot.ly/plotly-1.31.2.min.js" integrity="sha384-pEbvKAAHroDnU/rb2+IiUrslRtrsAGTaQNZjaFWCY3d/h5FlaWxqMkhh8MX4m0dQ" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/1.31.2/plotly.min.js" integrity="sha384-pEbvKAAHroDnU/rb2+IiUrslRtrsAGTaQNZjaFWCY3d/h5FlaWxqMkhh8MX4m0dQ" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.19.3/moment.min.js" integrity="sha384-8xuC0/BWqiPX72DT7LJqj+QiH5eYVT5KsUOewB/DmXi7KPPEdt4Td3xu3lg+slER" crossorigin="anonymous"></script>
 {% endblock %}
 
@@ -24,6 +24,8 @@
     <div class="card-block">
       <p>To track Fudul's health, we follow our <em>Great Health Metric</em>, which consists of two things: <strong>active users</strong> (defined as: users who created at least one new session) and <strong>average answers</strong> (defined as: answers submitted with a choice, i.e. not skipped, divided by number of active users).</p>
       <div id="great-metric" style="width:100%; height:600px;"></div>
+      <p>Are we successful at retaining Fudul's users?  The <em>Retention Metric</em> shows the number of users who are active for this long of days.  This curve exculdes the top active 5% of users.  This curve is updated every day at 00:00 (Riyadh time).</p>
+      <div id="retention-metric" style="width:100%; height:600px;"></div>
 		</div><!--card-block-->
 	</div><!--card-body-->
 </div><!--card-->
@@ -145,6 +147,70 @@
        $('#exam-table, #team-table').dataTable({order: [[1, 'desc']]});
        $('#college-table').dataTable({order: [[2, 'desc']]});
     });
+
+    Plotly.d3.csv("{% url 'get_privileged_file' 'indicators/retention.csv' %}", function(err, rows){
+
+      function unpack(key) {
+        return rows.map(function(row) { return parseInt(row[key]); });
+      }
+
+      active_days = unpack('active_days');
+      current_sums = unpack('current_cumulative_sum');
+      older_sums = unpack('older_cumulative_sum');
+      current_max_sum = current_sums.reduce(function(a,b){return Math.max(a,b)})
+      older_max_sum = older_sums.reduce(function(a,b){return Math.max(a,b)})
+
+      function get_percentages(sums, max_sum){
+        return sums.map(function(sum) {
+          percentage = (sum / max_sum) * 100
+          return percentage.toPrecision(3) + "%"
+        })
+      }
+
+      function get_hover(key, max_sum){
+        return rows.map(function(row) {
+          days = row['active_days']
+          cumulative_sum = row[key]
+          percentage = (row[key] / max_sum) * 100
+          return cumulative_sum + " (" + percentage.toPrecision(3) + "%) users were active for at least " +  days + " different days."
+        })
+      }
+
+      var current_data = {
+        type: "scatter",
+        mode: "lines",
+        name: 'Users kept being active (current)',
+        x: active_days,
+        y: get_percentages(current_sums, current_max_sum),
+        hovertext: get_hover('current_cumulative_sum', current_max_sum),
+        hoverinfo: 'text+x',
+      }
+
+      var older_data = {
+        type: "scatter",
+        mode: "lines",
+        name: 'Users kept being active (one-month-old snapshot)',
+        line: {
+          dash: 'dot',
+          width: 4
+        },
+        x: active_days,
+        y: get_percentages(older_sums, older_max_sum),
+        hovertext: get_hover('older_cumulative_sum', older_max_sum),
+        hoverinfo: 'text+x',
+      }
+
+      data = [current_data, older_data]
+
+      var layout = {
+        title: "The Retention Metric",
+        xaxis : {title: 'Days of activity'},
+        yaxis: {title: 'Percentage of users'}
+      };
+
+      Plotly.newPlot('retention-metric', data, layout);
+
+    })
 
     Plotly.d3.csv("{% url 'get_privileged_file' 'indicators/great-metric.csv' %}", function(err, rows){
 

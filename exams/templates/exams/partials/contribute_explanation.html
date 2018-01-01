@@ -2,7 +2,7 @@
 <form method="post"  enctype="multipart/form-data" id="modify-explanation-form">
   {% csrf_token %}
   <div id="explaination"  style="margin-top: 5%;" class="form-group has-feedback has-feedback-left">
-    <label class="control-label">Explain the answer!</label> <a data-placement="left" class="circle" data-toggle="tooltip" title="An explanation is written to support your claim of the right answer, it would be displayed with the question during sessions."> ? </a>
+    <label class="control-label">Explain the answer!</label> <a data-placement="left" class="help-tooltip circle" data-toggle="tooltip" title="An explanation is written to support your claim of the right answer, it would be displayed with the question during sessions."> ? </a>
 		{% bootstrap_field form.explanation_text show_label=False %}
 		<div class="form-control-feedback">
 		</div>
@@ -38,7 +38,7 @@
 
 <script type="text/javascript">
     $(function() {
-        $('[data-toggle="tooltip"]').tooltip();
+        $('.help-tooltip').tooltip();
         $("textarea").autoGrow();
 
         $("form#modify-explanation-form").submit(function (event) {

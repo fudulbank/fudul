@@ -1,0 +1,4 @@
+
+{% with error_code="Soon!" error_short_name=exam.name|add:" is coming soon" error_header=exam.name|add:" is being prepared, and it is not yet publicly available." %}
+  {% include 'error_base.html' %}
+{% endwith %}

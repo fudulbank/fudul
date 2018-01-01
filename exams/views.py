@@ -8,21 +8,20 @@ from django.http import HttpResponseRedirect, Http404, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
 from django.template.loader import get_template
 from django.views.decorators import csrf
+from django.views.decorators.cache import cache_page
 from django.views.decorators.http import require_POST, require_safe
 from htmlmin.minify import html_minify
 from notifications.models import Notification
+from rules.contrib.views import permission_required, objectgetter
 import json
 
 from core import decorators
 from teams.models import *
 from .models import *
-from . import forms, utils
+from . import forms, utils, app_rules
 import core.utils
 import teams.utils
 
-
-
-# from reversion.helpers import genericpath
 
 @require_safe
 @login_required
@@ -46,9 +45,7 @@ def list_meta_categories(request, indicators=False):
 @require_safe
 @login_required
 def show_category(request, slugs, indicators=False):
-    category = Category.objects.get_from_slugs(slugs)
-    if not category:
-        raise Http404
+    category = Category.objects.get_from_slugs_or_404(slugs)
 
     context = {'category': category,
                'is_indicators_active': indicators}
@@ -93,9 +90,7 @@ def show_category(request, slugs, indicators=False):
 @require_safe
 @login_required
 def add_question(request, slugs, pk):
-    category = Category.objects.get_from_slugs(slugs)
-    if not category:
-        raise Http404
+    category = Category.objects.get_from_slugs_or_404(slugs)
 
     # PERMISSION CHECK
     exam = get_object_or_404(Exam, pk=pk, category=category)
@@ -238,9 +233,7 @@ def handle_question(request, exam_pk, question_pk=None):
 @require_safe
 @login_required
 def list_questions(request, slugs, pk, selector=None):
-    category = Category.objects.get_from_slugs(slugs)
-    if not category:
-        raise Http404
+    category = Category.objects.get_from_slugs_or_404(slugs)
 
     exam = get_object_or_404(Exam, pk=pk, category=category)
 
@@ -341,9 +334,7 @@ def list_revisions(request, slugs, exam_pk, pk):
     # PERMISSION CHECK
     # No need.  Similar to list_contributions
 
-    category = Category.objects.get_from_slugs(slugs)
-    if not category:
-        raise Http404
+    category = Category.objects.get_from_slugs_or_404(slugs)
 
     question = get_object_or_404(Question.objects.select_related('exam',
                                                                  'exam__category'),
@@ -356,9 +347,7 @@ def list_revisions(request, slugs, exam_pk, pk):
 
 @login_required
 def submit_revision(request, slugs, exam_pk, pk):
-    category = Category.objects.get_from_slugs(slugs)
-    if not category:
-        raise Http404
+    category = Category.objects.get_from_slugs_or_404(slugs)
 
     exam = get_object_or_404(Exam, pk=exam_pk, category=category)
     question = get_object_or_404(Question, pk=pk, is_deleted=False)
@@ -418,14 +407,17 @@ def submit_revision(request, slugs, exam_pk, pk):
 
 @login_required
 def create_session(request, slugs, exam_pk):
-    category = Category.objects.get_from_slugs(slugs)
-    if not category:
-        raise Http404
+    category = Category.objects.get_from_slugs_or_404(slugs)
+
     exam = get_object_or_404(Exam, pk=exam_pk, category=category)
 
     # PERMISSION CHECK
     if not category.can_user_access(request.user):
         raise PermissionDenied
+
+    if not exam.is_public and \
+       not category.is_user_editor(request.user):
+        return render(request, "exams/coming_soon.html", {'exam': exam})
 
     # If the exam has no approved questions, it doesn't exist for
     # users.
@@ -464,15 +456,12 @@ def create_session(request, slugs, exam_pk):
 @decorators.ajax_only
 @require_safe
 @login_required
+@permission_required('exams.access_session', fn=objectgetter(Session, 'session_pk'), raise_exception=True)
 def list_partial_session_questions(request, slugs, exam_pk, session_pk):
     session = get_object_or_404(Session.objects.select_related('exam',
                                                                'exam__category')\
                                                .undeleted(),
                                 pk=session_pk)
-
-    # PERMISSION CHECK
-    if not session.can_user_access(request.user):
-        raise PermissionDenied
 
     questions = session.get_questions().order_global_sequence()
 
@@ -501,7 +490,8 @@ def list_partial_session_questions(request, slugs, exam_pk, session_pk):
     template = get_template("exams/partials/partial_session_question_list.html")
     context = {'session': session,
                'questions': questions,
-               'category_slugs': slugs}
+               'category_slugs': slugs,
+               'user': request.user}
     html = template.render(context)
     minified_html = html_minify(html)
 
@@ -517,20 +507,14 @@ def list_partial_session_questions(request, slugs, exam_pk, session_pk):
 
 @login_required
 @require_safe
+@permission_required('exams.access_session', fn=objectgetter(Session, 'session_pk'), raise_exception=True)
 def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
-    category = Category.objects.get_from_slugs(slugs)
+    category = Category.objects.get_from_slugs_or_404(slugs)
     session = get_object_or_404(Session.objects.select_related('exam',
                                                                'exam__category')\
                                                .undeleted()\
                                                .with_accessible_questions(),
                                 pk=session_pk)
-
-    if not category:
-        raise Http404
-
-    # PERMISSION CHECK
-    if not session.can_user_access(request.user):
-        raise PermissionDenied
 
     current_question = session.get_current_question(question_pk)
     current_question_sequence = session.get_question_sequence(current_question)
@@ -555,22 +539,17 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
 
     return render(request, "exams/show_session.html", context)
 
-@login_required
 @require_safe
+@login_required
+@permission_required('exams.access_session', fn=objectgetter(Session, 'session_pk'), raise_exception=True)
+@cache_page(60 * 60 * 24 * 3) # 3 days
 def show_session_results(request, slugs, exam_pk, session_pk):
-    category = Category.objects.get_from_slugs(slugs)
-
-    if not category:
-        raise Http404
+    category = Category.objects.get_from_slugs_or_404(slugs)
 
     session = get_object_or_404(Session.objects.undeleted()\
                                                .select_related('exam')\
                                                .exclude(session_mode__in=['INCOMPLETE', 'SOLVED']),
                                 pk=session_pk)
-
-    # PERMISSION CHECK
-    if not session.can_user_access(request.user):
-        raise PermissionDenied
 
     if not session.has_finished and \
        request.user == session.submitter:
@@ -798,9 +777,7 @@ def contribute_revision(request):
 @login_required
 def approve_user_contributions(request,slugs,exam_pk):
 
-    category = Category.objects.get_from_slugs(slugs)
-    if not category:
-        raise Http404
+    category = Category.objects.get_from_slugs_or_404(slugs)
 
     exam = get_object_or_404(Exam, pk=exam_pk, category=category)
 
@@ -931,9 +908,7 @@ def mark_revision_pending(request, pk):
 
 @login_required
 def approve_question(request, slugs, exam_pk, pk):
-    category = Category.objects.get_from_slugs(slugs)
-    if not category:
-        raise Http404
+    category = Category.objects.get_from_slugs_or_404(slugs)
 
     # PERMISSION CHECK
     exam = get_object_or_404(Exam, pk=exam_pk, category=category)
@@ -1126,8 +1101,7 @@ def delete_correction(request):
     correction = get_object_or_404(AnswerCorrection, choice__pk=choice_pk)
 
     # PERMISSION CHECK
-    if not correction.submitter == request.user and \
-       not exam.can_user_edit(request.user):
+    if not correction.can_user_delete(request.user):
         raise PermissionDenied
 
     new_submitter = correction.supporting_users.first()

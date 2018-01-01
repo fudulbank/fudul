@@ -80,13 +80,12 @@ class Category(models.Model):
             return True
 
         user_college = accounts.utils.get_user_college(user)
-        if not user_college:
-            return False
-
         category = self
+
         while category:
             if category.college_limit.exists() and \
-               not category.college_limit.filter(pk=user_college.pk).exists():
+               (not user_college or \
+                not category.college_limit.filter(pk=user_college.pk).exists()):
                 return False
             category = category.parent_category
 
@@ -127,6 +126,8 @@ class Exam(models.Model):
     batches_allowed_to_take = models.ForeignKey(Batch, null=True, blank=True)
     exam_types = models.ManyToManyField('ExamType', blank=True)
     credits = RichTextUploadingField(default='', blank=True)
+    is_public = models.BooleanField("This exam is publicly available for users who are not editors",
+                                    default=True, blank=True)
     objects = managers.ExamQuerySet.as_manager()
 
     def get_user_count(self):
@@ -615,6 +616,10 @@ class AnswerCorrection(models.Model):
         notify.send(actor, recipient=self.submitter, target=self,
                     verb='supported', title=title,
                     description=description, style='support')
+
+    def can_user_delete(self, user):
+        return self.submitter == user or \
+               self.choice.revision.question.exam.can_user_edit(user)
 
     def __str__(self):
         return "Correction of Q#{}".format(self.choice.revision.question.pk)
