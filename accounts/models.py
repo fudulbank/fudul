@@ -38,7 +38,7 @@ class Profile(UserenaBaseProfile):
                                                        max_length=40,
                                                        blank=True)
 
-    personal_email_confirmation_key_created = models.DateTimeField(_('creation date of email confirmation key'),
+    personal_email_confirmation_key_created = models.DateTimeField(_('creation date of alternative email confirmation key'),
                                                                    blank=True,
                                                                    null=True)
     objects = ProfileManger()
@@ -58,7 +58,7 @@ class Profile(UserenaBaseProfile):
 
 #     ----------------PLAYGROUND----------------------
 
-    def change_personal_email(self, personal_email):
+    def change_personal_email(self, email):
         """
         Changes the email address for a user.
 
@@ -72,10 +72,10 @@ class Profile(UserenaBaseProfile):
             The new email address that the user wants to use.
 
         """
-        self.personal_email_unconfirmed = personal_email
+        self.personal_email_unconfirmed = email
 
-        salt, hash = generate_sha1(self.first_name)
-        self.persona_email_confirmation_key = hash
+        salt, confirmation_key = generate_sha1(self.first_name)
+        self.personal_email_confirmation_key = confirmation_key
         self.personal_email_confirmation_key_created = get_datetime_now()
         self.save()
 

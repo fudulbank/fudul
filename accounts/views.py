@@ -14,7 +14,8 @@ from userena.views import ExtraContextTemplateView
 from userena.models import UserenaSignup
 from userena import settings as userena_settings
 from django.contrib import messages
-
+from django.contrib.auth import REDIRECT_FIELD_NAME
+from userena.utils import signin_redirect
 
 @decorators.ajax_only
 def get_institution_details(request):
@@ -38,6 +39,12 @@ def signup(request):
     return userena_views.signup(request, signup_form=CustomSignupForm,
                                 template_name='accounts/signup.html',
                                 extra_context=extra_context)
+
+def signin(request):
+    return userena_views.signin(request,auth_form=AuthenticationForm,
+                                template_name='userena/signin_form.html',
+                                redirect_field_name=REDIRECT_FIELD_NAME,
+                                redirect_signin_function=signin_redirect, extra_context=None)
 
 def edit_profile(request,username):
     institutions = Institution.objects.all()
@@ -159,7 +166,7 @@ def personal_email_confirm(request, confirmation_key,
         ``template_name``.
 
     """
-    user = UserenaSignup.objects.confirm_personal_email(confirmation_key)
+    user = Profile.objects.confirm_personal_email(confirmation_key)
     if user:
         if userena_settings.USERENA_USE_MESSAGES:
             messages.success(request,'Your email address has been changed.',

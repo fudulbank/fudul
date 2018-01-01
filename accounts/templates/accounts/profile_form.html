@@ -43,8 +43,25 @@
 		</fieldset>
                 <h6 class="line-on-side text-muted text-center font-small-2"><span>Your contact</span></h6>
 
+        <fieldset class="form-group position-relative has-icon-left mb-1">
 
-		<p><i class="icon-info22"></i>You can change the university address <a href="{% url 'userena_email_change' user.username %}">here</a> and change your personal email  <a href="{% url 'personal_email_change' user.username %}">here.</a></p>
+                                    <input class="form-control" id="disabledInput" disabled="" type="text" value="Main email: {{ user.email }}">
+            <a style="float: right" href="{% url 'userena_email_change' user.username %}">change</a>
+        </fieldset>
+            {% if  user.profile.alternative_email %}
+        </fieldset>
+                <fieldset class="form-group position-relative has-icon-left mb-1">
+                                    <input class="form-control" id="disabledInput" disabled="" type="text" value="alternative email: {{ user.profile.alternative_email }}">
+                     <a style="float: right" href="{% url 'personal_email_change' user.username %}">change</a>
+            </fieldset>
+{% else %}
+
+                <fieldset class="form-group position-relative has-icon-left mb-1">
+                                    <input class="form-control" id="disabledInput" disabled="" type="text" value="you didn't give any alternative email">
+                     <a style="float: right" href="{% url 'personal_email_change' user.username %}">Add ?</a>
+            </fieldset>
+{% endif %}
+
 {##}
 {#            <fieldset class="form-group position-relative has-icon-left mb-1">#}
 {#			{% bootstrap_field form.alternative_email show_label=False %}#}

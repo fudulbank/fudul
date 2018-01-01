@@ -1,8 +1,10 @@
 {% extends 'userena/base_userena.html' %}{% load bootstrap3 %}
 {% block title %}Change email{% endblock %}
-{% block subtitle %}Change your personal email{% endblock %}
+{% block subtitle %}Change your alternative email{% endblock %}
 {% block content %}
 <div class="card-body">
+<p><em> Once you change your personal email you will need to verify it. </em></p>
+
     <div class="card-block">
         <form method="post" class="form-horizontal form-simple" novalidate>
           {% csrf_token %}
