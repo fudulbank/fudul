@@ -8,13 +8,13 @@
         <title>Fudul | {{ session.exam.name }} session #{{ session.pk }}</title>
 
         <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha384-xBuQ/xzmlsLoJpyjoggmTEz8OWUFM0/RC5BsqQBDX2v5cMvDHcMakNTNrHIW2I5f" crossorigin="anonymous"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js" integrity="sha384-a5N7Y/aK3qNeh15eJKGWxsqtnX/wWdSZSKp+81YjTmS15nvnvxKHuzaWwXHDli+4" crossorigin="anonymous"></script>
 
         <link rel="shortcut icon" href="{% static 'img/logo-monkey.png' %}">
 
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:300,300i,400,400i,500,500i%7COpen+Sans:300,300i,400,400i,600,600i,700,700i">
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw" crossorigin="anonymous">
         <link rel="stylesheet" type="text/css" href="{% static 'stack/fonts/font-awesome/css/font-awesome.min.css' %}">
         <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
@@ -62,8 +62,29 @@
       display: inline-block;
     }
 
+    /* Bootstrap tries to reset the font; let's ignore it*/
+    .tooltip{
+      font-family: inherit;
+    }
+
     .tooltip.bs-tooltip-top .arrow::before{
       border-top-color: #404E67;
+    }
+
+    .tooltip.bs-tooltip-bottom .arrow::before{
+      border-bottom-color: #404E67;
+    }
+
+    .tooltip.hint.bs-tooltip-right .arrow::before{
+      border-right-color: #FFC107;
+    }
+
+    .tooltip.hint .tooltip-inner{
+      background: #FFC107;
+    }
+
+    .tooltip.hint .tooltip-inner{
+      color: black;
     }
 
     #top-info{
@@ -224,13 +245,6 @@
       font-weight: 500;
     }
 
-    .mobile-slide{
-      height: 100%;
-      width: 20%;
-      position: fixed;
-      z-index: 1;
-    }
-
     .question-body.show, #submit{
       z-index: 2;
       position: relative;
@@ -242,13 +256,6 @@
 
     #top-info, #top-options{
       position: relative;
-    }
-
-    .mobile-slide.next{
-      right: 0
-    }
-    .mobile-slide.previous{
-      left: 0
     }
 
     #normal-values{
@@ -289,8 +296,6 @@
     </head>
     <body data-session-mode="{{ session.session_mode }}" data-has-finished="{% if session.has_finished %}true{% else %}false{% endif %}">
     <div class="container-fluid" id="container">
-        <div class="d-sm-none mobile-slide previous" id="slide-previous"></div>
-        <div class="d-sm-none mobile-slide next " id="slide-next"></div>
         <div id="top-info" class="row align-items-center">
             <div class ="col-sm-3 text-sm-left text-center">
               <a href="/" class="navbar-brand">
@@ -326,22 +331,27 @@
           </div>
         </div><!--top-options-->
 
-        <div id="question-container">
-          <div id="question-pool" class="mx-4 mx-sm-0">
-            {% for question in initial_questions %}
-            {% with question_sequence=forloop.counter0|add:initial_question_sequence_start %}
-             {% include 'exams/partials/session_question.html' %}
-            {% endwith %}
-            {% endfor %}
+        <div id="question-row" class="row">
+          <div class="col-2 col-sm-1 d-lg-none mobile-slide previous order-1" id="slide-previous"></div>
+          <div class="col-2 col-sm-1 d-lg-none mobile-slide next order-3" id="slide-next"></div>
+          <div id="question-col" class="col-8 col-sm-10 col-lg-12 px-0 px-lg-5 order-2">
+            <div id="question-container">
+              <div id="question-pool">
+                {% for question in initial_questions %}
+                {% with question_sequence=forloop.counter0|add:initial_question_sequence_start %}
+                 {% include 'exams/partials/session_question.html' %}
+                {% endwith %}
+                {% endfor %}
+              </div>
+              <button type="button" id="submit" class="btn">Submit <i class="fa fa-angle-right" aria-hidden="true"></i></button>
+              <div class="row">
+                  <button class="btn btn-outline-primary" id="explain">Improve this explanation!</button>
+                  <button class="btn btn-outline-primary" id="add-mnemonics">{% if question.mnemonic_set.exists %}See a mnemonic!{% else %} Add a mnemonic!{% endif %}</button>
+              </div>
+            </div>
           </div>
-          <button type="button" id="submit" class="btn">Submit <i class="fa fa-angle-right" aria-hidden="true"></i></button>
-<div class="row">
-          <button class="btn btn-outline-primary" id="explain">Improve this explanation!</button>
-          <button class="btn btn-outline-primary" id="add-mnemonics">{% if question.mnemonic_set.exists %}See a mnemonic!{% else %} Add a mnemonic!{% endif %}</button>
-
-</div>
-</div>
         </div>
+
         <div id="footer" class="row text-center font-weight-bold">
           <div class="col-sm-6 text-sm-left order-2 order-sm-1">
            <a id="back" class="float-left float-sm-none option" href="{% url 'exams:create_session' category_slugs session.exam.pk %}"><i class="fa fa-sign-out" aria-hidden="true"></i> Back</a>
@@ -373,6 +383,7 @@
     was_solved_markup = '<i class="fa fa-check-square-o" aria-hidden="true"></i>';
     is_marked_markup = '<i class="fa fa-flag" aria-hidden="true"></i>';
     wrong_answer_markup = '<i class="fa fa-times text-danger"></i>'
+    isTablet = navigator.userAgent.match(/iPad/i) != null || (navigator.userAgent.match(/Android/i) != null && navigator.userAgent.match(/Mobile/i) == null);
 
     function updateData(){
         current_sequence =  parseInt($("#question-sequence").html());
@@ -441,7 +452,7 @@
         }
 
         // Upon navigation, hide previous voting tooltips
-        $(".answer-correction-notification").tooltip('hide');
+        $(".check, .answer-correction-notification, .opposing-users, .supporting-users").tooltip('hide');
 
         showQuestion(targeted_sequence);
 
@@ -621,6 +632,11 @@
     }
 
     function controlNavigationButtons(){
+      // In case this is a tablet, we do not want the tooltips
+      if (isTablet){
+        return
+      }
+
       // We dispose in all cases to allow for changes, if indicated,
       // to be applied.
       $("#next").tooltip('dispose');
@@ -739,10 +755,27 @@
         $question.find(".question-text, .question-choice, .choice-text, .highlight").off();
 
         $checkedChoice = $question.find(".question-choice:checked");
+
         // Do we have a choice, or was it skipped?
         if ($checkedChoice.length) {
             // We store choice pk at the row.
             choice_pk = $checkedChoice.closest('tr').data("choice-pk");
+
+            // If there is a correction, we invite the user to vote:
+            $choice_row = $checkedChoice.closest('tr');
+            $correction_notification = $choice_row.find('.answer-correction-notification')
+            // Let's ensure that the support voting button is enabled
+            // (i.e. the user is not the submitter of the correction
+            // or a previous voter)
+            $support_button = $choice_row.find('button.support-correction:enabled')
+            if ($correction_notification.length && $support_button.length){
+              $choice_row.find('.check').tooltip({template: '<div class="tooltip hint" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>',
+                                                  html: true,
+                                                  title:"<strong>Are you sure that this is the right answer?</strong>  Vote to support this correction! <img height=\'17\' src=\'https://cdnjs.cloudflare.com/ajax/libs/emojione/2.2.7/assets/png/1f64a.png\'>",
+                                                  placement: 'right',
+                                                  trigger: 'manual'}).tooltip('show');
+              setTimeout(function(){$choice_row.find('.check').tooltip('hide')}, 5000);
+            }
         } else {
             choice_pk = null;
         }
@@ -770,10 +803,14 @@
 
     }
 
-    function updateFooterMargins() {
+    function updateSizes() {
       $("#question-container").css({
         'padding-bottom': $('#footer').height() + 20
       })
+
+      // The question row should take all the space not taken by other elements
+      row_height = $("#container").height() - $('#top-info').height() - $('#top-options').height() - $('#footer').height();
+      $("#question-row").css({'height': row_height});
     }
 
     function initializeKeyboard(){
@@ -901,6 +938,11 @@
       });
     }
 
+    if (isTablet){
+      $('.mobile-slide').removeClass('d-lg-none');
+      $('#question-col').removeClass('col-lg-12 px-lg-5');
+    }
+
     $(function() {
         // variables used by many functions
         total = $("#question-total").html();
@@ -911,8 +953,13 @@
         initializeInteractions();
         handleCorrectionInteractions();
 
-        // Initialize tooltips
-        $('[data-toggle="tooltip"]').tooltip()
+        // Initialize tooltips, except for navigation and mark buttons on mobile.
+        if (isTablet){
+          $('[data-toggle="tooltip"]').not("#next, #previous, #mark").tooltip();
+        } else {
+          $('[data-toggle="tooltip"]').tooltip();
+        }
+
         help_me_tooltip = $("#help-me-tooltip").get(0);
         $("#help-me").tooltip({html: true,
                                trigger: 'click',
@@ -928,8 +975,8 @@
          });
 
          fetchList();
-         updateFooterMargins();
-         $(window).resize(updateFooterMargins);
+         updateSizes();
+         $(window).resize(updateSizes);
 
          $(".mobile-slide").click(function(){
           if ($(this).hasClass('previous')){
@@ -1015,6 +1062,7 @@
 
         <div class="d-none">
           <div id="help-me-tooltip">
+            <a data-toggle="tooltip" data-html="true" title="<div style='direction: rtl;'> من حقك تعاتبني<br>من حقك تحاسبني<br>لكن مش من حقك<br>فى عواطفي تكدبني🎶</div>" target="_blank" href="https://soundcloud.com/yaya26/4sdgcoaj9r6p"><img src="{% static 'img/monerh/reach-out.png' %}" class="img-fluid"></a>
             <p>Fudul is made better by your feedback and ideas!  Contact us right now:</p>
             <div class="row justify-content-center">
               <div class="col-12">

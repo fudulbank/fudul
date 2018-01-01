@@ -1,4 +1,4 @@
-{% extends 'base_new.html' %}{% load staticfiles %}
+{% extends 'base_new.html' %}{% load static %}
 {% block title %}Fudul | Get help{% endblock %}
 
 {% block header_title %}
@@ -14,8 +14,9 @@
 
 <div class="card">
 	<div class="card-body">
-		<div class="card-block">
-			<p>If you have any question regarding the use of Fudul, you can reach us through:</p>
+		<div class="card-block text-center">
+			<img data-toggle="tooltip" data-html="true" data-delay='{"show": 100, "hide": 3000}' data-title="<div style='direction: rtl;'><a target='_blank' href='https://soundcloud.com/ahmed-magdi-tawfeek/lpqou9sykaev'>كلمني يا قمر<br>فهمني ياقمر🎶</a></div>" src="{% static 'img/monerh/contact-us.png' %}" height="300">
+			<p>If you have any suggestion or question regarding Fudul, you can immediately reach us through:</p>
   	</div>
     <div class="card-block">
       <div class="row justify-content-center">
@@ -46,4 +47,11 @@
   </div>
 </div>
 
+{% endblock %}
+{% block customscript %}
+<script>
+$(function () {
+		$('[data-toggle="tooltip"]').tooltip();
+});
+</script>
 {% endblock %}

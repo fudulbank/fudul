@@ -1,4 +1,4 @@
-<!DOCTYPE html>{% load static account_utils %}
+<!DOCTYPE html>{% load static cache account_utils %}
 <html lang="en" data-textdirection="ltr" class="loading">
 {% include 'partials/call_out.html' %}
 <head>
@@ -205,6 +205,7 @@
           <li class=" navigation-header"><span>Exams</span><i data-toggle="tooltip" data-placement="right" data-original-title="General" class=" ft-minus"></i>
           </li>
           <li class="nav-item has-sub{% if is_browse_active %} open{% endif %}"><a href="#"><i class="ft-align-left"></i><span data-i18n="" class="menu-title">Browse exams</span></a>
+{% cache 3600 meta_categories %}{# Cache for one hour #}
             <ul class="menu-content">
               {% for meta_category in meta_categories %}
                   {% if meta_category.children.exists %}
@@ -218,6 +219,7 @@
                               <li data-category-pk="{{ grandchild_category.pk }}"><a href="{% url 'exams:show_category' grandchild_category.get_slugs %}" class="menu-item">{{ grandchild_category.name }}</a></li>
                               {% endfor %}
                             </ul>
+                          </li>
                           {% else %}
                           <li data-category-pk="{{ child_category.pk }}"><a href="{% url 'exams:show_category' child_category.get_slugs %}" class="menu-item">{{ child_category.name }}</a></li>
                           {% endif %}
@@ -225,10 +227,11 @@
                         </ul>
                       </li>
                   {% else %}
-                      <li><a href="{% url 'exams:show_category' meta_category.get_slugs %}" class="menu-item">{{ meta_category.name }}</a>
+                      <li><a href="{% url 'exams:show_category' meta_category.get_slugs %}" class="menu-item">{{ meta_category.name }}</a></li>
                   {% endif %}
               {% endfor %}
             </ul>
+{% endcache %}
           </li>
 
           <li class="{% if is_previous_active %}active {% endif %}nav-item"><a href="{% url 'exams:list_previous_sessions' %}"><i class="ft-edit"></i><span data-i18n="" class="menu-title">Previous sessions</span></a></li>
