@@ -1,4 +1,4 @@
-<!DOCTYPE html>{% load static account_utils %}
+<!DOCTYPE html>{% load static cache account_utils %}
 <html lang="en" data-textdirection="ltr" class="loading">
 {% include 'partials/call_out.html' %}
 <head>
@@ -75,7 +75,7 @@
                   <span id="notification-count-outer" class="badge badge-pill badge-default badge-danger badge-default badge-up">{{ notification_count }}</span>
                   {% endif %}
                 </a>
-                <ul id="notification-dropdown" class="dropdown-menu dropdown-menu-media dropdown-menu-right{% if not notification_count %} pb-0{% endif %}">
+                <ul id="notification-dropdown" class="dropdown-menu dropdown-menu-media dropdown-menu-right pb-0">
                   <li class="dropdown-menu-header">
                     <h6 class="dropdown-header m-0">
                       <span class="grey darken-2">Notifications</span>
@@ -88,7 +88,11 @@
                     {% for notification in  user.notifications.unread.all  %}
                     <a href="{% if notification.data.url %}{{ notification.data.url }}{% else %}javascript:void(0){% endif %}">
                       <div class="media">
-                        {% if notification.level == 'warning' %}
+                        {% if notification.data.style == 'count' %}
+                        <div class="media-left align-self-center"><i class="ft-heart icon-bg-circle bg-red bg-darken-3"></i></div>
+                        {% elif notification.data.style == 'support' %}
+                        <div class="media-left align-self-center"><i class="ft-thumbs-up icon-bg-circle bg-success bg-darken-3"></i></div>
+                        {% elif notification.level == 'warning' %}
                         <div class="media-left align-self-center"><i class="ft-alert-triangle icon-bg-circle bg-yellow bg-darken-3"></i></div>
                         {% elif notification.level == 'success' %}
                         <div class="media-left align-self-center"><i class="ft-check-circle icon-bg-circle bg-cyan"></i></div>
@@ -98,9 +102,9 @@
                         <div class="media-left align-self-center"><i class="ft-x icon-bg-circle bg-red"></i></div>
                         {% endif %}
                         <div class="media-body">
-                          <h6 class="media-heading">{% if notification.actor == user %}You{% else %}{{ notification.actor }}{% endif %} {{ notification.verb }}{% if notification.target %} {{ notification.target }}{% endif %}</h6>
+                          <h6 class="media-heading">{% if notification.data.title %}{{ notification.data.title }}{% else %}{% if notification.actor == user %}You{% else %}{{ notification.actor }}{% endif %} {{ notification.verb }}{% if notification.target %} {{ notification.target }}{% endif %}{% endif %}</h6>
                           {% if notification.description %}
-                          <p class="notification-text font-small-3 text-muted">{{ notification.description }}</p>
+                          <p class="notification-text font-small-3 text-muted">{{ notification.description|safe }}</p>
                           {% endif %}
                           <small>
                             <time datetime="{{ notification.timestamp|date:'c' }}" class="media-meta text-muted">{{ notification.timesince }}</time>
@@ -120,8 +124,9 @@
                     </a>
                   </li>
                   {% if notification_count %}
-                  <li id="mark-read" class="dropdown-menu-footer"><a class="pt-1 dropdown-item text-muted text-center">Mark all notifications as read</a></li>
+                  <li class="dropdown-menu-footer"><a class="py-1 dropdown-item text-muted text-center mark-all-as-read">Mark all as read</a></li>
                   {% endif %}
+                  <li class="dropdown-menu-footer"><a href="{% url 'notifications:all' %}" class="py-1 dropdown-item text-muted text-center">See all notifications</a></li>
                 </ul>
               </li>
               {% endwith %}
@@ -200,6 +205,7 @@
           <li class=" navigation-header"><span>Exams</span><i data-toggle="tooltip" data-placement="right" data-original-title="General" class=" ft-minus"></i>
           </li>
           <li class="nav-item has-sub{% if is_browse_active %} open{% endif %}"><a href="#"><i class="ft-align-left"></i><span data-i18n="" class="menu-title">Browse exams</span></a>
+{% cache 3600 meta_categories %}{# Cache for one hour #}
             <ul class="menu-content">
               {% for meta_category in meta_categories %}
                   {% if meta_category.children.exists %}
@@ -213,6 +219,7 @@
                               <li data-category-pk="{{ grandchild_category.pk }}"><a href="{% url 'exams:show_category' grandchild_category.get_slugs %}" class="menu-item">{{ grandchild_category.name }}</a></li>
                               {% endfor %}
                             </ul>
+                          </li>
                           {% else %}
                           <li data-category-pk="{{ child_category.pk }}"><a href="{% url 'exams:show_category' child_category.get_slugs %}" class="menu-item">{{ child_category.name }}</a></li>
                           {% endif %}
@@ -220,10 +227,11 @@
                         </ul>
                       </li>
                   {% else %}
-                      <li><a href="{% url 'exams:show_category' meta_category.get_slugs %}" class="menu-item">{{ meta_category.name }}</a>
+                      <li><a href="{% url 'exams:show_category' meta_category.get_slugs %}" class="menu-item">{{ meta_category.name }}</a></li>
                   {% endif %}
               {% endfor %}
             </ul>
+{% endcache %}
           </li>
 
           <li class="{% if is_previous_active %}active {% endif %}nav-item"><a href="{% url 'exams:list_previous_sessions' %}"><i class="ft-edit"></i><span data-i18n="" class="menu-title">Previous sessions</span></a></li>
@@ -291,15 +299,15 @@
 
 <script>
 $(function(){
- $("#mark-read").click(function(){
+ $(".mark-all-as-read").click(function(){
    $.ajax({url: '{% url "notifications:mark_all_as_read" %}',
            success: function(){
              empty_html = $("#empty-notification").removeClass('d-none').prop('outerHTML');
              $("#notification-list").html(empty_html);
              $("#notification-dropdown").addClass('pb-0');
              $("#notification-count-new, #notification-count-outer").hide();
-             console.log(empty_html);
-             $("#mark-read").hide();
+             $(".mark-all-as-read").hide();
+             $('.mark-as-read').css('visibility', 'hidden')
            }
    })
  });

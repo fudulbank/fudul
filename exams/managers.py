@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import Q, Count
+from django.http import Http404
 import accounts.utils
 from . import utils
 from itertools import chain
@@ -258,6 +259,13 @@ class CategoryQuerySet(models.QuerySet):
 
         category = self.filter(**kwargs).first()
         return category
+
+    def get_from_slugs_or_404(self, slugs):
+        category = self.get_from_slugs(slugs)
+        if category:
+            return category
+        else:
+            raise Http404
 
     def user_accessible(self, user):
         if user.is_superuser:

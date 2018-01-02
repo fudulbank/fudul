@@ -5,7 +5,9 @@ from exams import views as exam_views
 
 urlpatterns = [
     url(r'^ajax/get_users$', views.UserAutocomplete.as_view(), name='user_autocomplete'),
-    url(r'^privileged/(?P<path>.+)$', views.get_privileged_file, name='get_privileged_file'), 
+    url(r'^privileged/(?P<path>.+)$', views.get_privileged_file, name='get_privileged_file'),
+
+    url(r'^notifications/delete_all$', views.mark_all_notifications_as_deleted, name='mark_all_notifications_as_deleted'),
 
     url(r'^indicators/$', views.show_indicator_index, name="show_indicator_index"),
     url(r'^indicators/teams/(?P<pk>\d+)/$', views.show_team_indicators, name='show_team_indicators'),

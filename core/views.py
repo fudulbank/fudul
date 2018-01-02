@@ -2,15 +2,16 @@ from dal import autocomplete
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
+from django.views.decorators import csrf
+from django.views.decorators.cache import cache_page
 from django.views.decorators.http import require_POST, require_safe
 from django.views.static import serve
-import math
-from django.core.exceptions import PermissionDenied
 
-from . import utils
+from . import decorators, utils
 from .models import CoreMember
 from exams import models as exam_models
 from teams import models as team_models
@@ -153,6 +154,7 @@ def get_privileged_file(request, path):
 
 @login_required
 @require_safe
+@cache_page(60 * 60 * 24) # One day
 def show_about(request):
     team = CoreMember.objects.order_by('?')
 
@@ -176,3 +178,11 @@ def show_about(request):
                'editor_count': editor_count}
 
     return render(request, 'about.html', context)
+
+@login_required
+@require_POST
+@decorators.ajax_only
+@csrf.csrf_exempt
+def mark_all_notifications_as_deleted(request):
+    request.user.notifications.mark_all_as_deleted()
+    return {}
