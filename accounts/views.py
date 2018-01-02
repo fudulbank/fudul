@@ -137,7 +137,7 @@ def personal_email_change(request, username, email_form=ChangePersonalEmailForm,
 @secure_required
 def personal_email_confirm(request, confirmation_key,
                            template_name='userena/email_confirm_fail.html',
-                           success_url=None, extra_context=None):
+                           extra_context=None):
     """
     Confirms an email address with a confirmation key.
 
@@ -172,10 +172,8 @@ def personal_email_confirm(request, confirmation_key,
             messages.success(request,'Your email address has been changed.',
                              fail_silently=True)
 
-        if success_url: redirect_to = success_url
-        else: redirect_to = reverse('userena_email_confirm_complete',
-                                    kwargs={'username': user.username})
-        return redirect(redirect_to)
+        redirect_to = reverse('userena_email_confirm_complete',
+                              kwargs={'username': user.username})
     else:
         if not extra_context: extra_context = dict()
         return ExtraContextTemplateView.as_view(template_name=template_name,
