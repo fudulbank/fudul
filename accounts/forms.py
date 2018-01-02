@@ -1,11 +1,15 @@
 from django import forms
 from accounts.models import Profile
-from userena.forms import SignupFormOnlyEmail, EditProfileForm
+from userena.forms import SignupFormOnlyEmail, EditProfileForm, identification_field_factory
 from . import models
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied, ValidationError
+from userena.models import UserenaSignup
+from django.utils.translation import ugettext_lazy as _
+from userena import settings as userena_settings
+from django.contrib.auth import authenticate
 
-
+attrs_dict = {'class': 'required'}
 
 
 class CustomSignupForm(SignupFormOnlyEmail):
@@ -27,7 +31,6 @@ class CustomSignupForm(SignupFormOnlyEmail):
 
         if 'alternative_email' in cleaned_data:
             alternative_email = self.cleaned_data['alternative_email']
-            email = self.cleaned_data.get('email')
             if alternative_email and User.objects.filter(profile__alternative_email=alternative_email).exists():
                 msg = " Personal email address already registered. "
                 self._errors['alternative_email'] = self.error_class([msg])
@@ -88,10 +91,10 @@ class CustomSignupForm(SignupFormOnlyEmail):
         user_profile.college = self.cleaned_data.get('college', None)
         user_profile.batch = self.cleaned_data.get('batch', None)
         user_profile.display_full_name = self.cleaned_data['display_full_name']
-
+        user_profile.personal_email_unconfirmed = self.cleaned_data['alternative_email']
 
         user_profile.save()
-
+        Profile.objects.generate_key_personal_email(new_user)
         # Userena expects to get the new user from this form, so
         # return the new user.
         return new_user
@@ -119,7 +122,7 @@ class CustomEditProfileForm(forms.ModelForm):
     class Meta:
         model = models.Profile
         fields = ['first_name', 'middle_name', 'last_name',
-                  'nickname', 'alternative_email', 'mobile_number','display_full_name']
+                  'nickname', 'mobile_number','display_full_name']
 
     def clean(self):
         cleaned_data = super(CustomEditProfileForm, self).clean()
@@ -176,3 +179,85 @@ class CustomEditProfileForm(forms.ModelForm):
         user_profile.save()
 
 
+
+class ChangePersonalEmailForm(forms.Form):
+    alternative_email = forms.EmailField(widget=forms.TextInput(attrs=dict(attrs_dict,maxlength=75)),label="New personal email")
+
+    def __init__(self, user, *args, **kwargs):
+        """
+        The current ``user`` is needed for initialisation of this form so
+        that we can check if the email address is still free and not always
+        returning ``True`` for this query because it's the users own e-mail
+        address.
+
+        """
+        super(ChangePersonalEmailForm, self).__init__(*args, **kwargs)
+        if not isinstance(user, User):
+            raise TypeError("user must be an instance of %s" % User)
+        else: self.user = user
+
+
+
+    def clean(self):
+
+        cleaned_data = super(ChangePersonalEmailForm, self).clean()
+
+        if 'alternative_email' in cleaned_data:
+            alternative_email = self.cleaned_data['alternative_email']
+            if alternative_email and User.objects.filter(profile__alternative_email=alternative_email).exclude(
+                    profile__alternative_email__iexact=self.user.profile.alternative_email):
+                msg = " Personal email address already registered. "
+                self._errors['alternative_email'] = self.error_class([msg])
+                del cleaned_data['alternative_email']
+            elif cleaned_data['alternative_email'].lower() == self.user.profile.alternative_email.lower():
+                msg = " You\'re already known under this email. "
+                self._errors['alternative_email'] = self.error_class([msg])
+                del cleaned_data['alternative_email']
+
+
+    def save(self):
+        """
+        Save method calls :func:`user.change_email()` method which sends out an
+        email with an verification key to verify and with it enable this new
+        email address.
+
+        """
+
+        return self.user.profile.change_personal_email(self.cleaned_data['alternative_email'])
+
+
+class CustomAuthenticationForm(forms.Form):
+    identification =identification_field_factory(_("Main or alternative email"),
+                                                  _("Either supply us with your main or alternative email."))
+
+    password = forms.CharField(label=_("Password"),
+                               widget=forms.PasswordInput(attrs=attrs_dict, render_value=False))
+    remember_me = forms.BooleanField(widget=forms.CheckboxInput(),
+                                     required=False,
+                                     label=_('Remember me for %(days)s') % {'days': _(userena_settings.USERENA_REMEMBER_ME_DAYS[0])})
+
+    def __init__(self, *args, **kwargs):
+        """ A custom init because we need to change the label if no usernames is used """
+        super(CustomAuthenticationForm, self).__init__(*args, **kwargs)
+        # Dirty hack, somehow the label doesn't get translated without declaring
+        # it again here.
+        self.fields['remember_me'].label = _('Remember me for %(days)s') % {'days': _(userena_settings.USERENA_REMEMBER_ME_DAYS[0])}
+        if userena_settings.USERENA_WITHOUT_USERNAMES:
+            self.fields['identification'] = identification_field_factory(_("Email"),
+                                                                         _("Please supply your email."))
+
+    def clean(self):
+        """
+        Checks for the identification and password.
+
+        If the combination can't be found will raise an invalid sign in error.
+
+        """
+        identification = self.cleaned_data.get('identification')
+        password = self.cleaned_data.get('password')
+
+        if identification and password:
+            user = authenticate(identification=identification, password=password)
+            if user is None:
+                raise forms.ValidationError(_("Please enter a correct username or email and password. Note that both fields are case-sensitive."))
+        return self.cleaned_data
