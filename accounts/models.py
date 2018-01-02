@@ -107,7 +107,7 @@ class Profile(UserenaBaseProfile):
         if self.alternative_email:
             mailer.send_mail(self.alternative_email)
 
-        mailer.generate_mail("confirmation", "_new")
+        mailer.generate_mail("confirmation_personal", "_new")
         mailer.send_mail(self.personal_email_unconfirmed)
 
 
