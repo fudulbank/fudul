@@ -1241,11 +1241,11 @@ def contribute_mnemonics(request):
                 if not request.user.is_superuser and \
                    not exam.category.is_user_editor(request.user) and \
                    not mnemonic.submitter == request.user:
-                    raise Exception("You cannot delete that mnemonic!")
+                    raise Exception("You cannot delete this mnemonic!")
 
                 mnemonic.is_deleted = True
                 mnemonic.save()
-                Notifcation.objects.filter(target=mnemonic).delete()
+                Notification.objects.filter(verb='mnemonic').delete()
                 return {"message": "success"}
 
             else:
