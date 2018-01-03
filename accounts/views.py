@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from userena import views as userena_views
 from core import decorators
-from .forms import CustomSignupForm,CustomEditProfileForm,ChangePersonalEmailForm
+from .forms import CustomSignupForm,CustomEditProfileForm,ChangePersonalEmailForm,CustomAuthenticationForm
 from .models import Institution,Profile
 from django.contrib.auth.models import User
 from userena.utils import get_user_profile
@@ -16,6 +16,7 @@ from userena import settings as userena_settings
 from django.contrib import messages
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from userena.utils import signin_redirect
+
 
 @decorators.ajax_only
 def get_institution_details(request):
@@ -40,8 +41,9 @@ def signup(request):
                                 template_name='accounts/signup.html',
                                 extra_context=extra_context)
 
+# not sure if this view and form is nessecary  
 def signin(request):
-    return userena_views.signin(request,auth_form=AuthenticationForm,
+    return userena_views.signin(request,auth_form=CustomAuthenticationForm,
                                 template_name='userena/signin_form.html',
                                 redirect_field_name=REDIRECT_FIELD_NAME,
                                 redirect_signin_function=signin_redirect, extra_context=None)
