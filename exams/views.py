@@ -1236,6 +1236,7 @@ def contribute_mnemonics(request):
                     raise Exception("You have already liked this mnemonic.")
                 mnemonic.likes.add(request.user)
                 mnemonic.notify_submitter(request.user)
+                return {"message": "success"}
 
             elif action == 'delete':
                 if not request.user.is_superuser and \
