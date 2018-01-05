@@ -25,54 +25,36 @@ import teams.utils
 
 @require_safe
 @login_required
-def list_meta_categories(request, indicators=False):
-    if indicators and not teams.utils.is_editor(request.user):
-        raise PermissionDenied
-
-    if indicators:
-        show_category_url = 'show_category_indicators'
-    else:
-        show_category_url = 'exams:show_category'
-
+def list_meta_categories(request):
     subcategories = Category.objects.meta().user_accessible(request.user)
     context = {'subcategories': subcategories,
-               'show_category_url': show_category_url,
-               'is_indicators_active': indicators,
-               'is_browse_active': not indicators,
+               'is_browse_active': True,
     }
     return render(request, 'exams/show_category.html', context)
 
 @require_safe
 @login_required
-def show_category(request, slugs, indicators=False):
+def show_category(request, slugs):
     category = Category.objects.get_from_slugs_or_404(slugs)
 
-    context = {'category': category,
-               'is_indicators_active': indicators}
+    context = {'category': category}
 
     # PERMISSION CHECK
-    if not category.can_user_access(request.user) or\
-       indicators and not teams.utils.is_editor(request.user):
+    if not category.can_user_access(request.user):
         raise PermissionDenied
     subcategories = category.children.user_accessible(request.user)
 
-    if indicators:
-        show_category_url = 'show_category_indicators'
-        if subcategories.count() == 0:
-            return show_category_indicators(request, category)
+    # To make sidebar 'active'
+    context['is_browse_active'] = True
+
+    # If user can edit, show them all the exams.  Otherwise, only
+    # show them exams with approved questions.
+    if category.is_user_editor(request.user):
+        exams = category.exams.all()
     else:
-        show_category_url = 'exams:show_category'
-        # To make sidebar 'active'
-        context['is_browse_active'] = True
+        exams = category.exams.with_approved_questions()
 
-        # If user can edit, show them all the exams.  Otherwise, only
-        # show them exams with approved questions.
-        if category.is_user_editor(request.user):
-            exams = category.exams.all()
-        else:
-            exams = category.exams.with_approved_questions()
-
-        context['exams'] = exams
+    context['exams'] = exams
 
     # If this category has one child, just go to it!
     if subcategories.count() == 1:
@@ -81,7 +63,6 @@ def show_category(request, slugs, indicators=False):
                                             args=(subcategory.get_slugs(),)))
 
     context.update({
-        'show_category_url': show_category_url,
         'subcategories': subcategories.order_by('name'),
     })
 
@@ -698,17 +679,6 @@ def list_previous_sessions(request):
 
     return render(request, 'exams/list_previous_sessions.html',
                   context)
-
-@require_safe
-@login_required
-def show_category_indicators(request, category):
-    # PERMISSION CHECK
-    if not teams.utils.is_editor(request.user):
-        raise PermissionDenied
-
-    context = {'category': category,
-               'is_indicators_active': True}
-    return render(request, 'indicators/show_category_indicators.html', context)
 
 @login_required
 @decorators.ajax_only

@@ -40,8 +40,8 @@ urlpatterns =[
     url(r'^indicators/$', RedirectView.as_view(pattern_name='show_indicator_index')),
     url(r'^indicators/teams/$', RedirectView.as_view(pattern_name='show_indicator_index')),
     url(r'^indicators/teams/(?P<team_pk>\d+)/$', RedirectView.as_view(pattern_name='show_team_indicators')),
-    url(r'^indicators/categories/$', RedirectView.as_view(pattern_name='list_category_indicators')),
-    url(r'^indicators/categories/(?P<slugs>[/\d\w\-]+)/$', RedirectView.as_view(pattern_name='show_category_indicators')),
+    url(r'^indicators/categories/$', RedirectView.as_view(pattern_name='show_indicator_index')),
+    url(r'^indicators/categories/(?P<slugs>[/\d\w\-]+)/$', RedirectView.as_view(pattern_name='show_indicator_index')),
 
     url(r'^contributions/(?:(?P<user_pk>\d+)/)?$',views.list_contributions, name='list_contributions'),
 

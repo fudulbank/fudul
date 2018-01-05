@@ -74,7 +74,8 @@ def show_indicator_index(request):
     teams = team_models.Team.objects.all()
     colleges = account_models.College.objects.filter(profile__isnull=False)\
                                              .distinct()
-    exams = exam_models.Exam.objects.filter(session__isnull=False)\
+    exams = exam_models.Exam.objects.select_related('category')\
+                                    .filter(session__isnull=False)\
                                     .distinct()
     exam_date_json = utils.get_exam_date_json()
 
