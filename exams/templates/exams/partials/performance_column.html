@@ -3,8 +3,6 @@
 {% get_user_question_stats target user 'incorrect' percent=True as incorrect_percentage %}
 {% get_user_question_stats target user 'skipped' percent=True as skipped_percentage %}
 {% get_user_question_stats target user 'correct' as correct_count %}
-{% get_user_question_stats target user 'incorrect' as incorrect_count %}
-{% get_user_question_stats target user 'skipped' as skipped_count %}
 <td class="text-center" data-order="{{ correct_percentage }}" data-toggle="tooltip" data-html="true" title="<strong>Correct:</strong> {{ correct_percentage }}% ({{ correct_count }} questions)<br><strong>Incorrect:</strong> {{ incorrect_percentage }}% ({{ incorrect_count }} questions)<br><strong>Skipped:</strong> {{ skipped_percentage }}% ({{ skipped_count }} questions)<br>">
   <span class="font-small-2">{{ correct_percentage }}%</span>
   <div class="progress progress-sm">

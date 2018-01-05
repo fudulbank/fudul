@@ -56,6 +56,7 @@ urlpatterns =[
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/session/(?P<session_pk>\d+)/results/$', views.show_session_results, name='show_session_results'),
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/contributions/$',views.approve_user_contributions, name='approve_user_contributions'),
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/$', views.create_session, name='create_session'),
+    url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/automatic$', views.create_session_automatically, name='create_session_automatically'),
 
     # has to be the very last
     url(r'^(?P<slugs>[/\d\w\-]+)/$', views.show_category, name='show_category'),

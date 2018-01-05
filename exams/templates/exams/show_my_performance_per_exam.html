@@ -4,6 +4,7 @@
 
 {% block head %}
 <link rel="stylesheet" href="{% static 'stack/vendors/css/charts/chartist.css' %}">
+<link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
 {% endblock %}
 
 {% block header_title %}
@@ -25,23 +26,40 @@
 			</div>
 {% if exam.subject_set.exists %}
 			<h2>Performance per {{ exam.name }} subject</h2>
-      <p>Here, you can see your perfromance in <strong>{{ exam.name }}</strong> in detail.  <em>"Correct"</em> counts questions correctly answered by you at least one time.  <em>"Incorrect"</em> counts questions incorrectly answered by you and never answed correctly.  <em>"Skipped"</em> counts questions that were shown, but skipped and never answered by you.  Deleted sessions are <strong>not</strong> counted.</p>
+      <p>Here, you can see your perfromance in <strong><a href="{% url 'exams:create_session' exam.category.get_slugs exam.pk %}">{{ exam.name }}</a></strong> in detail.  <em>"Correct"</em> counts questions correctly answered by you at least one time.  <em>"Incorrect"</em> counts questions incorrectly answered by you and never answed correctly.  <em>"Skipped"</em> counts questions that were shown, but skipped and never answered by you.  Deleted sessions are <strong>not</strong> counted.</p>
 			<table style="width: 100%;" class="datatable table table-striped table-bordered">
 			  <thead>
 			    <tr>
 			      <th class="all">Subject</th>
 			      <th data-toggle="tooltip">Performance</th>
+            <th>Actions</th>
 			    </tr>
 			  </thead>
 			  <tbody>
 			    {% for subject in exam.subject_set.all %}
             {% get_user_question_stats subject user 'total' as total_count %}
+            {% get_user_question_stats subject user 'incorrect' as incorrect_count %}
+            {% get_user_question_stats subject user 'skipped' as skipped_count %}
 			      <tr>
 			        <td>{{ subject.name }} <span class="font-small-2"> ({{ total_count }})</span></td>
               {% with target=subject %}
                 {% include 'exams/partials/performance_column.html' %}
               {% endwith %}
-			      </tr>
+              <td>
+                <div class="dropdown">
+                  <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="ft-settings"></i> Actions</button>
+                  <div class="dropdown-menu">
+                    <button data-url="{% url 'exams:create_session_automatically' exam.category.get_slugs exam.pk %}" data-subject-pk="{{ subject.pk }}" data-selector="ALL" class="dropdown-item automatic-creation"><i class="ft-play"></i> Examine on <strong>all</strong> {{ subject.name }} questions ({{ subject.question_set.approved.count }})</button>
+                    {% if skipped_count %}
+                      <button data-url="{% url 'exams:create_session_automatically' exam.category.get_slugs exam.pk %}" data-subject-pk="{{ subject.pk }}" data-selector="SKIPPED" class="dropdown-item automatic-creation"><i class="ft-rotate-ccw"></i> Re-examine on <strong>skipped</strong> {{ subject.name }} questions ({{ skipped_count }})</button>
+                    {% endif %}
+                    {% if incorrect_count %}
+                      <button data-url="{% url 'exams:create_session_automatically' exam.category.get_slugs exam.pk %}" data-subject-pk="{{ subject.pk }}" data-selector="INCORRECT" class="dropdown-item automatic-creation"><i class="ft-rotate-ccw"></i> Re-examine on <strong>incorrect</strong> {{ subject.name }} questions ({{ incorrect_count }})</button>
+                    {% endif %}
+                  </div>
+                </div>
+              </td>
+            </tr>
 			    {% endfor %}
 			  </tbody>
 			</table>
@@ -51,6 +69,7 @@
 </div><!--card-->
 {% endblock %}
 {% block customscript %}
+<script src="{% static 'js/toastr.js' %}"></script>
 {% include 'partials/import_datatables.html' %}
 
 {% include 'exams/partials/performance_chart.html' %}
@@ -58,6 +77,27 @@
 $(function () {
     $('[data-toggle="tooltip"]').tooltip()
     $("table.datatable").DataTable({paging: false, info: false});
+
+    $('tbody').on('click', '.automatic-creation',function () {
+        $(this).addClass('disabled').attr('disabled', true);
+
+        var url = $(this).data('url');
+        var selector = $(this).data('selector');
+        var subject_pk = $(this).data('subject-pk');
+        toastr.success("A new session is being created.  Give us a second!");
+        $.ajax({url: url,
+                data: {selector: selector, subject_pk: subject_pk},
+                method: 'POST',
+                success: function(data){
+                    if (data.success == 1) {
+                        window.location.href = data.url;
+                    } else {
+                      toastr.error(data.message);
+                    }
+                }
+        });
+    });
+
 });
 </script>
 

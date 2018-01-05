@@ -443,6 +443,46 @@ def create_session(request, slugs, exam_pk):
 
     return render(request, "exams/create_session.html", context)
 
+@login_required
+@require_POST
+@csrf.csrf_exempt
+@decorators.ajax_only
+def create_session_automatically(request, slugs, exam_pk):
+    category = Category.objects.get_from_slugs_or_404(slugs)
+    exam = get_object_or_404(Exam, pk=exam_pk, category=category)
+
+    selector = request.POST.get('selector')
+    if not selector or selector not in ['ALL', 'SKIPPED', 'INCORRECT']:
+        return HttpResponseBadRequest()
+
+    subject_pk = request.POST.get('subject_pk')
+    if subject_pk:
+        subject = get_object_or_404(Subject, pk=subject_pk, exam=exam)
+
+    # PERMISSION CHECK
+    if not category.can_user_access(request.user):
+        raise PermissionDenied
+
+    # DO NOT FUCK WITH US
+    if not exam.is_public and \
+       not category.is_user_editor(request.user):
+        return render(request, "exams/coming_soon.html", {'exam': exam})
+
+    instance = Session(exam=exam,
+                       submitter=request.user)
+
+    data = {'session_mode': 'EXPLAINED',
+            'question_filter': selector}
+    if subject_pk:
+        data['subjects'] = [subject_pk]
+
+    form = forms.SessionForm(data, exam=exam, user=request.user,
+                             instance=instance, is_automatic=True)
+    form.is_valid()
+    session = form.save()
+
+    return {'url': session.get_absolute_url()}
+
 @decorators.ajax_only
 @require_safe
 @login_required

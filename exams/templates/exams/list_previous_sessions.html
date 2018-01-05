@@ -46,10 +46,13 @@ tr td:last-child{
          </thead>
          <tbody>
          {% for session in sessions %}
+         {% with total_count=session.get_questions.count %}
+         {% get_user_question_stats session user 'incorrect' as incorrect_count %}
+         {% get_user_question_stats session user 'skipped' as skipped_count %}
          <tr data-pk="{{ session.pk }}">
-             <td data-html="true" data-toggle="tooltip" title="{{ session.get_questions.count }} questions on: <ul>{% for subject in session|get_session_subjects %}<li>{{ subject.name }}</li>{% endfor %}</ul>"><a href="{% url 'exams:show_session' session.exam.category.get_slugs session.exam.pk session.pk %}">{{ session.exam.name }} ({{ session.pk }})</a></td>
+             <td data-html="true" data-toggle="tooltip" title="{{ total_count }} questions on: <ul>{% for subject in session|get_session_subjects %}<li>{{ subject.name }}</li>{% endfor %}</ul>"><a href="{% url 'exams:show_session' session.exam.category.get_slugs session.exam.pk session.pk %}">{{ session.exam.name }} ({{ session.pk }})</a></td>
              <td data-order="{{ session.submission_date|date:'U' }}">{{ session.submission_date }}</td>
-             <td>{{ session.get_questions.count }}</td>
+             <td>{{ total_count }}</td>
              {% include 'exams/partials/session_score_column.html' %}
              <td>
                <div class="dropdown">
@@ -65,6 +68,7 @@ tr td:last-child{
                </div>
              </td>
            </tr>
+         {% endwith %}
          {% endfor %}
          </tbody>
        </table>

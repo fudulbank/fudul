@@ -428,6 +428,7 @@ questions_choices = (
     ('ALL','All complete'),
     ('UNUSED','Unused'),
     ('INCORRECT', 'Incorrect'),
+    ('SKIPPED', 'Skipped'),
     ('MARKED', 'Marked'),
     ('INCOMPLETE', 'Incomplete'),
 )
@@ -451,6 +452,7 @@ class Session(models.Model):
     question_filter = models.CharField(max_length=20, choices=questions_choices, default=None)
     submission_date = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
+    is_automatic = models.BooleanField(default=False)
     actor_notifications = GenericRelation('notifications.Notification',
                                           content_type_field='actor_content_type',
                                           object_id_field='actor_object_id',
