@@ -164,6 +164,8 @@ $(function() {
               console.log(mnemonic_pk);
               if (data.success == 1){
                 toastr.success("Your vote was submitted.");
+                $(".question-body.show .mnemonics-content").html(data.mnemonic_html);
+
               } else {
                 toastr.error(data.message)
               }
@@ -183,6 +185,8 @@ $(function() {
             success: function(data){
               if (data.success == 1){
                 toastr.success("Your mnemonic is deleted.");
+                $(".question-body.show .mnemonics-content").html(data.mnemonic_html);
+
 
               } else {
                 toastr.error(data.message)

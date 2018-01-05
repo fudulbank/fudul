@@ -1254,7 +1254,10 @@ def contribute_mnemonics(request):
                     raise Exception("You have already liked this mnemonic.")
                 mnemonic.likes.add(request.user)
                 mnemonic.notify_submitter(request.user)
-                return {"message": "success"}
+                template = get_template('exams/partials/show_mnemonics.html')
+                context = {'question': question,'user':request.user}
+                mnemonic_html = template.render(context)
+                return {'mnemonic_html':mnemonic_html}
 
             elif action == 'delete':
                 if not request.user.is_superuser and \
@@ -1265,7 +1268,10 @@ def contribute_mnemonics(request):
                 mnemonic.is_deleted = True
                 mnemonic.save()
                 Notification.objects.filter(verb='mnemonic').delete()
-                return {"message": "success"}
+                template = get_template('exams/partials/show_mnemonics.html')
+                context = {'question': question,'user':request.user}
+                mnemonic_html = template.render(context)
+                return {'mnemonic_html':mnemonic_html}
 
             else:
                 return HttpResponseBadRequest()
