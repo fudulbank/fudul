@@ -10,8 +10,6 @@ $(function () {
     tooltips: {
       callbacks: {
         afterLabel: function(tooltipItem, data) {
-          console.log(tooltipItem);
-          var label = data.labels[tooltipItem.index];
           var dataset = data.datasets[tooltipItem.datasetIndex];
           var total = dataset.data.reduce(function(previousValue, currentValue) {
             return previousValue + currentValue;
@@ -40,7 +38,7 @@ $(function () {
   config = {
     type: 'pie',
     options: chartOptions,
-    data: chartData
+    data: chartData,
   };
   new Chart(ctx, config)
 });
