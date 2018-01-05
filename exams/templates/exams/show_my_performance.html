@@ -1,9 +1,10 @@
-{% extends 'base_new.html' %}{% load staticfiles exam_utils %}
+{% extends 'base_new.html' %}{% load static exam_utils %}
 
 {% block title %}Fudul | My performance {% endblock %}
 
 {% block head %}
 <link rel="stylesheet" href="{% static 'stack/vendors/css/charts/chartist.css' %}">
+<link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
 
 {% endblock %}
 {% block breadcrumb %}
@@ -22,35 +23,42 @@
 	<div class="card-body">
 		<div class="card-block">
 {% if exams.exists %}
-      <h2>Overall performance</h2>
       <div class="chart-container mb-2" style="height: 300px; width: 400px; max-width: 100%;">
           <canvas id="performance-chart"></canvas>
       </div>
       <h2>Performance per exam</h2>
+      <p>Here, you can see your overall perfromance.  You can click individual exams to see more details.  <em>"Correct"</em> counts questions correctly answered by you at least one time.  <em>"Incorrect"</em> counts questions incorrectly answered by you and never answed correctly.  <em>"Skipped"</em> counts questions that were shown, but skipped and never answered by you.  Deleted sessions are <strong>not</strong> counted.</p>
       <table style="width: 100%;" class="datatable table table-striped table-bordered dt-responsive">
         <thead>
           <tr>
             <th class="all">Exam</th>
             <th data-toggle="tooltip" title="Number of questions answered.">Questions</th>
-            <th data-toggle="tooltip" title="Questions that were correctly answered by you at least one time." class="all">Correct</th>
-            <th data-toggle="tooltip" title="Questions that were incorrectly answered by you and never answed correctly.">Incorrect</th>
-            <th data-toggle="tooltip" title="Questions that were shown, skipped and never answered by you.">Skipped</th>
+            <th data-toggle="tooltip">Performance</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {% for exam in exams %}
+            {% get_user_question_stats exam user 'total' as total_count %}
+            {% get_user_question_stats exam user 'incorrect' as incorrect_count %}
+            {% get_user_question_stats exam user 'skipped' as skipped_count %}
             <tr data-pk="{{ exam.pk }}">
               <td class="exam-name"><a href="{% url 'exams:show_my_performance_per_exam' exam.pk %}">{{ exam.name }}</a></td>
-              <td>{{ exam|get_used_question_count_per_user:user }}</td>
-              <td>{% get_user_question_stats exam user 'correct' %} ({% get_user_question_stats exam user 'correct' percent=True %}%)</td>
-              <td>{% get_user_question_stats exam user 'incorrect' %} ({% get_user_question_stats exam user 'incorrect' percent=True %}%)</td>
-              <td>{% get_user_question_stats exam user 'skipped' %} ({% get_user_question_stats exam user 'skipped' percent=True %}%)</td>
+              <td>{{ total_count }}</td>
+              {% with target=exam %}
+                {% include 'exams/partials/performance_column.html' %}
+              {% endwith %}
               <td>
                 <div class="dropdown">
                   <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="ft-settings"></i> Actions</button>
                   <div class="dropdown-menu">
                     <a class="dropdown-item" href="{% url 'exams:show_my_performance_per_exam' exam.pk %}"><i class="ft-grid"></i> See details</a>
+                    {% if skipped_count %}
+                      <button data-url="{% url 'exams:create_session_automatically' exam.category.get_slugs exam.pk %}" data-selector="SKIPPED" class="dropdown-item automatic-creation"><i class="ft-rotate-ccw"></i> Re-examine on <strong>skipped</strong> {{ exam.name }} questions ({{ skipped_count }})</button>
+                    {% endif %}
+                    {% if incorrect_count %}
+                      <button data-url="{% url 'exams:create_session_automatically' exam.category.get_slugs exam.pk %}" data-selector="INCORRECT" class="dropdown-item automatic-creation"><i class="ft-rotate-ccw"></i> Re-examine on <strong>incorrect</strong> {{ exam.name }} questions ({{ incorrect_count }})</button>
+                    {% endif %}
                     <a data-pk="{{ exam.pk }}" class="dropdown-item confirm-delete-exam"><i class="ft-trash-2"></i> Forgive</a>
                   </div>
                 </div>
@@ -92,7 +100,7 @@ $(function () {
     $('tbody').on('click', '.confirm-delete-exam',function () {
         $(this).tooltip("hide");
         row = table.row(this).node();
-        var pk = $(row).data('pk');
+        var pk = $(this).data('pk');
         var name = $(row).find('.exam-name').text();
         $deleteConfirmationButton.data('name', name).data('pk', pk);
         $("#confirm-delete-exam-sessions-modal .modal-title").html("Forgive me the " + name + " exam");
@@ -125,7 +133,24 @@ $(function () {
         });
   	});
 
+    $('tbody').on('click', '.automatic-creation',function () {
+        $(this).addClass('disabled').attr('disabled', true);
 
+        var url = $(this).data('url');
+        var selector = $(this).data('selector');
+        toastr.success("A new session is being created.  Give us a second!");
+        $.ajax({url: url,
+                data: {selector: selector},
+                method: 'POST',
+                success: function(data){
+                    if (data.success == 1) {
+                        window.location.href = data.url;
+                    } else {
+                      toastr.error(data.message);
+                    }
+                }
+        });
+    });
 });
 </script>
 

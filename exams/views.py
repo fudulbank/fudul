@@ -25,63 +25,44 @@ import teams.utils
 
 @require_safe
 @login_required
-def list_meta_categories(request, indicators=False):
-    if indicators and not teams.utils.is_editor(request.user):
-        raise PermissionDenied
-
-    if indicators:
-        show_category_url = 'show_category_indicators'
-    else:
-        show_category_url = 'exams:show_category'
-
+def list_meta_categories(request):
     subcategories = Category.objects.meta().user_accessible(request.user)
     context = {'subcategories': subcategories,
-               'show_category_url': show_category_url,
-               'is_indicators_active': indicators,
-               'is_browse_active': not indicators,
+               'is_browse_active': True,
     }
     return render(request, 'exams/show_category.html', context)
 
 @require_safe
 @login_required
-def show_category(request, slugs, indicators=False):
+def show_category(request, slugs):
     category = Category.objects.get_from_slugs_or_404(slugs)
 
-    context = {'category': category,
-               'is_indicators_active': indicators}
+    context = {'category': category}
 
     # PERMISSION CHECK
-    if not category.can_user_access(request.user) or\
-       indicators and not teams.utils.is_editor(request.user):
+    if not category.can_user_access(request.user):
         raise PermissionDenied
     subcategories = category.children.user_accessible(request.user)
 
-    if indicators:
-        show_category_url = 'show_category_indicators'
-        if subcategories.count() == 0:
-            return show_category_indicators(request, category)
+    # To make sidebar 'active'
+    context['is_browse_active'] = True
+
+    # If user can edit, show them all the exams.  Otherwise, only
+    # show them exams with approved questions.
+    if category.is_user_editor(request.user):
+        exams = category.exams.all()
     else:
-        show_category_url = 'exams:show_category'
-        # To make sidebar 'active'
-        context['is_browse_active'] = True
+        exams = category.exams.with_approved_questions()
 
-        # If user can edit, show them all the exams.  Otherwise, only
-        # show them exams with approved questions.
-        if category.is_user_editor(request.user):
-            exams = category.exams.all()
-        else:
-            exams = category.exams.with_approved_questions()
-
-        context['exams'] = exams
+    context['exams'] = exams
 
     # If this category has one child, just go to it!
     if subcategories.count() == 1:
         subcategory = subcategories.first()
-        return HttpResponseRedirect(reverse(show_category_url,
+        return HttpResponseRedirect(reverse('exams:show_category',
                                             args=(subcategory.get_slugs(),)))
 
     context.update({
-        'show_category_url': show_category_url,
         'subcategories': subcategories.order_by('name'),
     })
 
@@ -211,16 +192,9 @@ def handle_question(request, exam_pk, question_pk=None):
             explanation.question = question
             explanation.save()
 
-        template = get_template('exams/partials/exam_stats.html')
-        context = {'exam': exam}
-        stat_html = template.render(context)
         show_url = reverse('exams:approve_user_contributions', args=(exam.category.get_slugs(), exam.pk))
-        full_url = request.build_absolute_uri(show_url)
-        return {"message": "success",
-                "question_pk": question.pk,
-                "stat_html": stat_html,
-                "show_url": full_url
-                }
+        return {"question_pk": question.pk,
+                "show_url": show_url}
 
     context = {'exam': exam,
                'question_form': question_form,
@@ -229,6 +203,22 @@ def handle_question(request, exam_pk, question_pk=None):
                'revisionchoiceformset': revisionchoiceformset}
 
     return render(request, "exams/partials/question_form.html", context)
+
+@require_safe
+@decorators.ajax_only
+@login_required
+def update_exam_stats(request, pk):
+    exam = get_object_or_404(Exam, pk=pk)
+
+    # PERMISSION CHECK
+    if not exam.can_user_access(request.user):
+        raise PermissionDenied
+
+    template = get_template('exams/partials/exam_stats.html')
+    context = {'exam': exam}
+    stat_html = template.render(context)
+
+    return {"stat_html": stat_html}
 
 @require_safe
 @login_required
@@ -452,6 +442,46 @@ def create_session(request, slugs, exam_pk):
     context['sessionform'] = sessionform
 
     return render(request, "exams/create_session.html", context)
+
+@login_required
+@require_POST
+@csrf.csrf_exempt
+@decorators.ajax_only
+def create_session_automatically(request, slugs, exam_pk):
+    category = Category.objects.get_from_slugs_or_404(slugs)
+    exam = get_object_or_404(Exam, pk=exam_pk, category=category)
+
+    selector = request.POST.get('selector')
+    if not selector or selector not in ['ALL', 'SKIPPED', 'INCORRECT']:
+        return HttpResponseBadRequest()
+
+    subject_pk = request.POST.get('subject_pk')
+    if subject_pk:
+        subject = get_object_or_404(Subject, pk=subject_pk, exam=exam)
+
+    # PERMISSION CHECK
+    if not category.can_user_access(request.user):
+        raise PermissionDenied
+
+    # DO NOT FUCK WITH US
+    if not exam.is_public and \
+       not category.is_user_editor(request.user):
+        return render(request, "exams/coming_soon.html", {'exam': exam})
+
+    instance = Session(exam=exam,
+                       submitter=request.user)
+
+    data = {'session_mode': 'EXPLAINED',
+            'question_filter': selector}
+    if subject_pk:
+        data['subjects'] = [subject_pk]
+
+    form = forms.SessionForm(data, exam=exam, user=request.user,
+                             instance=instance, is_automatic=True)
+    form.is_valid()
+    session = form.save()
+
+    return {'url': session.get_absolute_url()}
 
 @decorators.ajax_only
 @require_safe
@@ -690,17 +720,6 @@ def list_previous_sessions(request):
     return render(request, 'exams/list_previous_sessions.html',
                   context)
 
-@require_safe
-@login_required
-def show_category_indicators(request, category):
-    # PERMISSION CHECK
-    if not teams.utils.is_editor(request.user):
-        raise PermissionDenied
-
-    context = {'category': category,
-               'is_indicators_active': True}
-    return render(request, 'indicators/show_category_indicators.html', context)
-
 @login_required
 @decorators.ajax_only
 @csrf.csrf_exempt
@@ -930,22 +949,18 @@ def approve_question(request, slugs, exam_pk, pk):
 @require_safe
 @login_required
 def show_my_performance(request):
-    total_questions = Question.objects.approved()\
-                                      .used_by_user(request.user,
-                                                    exclude_skipped=False)\
+    user_questions = utils.get_user_questions(request.user)
+    total_questions = user_questions.count()
+    correct_questions = user_questions.correct_by_user(request.user)\
                                       .count()
-    correct_questions = Question.objects.approved()\
-                                        .correct_by_user(request.user)\
+    incorrect_questions = user_questions.incorrect_by_user(request.user)\
                                         .count()
-    incorrect_questions = Question.objects.approved()\
-                                          .incorrect_by_user(request.user)\
-                                          .count()
-    skipped_questions = Question.objects.approved()\
-                                        .skipped_by_user(request.user)\
-                                        .count()
+    skipped_questions = user_questions.skipped_by_user(request.user)\
+                                      .count()
 
     # Only get exams which the user has taken
-    exams = Exam.objects.filter(session__submitter=request.user,
+    exams = Exam.objects.select_related('category')\
+                        .filter(session__submitter=request.user,
                                 session__is_deleted=False,
                                 session__answer__isnull=False).distinct()
 

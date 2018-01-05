@@ -1,4 +1,4 @@
-{% extends 'base_new.html' %}{% load staticfiles bootstrap3 exam_utils %}
+{% extends 'base_new.html' %}{% load static cache bootstrap3 exam_utils %}
 {% block title %}Fudul | {{ exam.name }}: Add questions{% endblock %}
 
 {% block header_title %}
@@ -32,7 +32,9 @@
 						</div>
         <div id="form-panel" class="card-body">
 					<div class="card-block">
+{% cache 10800 add_question exam.pk %}{# 3 hours #}
 {% include 'exams/partials/question_form.html' %}
+{% endcache %}
 					</div><!--card-block-->
         </div><!--card-body-->
     </div> <!--card-->
@@ -44,8 +46,9 @@
            <h2 class="card-title">{{ exam.name }} statistics</h2>
        </div>
        <div class="card-body">
+{% cache 10800 exam_stats exam.pk %}{# 3 hours #}
 {% include 'exams/partials/exam_stats.html' %}
-
+{% endcache %}
        </div>
     </div>
 </div>
@@ -85,18 +88,22 @@
                 enctype: 'multipart/form-data',
                 processData: false,
                 success: function (data) {
-                    if (data.message == "success") {
+                    if (data.success == 1) {
                         $(':input').not(':button, :submit, :reset, :hidden, :checkbox').removeAttr('checked').removeAttr('selected').not('‌​:checkbox, :radio, select').val('');
-                        $('#id_subjects, #id_issues, #id_parent_question').val('').trigger('change');
+                        $('#id_issues, #id_parent_question').val('').trigger('change');
                         // For some reason, doing checkbox clean-up in a second steps works!
                         $('input:checkbox').removeAttr('checked');
                         // show success message (using toastr)
                         toastr.options.positionClass = "toast-top-left";
                         toastr.success("Question #" + data.question_pk + " has been successfully added. Fill another!");
                         {% if question %}
-                                            window.location.href = data.show_url;
+                        window.location.href = data.show_url;
                         {% else %}
-												$("#exam-stats .card-body").html(data.stat_html);
+                        $.ajax({url: "{% url 'exams:update_exam_stats' exam.pk %}",
+                                success: function(data){
+                                  $("#exam-stats .card-body").html(data.stat_html);
+                                }
+                        });
                         {% endif %}
                     } else {
                         toastr.warning("There was an issue! " + data.message);

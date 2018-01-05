@@ -290,14 +290,6 @@ class Question(models.Model):
         result = correct_users / total_users * 100
         return round(result, 1)
 
-    def get_session_url(self, session):
-        category = session.exam.category
-        slugs = category.get_slugs()
-        return reverse('exams:show_session', args=(slugs,
-                                                   session.exam.pk,
-                                                   session.pk,
-                                                   self.pk))
-
     def get_contributors(self):
         contributors = []
         for revision in self.revision_set.order_by('pk'):
@@ -428,6 +420,7 @@ questions_choices = (
     ('ALL','All complete'),
     ('UNUSED','Unused'),
     ('INCORRECT', 'Incorrect'),
+    ('SKIPPED', 'Skipped'),
     ('MARKED', 'Marked'),
     ('INCOMPLETE', 'Incomplete'),
 )
@@ -451,6 +444,7 @@ class Session(models.Model):
     question_filter = models.CharField(max_length=20, choices=questions_choices, default=None)
     submission_date = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
+    is_automatic = models.BooleanField(default=False)
     actor_notifications = GenericRelation('notifications.Notification',
                                           content_type_field='actor_content_type',
                                           object_id_field='actor_object_id',

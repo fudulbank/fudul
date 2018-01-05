@@ -75,10 +75,6 @@ def get_question_sequence(question, session):
     return session.get_question_sequence(question)
 
 @register.filter
-def get_session_url(question, session):
-    return question.get_session_url(session)
-
-@register.filter
 def is_editor(category, user):
     if user.is_superuser:
         return True
@@ -117,7 +113,7 @@ def get_user_question_stats(target, user, result, percent=False):
 
 @register.filter
 def get_session_subjects(session):
-    return session.subjects.distinct() | session.exam.subject_set.distinct()
+    return session.subjects.all() or session.exam.subject_set.all()
 
 @register.filter
 def get_exam_question_count_per_meta(exam, meta, approved_only=False):

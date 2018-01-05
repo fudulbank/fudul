@@ -148,6 +148,7 @@ class SessionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.exam = kwargs.pop('exam')
         self.user = kwargs.pop('user')
+        self.is_automatic = kwargs.pop('is_automatic', False)
         super(SessionForm, self).__init__(*args, **kwargs)
 
         self.fields['session_mode'].widget = forms.RadioSelect(choices=models.session_mode_choices[:-1])
@@ -155,8 +156,9 @@ class SessionForm(forms.ModelForm):
         common_pool = self.exam.question_set.select_related('parent_question',
                                                             'child_question')
         self.question_pools = {'ALL': common_pool.approved(),
-                               'UNUSED': common_pool.approved().unused_by_user(self.user),
+                               'UNUSED': common_pool.approved().unused_by_user(self.user, exclude_skipped=False),
                                'INCORRECT': common_pool.approved().incorrect_by_user(self.user),
+                               'SKIPPED': common_pool.approved().skipped_by_user(self.user),
                                'MARKED': common_pool.approved().filter(marking_users=self.user),
                                'INCOMPLETE': common_pool.with_blocking_issues() |\
                                              common_pool.unsolved() |\
@@ -217,17 +219,20 @@ class SessionForm(forms.ModelForm):
         else:
             del self.fields['exam_types']
 
+        if self.is_automatic:
+            self.fields['number_of_questions'].required = False
+            self.fields['exam_types'].required = False
+            
     def clean(self):
         cleaned_data = super(SessionForm, self).clean()
 
         # If the form is invalid to start with, skip question
         # checking.
 
-        if not 'question_filter' in cleaned_data or \
-           not 'number_of_questions' in cleaned_data:
+        if not 'question_filter' in cleaned_data:
             return cleaned_data
 
-        number_of_questions = cleaned_data['number_of_questions']
+        number_of_questions = cleaned_data.get('number_of_questions')
         question_filter = cleaned_data['question_filter']
         question_pool = self.question_pools[question_filter]
 
@@ -246,42 +251,53 @@ class SessionForm(forms.ModelForm):
         if not question_pool.exists():
             raise forms.ValidationError("No questions at all match your selection.  Please try other options.")
 
-        # Ideally, randomization should be a database thing, but
-        # Django is buggy when it comes to slicing a randomzied query
-        # with many filters.  For this reason, we apply the filers,
-        # then get only the PKs of included quessions, shuffle them,
-        # and then slice the number we need.  Finally, we get the
-        # question objects per the shuffled PKs.
-        pool_pks = list(question_pool.values_list('pk', flat=True))
-        random.shuffle(pool_pks)
-        sliced_pks = pool_pks[:number_of_questions]
+        # In automatic session creation, we sometimes do not need to
+        # specify a given number of questions
 
-        selected_pool = models.Question.objects.filter(pk__in=sliced_pks)
-        questions_to_find_tree = selected_pool.filter(parent_question__isnull=False) | \
-                                 selected_pool.filter(child_question__isnull=False)
+        if number_of_questions:
+            # Ideally, randomization should be a database thing, but
+            # Django is buggy when it comes to slicing a randomzied query
+            # with many filters.  For this reason, we apply the filers,
+            # then get only the PKs of included quessions, shuffle them,
+            # and then slice the number we need.  Finally, we get the
+            # question objects per the shuffled PKs.
+            pool_pks = list(question_pool.values_list('pk', flat=True))
+            random.shuffle(pool_pks)
+            sliced_pks = pool_pks[:number_of_questions]
 
-        pks = []
-        for question in questions_to_find_tree.distinct():
-            tree = question.get_tree()
-            new_pks = [q.pk for q in tree if not q.pk in pks]
-            pks += new_pks
-        self.questions_with_tree = models.Question.objects\
-                                                  .filter(pk__in=pks)
+            selected_pool = models.Question.objects.filter(pk__in=sliced_pks)
+            questions_to_find_tree = selected_pool.filter(parent_question__isnull=False) | \
+                                     selected_pool.filter(child_question__isnull=False)
 
-        if question_filter != 'INCOMPLETE':
-            self.questions_with_tree = self.questions_with_tree.approved()
+            pks = []
+            for question in questions_to_find_tree.distinct():
+                tree = question.get_tree()
+                new_pks = [q.pk for q in tree if not q.pk in pks]
+                pks += new_pks
+            self.questions_with_tree = models.Question.objects\
+                                                      .filter(pk__in=pks)
 
-        remaining_count = number_of_questions - self.questions_with_tree.count()
-        orphan_questions = selected_pool.filter(parent_question__isnull=True,
-                                                child_question__isnull=True)
-        self.orphan_pool = models.Question.objects.filter(pk__in=orphan_questions[:remaining_count])
+            if question_filter != 'INCOMPLETE':
+                self.questions_with_tree = self.questions_with_tree.approved()
+
+            remaining_count = number_of_questions - self.questions_with_tree.count()
+            orphan_questions = selected_pool.filter(parent_question__isnull=True,
+                                                    child_question__isnull=True)
+            self.orphan_pool = models.Question.objects.filter(pk__in=orphan_questions[:remaining_count])
+
+            self.final_questions = itertools.chain(self.orphan_pool, self.questions_with_tree)
+        else:
+            self.final_questions = question_pool
 
         return cleaned_data
 
     def save(self, *args, **kwargs):
         session = super(SessionForm, self).save(*args, **kwargs)
-        questions = itertools.chain(self.orphan_pool, self.questions_with_tree)
-        session.questions.add(*questions)
+        session.questions.add(*self.final_questions)
+        if self.is_automatic:
+            session.is_automatic = True
+            session.number_of_questions = len(self.final_questions)
+            session.save()
         return session
 
     class Meta:

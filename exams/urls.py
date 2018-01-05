@@ -16,6 +16,7 @@ urlpatterns =[
     url(r'^ajax/collectors/approve_revision/(?P<pk>\d+)$', views.mark_revision_approved, name='mark_revision_approved'),
     url(r'^ajax/collectors/pend_revision/(?P<pk>\d+)$', views.mark_revision_pending, name='mark_revision_pending'),
     url(r'^ajax/collectors/show_revision_comparison/(?P<pk>\d+)/(?P<review>review)?$', views.show_revision_comparison,name='show_revision_comparison'),
+    url(r'^ajax/collectors/update_stats/(?P<pk>\d+)$', views.update_exam_stats, name='update_exam_stats'),
     url(r'^ajax/examiners/count_selection/(?P<exam_pk>\d+)$', views.get_selected_question_count, name='get_selected_question_count'),
     url(r'^ajax/examiners/delete_session$', views.delete_session, name='delete_session'),
     url(r'^ajax/examiners/submit_answer$', views.submit_answer, name='submit_answer'),
@@ -39,8 +40,8 @@ urlpatterns =[
     url(r'^indicators/$', RedirectView.as_view(pattern_name='show_indicator_index')),
     url(r'^indicators/teams/$', RedirectView.as_view(pattern_name='show_indicator_index')),
     url(r'^indicators/teams/(?P<team_pk>\d+)/$', RedirectView.as_view(pattern_name='show_team_indicators')),
-    url(r'^indicators/categories/$', RedirectView.as_view(pattern_name='list_category_indicators')),
-    url(r'^indicators/categories/(?P<slugs>[/\d\w\-]+)/$', RedirectView.as_view(pattern_name='show_category_indicators')),
+    url(r'^indicators/categories/$', RedirectView.as_view(pattern_name='show_indicator_index')),
+    url(r'^indicators/categories/(?P<slugs>[/\d\w\-]+)/$', RedirectView.as_view(pattern_name='show_indicator_index')),
 
     url(r'^contributions/(?:(?P<user_pk>\d+)/)?$',views.list_contributions, name='list_contributions'),
 
@@ -55,6 +56,7 @@ urlpatterns =[
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/session/(?P<session_pk>\d+)/results/$', views.show_session_results, name='show_session_results'),
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/contributions/$',views.approve_user_contributions, name='approve_user_contributions'),
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/$', views.create_session, name='create_session'),
+    url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/automatic$', views.create_session_automatically, name='create_session_automatically'),
 
     # has to be the very last
     url(r'^(?P<slugs>[/\d\w\-]+)/$', views.show_category, name='show_category'),

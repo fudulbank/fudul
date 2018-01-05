@@ -81,7 +81,7 @@
                         <td>
                           {% if team.categories.exists %}
                             {% for category in team.categories.all %}
-                            <a href="{% url 'show_category_indicators' category.get_slugs %}">{{ category }}</a>{% if not forloop.last %}, {% endif %}
+                            <a href="{% url 'exams:show_category' category.get_slugs %}">{{ category }}</a>{% if not forloop.last %}, {% endif %}
                             {% endfor %}
                           {% else %}
                           None
@@ -116,23 +116,12 @@
 				            <tr>
 				                <td><a href="{% url 'show_exam_indicators' exam.pk %}">{{ exam.name }}</a></td>
                         <td>{{ exam.get_user_count }}</td>
-				                <td><a href="{% url 'show_category_indicators' exam.category.get_slugs %}">{{ exam.category }}</a></td>
+				                <td><a href="{% url 'exams:show_category' exam.category.get_slugs %}">{{ exam.category }}</a></td>
                         <td>{{ exam.question_set.count }}</td>
 			            </tr>
 				       {% endfor %}
 				    </tbody>
 				</table>
-		</div><!--card-block-->
-	</div><!--card-body-->
-</div><!--card-->
-
-<div class="card">
-  <div class="card-header">
-    <h2>Category indicators</h2>
-  </div>
-	<div class="card-body">
-		<div class="card-block">
-      <a class="btn btn-primary" href="{% url 'list_category_indicators' %}">See indicators</a>
 		</div><!--card-block-->
 	</div><!--card-body-->
 </div><!--card-->
