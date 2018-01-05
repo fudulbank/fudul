@@ -88,7 +88,7 @@
                 enctype: 'multipart/form-data',
                 processData: false,
                 success: function (data) {
-                    if (data.message == "success") {
+                    if (data.success == 1) {
                         $(':input').not(':button, :submit, :reset, :hidden, :checkbox').removeAttr('checked').removeAttr('selected').not('‌​:checkbox, :radio, select').val('');
                         $('#id_issues, #id_parent_question').val('').trigger('change');
                         // For some reason, doing checkbox clean-up in a second steps works!
@@ -97,9 +97,13 @@
                         toastr.options.positionClass = "toast-top-left";
                         toastr.success("Question #" + data.question_pk + " has been successfully added. Fill another!");
                         {% if question %}
-                                            window.location.href = data.show_url;
+                        window.location.href = data.show_url;
                         {% else %}
-												$("#exam-stats .card-body").html(data.stat_html);
+                        $.ajax({url: "{% url 'exams:update_exam_stats' exam.pk %}",
+                                success: function(data){
+                                  $("#exam-stats .card-body").html(data.stat_html);
+                                }
+                        });
                         {% endif %}
                     } else {
                         toastr.warning("There was an issue! " + data.message);

@@ -211,16 +211,9 @@ def handle_question(request, exam_pk, question_pk=None):
             explanation.question = question
             explanation.save()
 
-        template = get_template('exams/partials/exam_stats.html')
-        context = {'exam': exam}
-        stat_html = template.render(context)
         show_url = reverse('exams:approve_user_contributions', args=(exam.category.get_slugs(), exam.pk))
-        full_url = request.build_absolute_uri(show_url)
-        return {"message": "success",
-                "question_pk": question.pk,
-                "stat_html": stat_html,
-                "show_url": full_url
-                }
+        return {"question_pk": question.pk,
+                "show_url": show_url}
 
     context = {'exam': exam,
                'question_form': question_form,
@@ -229,6 +222,22 @@ def handle_question(request, exam_pk, question_pk=None):
                'revisionchoiceformset': revisionchoiceformset}
 
     return render(request, "exams/partials/question_form.html", context)
+
+@require_safe
+@decorators.ajax_only
+@login_required
+def update_exam_stats(request, pk):
+    exam = get_object_or_404(Exam, pk=pk)
+
+    # PERMISSION CHECK
+    if not exam.can_user_access(request.user):
+        raise PermissionDenied
+
+    template = get_template('exams/partials/exam_stats.html')
+    context = {'exam': exam}
+    stat_html = template.render(context)
+
+    return {"stat_html": stat_html}
 
 @require_safe
 @login_required
