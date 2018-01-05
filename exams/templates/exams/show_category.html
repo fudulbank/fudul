@@ -33,7 +33,7 @@
 			{% endif %}
 {% endblock %}
 
-{% block content %}{% cache 6000 show_category category.pk %}
+{% block content %}{% cache 6000 show_category category.pk category|is_editor:user %}
 
 {% if not is_indicators_active and exams.exists %}
 <div class="row">
