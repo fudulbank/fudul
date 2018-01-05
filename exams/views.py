@@ -1208,7 +1208,6 @@ def count_answers(request):
 @csrf.csrf_exempt
 def contribute_mnemonics(request):
     action = request.POST.get('action')
-    mnemonic_pk = request.POST.get('mnemonic_pk')
     question_pk = request.GET.get('question_pk')
     question = get_object_or_404(Question, pk=question_pk,
                                  is_deleted=False)
@@ -1226,7 +1225,10 @@ def contribute_mnemonics(request):
                                             instance=instance)
             if form.is_valid():
                 form.save()
+                return {"message": "success"}
+
         elif Mnemonic.objects.filter(question=question).exists():
+            mnemonic_pk = request.POST.get('mnemonic_pk')
             mnemonic = get_object_or_404(Mnemonic, pk=mnemonic_pk)
             if action == 'like':
                 if mnemonic.submitter == request.user:
@@ -1251,7 +1253,6 @@ def contribute_mnemonics(request):
 
             else:
                 return HttpResponseBadRequest()
-            changed = True
         else:
             return HttpResponseBadRequest()
 

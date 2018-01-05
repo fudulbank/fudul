@@ -9,7 +9,7 @@
     <div class="panel panel-flat" id="add-new-mnemonic" >
      <div class="panel-body"  >
          <div class="form-body" style="padding: 5%">
-        <form method="post" data-action="add" enctype="multipart/form-data" id="add-mnemonics-form" action="post">
+        <form method="post" data-user={{ user }} data-action="add" enctype="multipart/form-data" id="add-mnemonics-form" action="post">
 	    {% csrf_token %}
 
         {% bootstrap_form_errors form %}
@@ -34,7 +34,7 @@
         </div>
      </div>
     </div>
-<div> {% include 'exams/partials/show_mnemonics.html' %}</div>
+{#<div> {% include 'exams/partials/show_mnemonics.html' %}</div>#}
 
 {% block customscript %}
     <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
@@ -53,24 +53,26 @@
                /* get some values from elements on the page: */
                var formData = new FormData($(this)[0]);
                action = $(this).data('action');
-               formData.append('action',action);
                question_pk = {{ question.pk }};
+               formData.append('action',action);
+
                url = "{% url 'exams:contribute_mnemonics' %}?" + $.param({question_pk: question_pk});
                /* Send the data */
-
                $.ajax({
                    url: url,
                    type: 'POST',
                    data: formData,
                    cache: false,
                    contentType: false,
+                   enctype: 'multipart/form-data',
                    processData: false,
                    success: function (data) {
-                       if (data.success == 1) {
+                       if (data.message == "success") {
                            // show success message (using toastr)
                            toastr.success("Thank you!  Your contribution is highly appreciated!");
                            $("#add-mnemonics-modal").modal('hide');
-                           $("#add-new-mnemonic").hide();
+                           $(".question-body.show .mnemonics-container").show();
+                           $(".question-body.show .mnemonics-content").html(data.mnemonic_html);
                        } else {
                            $("#add-mnemonics-modal .modal-body").html(data);
                        }
