@@ -59,7 +59,7 @@ def show_category(request, slugs):
     # If this category has one child, just go to it!
     if subcategories.count() == 1:
         subcategory = subcategories.first()
-        return HttpResponseRedirect(reverse(show_category_url,
+        return HttpResponseRedirect(reverse('exams:show_category',
                                             args=(subcategory.get_slugs(),)))
 
     context.update({
