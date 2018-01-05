@@ -6,7 +6,22 @@ $(function () {
   chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    responsiveAnimationDuration: 500
+    responsiveAnimationDuration: 500,
+    tooltips: {
+      callbacks: {
+        label: function(tooltipItem, data) {
+          console.log(tooltipItem);
+          var label = data.labels[tooltipItem.index];
+          var dataset = data.datasets[tooltipItem.datasetIndex];
+          var total = dataset.data.reduce(function(previousValue, currentValue) {
+            return previousValue + currentValue;
+          });
+          var currentValue = dataset.data[tooltipItem.index];
+          var precentage = Math.floor(((currentValue/total) * 100)+0.5);
+          return label + " (" + precentage + "%)";
+        }
+      }
+    }
   },
   chartData = {
     labels: ['Correct', 'Incorrect', 'Skipped'],
