@@ -9,7 +9,7 @@ $(function () {
     responsiveAnimationDuration: 500,
     tooltips: {
       callbacks: {
-        label: function(tooltipItem, data) {
+        afterLabel: function(tooltipItem, data) {
           console.log(tooltipItem);
           var label = data.labels[tooltipItem.index];
           var dataset = data.datasets[tooltipItem.datasetIndex];
@@ -18,7 +18,7 @@ $(function () {
           });
           var currentValue = dataset.data[tooltipItem.index];
           var precentage = Math.floor(((currentValue/total) * 100)+0.5);
-          return label + " (" + precentage + "%)";
+          return "(" + precentage + "%)";
         }
       }
     }
