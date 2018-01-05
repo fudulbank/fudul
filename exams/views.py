@@ -1233,15 +1233,16 @@ def contribute_mnemonics(request):
         form = forms.ContributeMnemonic()
     elif request.method == 'POST':
         if action in ['add']:
-
             instance = Mnemonic(submitter=request.user,
                                 question=question)
             form = forms.ContributeMnemonic(request.POST, request.FILES,
                                             instance=instance)
             if form.is_valid():
                 form.save()
-                return {"message": "success"}
-
+                template = get_template('exams/partials/show_mnemonics.html')
+                context = {'question': question,'user':request.user}
+                mnemonic_html = template.render(context)
+                return {'mnemonic_html':mnemonic_html}
         elif Mnemonic.objects.filter(question=question).exists():
             mnemonic_pk = request.POST.get('mnemonic_pk')
             mnemonic = get_object_or_404(Mnemonic, pk=mnemonic_pk)

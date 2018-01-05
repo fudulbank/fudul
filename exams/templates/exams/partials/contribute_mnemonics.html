@@ -9,7 +9,7 @@
     <div class="panel panel-flat" id="add-new-mnemonic" >
      <div class="panel-body"  >
          <div class="form-body" style="padding: 5%">
-        <form method="post" data-user={{ user }} data-action="add" enctype="multipart/form-data" id="add-mnemonics-form" action="post">
+        <form method="post" data-action="add" enctype="multipart/form-data" id="add-mnemonics-form" action="post">
 	    {% csrf_token %}
 
         {% bootstrap_form_errors form %}
@@ -67,7 +67,7 @@
                    enctype: 'multipart/form-data',
                    processData: false,
                    success: function (data) {
-                       if (data.message == "success") {
+                       if (data.success == 1) {
                            // show success message (using toastr)
                            toastr.success("Thank you!  Your contribution is highly appreciated!");
                            $("#add-mnemonics-modal").modal('hide');

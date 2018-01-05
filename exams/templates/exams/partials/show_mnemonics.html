@@ -125,6 +125,8 @@ top: 0px;
 
 
 </style>
+           {% if question.get_available_mnemonics.exists %}
+                {% for mnemonic in question.get_available_mnemonics %}
 
     <div class="card-content">
                 {% if mnemonic.image %}
@@ -140,7 +142,10 @@ top: 0px;
 
     </div>
 
+                {% endfor %}
+            {% else %}
 
+        {% endif %}
 
 <script type="text/javascript">
 
