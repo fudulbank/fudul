@@ -102,7 +102,7 @@ $(function () {
     $('tbody').on('click', '.confirm-delete-exam',function () {
         $(this).tooltip("hide");
         row = table.row(this).node();
-        var pk = $(row).data('pk');
+        var pk = $(this).data('pk');
         var name = $(row).find('.exam-name').text();
         $deleteConfirmationButton.data('name', name).data('pk', pk);
         $("#confirm-delete-exam-sessions-modal .modal-title").html("Forgive me the " + name + " exam");
