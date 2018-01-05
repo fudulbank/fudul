@@ -126,34 +126,21 @@ top: 0px;
 
 </style>
 
-{% if question.get_available_mnemonics.exists %}
-{% for mnemonic in question.get_available_mnemonics %}
-
-
     <div class="card-content">
                 {% if mnemonic.image %}
-{#                      <a class="lightbox" href="#dog">#}
-{#   <img src="{{ mnemonic.image.url }}"/>#}
-{#</a>#}
-{#<div class="lightbox-target" id="dog">#}
-{#   <img src="{{ mnemonic.image.url }}"/>#}
-{#   <a class="lightbox-close" href="#"></a>#}
-{#</div>#}
-                    <img class="img-fluid" src="{{ mnemonic.image.url }}"/>
+
+                <img class="img-fluid" src="{{ mnemonic.image.url }}"/>
                 {% endif %}
                   <div class="card-body"  style="margin-bottom: 5%">
                      {% if mnemonic.text %}<h6 class="card-text">{{ mnemonic.text }} </h6>{% endif %}
                     <h6 class="card-subtitle text-muted">Submitted by <strong>{{ mnemonic.submitter|get_user_credit:user }}</strong></h6>
                   <button id='like'{% if mnemonic|is_mnemonic_submiiter:user %} disabled {% endif %} data-mnemonic-pk="{{ mnemonic.pk }}" data-action="like" style="float: right"  class="like-mnemonic btn btn-outline-primary">{% if mnemonic.likes.count != 0 %} {{ mnemonic.likes.count }}{% endif %} <i class="fa fa-thumbs-up"></i></button>
                   {% if exam.category|is_editor:user or mnemonic|is_mnemonic_submiiter:user %} <a id='delete-mnemonic' data-mnemonic-pk="{{ mnemonic.pk }}" data-action="delete" style="float: right; margin-right: 2%"  class="delete-mnemonic btn btn-outline-danger"><i class="fa fa-trash"></i></a>{% endif %}
-                  </div>
+                </div>
 
     </div>
 
-{% endfor %}
-{% else %}
 
-{% endif %}
 
 <script type="text/javascript">
 
@@ -191,6 +178,7 @@ $(function() {
             success: function(data){
               if (data.success == 1){
                 toastr.success("Your mnemonic is deleted.");
+
               } else {
                 toastr.error(data.message)
               }
