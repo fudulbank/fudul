@@ -53,6 +53,13 @@ def get_user_privileged_exams(user):
 
     return exams
 
+def get_user_questions(user):
+    pks = models.Answer.objects.filter(session__submitter=user,
+                                       session__is_deleted=False)\
+                               .values('question')
+    return models.Question.objects.undeleted()\
+                                  .filter(pk__in=pks)
+
 def get_user_question_stats(target, user, result, percent=False):
     # Target can either be an exam, subject or session.
     #
@@ -67,9 +74,7 @@ def get_user_question_stats(target, user, result, percent=False):
     #    of the user.  For example, if a question has one correct
     #    answer, then the user got it (regardless of whether it has
     #    other incorrect/skipped answers).
-    question_pool = models.Question.objects.approved()\
-                                           .used_by_user(user,
-                                                         exclude_skipped=False)
+    question_pool = get_user_questions(user)
 
     if type(target) is models.Exam:
         question_pool = question_pool.filter(exam=target)

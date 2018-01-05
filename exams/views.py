@@ -930,19 +930,14 @@ def approve_question(request, slugs, exam_pk, pk):
 @require_safe
 @login_required
 def show_my_performance(request):
-    total_questions = Question.objects.approved()\
-                                      .used_by_user(request.user,
-                                                    exclude_skipped=False)\
+    user_questions = utils.get_user_questions(request.user)
+    total_questions = user_questions.count()
+    correct_questions = user_questions.correct_by_user(request.user)\
                                       .count()
-    correct_questions = Question.objects.approved()\
-                                        .correct_by_user(request.user)\
+    incorrect_questions = user_questions.incorrect_by_user(request.user)\
                                         .count()
-    incorrect_questions = Question.objects.approved()\
-                                          .incorrect_by_user(request.user)\
-                                          .count()
-    skipped_questions = Question.objects.approved()\
-                                        .skipped_by_user(request.user)\
-                                        .count()
+    skipped_questions = user_questions.skipped_by_user(request.user)\
+                                      .count()
 
     # Only get exams which the user has taken
     exams = Exam.objects.filter(session__submitter=request.user,
