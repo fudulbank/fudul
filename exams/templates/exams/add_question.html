@@ -1,4 +1,4 @@
-{% extends 'base_new.html' %}{% load staticfiles bootstrap3 exam_utils %}
+{% extends 'base_new.html' %}{% load staticfiles cache bootstrap3 exam_utils %}
 {% block title %}Fudul | {{ exam.name }}: Add questions{% endblock %}
 
 {% block header_title %}
@@ -32,7 +32,9 @@
 						</div>
         <div id="form-panel" class="card-body">
 					<div class="card-block">
+{% cache 10800 add_question exam.pk %}{# 3 hours #}
 {% include 'exams/partials/question_form.html' %}
+{% endcache %}
 					</div><!--card-block-->
         </div><!--card-body-->
     </div> <!--card-->
@@ -44,8 +46,9 @@
            <h2 class="card-title">{{ exam.name }} statistics</h2>
        </div>
        <div class="card-body">
+{% cache 10800 exam_stats exam.pk %}{# 3 hours #}
 {% include 'exams/partials/exam_stats.html' %}
-
+{% endcache %}
        </div>
     </div>
 </div>
