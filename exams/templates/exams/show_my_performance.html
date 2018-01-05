@@ -38,24 +38,13 @@
         </thead>
         <tbody>
           {% for exam in exams %}
-            {% get_user_question_stats exam user 'correct' percent=True as correct_percentage %}
-            {% get_user_question_stats exam user 'incorrect' percent=True as incorrect_percentage %}
-            {% get_user_question_stats exam user 'skipped' percent=True as skipped_percentage %}
             {% get_user_question_stats exam user 'total' as total_count %}
-            {% get_user_question_stats exam user 'correct' as correct_count %}
-            {% get_user_question_stats exam user 'incorrect' as incorrect_count %}
-            {% get_user_question_stats exam user 'skipped' as skipped_count %}
             <tr data-pk="{{ exam.pk }}">
               <td class="exam-name"><a href="{% url 'exams:show_my_performance_per_exam' exam.pk %}">{{ exam.name }}</a></td>
               <td>{{ total_count }}</td>
-              <td class="text-center" data-order="{{ correct_percentage }}" data-toggle="tooltip" data-html="true" title="<strong>Correct:</strong> {{ correct_percentage }}% ({{ correct_count }} questions)<br><strong>Incorrect:</strong> {{ incorrect_percentage }}% ({{ incorrect_count }} questions)<br><strong>Skipped:</strong> {{ skipped_percentage }}% ({{ skipped_count }} questions)<br>">
-                <span class="font-small-2"> ({{ correct_percentage }}% correct)</span>
-                <div class="progress progress-sm">
-                  <div class="progress-bar bg-success" role="progressbar" style="width: {{  correct_percentage }}%" aria-valuenow="{{ correct_percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
-                  <div class="progress-bar bg-danger" role="progressbar" style="width: {{ incorrect_percentage }}%" aria-valuenow="{{ incorrect_percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
-                  <div class="progress-bar bg-warning" role="progressbar" style="width: {{ skipped_percentage }}%" aria-valuenow="{{ skipped_percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
-                </div>
-              </td>
+              {% with target=exam %}
+                {% include 'exams/partials/performance_column.html' %}
+              {% endwith %}
               <td>
                 <div class="dropdown">
                   <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="ft-settings"></i> Actions</button>

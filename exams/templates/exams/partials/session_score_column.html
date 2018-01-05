@@ -1,0 +1,13 @@
+{% if session.has_finished and session.session_mode != 'SOLVED' and  session.session_mode != 'INCOMPLETE' %}
+   {% with target=session %}
+     {% include 'exams/partials/performance_column.html' %}
+   {% endwith %}
+{% else %}
+  <td class="text-center">
+  {% if session.session_mode == 'SOLVED' or  session.session_mode == 'INCOMPLETE' %}
+     <span data-toggle="tooltip" title="{{ session.session_mode|title }} sessions have no scores.">N/A<span>
+  {% else %}
+    <span data-toggle="tooltip" title="{{ session.get_unused_questions.count }} out of {{ session.get_questions.count }} questions remaining.">Ongoing</span>
+  {% endif %}
+  </td>
+{% endif %}
