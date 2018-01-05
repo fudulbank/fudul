@@ -84,7 +84,7 @@ class Command(BaseCommand):
         revision_kwargs = basic_kwargs.copy()
         revision_kwargs['is_contribution'] = True
 
-        # Answer does not have 'is_deleted' and 'question' fields        
+        # Answer does not have 'is_deleted' and 'question' fields
         answer_kwargs = basic_kwargs.copy()
         del answer_kwargs['is_deleted']
         if 'question__exam' in answer_kwargs:

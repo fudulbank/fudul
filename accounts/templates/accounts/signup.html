@@ -34,11 +34,17 @@
 
 
     <h6 class="line-on-side text-muted text-center font-small-2"><span>Your nickname</span></h6>
-    <p><i class="icon-info"></i>Fudul is cooperative, and you can contribute to it.  Instead of showing your real name, and <strong>to protect your privacy</strong>, we will show your nickname whenever you add a contribution to give you credit.</p>
+    <p><i class="icon-info"></i>Fudul is cooperative, and you can contribute to it.  You have the choice of showing your real name or not whenever you add a contribution to give you credit.</p>
 		<fieldset class="form-group position-relative has-icon-left mb-1">
 			{% bootstrap_field form.nickname show_label=False %}
 			<div class="form-control-position">
 					<i class="ft-user"></i>
+			</div>
+		</fieldset>
+        <fieldset class="form-group position-relative has-icon-left mb-1">
+			{% bootstrap_field form.display_full_name show_label=False %}
+			<div class="form-control-position">
+					<i class="ft-eye"></i>
 			</div>
 		</fieldset>
 

@@ -1,4 +1,4 @@
-{% load static exam_utils %}
+{% load static exam_utils account_utils%}
 <style>
     /*Eliminates padding, centers the thumbnail */
 
@@ -143,9 +143,9 @@ top: 0px;
                 {% endif %}
                   <div class="card-body"  style="margin-bottom: 5%">
                      {% if mnemonic.text %}<h6 class="card-text">{{ mnemonic.text }} </h6>{% endif %}
-{#                    <h6 class="card-subtitle text-muted">Submitted by <strong>{{ mnemonic.submitter.profile.nickname }}</strong></h6>#}
-                  <button id='like'{% if mnemonic|is_mnemonic_submiiter:user %} disabled {% endif %} data-mnemonic-pk="{{ mnemonic.pk }}" data-action="like" style="float: right"  class="like btn btn-outline-primary">{% if mnemonic.likes.count != 0 %} {{ mnemonic.likes.count }}{% endif %} <i class="fa fa-thumbs-up"></i></button>
-                  {% if exam.category|is_editor:user or mnemonic|is_mnemonic_submiiter:user %} <a id='delete' data-mnemonic-pk="{{ mnemonic.pk }}" data-action="delete" style="float: right; margin-right: 2%"  class="delete btn btn-outline-danger"><i class="fa fa-trash"></i></a>{% endif %}
+                    <h6 class="card-subtitle text-muted">Submitted by <strong>{{ mnemonic.submitter|get_user_credit:user }}</strong></h6>
+                  <button id='like'{% if mnemonic|is_mnemonic_submiiter:user %} disabled {% endif %} data-mnemonic-pk="{{ mnemonic.pk }}" data-action="like" style="float: right"  class="like-mnemonic btn btn-outline-primary">{% if mnemonic.likes.count != 0 %} {{ mnemonic.likes.count }}{% endif %} <i class="fa fa-thumbs-up"></i></button>
+                  {% if exam.category|is_editor:user or mnemonic|is_mnemonic_submiiter:user %} <a id='delete-mnemonic' data-mnemonic-pk="{{ mnemonic.pk }}" data-action="delete" style="float: right; margin-right: 2%"  class="delete-mnemonic btn btn-outline-danger"><i class="fa fa-trash"></i></a>{% endif %}
                   </div>
 
     </div>
@@ -158,7 +158,7 @@ top: 0px;
 <script type="text/javascript">
 
 $(function() {
-   $(".like").click(function(){
+   $(".like-mnemonic").off().on( 'click', function() {
         action = $(this).data('action');
         question_pk = {{ question.pk }};
         mnemonic_pk = $(this).data('mnemonic-pk');
@@ -178,7 +178,7 @@ $(function() {
             }
         });
    });
-   $(".delete").click(function(){
+   $(".delete-mnemonic").off().on( 'click', function() {
         action = $(this).data('action');
         question_pk = {{ question.pk }};
         mnemonic_pk = $(this).data('mnemonic-pk');
@@ -189,8 +189,7 @@ $(function() {
             type: 'POST',
             data: {'action': action,'mnemonic_pk':mnemonic_pk},
             success: function(data){
-              console.log(mnemonic_pk);
-              if (data.message == "success") {
+              if (data.success == 1){
                 toastr.success("Your mnemonic is deleted.");
               } else {
                 toastr.error(data.message)
