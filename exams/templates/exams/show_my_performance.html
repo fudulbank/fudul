@@ -22,30 +22,40 @@
 	<div class="card-body">
 		<div class="card-block">
 {% if exams.exists %}
-      <h2>Overall performance</h2>
       <div class="chart-container mb-2" style="height: 300px; width: 400px; max-width: 100%;">
           <canvas id="performance-chart"></canvas>
       </div>
       <h2>Performance per exam</h2>
+      <p>Here, you can see your overall perfromance.  You can click individual exams to see more details.  <em>"Correct"</em> counts questions correctly answered by you at least one time.  <em>"Incorrect"</em> counts questions incorrectly answered by you and never answed correctly.  <em>"Skipped"</em> counts questions that were shown, but skipped and never answered by you.  Deleted sessions are <strong>not</strong> counted.</p>
       <table style="width: 100%;" class="datatable table table-striped table-bordered dt-responsive">
         <thead>
           <tr>
             <th class="all">Exam</th>
             <th data-toggle="tooltip" title="Number of questions answered.">Questions</th>
-            <th data-toggle="tooltip" title="Questions that were correctly answered by you at least one time." class="all">Correct</th>
-            <th data-toggle="tooltip" title="Questions that were incorrectly answered by you and never answed correctly.">Incorrect</th>
-            <th data-toggle="tooltip" title="Questions that were shown, skipped and never answered by you.">Skipped</th>
+            <th data-toggle="tooltip">Performance</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {% for exam in exams %}
+            {% get_user_question_stats exam user 'correct' percent=True as correct_percentage %}
+            {% get_user_question_stats exam user 'incorrect' percent=True as incorrect_percentage %}
+            {% get_user_question_stats exam user 'skipped' percent=True as skipped_percentage %}
+            {% get_user_question_stats exam user 'total' as total_count %}
+            {% get_user_question_stats exam user 'correct' as correct_count %}
+            {% get_user_question_stats exam user 'incorrect' as incorrect_count %}
+            {% get_user_question_stats exam user 'skipped' as skipped_count %}
             <tr data-pk="{{ exam.pk }}">
               <td class="exam-name"><a href="{% url 'exams:show_my_performance_per_exam' exam.pk %}">{{ exam.name }}</a></td>
-              <td>{{ exam|get_used_question_count_per_user:user }}</td>
-              <td>{% get_user_question_stats exam user 'correct' %} ({% get_user_question_stats exam user 'correct' percent=True %}%)</td>
-              <td>{% get_user_question_stats exam user 'incorrect' %} ({% get_user_question_stats exam user 'incorrect' percent=True %}%)</td>
-              <td>{% get_user_question_stats exam user 'skipped' %} ({% get_user_question_stats exam user 'skipped' percent=True %}%)</td>
+              <td>{{ total_count }}</td>
+              <td class="text-center" data-order="{{ correct_percentage }}" data-toggle="tooltip" data-html="true" title="<strong>Correct:</strong> {{ correct_percentage }}% ({{ correct_count }} questions)<br><strong>Incorrect:</strong> {{ incorrect_percentage }}% ({{ incorrect_count }} questions)<br><strong>Skipped:</strong> {{ skipped_percentage }}% ({{ skipped_count }} questions)<br>">
+                <span class="font-small-2"> ({{ correct_percentage }}% correct)</span>
+                <div class="progress progress-sm">
+                  <div class="progress-bar bg-success" role="progressbar" style="width: {{  correct_percentage }}%" aria-valuenow="{{ correct_percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                  <div class="progress-bar bg-danger" role="progressbar" style="width: {{ incorrect_percentage }}%" aria-valuenow="{{ incorrect_percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                  <div class="progress-bar bg-warning" role="progressbar" style="width: {{ skipped_percentage }}%" aria-valuenow="{{ skipped_percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+              </td>
               <td>
                 <div class="dropdown">
                   <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="ft-settings"></i> Actions</button>

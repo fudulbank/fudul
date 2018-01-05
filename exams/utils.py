@@ -92,6 +92,8 @@ def get_user_question_stats(target, user, result, percent=False):
     elif result == 'skipped':
         count = question_pool.skipped_by_user(user)\
                              .count()
+    elif result == 'total':
+        count = question_pool.count()        
 
     if percent:
         total = question_pool.count()
