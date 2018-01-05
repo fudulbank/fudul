@@ -959,7 +959,8 @@ def show_my_performance(request):
                                       .count()
 
     # Only get exams which the user has taken
-    exams = Exam.objects.filter(session__submitter=request.user,
+    exams = Exam.objects.select_related('category')\
+                        .filter(session__submitter=request.user,
                                 session__is_deleted=False,
                                 session__answer__isnull=False).distinct()
 
