@@ -290,14 +290,6 @@ class Question(models.Model):
         result = correct_users / total_users * 100
         return round(result, 1)
 
-    def get_session_url(self, session):
-        category = session.exam.category
-        slugs = category.get_slugs()
-        return reverse('exams:show_session', args=(slugs,
-                                                   session.exam.pk,
-                                                   session.pk,
-                                                   self.pk))
-
     def get_contributors(self):
         contributors = []
         for revision in self.revision_set.order_by('pk'):

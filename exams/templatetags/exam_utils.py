@@ -75,10 +75,6 @@ def get_question_sequence(question, session):
     return session.get_question_sequence(question)
 
 @register.filter
-def get_session_url(question, session):
-    return question.get_session_url(session)
-
-@register.filter
 def is_editor(category, user):
     if user.is_superuser:
         return True
