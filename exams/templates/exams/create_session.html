@@ -260,10 +260,11 @@
         $("#id_session_mode li:nth-child(3) label").tooltip({title: "This turns off exam mode, and it will show questions with the explanation and right answer right away."})
 
         $("#id_question_filter li:nth-child(1) label").tooltip({title: "Select all complete and valid questions in the {{ exam.name }} exam."})
-        $("#id_question_filter li:nth-child(2) label").tooltip({title: "Select questions that you have never answered in the {{ exam.name }} exam."})
+        $("#id_question_filter li:nth-child(2) label").tooltip({title: "Select questions that you have never had in a session."})
         $("#id_question_filter li:nth-child(3) label").tooltip({title: "Select questions that you have only answered incorrectly and never correctly in the {{ exam.name }} exam."})
-        $("#id_question_filter li:nth-child(4) label").tooltip({title: "Select questions that you have marked in the {{ exam.name }} exam."})
-        $("#id_question_filter li:nth-child(5) label").tooltip({title: "Select incomplete questions in the {{ exam.name }} exam."})
+        $("#id_question_filter li:nth-child(4) label").tooltip({title: "Select questions that you have had, but skipped and never answered in the {{ exam.name }} exam."})
+        $("#id_question_filter li:nth-child(5) label").tooltip({title: "Select questions that you have marked in the {{ exam.name }} exam."})
+        $("#id_question_filter li:nth-child(6) label").tooltip({title: "Select incomplete questions in the {{ exam.name }} exam."})
 
 
         updateTotalQuestions();
