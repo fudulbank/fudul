@@ -110,11 +110,10 @@ class QuestionAutocomplete(autocomplete.Select2QuerySetView):
         text_preview = str(item)
         return "<strong>{}</strong>: {}".format(item.pk, text_preview)
 
-
-@csrf.csrf_exempt
-@require_POST
-@decorators.ajax_only
 @login_required
+@require_POST
+@csrf.csrf_exempt
+@decorators.ajax_only
 def delete_question(request, pk):
     question_pool = Question.objects.undeleted()\
                                     .select_related('exam',
@@ -133,9 +132,10 @@ def delete_question(request, pk):
 
     return {}
 
-@require_POST
-@decorators.ajax_only
 @login_required
+@require_POST
+@csrf.csrf_exempt
+@decorators.ajax_only
 def handle_question(request, exam_pk, question_pk=None):
     exam = get_object_or_404(Exam.objects.select_related('category'),
                              pk=exam_pk)
@@ -277,9 +277,9 @@ def list_questions(request, slugs, pk, selector=None):
         context['issues'] = Issue.objects.all()
         return render(request, 'exams/list_questions_index.html', context)
 
-@decorators.ajax_only
-@require_safe
 @login_required
+@require_safe
+@decorators.ajax_only
 def show_question(request, pk, revision_pk=None):
     
     question = get_object_or_404(Question.objects.select_related('exam'),
@@ -300,9 +300,9 @@ def show_question(request, pk, revision_pk=None):
                'explanation_revision': explanation_revision}
     return render(request, 'exams/partials/show_question.html', context)
 
-@decorators.ajax_only
-@require_safe
 @login_required
+@require_safe
+@decorators.ajax_only
 def show_explanation_revision(request, pk):
     explanation_pool = ExplanationRevision.objects.undeleted()\
                                                   .select_related('question',
@@ -493,9 +493,9 @@ def create_session_automatically(request, slugs, exam_pk):
 
     return {'url': session.get_absolute_url()}
 
-@decorators.ajax_only
-@require_safe
 @login_required
+@require_safe
+@decorators.ajax_only
 @permission_required('exams.access_session', fn=objectgetter(Session, 'session_pk'), raise_exception=True)
 def list_partial_session_questions(request, slugs, exam_pk, session_pk):
     session = get_object_or_404(Session.objects.select_related('exam',
@@ -621,10 +621,10 @@ def show_session_results(request, slugs, exam_pk, session_pk):
 
     return render(request, 'exams/show_session_results.html', context)
 
-@decorators.ajax_only
-@require_POST
 @login_required
+@require_POST
 @csrf.csrf_exempt
+@decorators.ajax_only
 def toggle_marked(request):
     question_pk = request.POST.get('question_pk')
     session_pk = request.POST.get('session_pk')
@@ -646,10 +646,10 @@ def toggle_marked(request):
 
     return {'is_marked': is_marked}
 
-@decorators.ajax_only
-@require_POST
 @login_required
+@require_POST
 @csrf.csrf_exempt
+@decorators.ajax_only
 def submit_highlight(request):
     session_pk = request.POST.get('session_pk')
     session = get_object_or_404(Session.objects.undeleted(),
@@ -688,10 +688,10 @@ def submit_highlight(request):
 
     return {}
 
-@decorators.ajax_only
-@require_POST
 @login_required
+@require_POST
 @csrf.csrf_exempt
+@decorators.ajax_only
 def submit_answer(request):
     question_pk = request.POST.get('question_pk')
     session_pk = request.POST.get('session_pk')
@@ -838,8 +838,9 @@ def show_revision_comparison(request, pk, review=False):
                'review': bool(review)}
     return render(request, 'exams/partials/show_revision_comparison.html', context)
 
-@csrf.csrf_exempt
+@login_required
 @require_POST
+@csrf.csrf_exempt
 @decorators.ajax_only
 def delete_revision(request, pk):
     revision_pool = Revision.objects.undeleted()\
@@ -870,9 +871,9 @@ def delete_revision(request, pk):
 
     return {}
 
-
-@csrf.csrf_exempt
+@login_required
 @require_POST
+@csrf.csrf_exempt
 @decorators.ajax_only
 def delete_explanation_revision(request, pk):
     explanation_pool = ExplanationRevision.objects.undeleted()\
@@ -897,8 +898,9 @@ def delete_explanation_revision(request, pk):
 
     return {}
 
-@csrf.csrf_exempt
+@login_required
 @require_POST
+@csrf.csrf_exempt
 @decorators.ajax_only
 def mark_revision_approved(request, pk):
     revision_pool = Revision.objects.undeleted()\
@@ -916,9 +918,10 @@ def mark_revision_approved(request, pk):
     revision.approved_by= request.user
     revision.save()
 
+@login_required
 @require_POST
-@decorators.ajax_only
 @csrf.csrf_exempt
+@decorators.ajax_only
 def mark_revision_pending(request, pk):
     revision_pool = Revision.objects.undeleted()\
                                     .select_related('question',
@@ -1142,10 +1145,10 @@ def delete_correction(request):
         correction.delete()
         return {'correction_html': None}
 
-@csrf.csrf_exempt
-@require_POST
-@decorators.ajax_only
 @login_required
+@require_POST
+@csrf.csrf_exempt
+@decorators.ajax_only
 def get_selected_question_count(request, exam_pk):
     exam = get_object_or_404(Exam, pk=exam_pk)
 
@@ -1178,10 +1181,10 @@ def get_selected_question_count(request, exam_pk):
 
     return {'count': question_pool.count()}
 
-@csrf.csrf_exempt
-@require_POST
-@decorators.ajax_only
 @login_required
+@require_POST
+@csrf.csrf_exempt
+@decorators.ajax_only
 def delete_session(request):
     if not 'deletion_type' in request.POST:
         return HttpResponseBadRequest()
