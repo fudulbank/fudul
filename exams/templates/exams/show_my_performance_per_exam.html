@@ -40,7 +40,7 @@
             {% get_user_question_stats subject user 'incorrect' as incorrect_count %}
             {% get_user_question_stats subject user 'skipped' as skipped_count %}
 			      <tr>
-			        <td>{{ subject.name }} <span class="font-small-2"> ({{ total_count }})</span></td>
+			        <td>{{ subject.name }} <span data-toggle="tooltip" title="Number of questions answered." class="font-small-2">({{ total_count }})</span></td>
               {% with target=subject %}
                 {% include 'exams/partials/performance_column.html' %}
               {% endwith %}
@@ -48,12 +48,12 @@
                 <div class="dropdown">
                   <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="ft-settings"></i> Actions</button>
                   <div class="dropdown-menu">
-                    <button data-url="{% url 'exams:create_session_automatically' exam.category.get_slugs exam.pk %}" data-subject-pk="{{ subject.pk }}" data-selector="ALL" class="dropdown-item automatic-creation"><i class="ft-play"></i> Examine on <strong>all</strong> {{ subject.name }} questions ({{ subject.question_set.approved.count }})</button>
+                    <button data-url="{% url 'exams:create_session_automatically' exam.category.get_slugs exam.pk %}" data-subject-pk="{{ subject.pk }}" data-selector="ALL" class="dropdown-item automatic-creation"><i class="ft-play"></i> Examine on <strong>all</strong> {{ subject.name }} questions <span class="font-small-2">({{ subject.question_set.approved.count }})</span></button>
                     {% if skipped_count %}
-                      <button data-url="{% url 'exams:create_session_automatically' exam.category.get_slugs exam.pk %}" data-subject-pk="{{ subject.pk }}" data-selector="SKIPPED" class="dropdown-item automatic-creation"><i class="ft-rotate-ccw"></i> Re-examine on <strong>skipped</strong> {{ subject.name }} questions ({{ skipped_count }})</button>
+                      <button data-url="{% url 'exams:create_session_automatically' exam.category.get_slugs exam.pk %}" data-subject-pk="{{ subject.pk }}" data-selector="SKIPPED" class="dropdown-item automatic-creation"><i class="ft-rotate-ccw"></i> Re-examine on <strong>skipped</strong> {{ subject.name }} questions <span class="font-small-2">({{ skipped_count }})</span></button>
                     {% endif %}
                     {% if incorrect_count %}
-                      <button data-url="{% url 'exams:create_session_automatically' exam.category.get_slugs exam.pk %}" data-subject-pk="{{ subject.pk }}" data-selector="INCORRECT" class="dropdown-item automatic-creation"><i class="ft-rotate-ccw"></i> Re-examine on <strong>incorrect</strong> {{ subject.name }} questions ({{ incorrect_count }})</button>
+                      <button data-url="{% url 'exams:create_session_automatically' exam.category.get_slugs exam.pk %}" data-subject-pk="{{ subject.pk }}" data-selector="INCORRECT" class="dropdown-item automatic-creation"><i class="ft-rotate-ccw"></i> Re-examine on <strong>incorrect</strong> {{ subject.name }} questions <span class="font-small-2">({{ incorrect_count }})</span></button>
                     {% endif %}
                   </div>
                 </div>

@@ -458,6 +458,15 @@ def create_session_automatically(request, slugs, exam_pk):
     subject_pk = request.POST.get('subject_pk')
     if subject_pk:
         subject = get_object_or_404(Subject, pk=subject_pk, exam=exam)
+    else:
+        subject = None
+
+    session_pk = request.POST.get('session_pk')
+    if session_pk:
+        original_session = get_object_or_404(Session, pk=session_pk,
+                                             exam=exam)
+    else:
+        original_session = None
 
     # PERMISSION CHECK
     if not category.can_user_access(request.user):
@@ -473,10 +482,11 @@ def create_session_automatically(request, slugs, exam_pk):
 
     data = {'session_mode': 'EXPLAINED',
             'question_filter': selector}
-    if subject_pk:
+    if subject:
         data['subjects'] = [subject_pk]
 
     form = forms.SessionForm(data, exam=exam, user=request.user,
+                             original_session=original_session,
                              instance=instance, is_automatic=True)
     form.is_valid()
     session = form.save()

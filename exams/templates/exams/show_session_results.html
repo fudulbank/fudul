@@ -3,7 +3,9 @@
 {% block title %}Fudul | Session #{{ session.pk }} results{% endblock %}
 
 {% block head %}
-<style type="text/css">
+<link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
+
+<style>
 th, td{
     text-align: left;
 }
@@ -49,13 +51,27 @@ tbody tr td:last-child{
                                       <i class="fa fa-check success font-large-2 float-left"></i>
                                   </div>
                                   <div class="media-body text-right">
-                                      <h3>{% widthratio correct_questions session.get_questions.count 100 %}%</h3>
+                                      <h3>{% widthratio correct_count session.get_questions.count 100 %}%</h3>
                                       <span>of questions answered correctly</span>
                                   </div>
                               </div>
                           </div>
                       </div>
                   </div>
+                  {% if incorrect_count or skipped_count %}
+                  <div class="dropdown">
+                    <button type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="ft-settings"></i> Actions</button>
+                    <div class="dropdown-menu">
+                      <button data-selector="ALL" class="dropdown-item automatic-creation"><i class="ft-play"></i> Re-examine on <strong>all</strong> session #{{ session.pk }} questions <span class="font-small-2">({{ session.get_questions.count }})</span></button>
+                      {% if skipped_count %}
+                        <button data-selector="SKIPPED" class="dropdown-item automatic-creation"><i class="ft-rotate-ccw"></i> Re-examine on <strong>skipped</strong> session #{{ session.pk }} questions <span class="font-small-2">({{ skipped_count }})</span></button>
+                      {% endif %}
+                      {% if incorrect_count %}
+                        <button data-selector="INCORRECT" class="dropdown-item automatic-creation"><i class="ft-rotate-ccw"></i> Re-examine on <strong>incorrect</strong> session #{{ session.pk }} questions <span class="font-small-2">({{ incorrect_count }})</span></button>
+                      {% endif %}
+                    </div>
+                  </div>
+                  {% endif %}
                 </div>
               </div>
           </div>
@@ -90,8 +106,9 @@ tbody tr td:last-child{
     </div>
 {% endblock %}
 {% block customscript %}
-{% include 'partials/import_datatables.html' %}
+<script src="{% static 'js/toastr.js' %}"></script>
 
+{% include 'partials/import_datatables.html' %}
 {% include 'exams/partials/performance_chart.html' %}
 
 <script>
@@ -103,6 +120,27 @@ tbody tr td:last-child{
           ],
             "order": [[ 1, "asc" ]]
         });
+
+
+        $('.automatic-creation').click(function () {
+            $(this).addClass('disabled').attr('disabled', true);
+
+            var url = "{% url 'exams:create_session_automatically' exam.category.get_slugs exam.pk %}";
+            var selector = $(this).data('selector');
+            toastr.success("A new session is being created.  Give us a second!");
+            $.ajax({url: url,
+                    data: {selector: selector, session_pk: {{ session.pk }}},
+                    method: 'POST',
+                    success: function(data){
+                        if (data.success == 1) {
+                            window.location.href = data.url;
+                        } else {
+                          toastr.error(data.message);
+                        }
+                    }
+            });
+        });
+
     });
 </script>
 {% endblock %}
