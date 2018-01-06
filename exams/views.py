@@ -110,11 +110,10 @@ class QuestionAutocomplete(autocomplete.Select2QuerySetView):
         text_preview = str(item)
         return "<strong>{}</strong>: {}".format(item.pk, text_preview)
 
-
-@csrf.csrf_exempt
-@require_POST
-@decorators.ajax_only
 @login_required
+@require_POST
+@csrf.csrf_exempt
+@decorators.ajax_only
 def delete_question(request, pk):
     question_pool = Question.objects.undeleted()\
                                     .select_related('exam',
@@ -133,9 +132,10 @@ def delete_question(request, pk):
 
     return {}
 
-@require_POST
-@decorators.ajax_only
 @login_required
+@require_POST
+@csrf.csrf_exempt
+@decorators.ajax_only
 def handle_question(request, exam_pk, question_pk=None):
     exam = get_object_or_404(Exam.objects.select_related('category'),
                              pk=exam_pk)
@@ -277,9 +277,9 @@ def list_questions(request, slugs, pk, selector=None):
         context['issues'] = Issue.objects.all()
         return render(request, 'exams/list_questions_index.html', context)
 
-@decorators.ajax_only
-@require_safe
 @login_required
+@require_safe
+@decorators.ajax_only
 def show_question(request, pk, revision_pk=None):
     
     question = get_object_or_404(Question.objects.select_related('exam'),
@@ -300,9 +300,9 @@ def show_question(request, pk, revision_pk=None):
                'explanation_revision': explanation_revision}
     return render(request, 'exams/partials/show_question.html', context)
 
-@decorators.ajax_only
-@require_safe
 @login_required
+@require_safe
+@decorators.ajax_only
 def show_explanation_revision(request, pk):
     explanation_pool = ExplanationRevision.objects.undeleted()\
                                                   .select_related('question',
@@ -458,6 +458,15 @@ def create_session_automatically(request, slugs, exam_pk):
     subject_pk = request.POST.get('subject_pk')
     if subject_pk:
         subject = get_object_or_404(Subject, pk=subject_pk, exam=exam)
+    else:
+        subject = None
+
+    session_pk = request.POST.get('session_pk')
+    if session_pk:
+        original_session = get_object_or_404(Session, pk=session_pk,
+                                             exam=exam)
+    else:
+        original_session = None
 
     # PERMISSION CHECK
     if not category.can_user_access(request.user):
@@ -473,19 +482,20 @@ def create_session_automatically(request, slugs, exam_pk):
 
     data = {'session_mode': 'EXPLAINED',
             'question_filter': selector}
-    if subject_pk:
+    if subject:
         data['subjects'] = [subject_pk]
 
     form = forms.SessionForm(data, exam=exam, user=request.user,
+                             original_session=original_session,
                              instance=instance, is_automatic=True)
     form.is_valid()
     session = form.save()
 
     return {'url': session.get_absolute_url()}
 
-@decorators.ajax_only
-@require_safe
 @login_required
+@require_safe
+@decorators.ajax_only
 @permission_required('exams.access_session', fn=objectgetter(Session, 'session_pk'), raise_exception=True)
 def list_partial_session_questions(request, slugs, exam_pk, session_pk):
     session = get_object_or_404(Session.objects.select_related('exam',
@@ -594,27 +604,27 @@ def show_session_results(request, slugs, exam_pk, session_pk):
 
     # We don't use the standard QuerySets as they don't filter per a
     # specific session.
-    correct_questions = question_pool.filter(answer__choice__is_right=True,
+    correct_count = question_pool.filter(answer__choice__is_right=True,
                                              answer__session=session)\
                                      .count()
-    incorrect_questions = question_pool.filter(answer__choice__is_right=False,
+    incorrect_count = question_pool.filter(answer__choice__is_right=False,
                                                answer__session=session)\
                                        .count()
-    skipped_questions = question_pool.filter(answer__choice__isnull=True,
+    skipped_count = question_pool.filter(answer__choice__isnull=True,
                                              answer__session=session)\
                                      .count()
     context = {'session': session, 'exam': session.exam,
-               'correct_questions': correct_questions,
-               'incorrect_questions': incorrect_questions,
-               'skipped_questions': skipped_questions
+               'correct_count': correct_count,
+               'incorrect_count': incorrect_count,
+               'skipped_count': skipped_count
     }
 
     return render(request, 'exams/show_session_results.html', context)
 
-@decorators.ajax_only
-@require_POST
 @login_required
+@require_POST
 @csrf.csrf_exempt
+@decorators.ajax_only
 def toggle_marked(request):
     question_pk = request.POST.get('question_pk')
     session_pk = request.POST.get('session_pk')
@@ -636,10 +646,10 @@ def toggle_marked(request):
 
     return {'is_marked': is_marked}
 
-@decorators.ajax_only
-@require_POST
 @login_required
+@require_POST
 @csrf.csrf_exempt
+@decorators.ajax_only
 def submit_highlight(request):
     session_pk = request.POST.get('session_pk')
     session = get_object_or_404(Session.objects.undeleted(),
@@ -678,10 +688,10 @@ def submit_highlight(request):
 
     return {}
 
-@decorators.ajax_only
-@require_POST
 @login_required
+@require_POST
 @csrf.csrf_exempt
+@decorators.ajax_only
 def submit_answer(request):
     question_pk = request.POST.get('question_pk')
     session_pk = request.POST.get('session_pk')
@@ -828,8 +838,9 @@ def show_revision_comparison(request, pk, review=False):
                'review': bool(review)}
     return render(request, 'exams/partials/show_revision_comparison.html', context)
 
-@csrf.csrf_exempt
+@login_required
 @require_POST
+@csrf.csrf_exempt
 @decorators.ajax_only
 def delete_revision(request, pk):
     revision_pool = Revision.objects.undeleted()\
@@ -860,9 +871,9 @@ def delete_revision(request, pk):
 
     return {}
 
-
-@csrf.csrf_exempt
+@login_required
 @require_POST
+@csrf.csrf_exempt
 @decorators.ajax_only
 def delete_explanation_revision(request, pk):
     explanation_pool = ExplanationRevision.objects.undeleted()\
@@ -887,8 +898,9 @@ def delete_explanation_revision(request, pk):
 
     return {}
 
-@csrf.csrf_exempt
+@login_required
 @require_POST
+@csrf.csrf_exempt
 @decorators.ajax_only
 def mark_revision_approved(request, pk):
     revision_pool = Revision.objects.undeleted()\
@@ -906,9 +918,10 @@ def mark_revision_approved(request, pk):
     revision.approved_by= request.user
     revision.save()
 
+@login_required
 @require_POST
-@decorators.ajax_only
 @csrf.csrf_exempt
+@decorators.ajax_only
 def mark_revision_pending(request, pk):
     revision_pool = Revision.objects.undeleted()\
                                     .select_related('question',
@@ -951,11 +964,11 @@ def approve_question(request, slugs, exam_pk, pk):
 def show_my_performance(request):
     user_questions = utils.get_user_questions(request.user)
     total_questions = user_questions.count()
-    correct_questions = user_questions.correct_by_user(request.user)\
+    correct_count = user_questions.correct_by_user(request.user)\
                                       .count()
-    incorrect_questions = user_questions.incorrect_by_user(request.user)\
+    incorrect_count = user_questions.incorrect_by_user(request.user)\
                                         .count()
-    skipped_questions = user_questions.skipped_by_user(request.user)\
+    skipped_count = user_questions.skipped_by_user(request.user)\
                                       .count()
 
     # Only get exams which the user has taken
@@ -964,9 +977,9 @@ def show_my_performance(request):
                                 session__is_deleted=False,
                                 session__answer__isnull=False).distinct()
 
-    context = {'correct_questions': correct_questions,
-               'incorrect_questions': incorrect_questions,
-               'skipped_questions': skipped_questions,
+    context = {'correct_count': correct_count,
+               'incorrect_count': incorrect_count,
+               'skipped_count': skipped_count,
                'exams': exams,
                'is_performance_active': True}
 
@@ -979,18 +992,18 @@ def show_my_performance_per_exam(request, exam_pk):
                                      session__is_deleted=False)\
                              .distinct()
     exam = get_object_or_404(user_exams, pk=exam_pk)
-    correct_questions =  utils.get_user_question_stats(target=exam,
+    correct_count =  utils.get_user_question_stats(target=exam,
                                                        user=request.user,
                                                        result='correct')
-    incorrect_questions =  utils.get_user_question_stats(target=exam,
+    incorrect_count =  utils.get_user_question_stats(target=exam,
                                                          user=request.user,
                                                          result='incorrect')
-    skipped_questions =  utils.get_user_question_stats(target=exam,
+    skipped_count =  utils.get_user_question_stats(target=exam,
                                                        user=request.user,
                                                        result='skipped')
-    context = {'correct_questions': correct_questions,
-               'incorrect_questions': incorrect_questions,
-               'skipped_questions': skipped_questions,
+    context = {'correct_count': correct_count,
+               'incorrect_count': incorrect_count,
+               'skipped_count': skipped_count,
                'exam': exam,
                'is_performance_active': True}
 
@@ -1132,10 +1145,10 @@ def delete_correction(request):
         correction.delete()
         return {'correction_html': None}
 
-@csrf.csrf_exempt
-@require_POST
-@decorators.ajax_only
 @login_required
+@require_POST
+@csrf.csrf_exempt
+@decorators.ajax_only
 def get_selected_question_count(request, exam_pk):
     exam = get_object_or_404(Exam, pk=exam_pk)
 
@@ -1168,10 +1181,10 @@ def get_selected_question_count(request, exam_pk):
 
     return {'count': question_pool.count()}
 
-@csrf.csrf_exempt
-@require_POST
-@decorators.ajax_only
 @login_required
+@require_POST
+@csrf.csrf_exempt
+@decorators.ajax_only
 def delete_session(request):
     if not 'deletion_type' in request.POST:
         return HttpResponseBadRequest()

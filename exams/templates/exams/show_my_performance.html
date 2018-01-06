@@ -30,7 +30,6 @@
         <thead>
           <tr>
             <th class="all">Exam</th>
-            <th data-toggle="tooltip" title="Number of questions answered.">Questions</th>
             <th data-toggle="tooltip">Performance</th>
             <th>Actions</th>
           </tr>
@@ -41,8 +40,7 @@
             {% get_user_question_stats exam user 'incorrect' as incorrect_count %}
             {% get_user_question_stats exam user 'skipped' as skipped_count %}
             <tr data-pk="{{ exam.pk }}">
-              <td class="exam-name"><a href="{% url 'exams:show_my_performance_per_exam' exam.pk %}">{{ exam.name }}</a></td>
-              <td>{{ total_count }}</td>
+              <td class="exam-name"><a href="{% url 'exams:show_my_performance_per_exam' exam.pk %}">{{ exam.name }}</a> <span data-toggle="tooltip" title="Number of questions answered." class="font-small-2">({{ total_count }})</span></td>
               {% with target=exam %}
                 {% include 'exams/partials/performance_column.html' %}
               {% endwith %}
@@ -52,10 +50,10 @@
                   <div class="dropdown-menu">
                     <a class="dropdown-item" href="{% url 'exams:show_my_performance_per_exam' exam.pk %}"><i class="ft-grid"></i> See details</a>
                     {% if skipped_count %}
-                      <button data-url="{% url 'exams:create_session_automatically' exam.category.get_slugs exam.pk %}" data-selector="SKIPPED" class="dropdown-item automatic-creation"><i class="ft-rotate-ccw"></i> Re-examine on <strong>skipped</strong> {{ exam.name }} questions ({{ skipped_count }})</button>
+                      <button data-url="{% url 'exams:create_session_automatically' exam.category.get_slugs exam.pk %}" data-selector="SKIPPED" class="dropdown-item automatic-creation"><i class="ft-rotate-ccw"></i> Re-examine on <strong>skipped</strong> {{ exam.name }} questions <span class="font-small-2">({{ skipped_count }})</span></button>
                     {% endif %}
                     {% if incorrect_count %}
-                      <button data-url="{% url 'exams:create_session_automatically' exam.category.get_slugs exam.pk %}" data-selector="INCORRECT" class="dropdown-item automatic-creation"><i class="ft-rotate-ccw"></i> Re-examine on <strong>incorrect</strong> {{ exam.name }} questions ({{ incorrect_count }})</button>
+                      <button data-url="{% url 'exams:create_session_automatically' exam.category.get_slugs exam.pk %}" data-selector="INCORRECT" class="dropdown-item automatic-creation"><i class="ft-rotate-ccw"></i> Re-examine on <strong>incorrect</strong> {{ exam.name }} questions <span class="font-small-2">({{ incorrect_count }})</span></button>
                     {% endif %}
                     <a data-pk="{{ exam.pk }}" class="dropdown-item confirm-delete-exam"><i class="ft-trash-2"></i> Forgive</a>
                   </div>
@@ -132,10 +130,16 @@ $(function () {
   	});
 
     $('tbody').on('click', '.automatic-creation',function () {
-        $(this).addClass('disabled').attr('disabled', true);
-
-        var url = $(this).data('url');
         var selector = $(this).data('selector');
+
+        if (selector == 'SKIPPED'){
+           _paq.push(['trackEvent', 'show-my-performance', 'create-automatic-session', 'automatic-skipped-in-exam']);
+        }  else if (selector == 'INCORRECT'){
+           _paq.push(['trackEvent', 'show-my-performance', 'create-automatic-session', 'automatic-incorrect-in-exam']);
+        }
+
+        $(this).addClass('disabled').attr('disabled', true);
+        var url = $(this).data('url');
         toastr.success("A new session is being created.  Give us a second!");
         $.ajax({url: url,
                 data: {selector: selector},

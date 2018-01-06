@@ -148,6 +148,7 @@ class SessionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.exam = kwargs.pop('exam')
         self.user = kwargs.pop('user')
+        original_session = kwargs.pop('original_session', None)
         self.is_automatic = kwargs.pop('is_automatic', False)
         super(SessionForm, self).__init__(*args, **kwargs)
 
@@ -155,6 +156,11 @@ class SessionForm(forms.ModelForm):
 
         common_pool = self.exam.question_set.select_related('parent_question',
                                                             'child_question')
+
+        # We can base the session on a previous session
+        if original_session:
+            common_pool = common_pool.filter(session=original_session)
+
         self.question_pools = {'ALL': common_pool.approved(),
                                'UNUSED': common_pool.approved().unused_by_user(self.user, exclude_skipped=False),
                                'INCORRECT': common_pool.approved().incorrect_by_user(self.user),
