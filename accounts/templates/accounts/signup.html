@@ -35,16 +35,17 @@
 
     <h6 class="line-on-side text-muted text-center font-small-2"><span>Your nickname</span></h6>
     <p><i class="icon-info"></i>Fudul is cooperative, and you can contribute to it.  You have the choice of showing your real name or not whenever you add a contribution to give you credit.</p>
-		<fieldset class="form-group position-relative has-icon-left mb-1">
-			{% bootstrap_field form.nickname show_label=False %}
-			<div class="form-control-position">
-					<i class="ft-user"></i>
-			</div>
-		</fieldset>
-        <fieldset class="form-group position-relative has-icon-left mb-1">
+
+        <fieldset id="fullname" class="form-group position-relative has-icon-left mb-1">
 			{% bootstrap_field form.display_full_name show_label=False %}
 			<div class="form-control-position">
 					<i class="ft-eye"></i>
+			</div>
+		</fieldset>
+        <fieldset id="nickname" style="display: none" class="form-group position-relative has-icon-left mb-1">
+			{% bootstrap_field form.nickname show_label=False %}
+			<div class="form-control-position">
+					<i class="ft-user"></i>
 			</div>
 		</fieldset>
 
@@ -197,6 +198,17 @@ $(function() {
             $("#id_batch").prop('required', false);
         }
 
+    });
+    $('#fullname').change(function() {
+        value = $(this).val();
+        if ($('#fullname option[value=N]:checked').length) {
+            $('#nickname input').prop('required', true);
+            $('#nickname').show();
+        } else {
+            $('#nickname input').prop('required', false);
+            $('#nickname').hide();
+
+        }
     });
 
     $("#agree").on('ready change', function() {
