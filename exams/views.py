@@ -594,19 +594,19 @@ def show_session_results(request, slugs, exam_pk, session_pk):
 
     # We don't use the standard QuerySets as they don't filter per a
     # specific session.
-    correct_questions = question_pool.filter(answer__choice__is_right=True,
+    correct_count = question_pool.filter(answer__choice__is_right=True,
                                              answer__session=session)\
                                      .count()
-    incorrect_questions = question_pool.filter(answer__choice__is_right=False,
+    incorrect_count = question_pool.filter(answer__choice__is_right=False,
                                                answer__session=session)\
                                        .count()
-    skipped_questions = question_pool.filter(answer__choice__isnull=True,
+    skipped_count = question_pool.filter(answer__choice__isnull=True,
                                              answer__session=session)\
                                      .count()
     context = {'session': session, 'exam': session.exam,
-               'correct_questions': correct_questions,
-               'incorrect_questions': incorrect_questions,
-               'skipped_questions': skipped_questions
+               'correct_count': correct_count,
+               'incorrect_count': incorrect_count,
+               'skipped_count': skipped_count
     }
 
     return render(request, 'exams/show_session_results.html', context)
@@ -951,11 +951,11 @@ def approve_question(request, slugs, exam_pk, pk):
 def show_my_performance(request):
     user_questions = utils.get_user_questions(request.user)
     total_questions = user_questions.count()
-    correct_questions = user_questions.correct_by_user(request.user)\
+    correct_count = user_questions.correct_by_user(request.user)\
                                       .count()
-    incorrect_questions = user_questions.incorrect_by_user(request.user)\
+    incorrect_count = user_questions.incorrect_by_user(request.user)\
                                         .count()
-    skipped_questions = user_questions.skipped_by_user(request.user)\
+    skipped_count = user_questions.skipped_by_user(request.user)\
                                       .count()
 
     # Only get exams which the user has taken
@@ -964,9 +964,9 @@ def show_my_performance(request):
                                 session__is_deleted=False,
                                 session__answer__isnull=False).distinct()
 
-    context = {'correct_questions': correct_questions,
-               'incorrect_questions': incorrect_questions,
-               'skipped_questions': skipped_questions,
+    context = {'correct_count': correct_count,
+               'incorrect_count': incorrect_count,
+               'skipped_count': skipped_count,
                'exams': exams,
                'is_performance_active': True}
 
@@ -979,18 +979,18 @@ def show_my_performance_per_exam(request, exam_pk):
                                      session__is_deleted=False)\
                              .distinct()
     exam = get_object_or_404(user_exams, pk=exam_pk)
-    correct_questions =  utils.get_user_question_stats(target=exam,
+    correct_count =  utils.get_user_question_stats(target=exam,
                                                        user=request.user,
                                                        result='correct')
-    incorrect_questions =  utils.get_user_question_stats(target=exam,
+    incorrect_count =  utils.get_user_question_stats(target=exam,
                                                          user=request.user,
                                                          result='incorrect')
-    skipped_questions =  utils.get_user_question_stats(target=exam,
+    skipped_count =  utils.get_user_question_stats(target=exam,
                                                        user=request.user,
                                                        result='skipped')
-    context = {'correct_questions': correct_questions,
-               'incorrect_questions': incorrect_questions,
-               'skipped_questions': skipped_questions,
+    context = {'correct_count': correct_count,
+               'incorrect_count': incorrect_count,
+               'skipped_count': skipped_count,
                'exam': exam,
                'is_performance_active': True}
 
