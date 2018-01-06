@@ -28,19 +28,20 @@
 					<i class="ft-user"></i>
 			</div>
 		</fieldset>
-
-         <fieldset class="form-group position-relative has-icon-left mb-1">
-			{% bootstrap_field form.nickname show_label=False %}
-			<div class="form-control-position">
-					<i class="ft-user"></i>
-			</div>
-		</fieldset>
-                     <fieldset class="form-group position-relative has-icon-left mb-1">
+            <fieldset id="fullname" class="form-group position-relative has-icon-left mb-1">
 			{% bootstrap_field form.display_full_name show_label=False %}
 			<div class="form-control-position">
 					<i class="ft-user"></i>
 			</div>
 		</fieldset>
+
+         <fieldset id="nickname" class="form-group position-relative has-icon-left mb-1">
+			{% bootstrap_field form.nickname show_label=False %}
+			<div class="form-control-position">
+					<i class="ft-user"></i>
+			</div>
+		</fieldset>
+
                 <h6 class="line-on-side text-muted text-center font-small-2"><span>Your contact</span></h6>
 
         <fieldset class="form-group position-relative has-icon-left mb-1">
@@ -176,6 +177,17 @@
                 $("#id_batch").prop('required', false);
             }
 
+        });
+        $('#fullname').change(function() {
+            value = $(this).val();
+            if ($('#fullname option[value=N]:checked').length) {
+                $('#nickname input').prop('required', true);
+                $('#nickname').show();
+            } else {
+                $('#nickname input').prop('required', false);
+                $('#nickname').hide();
+
+            }
         });
 
     });

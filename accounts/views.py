@@ -16,6 +16,7 @@ from userena import settings as userena_settings
 from django.contrib import messages
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from userena.utils import signin_redirect
+from django.utils.translation import ugettext_lazy as _
 
 
 @decorators.ajax_only
@@ -57,11 +58,27 @@ def edit_profile(request,username):
     user_initial = {'first_name': user.profile.first_name,
                     'last_name': user.profile.last_name}
     form = CustomEditProfileForm(instance=profile,initial=user_initial)
-    extra_context = {'form':form, 'profile':profile, 'institutions': institutions}
+    context = {'form':form, 'profile':profile, 'institutions': institutions}
 
-    return userena_views.profile_edit(request=request,username=username,edit_profile_form=CustomEditProfileForm,
-                                      template_name='accounts/profile_form.html',
-                                      extra_context=extra_context)
+
+    if request.method == 'POST':
+        form = CustomEditProfileForm(request.POST, request.FILES, instance=profile)
+
+        if form.is_valid():
+            profile = form.save()
+
+            if userena_settings.USERENA_USE_MESSAGES:
+                messages.success(request, _('Your profile has been updated.'),
+                                 fail_silently=True)
+
+            redirect_to = reverse('userena_profile_detail', kwargs={'username': username})
+            return redirect(redirect_to)
+
+    context['form'] = form
+    context['profile'] = profile
+
+    return render(request, 'accounts/profile_form.html', context)
+
 
 
 

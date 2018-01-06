@@ -108,6 +108,8 @@ class CustomEditProfileForm(forms.ModelForm):
     last_name = forms.CharField(label='Last name',
                                 max_length=30,
                                 required=False)
+    nickname = forms.CharField(max_length=30,required=False)
+
 
     # def __init__(self, user, *args, **kwargs):
     #     self.user = user
