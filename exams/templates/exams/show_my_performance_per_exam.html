@@ -78,10 +78,19 @@ $(function () {
     $("table.datatable").DataTable({paging: false, info: false});
 
     $('tbody').on('click', '.automatic-creation',function () {
+        var selector = $(this).data('selector');
+
+        if (selector == 'ALL'){
+           _paq.push(['trackEvent', 'show-my-performance', 'create-automatic-session', 'automatic-all-in-subject']);
+        } else if (selector == 'SKIPPED'){
+           _paq.push(['trackEvent', 'show-my-performance', 'create-automatic-session', 'automatic-skipped-in-subject']);
+        }  else if (selector == 'INCORRECT'){
+           _paq.push(['trackEvent', 'show-my-performance', 'create-automatic-session', 'automatic-incorrect-in-subject']);
+        }
+
         $(this).addClass('disabled').attr('disabled', true);
 
         var url = $(this).data('url');
-        var selector = $(this).data('selector');
         var subject_pk = $(this).data('subject-pk');
         toastr.success("A new session is being created.  Give us a second!");
         $.ajax({url: url,

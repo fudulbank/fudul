@@ -123,10 +123,18 @@ tbody tr td:last-child{
 
 
         $('.automatic-creation').click(function () {
+            var selector = $(this).data('selector');
+
+            if (selector == 'ALL'){
+               _paq.push(['trackEvent', 'show-session-results', 'create-automatic-session', 'automatic-all-in-session']);
+            } else if (selector == 'SKIPPED'){
+               _paq.push(['trackEvent', 'show-session-results', 'create-automatic-session', 'automatic-skipped-in-session']);
+            }  else if (selector == 'INCORRECT'){
+               _paq.push(['trackEvent', 'show-session-results', 'create-automatic-session', 'automatic-incorrect-in-session']);
+            }
             $(this).addClass('disabled').attr('disabled', true);
 
             var url = "{% url 'exams:create_session_automatically' exam.category.get_slugs exam.pk %}";
-            var selector = $(this).data('selector');
             toastr.success("A new session is being created.  Give us a second!");
             $.ajax({url: url,
                     data: {selector: selector, session_pk: {{ session.pk }}},

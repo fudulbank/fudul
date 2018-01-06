@@ -130,10 +130,16 @@ $(function () {
   	});
 
     $('tbody').on('click', '.automatic-creation',function () {
-        $(this).addClass('disabled').attr('disabled', true);
-
-        var url = $(this).data('url');
         var selector = $(this).data('selector');
+
+        if (selector == 'SKIPPED'){
+           _paq.push(['trackEvent', 'show-my-performance', 'create-automatic-session', 'automatic-skipped-in-exam']);
+        }  else if (selector == 'INCORRECT'){
+           _paq.push(['trackEvent', 'show-my-performance', 'create-automatic-session', 'automatic-incorrect-in-exam']);
+        }
+
+        $(this).addClass('disabled').attr('disabled', true);
+        var url = $(this).data('url');
         toastr.success("A new session is being created.  Give us a second!");
         $.ajax({url: url,
                 data: {selector: selector},
