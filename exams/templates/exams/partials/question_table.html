@@ -27,6 +27,7 @@
         <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="ft-settings"></i> Actions</button>
         <div class="dropdown-menu">
           <a href="{% url 'exams:list_revisions' category_slug exam_pk question.pk %}" class="dropdown-item"><i class="ft-list"></i> History</a>
+          <a data-pk="{{ question.pk }}" data-url="{% url 'exams:contribute_mnemonics' %}" class="dropdown-item review-mnemonics"><i class="ft-eye"></i> Review Mnemonics</a>
           <a href="{% url 'exams:submit_revision' category_slug exam_pk question.pk %}" class="dropdown-item"><i class="ft-edit-2"></i> Edit</a>
           <a data-pk="{{ question.pk }}" data-url="{% url 'exams:delete_question' question.pk %}" class="dropdown-item confirm-delete-question"><i class="ft-trash-2"></i> Delete</a>
         </div>

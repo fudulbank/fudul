@@ -34,7 +34,7 @@
         </div>
      </div>
     </div>
-{#<div> {% include 'exams/partials/show_mnemonics.html' %}</div>#}
+<div class="mnemonics"> {% include 'exams/partials/show_mnemonics.html' %}</div>
 
 {% block customscript %}
     <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
@@ -70,9 +70,11 @@
                        if (data.success == 1) {
                            // show success message (using toastr)
                            toastr.success("Thank you!  Your contribution is highly appreciated!");
+                           $("#add-mnemonics-modal .modal-body").html(data);
                            $("#add-mnemonics-modal").modal('hide');
                            $(".question-body.show .mnemonics-container").show();
                            $(".question-body.show .mnemonics-content").html(data.mnemonic_html);
+                           $("#add-mnemonics-modal .modal-body").html(data);
                        } else {
                            $("#add-mnemonics-modal .modal-body").html(data);
                        }
