@@ -69,36 +69,36 @@
 					<i class="ft-phone"></i>
 			</div>
 		</fieldset>
-
-        <h6 class="line-on-side text-muted text-center font-small-2"><span>Institustion details</span></h6>
-
-        <div id="institustion-deatils">
-        <div class="form-group has-feedback has-feedback-left">
-                        <select {% if form.institution.value and not form.institution.errors %}value="{{ form.institution.value }}" {% endif %} title="" id="institution-list" class="form-control">
-                              <option value="" selected="" >---------</option>
-                           {% for institution in institutions %}
-                              <option value="{{ institution.name }}">{{ institution.name }}</option>
-                           {% endfor %}
-                              <option value="Other">Other</option>
-                        </select>
-			<div class="form-control-feedback">
-				<i class="icon-library2 text-muted"></i>
-			</div>
-		</div>
-        <input {% if form.institution.value and not form.institution.errors %}value="{{ form.institution.value }}" {% endif %}type="text" class="form-control" id="institution-text-field" placeholder="Write your institution here" style="display: none"/>
-        		<div style="display: none" class="form-group has-feedback has-feedback-left">
-			{% bootstrap_field form.college show_label=False %}
-			<div class="form-control-feedback">
-				<i class="icon-book text-muted"></i>
-			</div>
-		</div>
-		<div style="display: none" class="form-group has-feedback has-feedback-left">
-			{% bootstrap_field form.batch show_label=False %}
-			<div class="form-control-feedback">
-				<i class="icon-graduation2 text-muted"></i>
-			</div>
-		</div>
-        </div>
+{##}
+{#        <h6 class="line-on-side text-muted text-center font-small-2"><span>Institustion details</span></h6>#}
+{##}
+{#        <div id="institustion-deatils">#}
+{#        <div class="form-group has-feedback has-feedback-left">#}
+{#                        <select {% if form.institution.value and not form.institution.errors %}value="{{ form.institution.value }}" {% endif %} title="" id="institution-list" class="form-control">#}
+{#                              <option value="" selected="" >---------</option>#}
+{#                           {% for institution in institutions %}#}
+{#                              <option value="{{ institution.name }}">{{ institution.name }}</option>#}
+{#                           {% endfor %}#}
+{#                              <option value="Other">Other</option>#}
+{#                        </select>#}
+{#			<div class="form-control-feedback">#}
+{#				<i class="icon-library2 text-muted"></i>#}
+{#			</div>#}
+{#		</div>#}
+{#        <input {% if form.institution.value and not form.institution.errors %}value="{{ form.institution.value }}" {% endif %}type="text" class="form-control" id="institution-text-field" placeholder="Write your institution here" style="display: none"/>#}
+{#        		<div style="display: none" class="form-group has-feedback has-feedback-left">#}
+{#			{% bootstrap_field form.college show_label=False %}#}
+{#			<div class="form-control-feedback">#}
+{#				<i class="icon-book text-muted"></i>#}
+{#			</div>#}
+{#		</div>#}
+{#		<div style="display: none" class="form-group has-feedback has-feedback-left">#}
+{#			{% bootstrap_field form.batch show_label=False %}#}
+{#			<div class="form-control-feedback">#}
+{#				<i class="icon-graduation2 text-muted"></i>#}
+{#			</div>#}
+{#		</div>#}
+{#        </div>#}
 
             <button type="submit" class="btn btn-primary btn-lg btn-block"><i class="ft-edit"></i> Save changes</button>
         </form>
