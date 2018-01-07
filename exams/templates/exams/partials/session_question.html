@@ -10,7 +10,7 @@
 
 <div>
     {% if question.sources.count > 1 %}
-    <span style="float: right;display: block" class="badge badge-default badge-success">Repeated {{ question.sources.count }} times </span>
+       <span data-html="true" data-toggle="tooltip" title="<strong>Repeated in:</strong> <ul>{% for source in  question.sources.all %}<li>{{ source.name }}</li>{% endfor %}</ul>" style="float: right;display: block" class="badge badge-default badge-success">Repeated {{ question.sources.count }} times </span>
     {% endif %}
     </div>
     <p class="question-text">{% get_question_text highlight best_latest_revision session %}</p>
