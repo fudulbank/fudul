@@ -184,7 +184,6 @@ tr td:last-child{
 
             var url = $(this).data('url');
             var session_pk = $(this).data('session-pk');
-            console.log(session_pk, url)
             toastr.success("A new session is being created.  Give us a second!");
             $.ajax({url: url,
                     data: {selector: selector, session_pk: session_pk},
