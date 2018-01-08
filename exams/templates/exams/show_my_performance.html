@@ -138,7 +138,9 @@ $(function () {
            _paq.push(['trackEvent', 'show-my-performance', 'create-automatic-session', 'automatic-incorrect-in-exam']);
         }
 
-        $(this).addClass('disabled').attr('disabled', true);
+        // Disable all automatic creation buttons upon firing one.
+        $('.automatic-creation').addClass('disabled').attr('disabled', true);
+
         var url = $(this).data('url');
         toastr.success("A new session is being created.  Give us a second!");
         $.ajax({url: url,

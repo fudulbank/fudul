@@ -88,7 +88,8 @@ $(function () {
            _paq.push(['trackEvent', 'show-my-performance', 'create-automatic-session', 'automatic-incorrect-in-subject']);
         }
 
-        $(this).addClass('disabled').attr('disabled', true);
+        // Disable all automatic creation buttons upon firing one.
+        $('.automatic-creation').addClass('disabled').attr('disabled', true);
 
         var url = $(this).data('url');
         var subject_pk = $(this).data('subject-pk');

@@ -126,7 +126,9 @@ th, td{
             }  else if (selector == 'INCORRECT'){
                _paq.push(['trackEvent', 'show-session-results', 'create-automatic-session', 'automatic-incorrect-in-session']);
             }
-            $(this).addClass('disabled').attr('disabled', true);
+
+            // Disable all automatic creation buttons upon firing one.
+            $('.automatic-creation').addClass('disabled').attr('disabled', true);
 
             var url = "{% url 'exams:create_session_automatically' exam.category.get_slugs exam.pk %}";
             toastr.success("A new session is being created.  Give us a second!");
