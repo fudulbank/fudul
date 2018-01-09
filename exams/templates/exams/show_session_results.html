@@ -30,14 +30,14 @@ th, td{
         <div class="card-body">
           <div class="card-block">
               <h2 class="card-title">Session perfromance</h2>
-              <div class="row">
-                <div class="col-sm-6">
+              <div class="row justify-content-between">
+                <div class="col-md-6">
                   <div class="chart-container mb-2" style="height: 300px; width: 400px; max-width: 100%;">
                       <canvas id="performance-chart"></canvas>
                   </div>
                 </div>
-                <div class="offset-sm-1 col-sm-5 offset-md-2 col-md-4">
-                  <div class="card" style="border: 1px solid #404E67;">
+                <div class="col-md-6 col-xl-4">
+                  <div class="card border-teal">
                       <div class="card-body">
                           <div class="card-block">
                               <div class="media">
@@ -53,16 +53,18 @@ th, td{
                       </div>
                   </div>
                   {% if incorrect_count or skipped_count %}
-                  <div class="dropdown">
-                    <button type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="ft-settings"></i> Actions</button>
-                    <div class="dropdown-menu">
-                      <button data-selector="ALL" class="dropdown-item automatic-creation"><i class="ft-play"></i> Re-examine on <strong>all</strong> session #{{ session.pk }} questions <span class="font-small-2">({{ session.get_questions.count }})</span></button>
-                      {% if skipped_count %}
-                        <button data-selector="SKIPPED" class="dropdown-item automatic-creation"><i class="ft-rotate-ccw"></i> Re-examine on <strong>skipped</strong> session #{{ session.pk }} questions <span class="font-small-2">({{ skipped_count }})</span></button>
-                      {% endif %}
-                      {% if incorrect_count %}
-                        <button data-selector="INCORRECT" class="dropdown-item automatic-creation"><i class="ft-rotate-ccw"></i> Re-examine on <strong>incorrect</strong> session #{{ session.pk }} questions <span class="font-small-2">({{ incorrect_count }})</span></button>
-                      {% endif %}
+                  <div class="card border-teal text-center">
+                    <div class="card-body">
+                      <h3 class="card-title text-left">Actions</h3>
+                      <div class="btn-group-vertical">
+                        <button data-selector="ALL" class="btn btn-sm btn-primary automatic-creation"><i class="ft-play"></i> Re-examine on <strong>all</strong> questions <span class="font-small-2">({{ session.get_questions.count }})</span></button>
+                        {% if skipped_count %}
+                          <button data-selector="SKIPPED" class="btn btn-sm btn-primary automatic-creation"><i class="ft-rotate-ccw"></i> Re-examine on <strong>skipped</strong> questions <span class="font-small-2">({{ skipped_count }})</span></button>
+                        {% endif %}
+                        {% if incorrect_count %}
+                          <button data-selector="INCORRECT" class="btn btn-sm btn-primary automatic-creation"><i class="ft-rotate-ccw"></i> Re-examine on <strong>incorrect</strong> questions <span class="font-small-2">({{ incorrect_count }})</span></button>
+                        {% endif %}
+                      </div>
                     </div>
                   </div>
                   {% endif %}
@@ -126,7 +128,9 @@ th, td{
             }  else if (selector == 'INCORRECT'){
                _paq.push(['trackEvent', 'show-session-results', 'create-automatic-session', 'automatic-incorrect-in-session']);
             }
-            $(this).addClass('disabled').attr('disabled', true);
+
+            // Disable all automatic creation buttons upon firing one.
+            $('.automatic-creation').addClass('disabled').attr('disabled', true);
 
             var url = "{% url 'exams:create_session_automatically' exam.category.get_slugs exam.pk %}";
             toastr.success("A new session is being created.  Give us a second!");

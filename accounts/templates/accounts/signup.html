@@ -184,10 +184,11 @@ $(function() {
     });
     $("#id_college").change(function() {
         value = $(this).val();
-        if (value.length) {
+        college_batches = batches[value]
+        if (value.length && college_batches.length) {
             $("#id_batch").prop('required', true).html(empty_option);
             $("#id_batch").closest('.form-group.has-feedback').show();
-            college_batches = batches[value]
+
             $.each(college_batches, function(index, batch_data) {
                 pk = batch_data[0];
                 name = batch_data[1];

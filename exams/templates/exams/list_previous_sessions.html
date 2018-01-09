@@ -46,11 +46,11 @@ tr td:last-child{
          </thead>
          <tbody>
          {% for session in sessions %}
-         {% with total_count=session.get_questions.count %}
+         {% with total_count=session.get_questions.count category_slugs=session.exam.category.get_slugs %}
          {% get_user_question_stats session user 'incorrect' as incorrect_count %}
          {% get_user_question_stats session user 'skipped' as skipped_count %}
          <tr data-pk="{{ session.pk }}">
-             <td data-html="true" data-toggle="tooltip" title="{{ total_count }} questions on: <ul>{% for subject in session|get_session_subjects %}<li>{{ subject.name }}</li>{% endfor %}</ul>"><a href="{% url 'exams:show_session' session.exam.category.get_slugs session.exam.pk session.pk %}">{{ session.exam.name }} ({{ session.pk }})</a></td>
+             <td data-html="true" data-toggle="tooltip" title="{{ total_count }} questions on: <ul>{% for subject in session|get_session_subjects %}<li>{{ subject.name }}</li>{% endfor %}</ul>"><a href="{% url 'exams:show_session' category_slugs session.exam.pk session.pk %}">{{ session.exam.name }} ({{ session.pk }})</a></td>
              <td data-order="{{ session.submission_date|date:'U' }}">{{ session.submission_date }}</td>
              <td>{{ total_count }}</td>
              {% include 'exams/partials/session_score_column.html' %}
@@ -59,9 +59,16 @@ tr td:last-child{
                  <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="ft-settings"></i> Actions</button>
                  <div class="dropdown-menu">
                    {% if session.session_mode == 'SOLVED' or session.session_mode == 'INCOMPLETE' or not session.has_finished %}
-                   <a class="dropdown-item" href="{% url 'exams:show_session' session.exam.category.get_slugs session.exam.pk session.pk %}"><i class="ft-play"></i> Resume</a>
+                   <a class="dropdown-item" href="{% url 'exams:show_session' category_slugs session.exam.pk session.pk %}"><i class="ft-play"></i> Resume</a>
                    {% else %}
-                   <a class="dropdown-item" href="{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}"><i class="ft-list"></i> View results</a>
+                   <a class="dropdown-item" href="{% url 'exams:show_session_results' category_slugs session.exam.pk session.pk %}"><i class="ft-list"></i> View results</a>
+                   {% endif %}
+                   <button data-url="{% url 'exams:create_session_automatically' category_slugs session.exam.pk %}" data-selector="ALL" data-session-pk="{{ session.pk }}" class="dropdown-item automatic-creation"><i class="ft-rotate-ccw"></i> Re-examine on <strong>all</strong> session questions <span class="font-small-2">({{ total_count }})</span></button>
+                   {% if skipped_count %}
+                     <button data-url="{% url 'exams:create_session_automatically' category_slugs session.exam.pk %}" data-selector="SKIPPED" data-session-pk="{{ session.pk }}" class="dropdown-item automatic-creation"><i class="ft-rotate-ccw"></i> Re-examine on <strong>skipped</strong> session questions <span class="font-small-2">({{ skipped_count }})</span></button>
+                   {% endif %}
+                   {% if incorrect_count %}
+                     <button data-url="{% url 'exams:create_session_automatically' category_slugs session.exam.pk %}" data-selector="INCORRECT" data-session-pk="{{ session.pk }}" class="dropdown-item automatic-creation"><i class="ft-rotate-ccw"></i> Re-examine on <strong>incorrect</strong> session questions <span class="font-small-2">({{ incorrect_count }})</span></button>
                    {% endif %}
                    <a data-pk="{{ session.pk }}" class="dropdown-item confirm-delete-session"><i class="ft-trash-2"></i> Forgive</a>
                  </div>
@@ -160,6 +167,37 @@ tr td:last-child{
         		        }
             });
 				});
+
+        $('tbody').on('click', '.automatic-creation',function () {
+            var selector = $(this).data('selector');
+
+            if (selector == 'ALL'){
+               _paq.push(['trackEvent', 'list-previous-sessions', 'create-automatic-session', 'automatic-all-in-session']);
+            } else if (selector == 'SKIPPED'){
+               _paq.push(['trackEvent', 'list-previous-sessions', 'create-automatic-session', 'automatic-skipped-in-session']);
+            }  else if (selector == 'INCORRECT'){
+               _paq.push(['trackEvent', 'list-previous-sessions', 'create-automatic-session', 'automatic-incorrect-in-session']);
+            }
+
+            // Disable all automatic creation buttons upon firing one.
+            $('.automatic-creation').addClass('disabled').attr('disabled', true);
+
+            var url = $(this).data('url');
+            var session_pk = $(this).data('session-pk');
+            toastr.success("A new session is being created.  Give us a second!");
+            $.ajax({url: url,
+                    data: {selector: selector, session_pk: session_pk},
+                    method: 'POST',
+                    success: function(data){
+                        if (data.success == 1) {
+                            window.location.href = data.url;
+                        } else {
+                          toastr.error(data.message);
+                        }
+                    }
+            });
+        });
+
     });
     </script>
 {% endblock %}

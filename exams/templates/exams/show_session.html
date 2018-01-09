@@ -413,8 +413,15 @@
         }
     }
 
-    function showQuestion(targeted_sequence){
-      $question = $("#question-pool [data-question-sequence=" + targeted_sequence + "]")
+    function showQuestion(targeted_sequence, targeted_url){
+      if (targeted_sequence){
+        $question = $("#question-pool [data-question-sequence=" + targeted_sequence + "]")
+        history.pushState({url: $question.data('url')}, '', $question.data('url'));
+        // Update Piwik URL
+        _paq.push(['setCustomUrl', window.location.href]);
+      } else if (targeted_url){
+        $question = $("#question-pool [data-url=\"" + targeted_url + "\"]");
+      }
       // Add 'show' class to the current question
       $question.addClass("show");
       // Remove 'show' class from other questions
@@ -426,8 +433,13 @@
       updateData();
       initializeInteractions();
       handleMarked($question.data('is-marked'));
-      history.pushState({url: $question.data('url')}, '', $question.data('url'));
     }
+
+    window.onpopstate = function(event) {
+      if (event.state){
+        showQuestion(null, event.state.url)
+      }
+    };
 
     function navigate() {
         action = $(this).data('action');
@@ -957,6 +969,9 @@
     }
 
     $(function() {
+        $initial_question = $('.question-body.show');
+        history.replaceState({url: $initial_question.data('url')}, '', $initial_question.data('url'));
+
         // variables used by many functions
         total = $("#question-total").html();
         session_mode = $('body').data('session-mode');

@@ -469,8 +469,9 @@ def create_session_automatically(request, slugs, exam_pk):
         original_session = None
 
     # PERMISSION CHECK
-    if not category.can_user_access(request.user):
-        raise PermissionDenied
+    if not category.can_user_access(request.user) or \
+       original_session and not request.user.has_perm('exams.access_session', original_session):
+        raise Exception("You are not allowed to create such a session.")
 
     # DO NOT FUCK WITH US
     if not exam.is_public and \
