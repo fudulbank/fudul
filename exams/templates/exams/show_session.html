@@ -404,6 +404,8 @@
       if (targeted_sequence){
         $question = $("#question-pool [data-question-sequence=" + targeted_sequence + "]")
         history.pushState({url: $question.data('url')}, '', $question.data('url'));
+        // Update Piwik URL
+        _paq.push(['setCustomUrl', window.location.href]);
       } else if (targeted_url){
         $question = $("#question-pool [data-url=\"" + targeted_url + "\"]");
       }
