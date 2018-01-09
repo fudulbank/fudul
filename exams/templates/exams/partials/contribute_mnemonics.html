@@ -13,9 +13,9 @@
 	    {% csrf_token %}
 
         {% bootstrap_form_errors form %}
-            <div class="bg-secondary"> {% if question.get_available_mnemonics.exists %} Submit an easier one {% else %} You will be the first to add a mnemonic {% endif %}</div>
+
              <div class="form-group has-feedback has-feedback-left">
-            <label class="control-label">Text:</label>
+            <label class="control-label">Text: </label> <a data-placement="left" style="float: right" class="help-tooltip circle" data-toggle="tooltip" title="If any thing can make memorising the answer easier you can add it here your contribution will be shown immediately and you can edit it.">?</a>
 
 			{% bootstrap_field form.text show_label=False %}
 			<div class="form-control-feedback">
@@ -28,7 +28,7 @@
 			<div class="form-control-feedback">
 			</div>
 		    </div>
-            <button type="submit" class="btn btn-secondary btn-block btn-lg">Submit mnenonic <i class="icon-circle-right2 position-right"></i></button>
+            <button type="submit" class="btn btn-primary btn-block btn-lg">Submit mnenonic <i class="icon-circle-right2 position-right"></i></button>
 
         </form>
         </div>

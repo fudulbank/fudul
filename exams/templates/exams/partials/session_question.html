@@ -34,13 +34,19 @@
     </div>
   </div>
   <div class="col-sm-4">
-      <div class="mnemonics-container" style="display: block">
-          {% if question.get_available_mnemonics.exists %}
+      <div class="mnemonics-container" >
           <h3 >Mnemonics:</h3>
+      <div class="mnemonics-content">
+          {% if question.get_available_mnemonics.exists %}
+                     {% include 'exams/partials/show_mnemonics.html' %}
+          {% else %}
+          <em style="color: grey; "><strong> mnemonics(adjective)</strong>:aiding or designed to aid the memory.</em>
           {% endif %}
-                    <div class="mnemonics-content"> {% include 'exams/partials/show_mnemonics.html' %}</div>
+      </div>
 
       </div>
+      <button class="btn btn-outline-primary add-mnemonics" style="float: right" id="add-mnemonics">{% if question.get_available_mnemonics.exists %}<i class="fa fa-book" aria-hidden="true"></i> Add another mnemonic!{% else %}<i class="fa fa-book" aria-hidden="true"></i> Add a mnemonic!{% endif %}</button>
+
   </div>
 </div>
 
