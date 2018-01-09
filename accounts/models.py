@@ -22,7 +22,7 @@ class Profile(UserenaBaseProfile):
     first_name = models.CharField(max_length=30)
     middle_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
-    nickname = models.CharField(max_length=30,null=True, blank=True)
+    nickname = models.CharField(max_length=30, default="", blank=True)
     batch = models.ForeignKey('Batch', null=True, blank=True)
     college = models.ForeignKey('College', null=True, blank=True)
     institution = models.CharField(max_length=100, default="")
