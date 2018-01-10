@@ -77,9 +77,11 @@ def show_indicator_index(request):
     exams = exam_models.Exam.objects.select_related('category')\
                                     .filter(session__isnull=False)\
                                     .distinct()
+    sources = exam_models.Source.objects.all()
     exam_date_json = utils.get_exam_date_json()
 
     context = {'is_indicators_active': True,
+               'sources': sources,
                'teams': teams,
                'exams': exams,
                'exam_date_json': exam_date_json,

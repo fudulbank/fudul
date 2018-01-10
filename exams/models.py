@@ -4,6 +4,7 @@ from django.core.urlresolvers import reverse
 from django.db import models
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+import datetime
 import textwrap
 
 from . import managers
@@ -22,6 +23,13 @@ class Source(models.Model):
                                       on_delete=models.SET_NULL)
     submission_date = models.DateTimeField(auto_now_add=True)
     objects = managers.SourceQuerySet.as_manager()
+
+    def get_recent_submission_count(self):
+        back_30_days = timezone.now().date() - datetime.timedelta(30)
+        return self.question_set.filter(revision__is_first=True,
+                                        revision__submission_date__gte=back_30_days)\
+                                .distinct()\
+                                .count()
 
     def __str__(self):
         return self.name
@@ -112,6 +120,10 @@ class Category(models.Model):
 
         return slugs
 
+    def get_absolute_url(self):
+        return reverse("exams:show_category",
+                       args=(self.get_slugs(),))
+    
     def __str__(self):
         parent_categories = self.get_parent_categories()
         names = [category.name for category in parent_categories] + \
