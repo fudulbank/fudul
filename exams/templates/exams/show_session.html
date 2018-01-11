@@ -10,13 +10,13 @@
         <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha384-xBuQ/xzmlsLoJpyjoggmTEz8OWUFM0/RC5BsqQBDX2v5cMvDHcMakNTNrHIW2I5f" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js" integrity="sha384-a5N7Y/aK3qNeh15eJKGWxsqtnX/wWdSZSKp+81YjTmS15nvnvxKHuzaWwXHDli+4" crossorigin="anonymous"></script>
+        <script defer src="https://use.fontawesome.com/releases/v5.0.3/js/all.js" integrity="sha384-4OPaVeLgwRHdGJplmRGxGcoGYwxBAdR8Qr9z/Av7blRYPlRIPtjTygdtpQlD1HHv" crossorigin="anonymous"></script>
 
         <link rel="shortcut icon" href="{% static 'img/logo-monkey.png' %}">
 
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:300,300i,400,400i,500,500i%7COpen+Sans:300,300i,400,400i,600,600i,700,700i">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw" crossorigin="anonymous">
-        <link rel="stylesheet" type="text/css" href="{% static 'stack/fonts/font-awesome/css/font-awesome.min.css' %}">
         <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
         {% include 'partials/piwik.html' %}
         <style>
@@ -36,15 +36,15 @@
       background-color: #404E67;
     }
 
-    .question-body[data-was-solved="false"] .check i,
-    .question-body[data-was-solved="false"] .correct i{
+    .question-body[data-was-solved="false"] .check [data-fa-processed],
+    .question-body[data-was-solved="false"] .correct [data-fa-processed]{
       visibility: hidden;
     }
 
-    body:not([data-session-mode="UNEXPLAINED"]) .question-body[data-was-solved="true"] .check i,
-    body:not([data-session-mode="UNEXPLAINED"]) .question-body[data-was-solved="true"] .correct i,
-    body[data-session-mode="UNEXPLAINED"][data-has-finished="true"] .question-body[data-was-solved="true"] .check i,
-    body[data-session-mode="UNEXPLAINED"][data-has-finished="true"] .question-body[data-was-solved="true"] .correct i{
+    body:not([data-session-mode="UNEXPLAINED"]) .question-body[data-was-solved="true"] .check [data-fa-processed],
+    body:not([data-session-mode="UNEXPLAINED"]) .question-body[data-was-solved="true"] .correct [data-fa-processed],
+    body[data-session-mode="UNEXPLAINED"][data-has-finished="true"] .question-body[data-was-solved="true"] .check [data-fa-processed],
+    body[data-session-mode="UNEXPLAINED"][data-has-finished="true"] .question-body[data-was-solved="true"] .correct [data-fa-processed]{
       visibility: visible;
     }
 
@@ -317,26 +317,26 @@
                 <h2 class="brand-text">Fudul</h2></a>
             </div>
             <div class="ml-auto col-sm-6 text-center"> <a target="_blank" href="{% url 'exams:create_session' category_slugs session.exam.pk %}">{{ session.exam.name }}</a> <span class="separator">•</span> Session id: <span id="session-pk">{{ session.pk }}</span> <span class="d-none d-sm-inline">({{ session.get_session_mode_display }})</span><br> Question id: <a target="_blank" href="{% url 'exams:list_revisions' category_slugs session.exam.pk current_question.pk %}" id="question-pk">{{ current_question.pk }}</a> </div>
-            <div class="col-sm-3 top-question-id font-weight-bold text-sm-right text-center my-2 mb-sm-0"><i class="fa fa-spinner fa-pulse fa-fw mr-1" id="question-loading" title="Loading session questions..."></i><div id="question-sequence">{{ current_question_sequence }}</div> of <div id="question-total">{{ session.get_questions.count }}</div></div>
+            <div class="col-sm-3 top-question-id font-weight-bold text-sm-right text-center my-2 mb-sm-0"><i class="fas fa-spinner fa-pulse fa-fw mr-1" id="question-loading" title="Loading session questions..."></i><div id="question-sequence">{{ current_question_sequence }}</div> of <div id="question-total">{{ session.get_questions.count }}</div></div>
         </div><!--top-info-->
         <div id="top-options" class="row text-center">
           <div class="col-6 text-sm-left">
                <div class="option" id="contribute">
-                   <a data-placement="left" data-toggle="tooltip" title=" If you have any improvements on the question you can help us with, please submit it here.Your edits will be quickly available to public."> <i class="fa fa-pencil" aria-hidden="true"></i> Edit</a>
+                   <a data-placement="left" data-toggle="tooltip" title=" If you have any improvements on the question you can help us with, please submit it here.Your edits will be quickly available to public."> <i class="fas fa-pencil-alt"></i> Edit</a>
                </div>
           </div>
           <div class="col-6 text-sm-right">
             <div class="row justify-content-end no-gutters">
              <div class="col-auto">
                  <div data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> you can also press <kbd>Alt+M</kbd> to toggle question mark." id="mark" class="option{% if current_question|is_question_marked:user %} marked{% endif %}">
-                    <i id="mark-loading" class="fa fa-spinner fa-pulse fa-fw"></i>
-                    <i class="fa fa-flag" aria-hidden="true"></i> Mark
+                    <i id="mark-loading" class="fas fa-spinner fa-pulse fa-fw"></i>
+                    <i class="fas fa-flag"></i> Mark
                  </div>
              </div>
 
              <div class="col-auto">
                  <div data-toggle="modal" data-target="#NormalValues">
-                    <i class="fa fa-flask" aria-hidden="true"></i>  <span class="d-sm-inline d-none">Lab values</span>
+                    <i class="fas fa-flask"></i>  <span class="d-sm-inline d-none">Lab values</span>
                  </div>
              </div>
 
@@ -357,7 +357,7 @@
                 {% endwith %}
                 {% endfor %}
               </div>
-              <button type="button" id="submit" class="btn">Submit <i class="fa fa-angle-right" aria-hidden="true"></i></button>
+              <button type="button" id="submit" class="btn">Submit <i class="fas fa-angle-right"></i></button>
               <div class="row">
                   <button class="btn btn-outline-primary" id="explain">Improve this explanation!</button>
               </div>
@@ -367,22 +367,22 @@
 
         <div id="footer" class="row text-center font-weight-bold">
           <div class="col-sm-6 text-sm-left order-2 order-sm-1">
-           <a id="back" class="float-left float-sm-none option" href="{% url 'exams:create_session' category_slugs session.exam.pk %}"><i class="fa fa-sign-out" aria-hidden="true"></i> Back</a>
-           <a id="results" class="float-left float-sm-none option" href="{% url 'exams:show_session_results' category_slugs session.exam.pk session.pk %}"><i class="fa fa-check-square-o" aria-hidden="true"></i> Results</a>
-           <div id="end" class="float-left float-sm-none option"><i class="fa fa-sign-out" aria-hidden="true"></i> End</div>
-           <div id="contributors" class="float-right float-sm-none option"><i class="fa fa-star" aria-hidden="true"></i> Contributors</div>
-           <div id="help-me" class="float-right float-sm-none option d-none d-sm-inline-block"><i class="fa fa-comment"></i> Get help</div>
+           <a id="back" class="float-left float-sm-none option" href="{% url 'exams:create_session' category_slugs session.exam.pk %}"><i class="fas fa-sign-out-alt"></i> Back</a>
+           <a id="results" class="float-left float-sm-none option" href="{% url 'exams:show_session_results' category_slugs session.exam.pk session.pk %}"><i class="far fa-check-square"></i> Results</a>
+           <div id="end" class="float-left float-sm-none option"><i class="fas fa-sign-out-alt"></i> End</div>
+           <div id="contributors" class="float-right float-sm-none option"><i class="fas fa-star"></i> Contributors</div>
+           <div id="help-me" class="float-right float-sm-none option d-none d-sm-inline-block"><i class="fas fa-comment"></i> Get help</div>
           </div>
           <div class="col-sm-6 text-sm-right order-1 order-sm-2">
             <div class="row justify-content-end no-gutters">
               <div class="col-sm-auto col-5">
-                 <div data-action="previous" data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> You can also <span class='d-inline d-sm-none'>tap the left screen side</span><span class='d-none d-sm-inline'>press the left keyboard arrow (<kbd>←</kbd>)</span> to go back." id="previous" class="float-left float-sm-none option"><i class="fa fa-chevron-circle-left" aria-hidden="true"></i> Previous</div>
+                 <div data-action="previous" data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> You can also <span class='d-inline d-sm-none'>tap the left screen side</span><span class='d-none d-sm-inline'>press the left keyboard arrow (<kbd>←</kbd>)</span> to go back." id="previous" class="float-left float-sm-none option"><i class="fas fa-chevron-circle-left"></i> Previous</div>
               </div>
               <div class="col-sm-auto col-2">
-                 <div id="open-navigation" data-toggle="tooltip" data-html="true" data-title="Give us a second!  We are loading all questions for you. <img height='17' alt='🐣' src='https://cdnjs.cloudflare.com/ajax/libs/emojione/2.2.7/assets/png/1f423.png'>" class="option"><i class="fa fa-list-alt" style="font-weight: 400;" aria-hidden="true"></i> <span class="d-none d-sm-inline">Navigate</span></div>
+                 <div id="open-navigation" data-toggle="tooltip" data-html="true" data-title="Give us a second!  We are loading all questions for you. <img height='17' alt='🐣' src='https://cdnjs.cloudflare.com/ajax/libs/emojione/2.2.7/assets/png/1f423.png'>" class="option"><i class="fas fa-list" style="font-weight: 400;"></i> <span class="d-none d-sm-inline">Navigate</span></div>
               </div>
               <div class="col-sm-auto col-5">
-                 <div data-action="next" data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> You can also <span class='d-inline d-sm-none'>tap the right screen side</span><span class='d-none d-sm-inline'>press the right keyboard arrow (<kbd>→</kbd>)</span> to go next." id="next" class="float-right float-sm-none option">Next <i class="fa fa-chevron-circle-right" aria-hidden="true"></i></div>
+                 <div data-action="next" data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> You can also <span class='d-inline d-sm-none'>tap the right screen side</span><span class='d-none d-sm-inline'>press the right keyboard arrow (<kbd>→</kbd>)</span> to go next." id="next" class="float-right float-sm-none option">Next <i class="fas fa-chevron-circle-right"></i></div>
               </div>
             </div>
           </div>
@@ -393,9 +393,9 @@
     toastr.options.positionClass = "toast-top-left";
     toastr.options.preventDuplicates = true;
     active_keys = {};
-    was_solved_markup = '<i class="fa fa-check-square-o" aria-hidden="true"></i>';
-    is_marked_markup = '<i class="fa fa-flag" aria-hidden="true"></i>';
-    wrong_answer_markup = '<i class="fa fa-times text-danger"></i>'
+    was_solved_markup = '<i class="far fa-check-square"></i>';
+    is_marked_markup = '<i class="fas fa-flag"></i>';
+    wrong_answer_markup = '<i class="fas fa-times text-danger"></i>'
     isTablet = navigator.userAgent.match(/iPad/i) != null || (navigator.userAgent.match(/Android/i) != null && navigator.userAgent.match(/Mobile/i) == null);
 
     function updateData(){
@@ -608,7 +608,7 @@
         });
       });
 
-      context.find(".correct i").off('click').click(function () {
+      context.find(".correct [data-fa-processed]").off('click').click(function () {
           _paq.push(['trackEvent', 'show_session', 'answer_correction', 'click-correct']);
           $("#correct-answer-modal").modal('show');
           choice_pk = $(this).closest('tr').data('choice-pk');
@@ -635,7 +635,7 @@
         $(".question-body.show .explanation-container, #explain").hide()
       }
       else if ($('.question-body.show .explanation-content').text().trim().length){
-        $("#explain").show().html('<i class="fa fa-cubes" aria-hidden="true"></i> Improve this explanation!');
+        $("#explain").show().html('<i class="fas fa-cubes"></i> Improve this explanation!');
         $(".question-body.show .explanation-container").show();
       }
       else {
@@ -648,11 +648,11 @@
       if (!was_solved || (session_mode == 'UNEXPLAINED' && !$('body').data('has-finished'))){
         $(".mnemonics-container, #add-mnemonics").hide()
       } else if( $.trim( $('.mnemonics-content').text() ).length ) {
-        $("#add-mnemonics").show().html('<i class="fa fa-book" aria-hidden="true"></i> Add a mnemonic !');
+        $("#add-mnemonics").show().html('<i class="fas fa-book"></i> Add a mnemonic !');
         $(".mnemonics-container").show();
       } else {
         $(".mnemonics-container").hide();
-        $("#add-mnemonics").show().html('<i class="fa fa-book" aria-hidden="true"></i> Add another mnemonic!');
+        $("#add-mnemonics").show().html('<i class="fas fa-book"></i> Add another mnemonic!');
       }
     }
 
@@ -911,7 +911,7 @@
          $('.question-body[data-question-sequence="' + i.toString() + '"]')
          $question = $('.question-body[data-question-sequence="' + i.toString() + '"]')
          question_pk = $question.data('question-pk');
-         was_solved = $question.data('was-solved') ? was_solved_markup : '<i class="fa fa-square-o" aria-hidden="true"></i>';
+         was_solved = $question.data('was-solved') ? was_solved_markup : '<i class="far fa-square"></i>';
          is_marked = $question.data('is-marked')  ? is_marked_markup : '';
          row = $("<tr class='navigate-row text-center' data-question-sequence='" + i.toString() + "'><td>" + i.toString() + "</td><td class='d-sm-table-cell d-none'>" + question_pk.toString() + "</td><td class='d-sm-table-cell d-none is_marked'>" + is_marked + "</td><td class='was_solved'>" + was_solved +"</td></tr>");
          row.click(function(){
@@ -1064,7 +1064,7 @@
         </script>
         {% include 'exams/partials/normal_values.html' %}
 
-        {% with modal_id='confirm-end-modal' is_small=True confirm_link=True modal_title="End session" modal_content="<i class='text-danger fa fa-sign-out'></i> Are you sure you want to end this session, and mark unsubmitted questions as unsolved?" %}
+        {% with modal_id='confirm-end-modal' is_small=True confirm_link=True modal_title="End session" modal_content="<i class='text-danger fas fa-sign-out-alt'></i> Are you sure you want to end this session, and mark unsubmitted questions as unsolved?" %}
             {% include "exams/modals/common_modal_v4.html" %}
         {% endwith %}
 
@@ -1095,12 +1095,12 @@
             <p>Fudul is made better by your feedback and ideas!  Contact us right now:</p>
             <div class="row justify-content-center">
               <div class="col-12">
-                <a target="_blank" href="https://t.me/FudulBot"><i class="fa fa-2x fa-telegram"></i><br>Telegram Live Chat</a>
+                <a target="_blank" href="https://t.me/FudulBot"><i class="fab fa-2x fa-telegram"></i><br>Telegram Live Chat</a>
               </div>
             </div>
             <div class="row justify-content-center mt-3 mb-2">
               <div class="col-12">
-                <a href="mailto:support@fudulbank.com"><i class="fa fa-2x fa-envelope" aria-hidden="true"></i><br>Support Email</a>
+                <a href="mailto:support@fudulbank.com"><i class="fas fa-2x fa-envelope"></i><br>Support Email</a>
               </div>
             </div>
           </div>

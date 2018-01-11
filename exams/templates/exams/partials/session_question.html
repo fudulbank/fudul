@@ -18,8 +18,8 @@
       <tbody>
         {% for choice in best_latest_revision.choice_set.order_randomly %}
             <tr data-choice-pk="{{ choice.pk }}">
-               <td class="correct">{% if not session.question_filter == 'INCOMPLETE' and not choice.answer_correction %}<i{% if not choice.is_right %} class="fa fa-hand-paper-o"{% endif %}></i>{% endif %}</td>
-               <td class="check">{% if choice.is_right %}<i class="fa fa-check text-success"></i>{% elif not choice.is_right and choice.answer_correction %}<i class="fa fa-exclamation-triangle text-warning answer-correction-notification"></i>{% include 'exams/partials/show_answer_correction.html' %}{% elif not choice.is_right %}<i class="fa fa-times text-danger"></i>{% endif %}</td>
+               <td class="correct">{% if not session.question_filter == 'INCOMPLETE' and not choice.answer_correction %}<i {% if not choice.is_right %}class="far fa-hand-paper"{% endif %}></i>{% endif %}</td>
+               <td class="check">{% if choice.is_right %}<i class="fas fa-check text-success mx-1"></i>{% elif not choice.is_right and choice.answer_correction %}<i class="fas fa-exclamation-triangle text-warning answer-correction-notification mx-1"></i>{% include 'exams/partials/show_answer_correction.html' %}{% elif not choice.is_right %}<i class="fas fa-times text-danger mx-1"></i>{% endif %}</td>
                <td><input {% if choice|was_chosen:session %}checked {% endif %}{% if was_solved %}disabled {% endif %}class="question-choice" name="question-choice" type="checkbox"></td>
                <td><span class="choice-text {% stricken_choice_class choice highlight session %}">{{ choice.text }}</span></td>
             </tr>
@@ -45,7 +45,7 @@
       </div>
 
       </div>
-      <button class="btn btn-outline-primary add-mnemonics" style="float: right" id="add-mnemonics">{% if question.get_available_mnemonics.exists %}<i class="fa fa-book" aria-hidden="true"></i> Add another mnemonic!{% else %}<i class="fa fa-book" aria-hidden="true"></i> Add a mnemonic!{% endif %}</button>
+      <button class="btn btn-outline-primary add-mnemonics" style="float: right" id="add-mnemonics">{% if question.get_available_mnemonics.exists %}<i class="fas fa-book"></i> Add another mnemonic!{% else %}<i class="fas fa-book"></i> Add a mnemonic!{% endif %}</button>
 
   </div>
 </div>
