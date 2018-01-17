@@ -10,7 +10,7 @@
         <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha384-xBuQ/xzmlsLoJpyjoggmTEz8OWUFM0/RC5BsqQBDX2v5cMvDHcMakNTNrHIW2I5f" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js" integrity="sha384-a5N7Y/aK3qNeh15eJKGWxsqtnX/wWdSZSKp+81YjTmS15nvnvxKHuzaWwXHDli+4" crossorigin="anonymous"></script>
-        <script defer src="https://use.fontawesome.com/releases/v5.0.3/js/all.js" integrity="sha384-4OPaVeLgwRHdGJplmRGxGcoGYwxBAdR8Qr9z/Av7blRYPlRIPtjTygdtpQlD1HHv" crossorigin="anonymous"></script>
+        <script src="https://use.fontawesome.com/releases/v5.0.4/js/all.js" integrity="sha384-nVi8MaibAtVMFZb4R1zHUW/DsTJpG/YwPknbGABVOgk5s6Vhopl6XQD/pTCG/DKB" crossorigin="anonymous"></script>
 
         <link rel="shortcut icon" href="{% static 'img/logo-monkey.png' %}">
 
@@ -395,7 +395,7 @@
     active_keys = {};
     was_solved_markup = '<i class="far fa-check-square"></i>';
     is_marked_markup = '<i class="fas fa-flag"></i>';
-    wrong_answer_markup = '<i class="fas fa-times text-danger"></i>'
+    wrong_answer_markup = '<i class="fas fa-times text-danger mx-1"></i>'
     isTablet = navigator.userAgent.match(/iPad/i) != null || (navigator.userAgent.match(/Android/i) != null && navigator.userAgent.match(/Mobile/i) == null);
 
     function updateData(){
@@ -553,14 +553,19 @@
       $choice_row.find('.check').append(html);
     }
 
-    function handleCorrectionInteractions(context){
-      if (context === undefined){
-        context = $("#question-pool .question-body")
-      }
+    function initializeCorrectionInteractions(){
+      $question = $(".question-body.show");
+      // Here, we are selecting the SVG (i.e. '[data-fa-processed]')
+      // within the '.correct' cell
+      $question.find('.correct [data-fa-processed]').off('click').on('click', function () {
+          _paq.push(['trackEvent', 'show_session', 'answer_correction', 'click-correct']);
+          $("#correct-answer-modal").modal('show');
+          choice_pk = $(this).closest('tr').data('choice-pk');
+          url = "{% url 'exams:correct_answer' %}?" + $.param({choice_pk: choice_pk});
+          $("#correct-answer-modal .modal-body").load(url);
+      });
 
-      context.find('[data-toggle="tooltip"]').tooltip();
-
-      context.find(".delete").off('click').click(function(){
+      $question.find('.delete').off('click').on('click', function(){
         choice_pk = $(this).data('choice-pk');
         url = "{% url 'exams:delete_correction' %}?" + $.param({choice_pk: choice_pk})
         pk_selector = "[data-choice-pk=" + choice_pk + "]";
@@ -587,7 +592,7 @@
         });
       });
 
-      context.find(".support-correction, .oppose-correction").off('click').click(function(){
+      $question.find(".support-correction, .oppose-correction").off('click').click(function(){
         action = $(this).data('action');
         choice_pk = $(this).data('choice-pk');
         url = "{% url 'exams:correct_answer' %}?" + $.param({choice_pk: choice_pk})
@@ -608,25 +613,20 @@
         });
       });
 
-      context.find(".correct [data-fa-processed]").off('click').click(function () {
-          _paq.push(['trackEvent', 'show_session', 'answer_correction', 'click-correct']);
-          $("#correct-answer-modal").modal('show');
-          choice_pk = $(this).closest('tr').data('choice-pk');
-          url = "{% url 'exams:correct_answer' %}?" + $.param({choice_pk: choice_pk});
-          $("#correct-answer-modal .modal-body").load(url);
-      });
+      $question.off('click', '.answer-correction-notification[data-fa-processed]')
+               .on('click', '.answer-correction-notification[data-fa-processed]', function(){
+                 _paq.push(['trackEvent', 'show_session', 'answer_correction', 'click-notification']);
+                 $('.answer-correction-notification').not(this).tooltip('hide');
 
-      context.find('.answer-correction-notification').each(function(){
-        $(this).off('click').click(function(){
-          _paq.push(['trackEvent', 'show_session', 'answer_correction', 'click-notification']);
-          $('.answer-correction-notification').not(this).tooltip('hide');
-        });
-        tooltip = $(this).closest("td").find('.answer-correction-tooltip-body').get(0);
-        $(this).tooltip({html: true,
-                         trigger: 'click',
-                         title: tooltip})
+                 // We clone the tooltip to allow re-initlizations.
+                 // We pass 'true' to copy events
+                 tooltip = $(this).closest("td").find('.answer-correction-tooltip-body').clone(true).get(0);
+                 $(this).tooltip('dispose')
+                        .tooltip({html: true,
+                                  trigger: 'click',
+                                  title: tooltip})
+                        .tooltip('show');
       });
-
     }
 
     function controlExplanation(){
@@ -702,7 +702,9 @@
         }
 
         $question = $(".question-body.show");
+        $question.find('[data-toggle="tooltip"]').tooltip();
 
+        initializeCorrectionInteractions();
         highlightActiveRow();
         controlNavigationButtons();
 
@@ -946,8 +948,6 @@
                   }
                 });
 
-                handleCorrectionInteractions($html);
-
                 $("#question-pool").append($html);
                 last_pk = $html.filter(":last").data('question-pk')
                 if (last_pk && !data.done){
@@ -979,7 +979,6 @@
         initializeKeyboard();
         updateData();
         initializeInteractions();
-        handleCorrectionInteractions();
 
         // Initialize tooltips, except for navigation and mark buttons on mobile.
         if (isTablet){
