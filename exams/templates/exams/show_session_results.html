@@ -86,7 +86,7 @@ th, td{
                 <tbody>
                 {% for answer in session.answer_set.all %}
                   <tr>
-                    {% if not answer.choice %}<td data-order="skipped"><i title="Skipped" style="color: orange" class="fa fa-question-circle"></i>{% elif answer.choice.is_right %}<td data-order="correct"><i title="Correct" style="color: green"  class="fa fa-plus-circle "></i>{% elif not answer.choice.is_right %}<td title="Incorrect" data-order="incorrect"><i style="color: red" class="fa fa-times-circle"></i>{% endif %}</td>
+                    {% if not answer.choice %}<td data-order="skipped"><i data-toggle="tooltip" title="Skipped" class="fa fa-question-circle text-warning"></i>{% elif answer.choice.is_right %}<td data-order="correct"><i data-toggle="tooltip" title="Correct" class="fa fa-check text-success"></i>{% elif not answer.choice.is_right %}<td data-toggle="tooltip" title="Incorrect" data-order="incorrect"><i class="fa fa-times text-danger"></i>{% endif %}</td>
                     <td><a href="{% url 'exams:show_session' session.exam.category.get_slugs session.exam.pk session.pk answer.question.pk %}">{{ answer.question.pk }}</a></td>
                     <td>{{ answer.question.get_latest_approved_revision.text|linebreaks|truncatewords:20 }}</td>
                     <td>
