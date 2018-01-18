@@ -4,7 +4,7 @@
     <div class="answer-correction-header">
       <h5 class="title">Answer correction</h5>
       {% if user|can_delete_correction:correction %}
-      <button data-choice-pk="{{ choice.pk }}" data-toggle="tooltip" data-html="true" title="{% if correction.supporting_users.exists %}<strong>Delete this correction.</strong><br>Please note that other Fudul members have supported this correction.  By deleting this correction, your name will be removed from being the primary submitter and will be replaced by the name of another fellow Fudul member{% else %}Delete this correction{% endif %}." class="delete"><i class="fas fa-trash-alt text-danger" aria-hidden="true"></i></button>
+      <button data-choice-pk="{{ choice.pk }}" data-toggle="tooltip" data-html="true" title="{% if correction.supporting_users.exists %}<strong>Delete this correction.</strong><br>Please note that other Fudul members have supported this correction.  By deleting this correction, your name will be removed from being the primary submitter and will be replaced by the name of another fellow Fudul member{% else %}Delete this correction{% endif %}." class="delete"><i class="fas fa-trash-alt text-danger"></i></button>
       {% endif %}
     </div>
 
