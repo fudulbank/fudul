@@ -557,7 +557,8 @@
       $question = $(".question-body.show");
       // Here, we are selecting the SVG (i.e. '[data-fa-processed]')
       // within the '.correct' cell
-      $question.find('.correct [data-fa-processed]').off('click').on('click', function () {
+      $question.off('click', '.correct [data-fa-processed]')
+               .on('click', '.correct [data-fa-processed]', function () {
           _paq.push(['trackEvent', 'show_session', 'answer_correction', 'click-correct']);
           $("#correct-answer-modal").modal('show');
           choice_pk = $(this).closest('tr').data('choice-pk');
