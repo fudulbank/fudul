@@ -397,6 +397,7 @@
     is_marked_markup = '<i class="fas fa-flag"></i>';
     wrong_answer_markup = '<i class="fas fa-times text-danger mx-1"></i>'
     isTablet = navigator.userAgent.match(/iPad/i) != null || (navigator.userAgent.match(/Android/i) != null && navigator.userAgent.match(/Mobile/i) == null);
+    isMobile = navigator.userAgent.match(/iPhone/i) != null || (navigator.userAgent.match(/Android/i) != null && navigator.userAgent.match(/Mobile/i) != null);
 
     function updateData(){
         current_sequence =  parseInt($("#question-sequence").html());
@@ -981,9 +982,18 @@
         updateData();
         initializeInteractions();
 
-        // Initialize tooltips, except for navigation and mark buttons on mobile.
+        // Depending on user agent, we control tooltip initalization.
+        // Note that this must NOT be overridden anywhere in the
+        // code.  Tooltip intialization always has to be limited to
+        // specific subelements of a context
         if (isTablet){
+          // In tablets, we don't want to show tooltips on the
+          // 'Mark' button as well as navigation buttons.
           $('[data-toggle="tooltip"]').not("#next, #previous, #mark").tooltip();
+        } else if (isMobile) {
+          // In mobile phones, we don't want to show a tooltip on the
+          // 'Mark' button
+          $('[data-toggle="tooltip"]').not("#mark").tooltip();
         } else {
           $('[data-toggle="tooltip"]').tooltip();
         }
