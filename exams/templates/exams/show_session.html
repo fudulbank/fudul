@@ -306,6 +306,33 @@
 
     }
 
+    #keyboard-instructions th{
+      text-align: center;
+    }
+
+    #keyboard-instructions td{
+      text-align: left;
+    }
+
+    #keyboard-instructions th, #keyboard-instructions td{
+      padding-bottom: 0.5rem;
+    }
+
+    @keyframes keyboard-hint {
+       0% {
+        color: black;
+       }
+       50% {
+        color: black;
+       }
+       100% {
+        color: yellow;
+       }
+    }
+    #keyboard-hint.animated{
+       animation:keyboard-hint 3s ease-in infinite alternate
+    }
+
   </style>
     </head>
     <body data-session-mode="{{ session.session_mode }}" data-has-finished="{% if session.has_finished %}true{% else %}false{% endif %}">
@@ -340,6 +367,9 @@
                  </div>
              </div>
 
+             <div id="keyboard-hint" data-toggle="tooltip" data-html="true" data-title="<h5>Keyboard shortcuts</h5><p><strong>Hint: </strong>  In Fudul, you can go through a whole exam without touching the mouse!  Here is how:</p><table id='keyboard-instructions'><tr><th><kbd>→</kbd></th><td>Go to next question.</td></tr><tr><th><kbd>←</kbd></th><td>Go to previous question.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>↑</kbd></th><td>Select previous choice.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>↓</kbd></th><td>Select next choice.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>Enter</kbd></th><td>Submit answer to current question.</td></tr><tr><th><kbd>Alt</kbd>+<kbd>M</kbd></th><td>Toggle mark on current question.</td></tr></table>" class="col-auto animated">
+                 <i data-toggle class="fas fa-keyboard ml-2"></i>
+             </div>
 
             </div>
           </div>
@@ -887,7 +917,16 @@
           }
           target_choice = $('.question-body.show .question-choice:enabled').get(target_index)
           $(target_choice).prop('checked', true).trigger('change');
+        } else {
+          // If no matching keyboard shortcut, do not execuse
+          // upcoming code snippet
+          return
         }
+
+        // Remove keyboard hint animation if user has used the
+        // shortcuts.  Now, the user is aware, so let's reduce screen
+        // noise.
+        $('#keyboard-hint').removeClass('animated')
       });
       $(document).keyup(function (e) {
           // remove keys that are no longer active;
@@ -965,9 +1004,16 @@
       });
     }
 
+
+    // Show mobile sliders in tablets
     if (isTablet){
       $('.mobile-slide').removeClass('d-lg-none');
       $('#question-col').removeClass('col-lg-12 px-lg-5');
+    }
+
+    // Do not show keyboard-hint in tablets or mobile phones.
+    if (isTablet || isMobile){
+      $('#keyboard-hint').addClass('d-none');
     }
 
     $(function() {
