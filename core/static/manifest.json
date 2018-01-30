@@ -1,0 +1,13 @@
+{
+  "name": "Fudul",
+  "short_name": "Fudul",
+  "dir": "ltr",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fff",
+  "description": "A comprehensive, collective, free-of-charge question bank built by and for examiners.",
+  "icons": [{
+    "src": "/static/img/logo-192x192.png",
+    "sizes": "192x192"
+  }]
+}
