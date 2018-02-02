@@ -44,8 +44,13 @@ def show_index(request):
         answer_count = exam_models.Answer.objects\
                                           .filter(choice__isnull=False)\
                                           .count()
+        question = exam_models.Question.objects.undeleted()\
+                                               .filter(answer__isnull=False)\
+                                               .distinct()\
+                                               .first()
         context = {'question_count': question_count,
-                   'answer_count': answer_count}
+                   'answer_count': answer_count,
+                   'question': question}
         return render(request, 'index_unauthenticated.html', context)
 
 class UserAutocomplete(autocomplete.Select2QuerySetView):

@@ -11,6 +11,8 @@ def is_question_marked(question, user):
 
 @register.filter
 def was_solved_in_session(question, session):
+    if not session:
+        return False
     return question.was_solved_in_session(session)
 
 @register.filter
@@ -19,6 +21,8 @@ def was_chosen(choice, session):
 
 @register.filter
 def get_relevant_highlight(revision, session):
+    if not session:
+        return None    
     return revision.get_relevant_highlight(session)
 
 @register.filter

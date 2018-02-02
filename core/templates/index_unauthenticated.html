@@ -1,192 +1,371 @@
-<!DOCTYPE html>{% load static humanize %}
+<!DOCTYPE html>{% load static humanize cache %}
 <html lang="en">
 {% include 'partials/call_out.html' %}
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-    <meta name="author" content="">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet">
+  <link href="{% static 'img/logo-avatar.svg' %}" rel="icon">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw" crossorigin="anonymous">
+  <script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js" integrity="sha384-0AJY8UERsBUKdWcyF3o2kisLKeIo6G4Tbd8Y6fbyw6qYmn4WBuqcvxokp8m2UzSD" crossorigin="anonymous"></script>
+  <title>Fudul</title>
+  <style>
+    html,
+    body {
+      height: 100%;
+    }
 
-    <title>Fudul</title>
+    body {
+      font-family: 'Open Sans', sans-serif;
+      overflow-x: hidden;
+    }
 
-    <!-- Bootstrap Core CSS -->
-    <link href="{% static 'bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+    header {
+      background: #F5F7FA;
+      z-index: -1;
+    }
 
-    <!-- Custom CSS -->
-    <link href="{% static 'stylish-porfolio/css/stylish-portfolio.css' %}" rel="stylesheet">
-    <link href="{% static 'stylish-porfolio/css/custom.css' %}" rel="stylesheet">
+    header p{
+      font-size: 1.5rem;
+    }
 
-    <!-- Custom Fonts -->
-    <link href="{% static 'font-awesome/css/font-awesome.min.css' %}" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,300italic,400italic,700italic" rel="stylesheet" type="text/css">
+    h1 img{
+      width: 80px;
+    }
 
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-    <![endif]-->
+    nav {
+      z-index: 2;
+    }
 
-{% include 'partials/piwik.html' %}
+    canvas {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      height: 100%;
+      width: 100%;
+      max-width: 2200px;
+      left: 0;
+      right: 0;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 4rem;
+      font-weight: 700;
+    }
+    h3 {
+      text-shadow: 2px 2px #b2b9b9;
+    }
+
+    .logo-askew {
+      display: inline-block;
+      animation-name: unskew;
+      animation-duration: .6s;
+      animation-fill-mode: forwards;
+      animation-iteration-count: 1;
+      animation-timing-function: cubic-bezier(.75, -2, .75, 2);
+      transform-origin: 86% 15%;
+    }
+
+    h1:hover .logo-askew {
+      animation-name: skew;
+      animation-duration: 1.2s;
+      animation-fill-mode: forwards;
+      animation-iteration-count: 1;
+      animation-timing-function: ease-in-out;
+      transform-origin: 86% 15%;
+    }
+
+    .feature-icon:hover svg:not(.fa-money-bill-alt) {
+      animation-name: feature-icon;
+      animation-duration: 1s;
+      animation-direction: alternate;
+      animation-iteration-count: infinite;
+    }
+
+    .question-body[data-was-solved="false"] .check svg{
+      visibility: hidden;
+    }
+
+    .question-body[data-was-solved="false"] .explanation-container,
+    #add-mnemonics,
+    .question-body .tooltip-container{
+      display: none;
+    }
+
+    {# We will not show mnemonics in the sample questions to aviod confusion #}
+    .mnemonics-container{
+      display: none;
+    }
+
+    {# We will not show icons to submit answer corrections #}
+    .correct svg{
+      visibility: hidden;
+    }
+
+    .strike{
+        text-decoration: line-through;
+    }
+
+    td.check, td.correct{
+      width: 17px;
+    }
+
+    .highlight {
+        background: yellow;
+    }
+
+    .highlight.active{
+        cursor: pointer;
+    }
+
+    .question-choice {
+        margin-right: 10px !important;
+        word-wrap: break-word;
+    }
+
+    .brand-logo{
+      vertical-align: sub;
+    }
+    .brand-text{
+      display: inline;
+      padding-left: 10px;
+      color: #1B2942;
+      font-family: "Montserrat", Georgia, "Times New Roman", Times, serif;
+      letter-spacing: 1px;
+      font-size: 1.74rem;
+      font-weight: 500;
+    }
+
+    #top-info, .tooltip-inner, #footer{
+      background-color: #404E67;
+    }
+
+    #top-info{
+        font-size: 12pt;
+        color: #FFF;
+    }
+
+    #top-options  {
+        background-color: #929EB4;
+        border-top: 1px solid #fff;
+        line-height: 32px;
+    }
+
+    .option{
+      cursor: not-allowed;
+      display: inline-block;
+      padding: 0 10px;
+      /* For mobile devices */
+      height: auto;
+    }
+
+    #top-info a, a.option, #help-me-tooltip a{
+        color: white;
+    }
+
+    #top-info a:hover, a.option:hover, #help-me-tooltip a:hover{
+        text-decoration: none;
+    }
+
+    @keyframes feature-icon {
+      0% {
+        color: #212529;
+      }
+      to {
+        color: #666;
+      }
+    }
+
+    @keyframes unskew {
+      0% {
+        transform: rotate(-15deg);
+      }
+      to {
+        transform: rotate(0deg);
+      }
+    }
+
+    @keyframes skew {
+      40% {
+        transform: rotate(-18deg);
+      }
+      60% {
+        transform: rotate(-10deg);
+      }
+      to {
+        transform: rotate(-15deg);
+      }
+    }
+  </style>
+  {% include 'partials/piwik.html' %}
 </head>
 
 <body>
-    <!-- Header -->
-    <header id="top" class="header">
-        <div class="text-vertical-center">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-3 col-md-offset-2 col-sm-6 col-sm-offset-3">
-
-            <h1>Fudul</h1>
-            <h3>A comprehensive, collective, free-of-charge <strong>question bank</strong> built by and for examiners</h3>
-                    </div>
-                    <div class="col-md-4 col-md-offset-2 col-sm-8 col-sm-offset-2">
-                        <div style="margin-top: 20px;" class="animated bounceIn main-stat">
-                           <p>Hosting <strong>{{ question_count|intcomma }} questions</strong> that were <strong>answered <span data-number="{{ answer_count }}" id="answer-count">{{ answer_count|intcomma }}</span> times</strong>!</p>
-                        <a href="{% url 'userena_signin' %}" class="btn btn-lg btn-success"><i class="fa fa-sign-in"></i> Login</a><br>
-                        <a style="margin-top: 5px;" href="{% url 'userena_signup' %}" class="btn btn-lg btn-success"><i class="fa fa-user-plus"></i> Register</a>
-                        </div>
-        </div>
-                        </div>
-                    </div>
-            </div>
+  <nav class="navbar justify-content-between navbar-light bg-white"> <a class="navbar-brand" href="#">
+    <img src="{% static 'img/logo-avatar.svg' %}" width="30" height="30" class="d-inline-block align-top" alt="">
+    Fudul
+    </a>
+    <div id="social" class="fa-lg"> <a rel="noopener" target="_blank" href="https://twitter.com/FudulBank"><i class="fab mx-1 fa-twitter"></i></a> <a rel="noopener" target="_blank" href="https://t.me/FudulBank"><i class="fab mx-1 fa-telegram"></i></a> <a rel="noopener" target="_blank" href="https://t.me/FudulBot"><i class="fas mx-1 fa-question-circle"></i></a> </div>
+  </nav>
+  <div class="container-fluid">
+    <header class="row justify-content-around align-items-center"> <canvas id="confetti-canvas"></canvas>
+      <div class="col-10 col-sm-9 col-md-5 text-center text-md-left order-2 order-md-1">
+        <h1 class="mt-md-4">
+          <span class="d-none d-sm-inline"> Meet </span>Fudu<span class="logo-askew">l</span>
+        </h1>
+        <p>The question bank built by and for examiners.  Processed <strong><span data-number="{{ answer_count }}" id="answer-count">{{ answer_count|intcomma }}</span> answers</strong> and counting.</p>
+        <a href="{% url 'userena_signup' %}" class="btn w-50 btn-lg btn-success text-white mb-2"><i class="mr-1 fas fa-user-plus"></i> Join</a><br>
+        <a href="{% url 'userena_signin' %}" class="btn w-50 btn-lg btn-secondary text-white mb-4"><i class="mr-1 fas fa-sign-in-alt"></i> Login</a> </div>
+      <div class="col-8 col-md-4 order-1 order-md-2 text-center text-md-right">
+        <img class="img-fluid" src="{% static 'img/logo-avatar.svg' %}">
+      </div>
     </header>
+<div style="background: white; position: absolute;">
+  <div class="row mt-4 justify-content-center">
+    <div class="col-8 p-4 rounded">
+      <h2 class="text-center">Try!</h2>
+      <hr class="small">
+{% cache 10800 sample_question %}{# cache for 3 hours #}
+      <div id="top-info" class="row py-1 align-items-center">
+          <div class ="col-sm-3 text-sm-left text-center">
+            <a href="/" class="navbar-brand">
+              <img alt="Fudul logo" src="{% static 'img/logo-monkey.png' %}" class="img-fluid brand-logo">
+              <h2 class="brand-text">Fudul</h2></a>
+          </div>
+          <div class="col-sm-6 text-center"> <a target="_blank" href="{% url 'exams:create_session' question.exam.category.get_slugs question.exam.pk %}">{{ question.exam.name }}</a><br> Question id: <a target="_blank" href="{% url 'exams:list_revisions' question.exam.category.get_slugs question.exam.pk question.pk %}" id="question-pk">{{ question.pk }}</a></div>
+      </div><!--top-info-->
 
-    <!-- About -->
-    <section id="about" class="about">
-        <div class="container">
-            <div class="row">
-                <div class="col-xs-12 col-md-6 col-md-offset-3 col-sm-10 col-sm-offset-1">
-                    <h2 class="text-center">Our Mission</h2>
-                    <hr class="small">
-<p>We believe in the crucial importance of review questions in gaining knowledge, assessing progress and passing exams.  Review questions are an indispensable component of the body of knowledge that must be built collectively and be made available to all people for free.  We believe in your right to access knowledge.</p>
-                        <blockquote>
-                           <p>“Information is power. But like all power, there are those who want to keep it for themselves. <em>[...]</em> We need to take information, wherever it is stored, make our copies and share them with the world.”</p>
-                           <footer>Aaron Swartz in the <cite title="Guerilla Open Access Manifesto"><a target="_blank" href="https://archive.org/stream/GuerillaOpenAccessManifesto/Goamjuly2008_djvu.txt">Guerilla Open Access Manifesto</a></cite></footer>
-                        </blockquote>
-                </div>
-            </div>
-            <!-- /.row -->
+      <div id="top-options" class="row mb-4 text-center justify-content-end">
+        <div class="col-6 text-sm-right">
+          <div class="row justify-content-end no-gutters">
+           <div class="col-auto">
+               <div id="mark" class="option">
+                  <i class="fas fa-flag"></i> Mark
+               </div>
+           </div>
+
+           <div class="col-auto">
+               <div class="option" data-toggle="modal" data-target="#NormalValues">
+                  <i class="fas fa-flask"></i>  <span class="d-sm-inline d-none">Lab values</span>
+               </div>
+           </div>
+
+          </div>
         </div>
-        <!-- /.container -->
-    </section>
-
-    <!-- Services -->
-    <!-- The circle icons use Font Awesome's stacked icon classes. For more information, visit http://fontawesome.io/examples/ -->
-    <section id="services" class="services bg-primary">
-        <div class="container">
-            <div class="row text-center">
-                <div class="col-lg-10 col-lg-offset-1">
-                    <h2>What Fudul Offers</h2>
-                    <hr class="small">
-                    <div class="row">
-                        <div class="col-md-3 col-sm-6">
+      </div><!--top-options-->
+      {% with session=None %}
+          {% include 'exams/partials/session_question.html' %}
+      {% endwith %}
+      <button disabled type="button" id="submit" class="btn btn-primary mt-3">Submit <i class="fas fa-angle-right"></i></button>
+{% endcache %}
+    </div>
+  </div>
 
 
+  <div class="row mt-4 justify-content-center">
+    <div class="col-8">
+      <h2 class="text-center">Why Fudul?</h2>
+      <hr class="small">
+    </div>
+  </div>
 
-                            <div class="service-item">
-                                <span class="fa-stack fa-4x">
-                                <i class="fa fa-money fa-stack-1x"></i>
-                                <i class="fa fa-ban fa-stack-2x text-danger"></i>
-                                </span>
-<!--                                <span class="fa-stack fa-4x">
-                                <i class="fa fa-circle fa-stack-2x"></i>
-                                <i class="fa fa-cloud fa-stack-1x text-primary"></i>
-                            </span>-->
-                                <h4>
-                                    <strong>Free access</strong>
-                                </h4>
-                                <p>Access to questions is available at no cost!</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-sm-6">
-                            <div class="service-item">
-                                <span class="fa-stack fa-4x">
-                                <i class="fa fa-circle fa-stack-2x"></i>
-                                <i class="fa fa-heart fa-stack-1x text-primary"></i>
-                            </span>
-                                <h4>
-                                    <strong>High quality</strong>
-                                </h4>
-                                <p>Questions are collected, edited and improved to the best quality!</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-sm-6">
-                            <div class="service-item">
-                                <span class="fa-stack fa-4x">
-                                <i class="fa fa-circle fa-stack-2x"></i>
-                                <i class="fa fa-beer fa-stack-1x text-primary"></i>
-                            </span>
-                                <h4>
-                                    <strong>Easy-to-use</strong>
-                                </h4>
-                                <p>Access to questions is well-tested to be easy and smooth</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-sm-6">
-                            <div class="service-item">
-                                <span class="fa-stack fa-4x">
-                                <i class="fa fa-circle fa-stack-2x"></i>
-                                <i class="fa fa-trophy fa-stack-1x text-primary"></i>
-                            </span>
-                                <h4>
-                                    <strong>Towards excellence</strong>
-                                </h4>
-                                <p>Proven to lead to excellant results in exams!</p>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- /.row (nested) -->
-                </div>
-                <!-- /.col-lg-10 -->
+
+    <div class="row mt-4 justify-content-center">
+      <div class="col-md-5">
+        <div class="card wow mb-3 fadeIn">
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col-auto p-4 text-center feature-icon"> <span class="fa-layers fa-fw fa-5x">
+                            <i class="fas fa-money-bill-alt" data-fa-transform="shrink-8" style="color: #5f935f;"></i>
+                            <i class="fas fa-ban"></i>
+                        </span> </div>
+              <div class="col border-left p-4">
+                <div class="card-title">
+                  <h3>Free</h3></div>
+                <p>Access is available at zero-cost, because we believe in universal access to all knowledge.  This is the moral way.</p>
+              </div>
             </div>
-            <!-- /.row -->
+          </div>
         </div>
-        <!-- /.container -->
-    </section>
-
-
-    <!-- Footer -->
-    <footer>
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-10 col-lg-offset-1 text-center">
-                    <h4><strong>Fudul Bank</strong>
-                    </h4>
-                    <p>Riyadh
-                        <br>Saudi Arabia</p>
-                    <ul class="list-unstyled">
-                        <li><i class="fa fa-envelope-o fa-fw"></i> <a href="mailto:support@fudulbank.com">support@fudulbank.com</a>
-                        </li>
-                    </ul>
-                    <br>
-                    <ul class="list-inline">
-                        <li>
-                            <a target="_blank" href="https://twitter.com/fudulbank"><i class="fa fa-twitter fa-fw fa-3x"></i></a>
-                        </li>
-                        <li>
-                            <a target="_blank" href="https://t.me/fudulbank"><i class="fa fa-telegram fa-fw fa-3x"></i></a>
-                        </li>
-                    </ul>
-                    <hr class="small">
-                    <p class="text-muted"> بُني بأيدٍ طلابية. <a target="_blank">حقّك في النسخ مكفول</a></p>
-                </div>
+      </div>
+      <div class="col-md-5">
+        <div class="card wow mb-3 fadeIn">
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col-auto p-4 text-center feature-icon"> <span class="fa-layers fa-fw fa-5x">
+                            <i style="opacity: 0.3;"  class="far fa-file" data-fa-transform="rotate--20"></i>
+                            <i class="far fa-file-alt"></i>
+                            <i style="opacity: 0.3;"  class="far fa-file" data-fa-transform="rotate-20"></i>
+                        </span> </div>
+              <div class="col border-left p-4">
+                <div class="card-title">
+                  <h3>Comprehensive</h3></div>
+                <p>We host <strong>{{ question_count|intcomma }} questions</strong> added by hundreds of volunteers from different instituions.  Nothing beats cooperation.</p>
+              </div>
             </div>
+          </div>
         </div>
-        <a id="to-top" href="#top" class="btn btn-dark btn-lg"><i class="fa fa-chevron-up fa-fw fa-1x"></i></a>
-    </footer>
+      </div>
+      <div class="col-md-5">
+        <div class="card wow mb-3 fadeIn">
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col-auto p-4 text-center feature-icon"> <i class="far fa-fw fa-handshake fa-5x"></i> </div>
+              <div class="col border-left p-4">
+                <div class="card-title">
+                  <h3>Collective</h3></div>
+                <p>Questions are edited, explained and corrected by a community of knowledgeable examiners.  Fudul harvests the best in people.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-5">
+        <div class="card wow mb-3 fadeIn">
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col-auto p-4 text-center feature-icon"> <i class="far fa-fw fa-lightbulb fa-5x"></i> </div>
+              <div class="col border-left p-4">
+                <div class="card-title">
+                  <h3>Smart & Flexible</h3></div>
+                <p>Fudul works perfectly on your mobile as well as your desktop, and it provides complete, actionable performance analysis.  Never look back.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <!-- jQuery -->
-    <script src="{% static 'js/jquery-3.2.1.min.js' %}"></script>
+    <div class="row mt-4 justify-content-center">
+      <div class="col-8">
+        <h2 class="text-center">Our Mission</h2>
+        <hr class="small">
+        <p>We believe in the crucial importance of review questions in gaining knowledge, assessing progress and passing exams. Review questions are an indispensable component of the body of knowledge that must be built collectively and be made available to all people for free. We believe in your right to access knowledge.</p>
+        <blockquote class="p-2 border-left border-left-primary box-shadow-1">
+          <p class="mb-0">“Information is power. But like all power, there are those who want to keep it for themselves. <em>[...]</em> We need to take information, wherever it is stored, make our copies and share them with the world.”</p>
+          <footer class="text-right blockquote-footer">Aaron Swartz in the <cite title="Guerilla Open Access Manifesto"><a target="_blank" href="https://archive.org/stream/GuerillaOpenAccessManifesto/Goamjuly2008_djvu.txt">Guerilla Open Access Manifesto</a></cite></footer>
+        </blockquote>
+      </div>
+    </div>
 
-    <!-- Bootstrap Core JavaScript -->
-    <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js" integrity="sha384-3hgmRzlUcHmQydKeUIr2tGXvJZs5gK6VZ+LVpzUkHtkRo2A8fuCMdfN3vw2h9DPJ" crossorigin="anonymous"></script>
+    <div class="row mt-4 justify-content-center">
+      <div class="col-8 text-center">
+        <a data-toggle="tooltip" data-title='This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.' data-html="true" rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" class="mb-5" src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png" /></a>
+      </div>
+    </div>
 
-    <!-- Custom Theme JavaScript -->
-    <script>
+</div>
+  </div><!--container-->
+  <script src="{% static 'js/index-page-effects.js' %}"></script>
+  <script src="{% static 'js/jquery-3.2.1.min.js' %}"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js" integrity="sha384-3hgmRzlUcHmQydKeUIr2tGXvJZs5gK6VZ+LVpzUkHtkRo2A8fuCMdfN3vw2h9DPJ" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/wow/1.1.2/wow.min.js" integrity="sha384-V27yAyb3yYhZbiwaK9Sgxh9Cywkf/H2al4wcrcp/hKF9ZYT7d5saGJFoO/0v1Cgs" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+  <script>
+    new WOW().init();
 
     answer_countup = null;
     timer = null;
@@ -217,7 +396,78 @@
       });
     }
 
+    function toggleChoices() {
+        if ($('.question-choice:checked').length){
+          $("#submit").prop('disabled', false)
+        } else {
+          $("#submit").prop('disabled', true);
+        }
+
+        var $choice = $(this);
+        if ($choice.is(":checked")) {
+            // other sister choices to be removed
+            $otherChoices = $choice.closest('.question-body').find('.question-choice').not($choice);
+            // If a choice is checked, it is no longer striked.
+            if ($choice.closest('tr').find('.choice-text.strike').length){
+              $choice.closest('tr').find('.choice-text.strike').removeClass('strike');
+            }
+            $otherChoices.prop("checked", false);
+        } else {
+            $choice.prop("checked", false);
+        }
+    }
+
+    function removeHighlight(){
+      $(this).contents().unwrap();
+    }
+
+    function highlightText() {
+        var selection = window.getSelection().toString();
+        if (selection.length >= 3) {
+            var escapedSelection = $("<div>").text(selection).html();
+            var replacement = $('<span></span>').addClass('active highlight').html(selection);
+            var replacementHtml = replacement.prop('outerHTML');
+            $(this).html($(this).html().replace(escapedSelection, replacementHtml));
+            // Bind only once
+            $(".question-body .highlight").off('click').on('click', removeHighlight);
+        }
+
+    }
+
+    function controlExplanation(){
+      was_solved = $(".question-body").data('was-solved');
+      if ($('.question-body .explanation-content').text().trim().length){
+        $(".question-body .explanation-container").show();
+      }
+      else {
+        $(".question-body .explanation-container").hide();
+      }
+    }
+
     $(function() {
+
+      $('[data-toggle="tooltip"]').tooltip();
+
+      $question = $('.question-body');
+      $question.find(".question-text").off('mouseup touchend').on('mouseup touchend', highlightText);
+      $question.find(".question-choice").off('change').on('change', toggleChoices);
+      $question.find(".choice-text").off('click').on('click', function() {
+          if (!$(this).hasClass("strike")){
+             // If a choice is striked, it is no longer checked.
+              $(this).closest("tr").find(".question-choice").prop('checked', false).trigger('change');
+          }
+          $(this).toggleClass("strike");
+      });
+
+      $("#submit").click(function(){
+        _paq.push(['trackEvent', 'index', 'sample-question', 'answered-sample-question']);
+        $question.find(".question-text, .question-choice, .choice-text, .highlight").off();
+        controlExplanation();
+        $question.data('was-solved', true).attr('data-was-solved', true);
+        $question.find(".question-choice").prop("disabled", "disabled");
+        $(this).css('visibility', 'hidden');
+      });
+
       $(window).on('ready focus', function(){
         if (!timer){
           timer = setInterval(updateCouner, 1000);
@@ -230,49 +480,8 @@
           timer = null;
         }
       });
-
-
-      // Scrolls to the selected menu item on the page
-        $('a[href*="#"]:not([href="#"],[data-toggle],[data-target],[data-slide])').click(function() {
-            if (location.pathname.replace(/^\//, '') == this.pathname.replace(/^\//, '') || location.hostname == this.hostname) {
-                var target = $(this.hash);
-                target = target.length ? target : $('[name=' + this.hash.slice(1) + ']');
-                if (target.length) {
-                    $('html,body').animate({
-                        scrollTop: target.offset().top
-                    }, 1000);
-                    return false;
-                }
-            }
-        });
-    });
-    //#to-top button appears after scrolling
-    var fixed = false;
-    $(document).scroll(function() {
-        if ($(this).scrollTop() > 250) {
-            if (!fixed) {
-                fixed = true;
-                // $('#to-top').css({position:'fixed', display:'block'});
-                $('#to-top').show("slow", function() {
-                    $('#to-top').css({
-                        position: 'fixed',
-                        display: 'block'
-                    });
-                });
-            }
-        } else {
-            if (fixed) {
-                fixed = false;
-                $('#to-top').hide("slow", function() {
-                    $('#to-top').css({
-                        display: 'none'
-                    });
-                });
-            }
-        }
     });
     </script>
 
 </body>
-
 </html>
