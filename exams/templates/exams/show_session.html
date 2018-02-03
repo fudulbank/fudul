@@ -585,8 +585,53 @@
       $choice_row.find('.check').append(html);
     }
 
-    function initializeCorrectionInteractions(){
-      $question = $(".question-body.show");
+    function initializeMnemonicInteractions($question){
+      question_pk = $question.data('question-pk');
+      $question.find(".like-mnemonic").off('click').on('click', function() {
+           action = $(this).data('action');
+           mnemonic_pk = $(this).data('mnemonic-pk');
+           url = "{% url 'exams:contribute_mnemonics' %}?" + $.param({question_pk: question_pk});
+
+           $.ajax({
+               url: url,
+               type: 'POST',
+               data: {'action': action,'mnemonic_pk':mnemonic_pk},
+               success: function(data){
+                 console.log(mnemonic_pk);
+                 if (data.success == 1){
+                   toastr.success("Your vote was submitted.");
+                   $(".question-body.show .mnemonics-content").html(data.mnemonic_html);
+
+                 } else {
+                   toastr.error(data.message)
+                 }
+               }
+           });
+      });
+      $question.find(".delete-mnemonic").off('click').on( 'click', function() {
+           action = $(this).data('action');
+           mnemonic_pk = $(this).data('mnemonic-pk');
+           url = "{% url 'exams:contribute_mnemonics' %}?" + $.param({question_pk: question_pk});
+
+           $.ajax({
+               url: url,
+               type: 'POST',
+               data: {'action': action,'mnemonic_pk':mnemonic_pk},
+               success: function(data){
+                 if (data.success == 1){
+                   toastr.success("Your mnemonic is deleted.");
+                   $(".question-body.show .mnemonics-content").html(data.mnemonic_html);
+
+
+                 } else {
+                   toastr.error(data.message)
+                 }
+               }
+           });
+      });
+    }
+
+    function initializeCorrectionInteractions($question){
       // Here, we are selecting the SVG (i.e. '[data-fa-processed]')
       // within the '.correct' cell
       $question.off('click', '.correct [data-fa-processed]')
@@ -737,7 +782,8 @@
         $question = $(".question-body.show");
         $question.find('[data-toggle="tooltip"]').tooltip();
 
-        initializeCorrectionInteractions();
+        initializeCorrectionInteractions($question);
+        initializeMnemonicInteractions($question);
         highlightActiveRow();
         controlNavigationButtons();
 
