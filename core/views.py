@@ -45,8 +45,11 @@ def show_index(request):
                                           .filter(choice__isnull=False)\
                                           .count()
         question = exam_models.Question.objects.undeleted()\
-                                               .filter(answer__isnull=False)\
+                                               .filter(answer__isnull=False,
+                                                       parent_question__isnull=True,
+                                                       child_question__isnull=True)\
                                                .distinct()\
+                                               .order_by('?')\
                                                .first()
         context = {'question_count': question_count,
                    'answer_count': answer_count,
