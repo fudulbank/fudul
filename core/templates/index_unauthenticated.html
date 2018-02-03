@@ -228,7 +228,7 @@
     <div class="col-8 p-4 rounded">
       <h2 class="text-center">Try!</h2>
       <hr class="small">
-{% cache 10800 sample_question %}{# cache for 3 hours #}
+{#{% cache 10800 sample_question %}#}
       <div id="top-info" class="row py-1 align-items-center">
           <div class ="col-sm-3 text-sm-left text-center">
             <a href="/" class="navbar-brand">
@@ -260,7 +260,7 @@
           {% include 'exams/partials/session_question.html' %}
       {% endwith %}
       <button disabled type="button" id="submit" class="btn btn-primary mt-3">Submit <i class="fas fa-angle-right"></i></button>
-{% endcache %}
+{#{% endcache %}#}
     </div>
   </div>
 
