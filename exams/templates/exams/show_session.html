@@ -818,7 +818,7 @@
             $(".question-body.show .choice-text").off('click').on('click', function() {
                 if (!$(this).hasClass("strike")){
                    // If a choice is striked, it is no longer checked.
-                    $(this).closest("tr").find(".question-choice").prop('checked', false);
+                    $(this).closest("tr").find(".question-choice").prop('checked', false).trigger('change');
                 }
                 $(this).toggleClass("strike");
                 submitHighlight();
