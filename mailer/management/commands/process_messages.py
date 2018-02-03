@@ -31,27 +31,25 @@ class Command(BaseCommand):
             from_address = "Fudul <{}>".format(message.from_address)
 
             # Generate list of receipts
-            user_pool = User.objects.filter(is_active=True).exclude(email="")
-            receipts = User.objects.none()
+            user_pool = User.objects.filter(is_active=True).exclude(email="").distinct()
             if message.target == 'ALL':
                 receipts = user_pool
             elif message.target == 'COLLEGES':
-                for college in message.colleges.all():
-                    receipts |= user_pool.filter(profile__college=college)
+                receipts = user_pool.filter(profile__college__in=message.colleges.all())
             elif message.target == 'INSTITUTIONS':
-                for institution in message.institutions.all():
-                    receipts |= user_pool.filter(profile__college__institution=institution)
+                receipts = user_pool.filter(profile__college__institution__in=message.institutions.all())
+            elif message.target == 'BATCHES':
+                receipts = user_pool.filter(profile__batch__in=message.batches.all())
 
             # Aaand send!
             email_addresses = receipts.values_list('email', 'profile__alternative_email')
             messages = []
             for email, alternative_email in email_addresses:
-                message = {'sender': from_address,
-                           'recipients': email,
-                           'cc': alternative_email or None,
-                           'render_on_delivery': True,
-                           'template': template_name}
-                messages.append(message)
+                msg = {'sender': from_address, 'recipients': email,
+                       'cc': alternative_email or None,
+                       'render_on_delivery': True, 'template':
+                       template_name}
+                messages.append(msg)
             mail.send_many(messages)
 
             message.status = 'SENT'

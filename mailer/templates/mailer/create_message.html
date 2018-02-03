@@ -41,20 +41,25 @@ function controlTargetFields(){
 
   target = $('#id_target').val();
   if (target == 'ALL'){
-    selector_to_hide = "#id_institutions, #id_colleges";
+    selector_to_hide = "#id_institutions, #id_colleges, #id_batches";
   } else if (target == 'COLLEGES'){
     selector_to_show = "#id_colleges";
-    selector_to_hide = "#id_institutions";
+    selector_to_hide = "#id_institutions, #id_batches";
   } else if (target == 'INSTITUTIONS'){
     selector_to_show = "#id_institutions";
-    selector_to_hide = "#id_colleges";
+    selector_to_hide = "#id_colleges, #id_batches";
+  } else if (target == 'BATCHES'){
+    selector_to_show = "#id_batches";
+    selector_to_hide = "#id_institutions, #id_colleges";
   } else if (target == ''){
     if ($('#id_college').val()){
       selector_to_show = "#id_colleges";
     } else if ($('#id_institutions').val()){
       selector_to_show = "#id_institutions";
+    } else if ($('#id_batches').val()){
+      selector_to_show = "#id_batches";
     } else {
-      selector_to_hide = "#id_institutions, #id_colleges";
+      selector_to_hide = "#id_institutions, #id_colleges, #id_batches";
     }
   }
 

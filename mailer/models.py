@@ -5,6 +5,7 @@ from ckeditor_uploader.fields import RichTextUploadingField
 
 target_choices = [('INSTITUTIONS', 'Per institutions'),
                   ('COLLEGES', 'Per colleges'),
+                  ('BATCHES', 'Per batch'),
                   ('ALL', 'All confirmed users')]
 
 from_addresses = [('noreply@fudulbank.com', 'noreply@fudulbank.com'),
@@ -22,6 +23,7 @@ class Message(models.Model):
     target = models.CharField(max_length=20, choices=target_choices, default="ALL")
     institutions = models.ManyToManyField('accounts.Institution', blank=True)
     colleges = models.ManyToManyField('accounts.College', blank=True)
+    batches = models.ManyToManyField('accounts.Batch', blank=True)
 
     status = models.CharField(max_length=20, default="PENDING", choices=status_choices)
     submitter = models.ForeignKey(User)
