@@ -569,7 +569,7 @@
     $(function() {
       $('[data-toggle="tooltip"]').tooltip();
 
-      $("h1").hover(function(){
+      $("h1").on('mouseenter', function(){
         _paq.push(['trackEvent', 'index', 'header-animation']);
       });
 
