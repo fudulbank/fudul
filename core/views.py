@@ -40,17 +40,21 @@ def show_index(request):
         return render(request, 'index.html', context)
 
     else:
-        return cache_page(60 * 60 * 3)(show_index_unauthenticated)(request)
+        return cache_page(60 * 60 * 12)(show_index_unauthenticated)(request)
 
 def show_index_unauthenticated(request):
     question_count = exam_models.Question.objects.undeleted().count()
     answer_count = exam_models.Answer.objects\
                                       .filter(choice__isnull=False)\
                                       .count()
+
+    # To give a less confusing expereince, exclude any question with
+    # correction. 
     question = exam_models.Question.objects.undeleted()\
                                            .filter(answer__isnull=False,
                                                    parent_question__isnull=True,
                                                    child_question__isnull=True)\
+                                           .exclude(revision__choice__answer_correction__isnull=False)\
                                            .distinct()\
                                            .order_by('?')\
                                            .first()
@@ -58,7 +62,7 @@ def show_index_unauthenticated(request):
                'answer_count': answer_count,
                'question': question}
     return render(request, 'index_unauthenticated.html', context)
-    
+
 class UserAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         if not self.request.user.is_authenticated():
