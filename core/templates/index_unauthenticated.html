@@ -68,9 +68,8 @@
       text-shadow: 2px 2px #b2b9b9;
     }
 
-    .logo-askew {
+    .logo-askew-l, .logo-askew-f, .logo-askew-d, .logo-askew-l .fa-heart{
       display: inline-block;
-      animation-name: unskew;
       animation-duration: .6s;
       animation-fill-mode: forwards;
       animation-iteration-count: 1;
@@ -78,13 +77,46 @@
       transform-origin: 86% 15%;
     }
 
-    h1:hover .logo-askew {
-      animation-name: skew;
+    h1:hover .logo-askew-l, h1:hover .logo-askew-f, h1:hover .logo-askew-d, h1:hover .logo-askew-l .fa-heart {
       animation-duration: 1.2s;
       animation-fill-mode: forwards;
       animation-iteration-count: 1;
       animation-timing-function: ease-in-out;
       transform-origin: 86% 15%;
+    }
+
+    h1:hover .logo-askew-l{
+      animation-name: skew-l;
+    }
+
+    h1:hover .logo-askew-l .fa-heart{
+      animation-name: show-heart;
+    }
+
+    h1:hover .logo-askew-f {
+      animation-name: skew-f;
+    }
+
+    h1:hover .logo-askew-d {
+      animation-name: skew-d;
+    }
+
+    .logo-askew-l{
+      animation-name: unskew-l;
+    }
+
+    .logo-askew-l .fa-heart{
+      color: red;
+      opacity: 0;
+      animation-name: hide-heart;
+    }
+
+    .logo-askew-f {
+      animation-name: unskew-f;
+    }
+
+    .logo-askew-d{
+      animation-name: unskew-d;
     }
 
     .feature-icon:hover svg:not(.fa-money-bill-alt) {
@@ -189,24 +221,88 @@
       }
     }
 
-    @keyframes unskew {
+    @keyframes hide-heart {
       0% {
-        transform: rotate(-15deg);
+        opacity: 0.4;
+      }
+      to {
+        opacity: 0;
+      }
+    }
+
+    @keyframes show-heart {
+      40% {
+        opacity: 0.7;
+      }
+      60% {
+        opacity: 0.4;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes unskew-l {
+      0% {
+        transform: rotate(15deg) translateX(10px) translateY(15px);
       }
       to {
         transform: rotate(0deg);
       }
     }
 
-    @keyframes skew {
+    @keyframes skew-l {
       40% {
-        transform: rotate(-18deg);
+        transform: rotate(18deg) translateX(15px) translateY(18px);
       }
       60% {
-        transform: rotate(-10deg);
+        transform: rotate(5deg) translateX(5px) translateY(5px);
       }
       to {
-        transform: rotate(-15deg);
+        transform: rotate(15deg) translateX(10px) translateY(15px);
+      }
+    }
+
+
+    @keyframes unskew-f {
+      0% {
+        transform: rotate(-15deg) translateX(-10px) translateY(-15px);
+      }
+      to {
+        transform: rotate(0deg);
+      }
+    }
+
+    @keyframes skew-f {
+      40% {
+        transform: rotate(-18deg) translateX(-15px) translateY(-18px);
+      }
+      60% {
+        transform: rotate(-10deg) translateX(-5px) translateY(-10px);
+      }
+      to {
+        transform: rotate(-15deg) translateX(-10px) translateY(-15px);
+      }
+    }
+
+    @keyframes unskew-d {
+      0% {
+        transform: translateY(-15px);
+      }
+      to {
+        transform: translateY(0px);
+      }
+    }
+
+    @keyframes skew-d {
+      40% {
+        transform: translateY(-18px);
+      }
+      60% {
+        transform: translateY(-10px);
+      }
+      to {
+        transform: translateY(-15px);
       }
     }
   </style>
@@ -224,7 +320,7 @@
     <header class="row justify-content-around align-items-center"> <canvas id="confetti-canvas"></canvas>
       <div class="col-10 col-sm-9 col-md-5 text-center text-md-left order-2 order-md-1">
         <h1 class="mt-md-4">
-          <span class="d-none d-sm-inline"> Meet </span>Fudu<span class="logo-askew">l</span>
+          <span class="d-none d-sm-inline"> Meet </span><span class="logo-askew-f">Fu</span><span class="logo-askew-d">d</span><span class="logo-askew-l">ul<i class="far fa-heart" data-fa-transform="shrink-8 up-6 left-6"></i></span>
         </h1>
         <p>The question bank built by and for examiners.  Processed <strong><span data-number="{{ answer_count }}" id="answer-count">{{ answer_count|intcomma }}</span> answers</strong> and counting.</p>
         <a href="{% url 'userena_signup' %}" class="btn w-50 btn-lg btn-success text-white mb-2"><i class="mr-1 fas fa-user-plus"></i> Join</a><br>
