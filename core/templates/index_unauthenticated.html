@@ -553,6 +553,10 @@
 
       $('[data-toggle="tooltip"]').tooltip();
 
+      $("h1").hover(function(){
+        _paq.push(['trackEvent', 'index', 'header-animation']);
+      }
+
       $question = $('.question-body');
       $question.find(".question-text").off('mouseup touchend').on('mouseup touchend', highlightText);
       $question.find(".question-choice").off('change').on('change', toggleChoices);
