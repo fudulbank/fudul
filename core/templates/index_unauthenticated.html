@@ -485,9 +485,11 @@
                 var new_count = data.answer_count;
       					var answer_countup = setInterval(function() {
       						if (current_count == new_count) {
+                    setTimer();
       							clearInterval(answer_countup);
                     answer_countup = null;
       						} else {
+                    clearTimer();
                     current_count++;
                     var formatted_number = numeral(current_count).format('0,0');
                     $('#answer-count').data('number', current_count).html(formatted_number);
@@ -495,6 +497,19 @@
       					}, 50);
               }
       });
+    }
+
+    function setTimer(){
+      if (!timer && document.hasFocus()){
+        timer = setInterval(updateCouner, 1000);
+      }
+    }
+
+    function clearTimer(){
+        if (timer){
+          clearInterval(timer);
+          timer = null;
+        }
     }
 
     function toggleChoices() {
@@ -546,7 +561,6 @@
     }
 
     $(function() {
-
       $('[data-toggle="tooltip"]').tooltip();
 
       $("h1").hover(function(){
@@ -573,18 +587,9 @@
         $(this).css('visibility', 'hidden');
       });
 
-      $(window).on('ready focus', function(){
-        if (!timer){
-          timer = setInterval(updateCouner, 1000);
-        }
-      });
-
-      $(window).on('blur', function(){
-        if (timer){
-          clearInterval(timer);
-          timer = null;
-        }
-      });
+      $(setTimer);
+      $(window).on('focus', setTimer);
+      $(window).on('blur', clearTimer);
     });
     </script>
 
