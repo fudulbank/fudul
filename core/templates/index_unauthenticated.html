@@ -107,6 +107,12 @@
       animation-name: hide-heart;
     }
 
+    /* This ensures that the header will not shift as the FontAwesome
+       are being inserted */
+    i.fa-heart{
+      width: 1.25em;
+    }
+
     .logo-askew-f {
       animation-name: unskew-f;
     }
@@ -316,7 +322,7 @@
     <header class="row justify-content-around align-items-center"> <canvas id="confetti-canvas"></canvas>
       <div class="col-10 col-sm-9 col-md-5 text-center text-md-left order-2 order-md-1">
         <h1 class="mt-md-4">
-          <span class="d-none d-sm-inline"> Meet </span><span class="logo-askew-f">Fu</span><span class="logo-askew-d">d</span><span class="logo-askew-l">ul<i class="far fa-heart" data-fa-transform="shrink-8 up-6 left-6"></i></span>
+          <span class="d-none d-sm-inline"> Meet </span><span class="logo-askew-f">Fu</span><span class="logo-askew-d">d</span><span class="logo-askew-l">ul<i class="far fa-fw fa-heart" data-fa-transform="shrink-8 up-6 left-6"></i></span>
         </h1>
         <p>The question bank built by and for examiners.  Processed <strong><span data-number="{{ answer_count }}" id="answer-count">{{ answer_count|intcomma }}</span> answers</strong> and counting.</p>
         <a href="{% url 'userena_signup' %}" class="btn w-50 btn-lg btn-success text-white mb-2"><i class="mr-1 fas fa-user-plus"></i> Join</a><br>
