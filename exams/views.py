@@ -506,11 +506,6 @@ def list_partial_session_questions(request, slugs, exam_pk, session_pk):
 
     questions = session.get_questions().order_global_sequence()
 
-    exclude_pks_raw = request.GET.get('exclude')
-    if exclude_pks_raw:
-        exclude_pks = json.loads(exclude_pks_raw)
-        questions = questions.exclude(pk__in=exclude_pks)
-
     # It would be more logical to use 'global_sequence' since it's the
     # one that's actually used in ordering, but pk is the one rendered
     # by session_question.html and thus accessible via the JavaScript,

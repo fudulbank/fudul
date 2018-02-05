@@ -360,7 +360,7 @@
           <div class="col-6 text-sm-right">
             <div class="row justify-content-end no-gutters">
              <div class="col-auto">
-                 <div data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> you can also press <kbd>Alt+M</kbd> to toggle question mark." id="mark" class="option marked">
+                 <div data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> you can also press <kbd>Alt+M</kbd> to toggle question mark." id="mark" class="option">
                     <i id="mark-loading" class="fas fa-spinner fa-pulse fa-fw"></i>
                     <i class="fas fa-flag"></i> Mark
                  </div>
@@ -427,6 +427,7 @@
         <script>
     SOLVED_QUESTIONS = {{ solved_questions_list }};
     MARKED_QUESTIONS = {{ marked_questions_list }};
+    INITIAL_QUESTIONS = [];
     toastr.options.positionClass = "toast-top-left";
     toastr.options.preventDuplicates = true;
     active_keys = {};
@@ -602,7 +603,6 @@
                type: 'POST',
                data: {'action': action,'mnemonic_pk':mnemonic_pk},
                success: function(data){
-                 console.log(mnemonic_pk);
                  if (data.success == 1){
                    toastr.success("Your vote was submitted.");
                    $(".question-body.show .mnemonics-content").html(data.mnemonic_html);
@@ -1022,32 +1022,28 @@
     function fetchList(since_pk){
       $.ajax({method: 'get',
               url: "{% url 'exams:list_partial_session_questions' category_slugs session.exam.pk session.pk %}",
-              data: {exclude: JSON.stringify(exclude),
-                     since_pk: since_pk},
+              data: {since_pk: since_pk},
               success: function(data){
-                $html = $(data.html);
-
+                $questions = $(data.html);
 
                 // assign question sequence on front-end. make sure
                 // this does not conflict with initial questions.
                 sequence = data.start_sequence;
-                applyMarkings($html);
-                $html.each(function(){
+                applyMarkings($questions);
+                $questions.each(function(){
                   $this = $(this);
-                  $(this).attr('data-question-sequence', sequence)
-                  // Make sure are duplicating sequence (i.e. as the
-                  // result of initial questions)
-                  while (true){
-                    sequence++;
-                    existing_sequence = $('.question-body[data-question-sequence="' + sequence + '"]');
-                    if (!existing_sequence.length){
-                      break;
-                    }
+                  question_pk = $this.data('question-pk');
+
+                  if (INITIAL_QUESTIONS.indexOf(question_pk) != -1){
+                    $questions.find('[data-question-pk=' +  question_pk + ']').remove()
+                  } else {
+                    $this.attr('data-question-sequence', sequence)
                   }
+                  sequence++;
                 });
 
-                $("#question-pool").append($html);
-                last_pk = $html.filter(":last").data('question-pk')
+                $("#question-pool").append($questions);
+                last_pk = $questions.filter(":last").data('question-pk')
                 if (last_pk && !data.done){
                   fetchList(last_pk);
                 } else if (data.done){
@@ -1130,10 +1126,9 @@
            _paq.push(['trackEvent', 'show_session', 'click-get-help', 'click-get-help']);
          });
 
-         exclude = []
          $('.question-body').each(function(){
            pk = $(this).data('question-pk')
-           exclude.push(pk);
+           INITIAL_QUESTIONS.push(pk);
          });
 
          fetchList();
