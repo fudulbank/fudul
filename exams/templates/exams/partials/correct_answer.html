@@ -40,7 +40,7 @@
                        $choice_row = $(".question-body.show tr" + pk_selector);
                        $notification = $("<i>").addClass("fas fa-exclamation-triangle text-warning answer-correction-notification mx-1")
                        $choice_row.find('.check').html($notification);
-                       $choice_row.find('.correct [data-fa-processed]').css('visibility', 'hidden');
+                       $choice_row.find('.correct [data-fa-i2svg]').css('visibility', 'hidden');
                        updateCorrectionTooltip(data.correction_html, choice_pk)
                        initializeCorrectionInteractions();
                    } else {

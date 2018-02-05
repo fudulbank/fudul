@@ -10,7 +10,7 @@
         <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha384-xBuQ/xzmlsLoJpyjoggmTEz8OWUFM0/RC5BsqQBDX2v5cMvDHcMakNTNrHIW2I5f" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-        <script src="https://use.fontawesome.com/releases/v5.0.4/js/all.js" integrity="sha384-nVi8MaibAtVMFZb4R1zHUW/DsTJpG/YwPknbGABVOgk5s6Vhopl6XQD/pTCG/DKB" crossorigin="anonymous"></script>
+        <script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js" integrity="sha384-0AJY8UERsBUKdWcyF3o2kisLKeIo6G4Tbd8Y6fbyw6qYmn4WBuqcvxokp8m2UzSD" crossorigin="anonymous"></script>
 
         <link rel="shortcut icon" href="{% static 'img/logo-monkey.png' %}">
         <link rel="manifest" href="{% static 'manifest.json' %}">
@@ -37,15 +37,15 @@
       background-color: #404E67;
     }
 
-    .question-body[data-was-solved="false"] .check [data-fa-processed],
-    .question-body[data-was-solved="false"] .correct [data-fa-processed]{
+    .question-body[data-was-solved="false"] .check [data-fa-i2svg],
+    .question-body[data-was-solved="false"] .correct [data-fa-i2svg]{
       visibility: hidden;
     }
 
-    body:not([data-session-mode="UNEXPLAINED"]) .question-body[data-was-solved="true"] .check [data-fa-processed],
-    body:not([data-session-mode="UNEXPLAINED"]) .question-body[data-was-solved="true"] .correct [data-fa-processed],
-    body[data-session-mode="UNEXPLAINED"][data-has-finished="true"] .question-body[data-was-solved="true"] .check [data-fa-processed],
-    body[data-session-mode="UNEXPLAINED"][data-has-finished="true"] .question-body[data-was-solved="true"] .correct [data-fa-processed]{
+    body:not([data-session-mode="UNEXPLAINED"]) .question-body[data-was-solved="true"] .check [data-fa-i2svg],
+    body:not([data-session-mode="UNEXPLAINED"]) .question-body[data-was-solved="true"] .correct [data-fa-i2svg],
+    body[data-session-mode="UNEXPLAINED"][data-has-finished="true"] .question-body[data-was-solved="true"] .check [data-fa-i2svg],
+    body[data-session-mode="UNEXPLAINED"][data-has-finished="true"] .question-body[data-was-solved="true"] .correct [data-fa-i2svg]{
       visibility: visible;
     }
 
@@ -632,10 +632,10 @@
     }
 
     function initializeCorrectionInteractions($question){
-      // Here, we are selecting the SVG (i.e. '[data-fa-processed]')
+      // Here, we are selecting the SVG (i.e. '[data-fa-i2svg]')
       // within the '.correct' cell
-      $question.off('click', '.correct [data-fa-processed]')
-               .on('click', '.correct [data-fa-processed]', function () {
+      $question.off('click', '.correct [data-fa-i2svg]')
+               .on('click', '.correct [data-fa-i2svg]', function () {
           _paq.push(['trackEvent', 'show_session', 'answer_correction', 'click-correct']);
           $("#correct-answer-modal").modal('show');
           choice_pk = $(this).closest('tr').data('choice-pk');
@@ -691,8 +691,8 @@
         });
       });
 
-      $question.off('click', '.answer-correction-notification[data-fa-processed]')
-               .on('click', '.answer-correction-notification[data-fa-processed]', function(){
+      $question.off('click', '.answer-correction-notification[data-fa-i2svg]')
+               .on('click', '.answer-correction-notification[data-fa-i2svg]', function(){
                  _paq.push(['trackEvent', 'show_session', 'answer_correction', 'click-notification']);
                  $('.answer-correction-notification').not(this).tooltip('hide');
 
