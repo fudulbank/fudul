@@ -42,11 +42,15 @@
       visibility: hidden;
     }
 
+    body[data-session-mode="SOLVED"] .check [data-fa-i2svg],
+    body[data-session-mode="SOLVED"] .correct [data-fa-i2svg],
+    body[data-session-mode="INCOMPLETE"] .check [data-fa-i2svg],
+    body[data-session-mode="INCOMPLETE"] .correct [data-fa-i2svg],
     body:not([data-session-mode="UNEXPLAINED"]) .question-body[data-was-solved="true"] .check [data-fa-i2svg],
     body:not([data-session-mode="UNEXPLAINED"]) .question-body[data-was-solved="true"] .correct [data-fa-i2svg],
     body[data-session-mode="UNEXPLAINED"][data-has-finished="true"] .question-body[data-was-solved="true"] .check [data-fa-i2svg],
     body[data-session-mode="UNEXPLAINED"][data-has-finished="true"] .question-body[data-was-solved="true"] .correct [data-fa-i2svg]{
-      visibility: visible;
+      visibility: visible !important;
     }
 
     #results, #end, #back{
@@ -356,7 +360,7 @@
           <div class="col-6 text-sm-right">
             <div class="row justify-content-end no-gutters">
              <div class="col-auto">
-                 <div data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> you can also press <kbd>Alt+M</kbd> to toggle question mark." id="mark" class="option{% if current_question|is_question_marked:user %} marked{% endif %}">
+                 <div data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> you can also press <kbd>Alt+M</kbd> to toggle question mark." id="mark" class="option marked">
                     <i id="mark-loading" class="fas fa-spinner fa-pulse fa-fw"></i>
                     <i class="fas fa-flag"></i> Mark
                  </div>
@@ -421,6 +425,8 @@
     </div><!--container-fluid-->
         <script src="{% static 'js/toastr.js' %}"></script>
         <script>
+    SOLVED_QUESTIONS = {{ solved_questions_list }};
+    MARKED_QUESTIONS = {{ marked_questions_list }};
     toastr.options.positionClass = "toast-top-left";
     toastr.options.preventDuplicates = true;
     active_keys = {};
@@ -464,7 +470,6 @@
       $("#question-pk").attr('href', list_revision_url);
       updateData();
       initializeInteractions();
-      handleMarked($question.data('is-marked'));
     }
 
     window.onpopstate = function(event) {
@@ -786,6 +791,7 @@
         initializeMnemonicInteractions($question);
         highlightActiveRow();
         controlNavigationButtons();
+        handleMarked($question.data('is-marked'));
 
         // Show contributors as a tooltip
         $("#contributors").tooltip('dispose');
@@ -1025,8 +1031,12 @@
                 // assign question sequence on front-end. make sure
                 // this does not conflict with initial questions.
                 sequence = data.start_sequence;
+                applyMarkings($html);
                 $html.each(function(){
+                  $this = $(this);
                   $(this).attr('data-question-sequence', sequence)
+                  // Make sure are duplicating sequence (i.e. as the
+                  // result of initial questions)
                   while (true){
                     sequence++;
                     existing_sequence = $('.question-body[data-question-sequence="' + sequence + '"]');
@@ -1051,7 +1061,6 @@
       });
     }
 
-
     // Show mobile sliders in tablets
     if (isTablet){
       $('.mobile-slide').removeClass('d-lg-none');
@@ -1063,6 +1072,26 @@
       $('#keyboard-hint').addClass('d-none');
     }
 
+    // Client-side work-up
+    function applyMarkings($questions){
+      $questions.each(function(){
+        $this = $(this);
+        question_pk = $this.data('question-pk')
+        if (session_mode == 'SOLVED' || session_mode == 'INCOMPLETE' || SOLVED_QUESTIONS.indexOf(question_pk) != -1){
+          $this.data('was-solved', true).attr('data-was-solved', 'true')
+          $this.find('.question-choice').attr('disabled', true)
+        } else {
+          $this.data('was-solved', false).attr('data-was-solved', 'false')
+        }
+
+        if (MARKED_QUESTIONS.indexOf(question_pk) != -1){
+          $this.data('is-marked', true).attr('data-is-marked', 'true')
+        } else {
+          $this.data('is-marked', false).attr('data-is-marked', 'false')
+        }
+      });
+    }
+
     $(function() {
         $initial_question = $('.question-body.show');
         history.replaceState({url: $initial_question.data('url')}, '', $initial_question.data('url'));
@@ -1070,6 +1099,8 @@
         // variables used by many functions
         total = $("#question-total").html();
         session_mode = $('body').data('session-mode');
+
+        applyMarkings($('.question-body'));
 
         initializeKeyboard();
         updateData();

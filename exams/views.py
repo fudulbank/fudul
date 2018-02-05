@@ -560,6 +560,11 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     current_question = session.get_current_question(question_pk)
     current_question_sequence = session.get_question_sequence(current_question)
 
+    solved_questions = Question.objects.filter(answer__session=session).distinct().values_list('pk', flat=True)
+    solved_questions_list = str(list(solved_questions))
+    marked_questions = Question.objects.filter(marking_users=request.user).distinct().values_list('pk', flat=True)
+    marked_questions_list = str(list(marked_questions))
+
     # We need 10 initial questions (idealy: five before and 10 after)
     if current_question_sequence >= 5:
         start_sequence = current_question_sequence - 5
@@ -576,7 +581,9 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
                'initial_question_sequence_start': initial_question_sequence_start,
                'category_slugs': slugs,
                'current_question': current_question,
-               'current_question_sequence': current_question_sequence}
+               'current_question_sequence': current_question_sequence,
+               'marked_questions_list': marked_questions_list,
+               'solved_questions_list': solved_questions_list}
 
     return render(request, "exams/show_session.html", context)
 
