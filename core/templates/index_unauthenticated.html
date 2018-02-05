@@ -128,15 +128,23 @@
       animation-iteration-count: infinite;
     }
 
-    .question-body[data-was-solved="false"] .check svg{
+    .question-body .check svg{
       visibility: hidden;
     }
 
-    .question-body[data-was-solved="false"] .explanation-container,
+    .question-body .explanation-container,
     #add-mnemonics,
     .answer-correction-tooltip-container,
     .question-body .tooltip-container{
       display: none;
+    }
+
+    .question-body[data-was-solved="true"] .check svg{
+      visibility: visible;
+    }
+
+    .question-body[data-was-solved="true"] .explanation-container{
+      display: block;
     }
 
     {# We will not show mnemonics in the sample questions to aviod confusion #}
