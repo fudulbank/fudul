@@ -225,7 +225,7 @@
       display: block;
     }
 
-    .question-body .choice-table tbody.unrandomized,
+    .question-body .choice-table tbody.unprepared,
     #question-pool:not(.choices-were-animated) .choice-table tbody{
       visibility: hidden;
     }
@@ -433,6 +433,7 @@
     SOLVED_QUESTIONS = {{ solved_questions_list }};
     MARKED_QUESTIONS = {{ marked_questions_list }};
     INITIAL_QUESTIONS = [];
+    PREVIOUS_ANSWERS = null;
     toastr.options.positionClass = "toast-top-left";
     toastr.options.preventDuplicates = true;
     active_keys = {};
@@ -1035,6 +1036,24 @@
       }
     }
 
+    function fetchAnswers(){
+      $.ajax({method: 'get',
+              url: "{% url 'answer-list' %}",
+              data: {format: 'json',
+                     session_pk: {{ session.pk }} },
+              success: function(data){
+                  PREVIOUS_ANSWERS = {};
+                  data.map(function(item){
+                    PREVIOUS_ANSWERS[item.question_id] = item.choice_id;
+                  });
+
+                  // We cacn only prepare questions after we get
+                  // PREVIOUS_ANSWERS, so let's do it now!
+                  prepareQuestions($('.question-body'));
+              }
+      });
+    }
+
     function fetchList(since_pk){
       $.ajax({method: 'get',
               url: "{% url 'exams:list_partial_session_questions' category_slugs session.exam.pk session.pk %}",
@@ -1073,9 +1092,30 @@
       });
     }
 
-    function shuffleChoices($choices) {
+    function prepareChoices($question) {
+      // This shuffle choices and checked the previously selected
+      // choice and randomizes choice rows.
+
+      // If we do not have the PREVIOUS_ANSWERS yet, we cannot
+      // prepare the choices.
+      if (PREVIOUS_ANSWERS === null){
+        return
+      }
+
+      // First: Tag the previously selected choice:
+      question_pk = $question.data('question-pk')
+      if (PREVIOUS_ANSWERS[question_pk] != undefined){
+        choice_pk = PREVIOUS_ANSWERS[question_pk];
+        $checkbox = $question.find('tr[data-choice-pk=' + choice_pk + '] input[type="checkbox"]');
+        $checkbox.prop('checked', true)
+      }
+
+      // Second: randomizes choice rows
+      $tbody = $question.find('.choice-table tbody')
+      $choice_rows = $tbody.find('tr');
+      $choice_rows.detach()
       // Based on https://stackoverflow.com/a/2450976
-      var currentIndex = $choices.length, temporaryValue, randomIndex;
+      var currentIndex = $choice_rows.length, temporaryValue, randomIndex;
 
       // While there remain elements to shuffle...
       while (0 !== currentIndex) {
@@ -1085,28 +1125,27 @@
         currentIndex -= 1;
 
         // And swap it with the current element.
-        temporaryValue = $choices[currentIndex];
-        $choices[currentIndex] = $choices[randomIndex];
-        $choices[randomIndex] = temporaryValue;
+        temporaryValue = $choice_rows[currentIndex];
+        $choice_rows[currentIndex] = $choice_rows[randomIndex];
+        $choice_rows[randomIndex] = temporaryValue;
       }
 
-      return $choices;
+      $tbody.append($choice_rows)
+      // We use the 'unrandomized' class to hide the choices until
+      // they are randomized to avoid confusing layout changes
+      $tbody.removeClass('unprepared')
+
     }
+
 
     // Client-side work-up
     function prepareQuestions($questions){
       $questions.each(function(){
         $question = $(this);
-        $tbody = $question.find('.choice-table tbody')
-        $choice_rows = $tbody.find('tr');
-        $choice_rows.detach()
-        shuffleChoices($choice_rows)
-        $tbody.append($choice_rows)
-        // We use the 'unrandomized' class to hide the choices until
-        // they are randomized to avoid confusing layout changes
-        $tbody.removeClass('unrandomized')
-
         question_pk = $question.data('question-pk')
+
+        prepareChoices($question);
+
         if (session_mode == 'SOLVED' || session_mode == 'INCOMPLETE' || SOLVED_QUESTIONS.indexOf(question_pk) != -1){
           $question.data('was-solved', true).attr('data-was-solved', 'true')
           $question.find('.question-choice').attr('disabled', true)
@@ -1147,8 +1186,6 @@
         total = $("#question-total").html();
         session_mode = $('body').data('session-mode');
 
-        prepareQuestions($('.question-body'));
-
         initializeKeyboard();
         updateData();
         initializeInteractions();
@@ -1182,6 +1219,7 @@
            INITIAL_QUESTIONS.push(pk);
          });
 
+         fetchAnswers();
          fetchList();
          updateSizes();
          $(window).resize(updateSizes);

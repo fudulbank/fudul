@@ -3,10 +3,17 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from exams.admin import editor_site
+from exams.serializers import AnswerViewSet
+from rest_framework import routers
+
+router = routers.DefaultRouter()
+router.register(r'answers', AnswerViewSet, base_name="answer")
 
 urlpatterns = [
+    url(r'^api/', include(router.urls)),
     url(r'^admin/', include('loginas.urls')),
     url(r'^admin/', admin.site.urls),
+    url(r'^api-auth/', include('rest_framework.urls')),
     url(r'^accounts/', include('accounts.urls')),
     url(r'^mailer/', include('mailer.urls', namespace="mailer")),
     url(r'^exams/admin/', include(editor_site.urls)),

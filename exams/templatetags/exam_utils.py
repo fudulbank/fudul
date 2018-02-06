@@ -6,10 +6,6 @@ from django.template.defaultfilters import linebreaksbr
 register = template.Library()
 
 @register.filter
-def was_chosen(choice, session):
-    return choice.answer_set.filter(session=session).exists()
-
-@register.filter
 def get_relevant_highlight(revision, session):
     if not session:
         return None    
