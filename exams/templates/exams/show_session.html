@@ -1049,6 +1049,11 @@
                   // We cacn only prepare questions after we get
                   // PREVIOUS_ANSWERS, so let's do it now!
                   prepareQuestions($('.question-body'));
+                  // Some interactions depend on whether the questions
+                  // was solved or not.  That's why we only
+                  // initialize interactions after we have unprepared
+                  // the questions.
+                  initializeInteractions();
               }
       });
     }
@@ -1190,7 +1195,6 @@
 
         initializeKeyboard();
         updateData();
-        initializeInteractions();
 
         // Depending on user agent, we control tooltip initalization.
         // Note that this must NOT be overridden anywhere in the
