@@ -225,7 +225,8 @@
       display: block;
     }
 
-    .question-body .choice-table tbody.unrandomized{
+    .question-body .choice-table tbody.unrandomized,
+    #question-pool:not(.choices-were-animated) .choice-table tbody{
       visibility: hidden;
     }
 
@@ -435,6 +436,7 @@
     toastr.options.positionClass = "toast-top-left";
     toastr.options.preventDuplicates = true;
     active_keys = {};
+    animation_events = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
     was_solved_markup = '<i class="far fa-check-square"></i>';
     is_marked_markup = '<i class="fas fa-flag"></i>';
     wrong_answer_markup = '<i class="fas fa-times text-danger mx-1"></i>'
@@ -486,7 +488,6 @@
     function navigate() {
         action = $(this).data('action');
 
-        animation_events = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
         // If no previous or no next, just return
         if (current_sequence == 1 && action == 'previous'){
           $("#question-sequence").addClass("animated flash").css('color', 'yellow');
@@ -1090,9 +1091,10 @@
         $choice_rows.detach()
         shuffleChoices($choice_rows)
         $tbody.append($choice_rows)
-        // Using the 'unrandomized' class, we hide the choices until
+        // We use the 'unrandomized' class to hide the choices until
         // they are randomized to avoid confusing layout changes
         $tbody.removeClass('unrandomized')
+
         question_pk = $question.data('question-pk')
         if (session_mode == 'SOLVED' || session_mode == 'INCOMPLETE' || SOLVED_QUESTIONS.indexOf(question_pk) != -1){
           $question.data('was-solved', true).attr('data-was-solved', 'true')
@@ -1107,6 +1109,12 @@
           $question.data('is-marked', false).attr('data-is-marked', 'false')
         }
       });
+
+      $question_pool = $('#question-pool')
+      if (!$question_pool.hasClass('choices-were-animated')){
+        $question_pool.addClass('choices-were-animated')
+        $('.question-body.show tbody').addClass('animated fadeIn').one(animation_events, function(){$(this).removeClass()});
+      }
     }
 
     // Show mobile sliders in tablets
