@@ -377,7 +377,7 @@
                  </div>
              </div>
 
-             <div id="keyboard-hint" data-toggle="tooltip" data-html="true" data-title="<h5>Keyboard shortcuts</h5><p><strong>Hint: </strong>  In Fudul, you can go through a whole exam without touching the mouse!  Here is how:</p><table id='keyboard-instructions'><tr><th><kbd>→</kbd></th><td>Go to next question.</td></tr><tr><th><kbd>←</kbd></th><td>Go to previous question.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>↑</kbd></th><td>Select previous choice.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>↓</kbd></th><td>Select next choice.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>Enter</kbd></th><td>Submit answer to current question.</td></tr><tr><th><kbd>Alt</kbd>+<kbd>M</kbd></th><td>Toggle mark on current question.</td></tr></table>" class="col-auto animated">
+             <div id="keyboard-hint" data-toggle="tooltip" data-html="true" data-title="<h5>Keyboard shortcuts</h5><p><strong>Hint: </strong>  In Fudul, you can go through a whole exam without touching the mouse!  Here is how:</p><table id='keyboard-instructions'><tr><th><kbd>→</kbd></th><td>Go to next question.</td></tr><tr><th><kbd>←</kbd></th><td>Go to previous question.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>↑</kbd></th><td>Select previous choice.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>↓</kbd></th><td>Select next choice.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>Enter</kbd></th><td>Submit answer to current question.</td></tr><tr><th><kbd>Alt</kbd>+<kbd>M</kbd></th><td>Toggle mark on current question.</td></tr>{% if session.is_examinable %}<tr><th><kbd>Alt</kbd>+<kbd>U</kbd></th><td>Find an unsolved question in this session.</td></tr>{% endif %}</table>" class="col-auto animated">
                  <i data-toggle class="fas fa-keyboard ml-2"></i>
              </div>
 
@@ -946,6 +946,17 @@
         } else if (active_keys[18] && active_keys[77]) { // alt + m
           _paq.push(['trackEvent', 'show_session', 'mark-question', 'keyboard-mark']);
           $('#mark').trigger('click');
+        } else if (active_keys[18] && active_keys[85]) { // alt + u
+          _paq.push(['trackEvent', 'show_session', 'find-pending', 'keyboard-pending']);
+          if (session_mode == 'SOLVED' || session_mode == 'INCOMPLETE'){
+            return
+          }
+          question_sequence = $('.question-body[data-was-solved=false]').data('question-sequence');
+          if (question_sequence){
+            showQuestion(question_sequence);
+          } else {
+            toastr.success("Yay!  No pending in this session.");
+          }
         } else if (active_keys[17] && active_keys[13]) { // ctrl + enter
           _paq.push(['trackEvent', 'show_session', 'mark-question', 'keyboard-submit']);
           $("#submit").trigger('click');
