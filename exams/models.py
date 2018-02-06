@@ -260,7 +260,7 @@ class Question(models.Model):
         return first_revision.submitter == user
 
     def was_solved_in_session(self, session):
-        if session.session_mode in ['INCOMPLETE', 'SOLVED']:
+        if not session.is_examinable():
             return True
         else:
             return Answer.objects.filter(session=session, question=self).exists()
@@ -497,10 +497,13 @@ class Session(models.Model):
                               .distinct()\
                               .count()
 
+    def is_examinable(self):
+        return self.session_mode not in ['INCOMPLETE', 'SOLVED']
+
     def set_has_finished(self):
         # Session that are either 'INCOMPLETE' or 'SOLVED' cannot be
         # considered 'finsihed'
-        if self.session_mode in ['INCOMPLETE', 'SOLVED']:
+        if not self.is_examinable():
             return
 
         has_finished = not self.get_unused_questions().exists()
