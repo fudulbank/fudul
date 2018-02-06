@@ -430,7 +430,6 @@
     </div><!--container-fluid-->
         <script src="{% static 'js/toastr.js' %}"></script>
         <script>
-    SOLVED_QUESTIONS = {{ solved_questions_list }};
     MARKED_QUESTIONS = {{ marked_questions_list }};
     INITIAL_QUESTIONS = [];
     PREVIOUS_ANSWERS = null;
@@ -1104,10 +1103,15 @@
 
       // First: Tag the previously selected choice:
       question_pk = $question.data('question-pk')
-      if (PREVIOUS_ANSWERS[question_pk] != undefined){
+      if (PREVIOUS_ANSWERS[question_pk] !== undefined){
+        $question.data('was-solved', true).attr('data-was-solved', 'true')
+        $question.find('.question-choice').attr('disabled', true)
+
         choice_pk = PREVIOUS_ANSWERS[question_pk];
         $checkbox = $question.find('tr[data-choice-pk=' + choice_pk + '] input[type="checkbox"]');
         $checkbox.prop('checked', true)
+      } else {
+        $question.data('was-solved', false).attr('data-was-solved', 'false')
       }
 
       // Second: randomizes choice rows
@@ -1146,11 +1150,9 @@
 
         prepareChoices($question);
 
-        if (session_mode == 'SOLVED' || session_mode == 'INCOMPLETE' || SOLVED_QUESTIONS.indexOf(question_pk) != -1){
+        if (session_mode == 'SOLVED' || session_mode == 'INCOMPLETE'){
           $question.data('was-solved', true).attr('data-was-solved', 'true')
           $question.find('.question-choice').attr('disabled', true)
-        } else {
-          $question.data('was-solved', false).attr('data-was-solved', 'false')
         }
 
         if (MARKED_QUESTIONS.indexOf(question_pk) != -1){

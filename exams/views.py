@@ -281,7 +281,7 @@ def list_questions(request, slugs, pk, selector=None):
 @require_safe
 @decorators.ajax_only
 def show_question(request, pk, revision_pk=None):
-    
+
     question = get_object_or_404(Question.objects.select_related('exam'),
                                  pk=pk,
                                  is_deleted=False)
@@ -555,8 +555,6 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     current_question = session.get_current_question(question_pk)
     current_question_sequence = session.get_question_sequence(current_question)
 
-    solved_questions = Question.objects.filter(answer__session=session).distinct().values_list('pk', flat=True)
-    solved_questions_list = str(list(solved_questions))
     marked_questions = Question.objects.filter(marking_users=request.user).distinct().values_list('pk', flat=True)
     marked_questions_list = str(list(marked_questions))
 
@@ -577,8 +575,7 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
                'category_slugs': slugs,
                'current_question': current_question,
                'current_question_sequence': current_question_sequence,
-               'marked_questions_list': marked_questions_list,
-               'solved_questions_list': solved_questions_list}
+               'marked_questions_list': marked_questions_list}
 
     return render(request, "exams/show_session.html", context)
 
@@ -669,7 +666,7 @@ def submit_highlight(request):
     stricken_choice_pks = json.loads(stricken_choice_pks)
     stricken_choices = Choice.objects.filter(pk__in=stricken_choice_pks)
     highlighted_text = request.POST.get('highlighted_text', '')
- 
+
     try:
         highlight = Highlight.objects.get(session=session,
                                           revision=best_latest_revision)
@@ -1296,4 +1293,3 @@ def contribute_mnemonics(request):
 
     context = {'question': question, 'form': form, 'mnemonics':mnemonics,'exam':exam}
     return render(request, 'exams/partials/contribute_mnemonics.html', context)
-
