@@ -14,9 +14,9 @@
     {% endif %}
     </div>
     <p class="question-text">{% get_question_text highlight best_latest_revision session %}</p>
-    <table>
-      <tbody>
-        {% for choice in best_latest_revision.choice_set.order_randomly %}
+    <table class="choice-table">
+      <tbody class="unrandomized">
+        {% for choice in best_latest_revision.choice_set.all %}
             <tr data-choice-pk="{{ choice.pk }}">
                <td class="correct">{% if not session.question_filter == 'INCOMPLETE' and not choice.answer_correction %}<i {% if not choice.is_right %}class="far fa-hand-paper"{% endif %}></i>{% endif %}</td>
                <td class="check">{% if choice.is_right %}<i class="fas fa-check text-success mx-1"></i>{% elif not choice.is_right and choice.answer_correction %}<i class="fas fa-exclamation-triangle text-warning answer-correction-notification mx-1"></i>{% include 'exams/partials/show_answer_correction.html' %}{% elif not choice.is_right %}<i class="fas fa-times text-danger mx-1"></i>{% endif %}</td>

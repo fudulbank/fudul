@@ -225,6 +225,10 @@
       display: block;
     }
 
+    .question-body .choice-table tbody.unrandomized{
+      display: none;
+    }
+
     .explanation-container,.mnemonics-container{
       margin-top: 20px;
     }
@@ -1029,7 +1033,7 @@
                 // assign question sequence on front-end. make sure
                 // this does not conflict with initial questions.
                 sequence = data.start_sequence;
-                applyMarkings($questions);
+                prepareQuestions($questions);
                 $questions.each(function(){
                   $this = $(this);
                   question_pk = $this.data('question-pk');
@@ -1057,6 +1061,54 @@
       });
     }
 
+    function shuffleChoices($choices) {
+      // Based on https://stackoverflow.com/a/2450976
+      var currentIndex = $choices.length, temporaryValue, randomIndex;
+
+      // While there remain elements to shuffle...
+      while (0 !== currentIndex) {
+
+        // Pick a remaining element...
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex -= 1;
+
+        // And swap it with the current element.
+        temporaryValue = $choices[currentIndex];
+        $choices[currentIndex] = $choices[randomIndex];
+        $choices[randomIndex] = temporaryValue;
+      }
+
+      return $choices;
+    }
+
+    // Client-side work-up
+    function prepareQuestions($questions){
+      $questions.each(function(){
+        $question = $(this);
+        $tbody = $question.find('.choice-table tbody')
+        $choice_rows = $tbody.find('tr');
+        $choice_rows.detach()
+        shuffleChoices($choice_rows)
+        $tbody.append($choice_rows)
+        // Using the 'unrandomized' class, we hide the choices until
+        // they are randomized to avoid confusing layout changes
+        $tbody.removeClass('unrandomized')
+        question_pk = $question.data('question-pk')
+        if (session_mode == 'SOLVED' || session_mode == 'INCOMPLETE' || SOLVED_QUESTIONS.indexOf(question_pk) != -1){
+          $question.data('was-solved', true).attr('data-was-solved', 'true')
+          $question.find('.question-choice').attr('disabled', true)
+        } else {
+          $question.data('was-solved', false).attr('data-was-solved', 'false')
+        }
+
+        if (MARKED_QUESTIONS.indexOf(question_pk) != -1){
+          $question.data('is-marked', true).attr('data-is-marked', 'true')
+        } else {
+          $question.data('is-marked', false).attr('data-is-marked', 'false')
+        }
+      });
+    }
+
     // Show mobile sliders in tablets
     if (isTablet){
       $('.mobile-slide').removeClass('d-lg-none');
@@ -1068,26 +1120,6 @@
       $('#keyboard-hint').addClass('d-none');
     }
 
-    // Client-side work-up
-    function applyMarkings($questions){
-      $questions.each(function(){
-        $this = $(this);
-        question_pk = $this.data('question-pk')
-        if (session_mode == 'SOLVED' || session_mode == 'INCOMPLETE' || SOLVED_QUESTIONS.indexOf(question_pk) != -1){
-          $this.data('was-solved', true).attr('data-was-solved', 'true')
-          $this.find('.question-choice').attr('disabled', true)
-        } else {
-          $this.data('was-solved', false).attr('data-was-solved', 'false')
-        }
-
-        if (MARKED_QUESTIONS.indexOf(question_pk) != -1){
-          $this.data('is-marked', true).attr('data-is-marked', 'true')
-        } else {
-          $this.data('is-marked', false).attr('data-is-marked', 'false')
-        }
-      });
-    }
-
     $(function() {
         $initial_question = $('.question-body.show');
         history.replaceState({url: $initial_question.data('url')}, '', $initial_question.data('url'));
@@ -1096,7 +1128,7 @@
         total = $("#question-total").html();
         session_mode = $('body').data('session-mode');
 
-        applyMarkings($('.question-body'));
+        prepareQuestions($('.question-body'));
 
         initializeKeyboard();
         updateData();
