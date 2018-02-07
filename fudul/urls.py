@@ -3,11 +3,12 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from exams.admin import editor_site
-from exams.serializers import AnswerViewSet
+from exams.api import HighlightViewSet, AnswerViewSet
 from rest_framework import routers
 
 router = routers.DefaultRouter()
 router.register(r'answers', AnswerViewSet, base_name="answer")
+router.register(r'highlights', HighlightViewSet, base_name="highlight")
 
 urlpatterns = [
     url(r'^api/', include(router.urls)),
