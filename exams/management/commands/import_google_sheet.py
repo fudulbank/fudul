@@ -10,7 +10,9 @@ class Command(BaseCommand):
         parser.add_argument('--csv-path',
                             type=str)
         parser.add_argument('--default-source-name',
-                            type=str, default="Unclassified")
+                            type=str, default=None)
+        parser.add_argument('--default-exam-type-name',
+                            type=str, default=None)
         parser.add_argument('--exam-pk',
                             type=str)
         parser.add_argument('--skip-until',
@@ -26,10 +28,13 @@ class Command(BaseCommand):
         exam = Exam.objects.get(pk=options['exam_pk'])
         subject_pool = exam.subject_set.all()
         exam_type_pool = exam.exam_types.all()
-        final_exam_type = exam_type_pool.get(name="Final")
         source_pool = exam.get_sources()
         issue_pool = Issue.objects.all()
-        unclassified_source = source_pool.get(name=options['default_source_name'])
+
+        if options['default_exam_type_name']:
+            default_exam_type = exam_type_pool.get(name=options['default_exam_type_name'])
+        if options['default_source_name']:
+            default_source = source_pool.get(name=options['default_source_name'])
 
         # ROW DISTRIBUTION
         COL_SEQUENCE = 0
@@ -96,7 +101,7 @@ class Command(BaseCommand):
             if source_entry:
                 source = [source for source in source_pool if source.name.lower() == source_entry][0]
             else:
-                source = unclassified_source
+                source = default_source
 
             exam_type_entry = row[COL_EXAM_TYPE].strip().lower()
             print("Exam type:", exam_type_entry)
@@ -152,7 +157,7 @@ class Command(BaseCommand):
                                                        is_first=True,
                                                        is_last=True,
                                                        reference=reference,
-                                                       explanation_text=explanation_text)
+                                                       explanation_text=explanation)
 
                 for choice in choices:
                     choice.revision = revision
