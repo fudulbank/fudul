@@ -497,7 +497,7 @@ def create_session_automatically(request, slugs, exam_pk):
 @login_required
 @require_safe
 @permission_required('exams.access_exam', fn=objectgetter(Exam, 'exam_pk'), raise_exception=True)
-@cache_page(60 * 60 * 24 * 3) # 3 days
+@cache_page(60 * 60 * 12) # 12 hours
 @decorators.ajax_only
 def list_partial_session_questions(request, slugs, exam_pk):
     try:

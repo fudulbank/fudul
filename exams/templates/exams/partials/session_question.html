@@ -1,7 +1,7 @@
 {% load static exam_utils account_utils %}
 
 {% with explanation_revision=question.get_latest_explanation_revision best_latest_revision=question.get_best_latest_revision %}
-<div class="question-body well-sm{% if question == current_question %} show{% endif %}" data-best-latest-revision-pk="{{ best_latest_revision.pk }}" {% if session %}data-list-revision-url="{% url 'exams:list_revisions' category_slugs session.exam.pk question.pk %}" data-url="{% url 'exams:show_session' category_slugs session.exam.pk session.pk question.pk %}"{% endif %} data-question-pk="{{ question.pk }}">
+<div class="question-body well-sm{% if question == current_question %} show{% endif %}" data-best-latest-revision-pk="{{ best_latest_revision.pk }}" data-question-pk="{{ question.pk }}">
   {% if best_latest_revision.figure %}
      <img class="img-fluid center-block" src="{{ best_latest_revision.figure.url }}">
   {% endif %}

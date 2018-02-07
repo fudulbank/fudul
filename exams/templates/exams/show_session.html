@@ -392,9 +392,7 @@
             <div id="question-container">
               <div id="question-pool">
                 {% for question in initial_questions %}
-                {% with question_sequence=forloop.counter0|add:initial_question_sequence_start %}
                  {% include 'exams/partials/session_question.html' %}
-                {% endwith %}
                 {% endfor %}
               </div>
               <button type="button" id="submit" class="btn">Submit <i class="fas fa-angle-right"></i></button>
