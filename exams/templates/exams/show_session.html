@@ -354,7 +354,7 @@
                 <h2 class="brand-text">Fudul</h2></a>
             </div>
             <div class="ml-auto col-sm-6 text-center"> <a target="_blank" href="{% url 'exams:create_session' category_slugs session.exam.pk %}">{{ session.exam.name }}</a> <span class="separator">•</span> Session id: <span id="session-pk">{{ session.pk }}</span> <span class="d-none d-sm-inline">({{ session.get_session_mode_display }})</span><br> Question id: <a target="_blank" href="{% url 'exams:list_revisions' category_slugs session.exam.pk current_question.pk %}" id="question-pk">{{ current_question.pk }}</a> </div>
-            <div class="col-sm-3 top-question-id font-weight-bold text-sm-right text-center my-2 mb-sm-0"><i class="fas fa-spinner fa-pulse fa-fw mr-1" id="question-loading" title="Loading session questions..."></i><div id="question-sequence">{{ current_question_sequence }}</div> of <div id="question-total"></div></div>
+            <div class="col-sm-3 top-question-id font-weight-bold text-sm-right text-center my-2 mb-sm-0"><i class="fas fa-spinner fa-pulse fa-fw mr-1" id="question-loading" title="Loading session questions..."></i><div id="question-sequence"></div> of <div id="question-total"></div></div>
         </div><!--top-info-->
         <div id="top-options" class="row text-center">
           <div class="col-6 text-sm-left">
@@ -431,11 +431,12 @@
         <script>
 
     MARKED_QUESTIONS = {{ marked_question_pks }};
-    SESSION_QUESTIONS = {{ session_question_pks }};
+    // Keys represent PKs.  Values represent global_sequences.
+    SESSION_QUESTIONS = {{ session_question_pks|safe }};
+    SESSION_QUESTION_PKS = Object.keys(SESSION_QUESTIONS).sort();
     CATEGORY_SLUGS = '{{ category_slugs }}';
     EXAM_PK = {{ session.exam.pk }};
     SESSION_PK = {{ session.pk }};
-    SESSION_QUESTIONS.sort();
     INITIAL_QUESTIONS = [];
     PREVIOUS_ANSWERS = null;
     PREVIOUS_HIGHLIGHTS = null;
@@ -1033,20 +1034,24 @@
          }, 500);
       });
 
-      for (var i = 1; i <= SESSION_QUESTIONS.length; i++) {
-         $('.question-body[data-question-sequence="' + i.toString() + '"]')
-         $question = $('.question-body[data-question-sequence="' + i.toString() + '"]')
-         question_pk = $question.data('question-pk');
-         was_solved = $question.data('was-solved') ? was_solved_markup : '<i class="far fa-square"></i>';
-         is_marked = $question.data('is-marked')  ? is_marked_markup : '';
-         row = $("<tr class='navigate-row text-center' data-question-sequence='" + i.toString() + "'><td>" + i.toString() + "</td><td class='d-sm-table-cell d-none'>" + question_pk.toString() + "</td><td class='d-sm-table-cell d-none is_marked'>" + is_marked + "</td><td class='was_solved'>" + was_solved +"</td></tr>");
+      // Detach to reduce DOM manipulation
+      $tbody = $("#navigation-table tbody");
+      $tbody.detach();
+
+      for (var sequence = 1; sequence <= SESSION_QUESTION_PKS.length; sequence++) {
+         var $question = $('.question-body[data-question-sequence="' + sequence.toString() + '"]');
+         var question_pk = $question.data('question-pk');
+         var was_solved = $question.data('was-solved') ? was_solved_markup : '<i class="far fa-square"></i>';
+         var is_marked = $question.data('is-marked')  ? is_marked_markup : '';
+         var row = $("<tr class='navigate-row text-center' data-question-sequence='" + sequence.toString() + "'><td>" + sequence.toString() + "</td><td class='d-sm-table-cell d-none'>" + question_pk.toString() + "</td><td class='d-sm-table-cell d-none is_marked'>" + is_marked + "</td><td class='was_solved'>" + was_solved +"</td></tr>");
          row.click(function(){
            _paq.push(['trackEvent', 'show_session', 'navigation', 'click-navigate-row']);
            targeted_sequence = $(this).data('question-sequence');
            showQuestion(targeted_sequence);
          });
-         $("#navigation-table tbody").append(row)
+         $tbody.append(row)
       }
+      $("#navigation-table").append($tbody);
     }
 
     function fetchAnswers(){
@@ -1093,8 +1098,13 @@
       });
     }
 
+    function getSequence(question_pk){
+      global_sequence = SESSION_QUESTIONS[question_pk];
+      return Object.values(SESSION_QUESTIONS).sort().indexOf(global_sequence) + 1;
+    }
+
     function fetchList(fetch_list_index){
-      current_targets = SESSION_QUESTIONS.slice(fetch_list_index, fetch_list_index + 50).join(',');
+      current_targets = SESSION_QUESTION_PKS.slice(fetch_list_index, fetch_list_index + 50).join(',');
       if (!current_targets.length){
         $("#question-loading").hide();
         constructNavigationTable();
@@ -1108,25 +1118,15 @@
               success: function(data){
                 $questions = $(data.html);
 
-                // assign question sequence on front-end. make sure
-                // this does not conflict with initial questions.
-                sequence = fetch_list_index + 1;
-                prepareQuestions($questions);
-                $questions.each(function(){
-                  $this = $(this);
-                  question_pk = $this.data('question-pk');
-
-                  if (INITIAL_QUESTIONS.indexOf(question_pk) != -1){
-                    $questions.find('[data-question-pk=' +  question_pk + ']').remove()
-                    $final_question = $('.question-body[data-question-pk=' +  question_pk + ']');
-                  } else {
-                    $final_question = $this
-                  }
-                  $final_question.data('question-sequence', sequence).attr('data-question-sequence', sequence)
-                  sequence++;
+                $filtered_questions = $questions.filter(function(){
+                  var $question = $(this);
+                  var question_pk = $question.data('question-pk');
+                  return INITIAL_QUESTIONS.indexOf(question_pk) == -1
                 });
 
-                $("#question-pool").append($questions);
+                prepareQuestions($filtered_questions);
+
+                $("#question-pool").append($filtered_questions);
                 fetch_list_index += 50;
                 fetchList(fetch_list_index);
               }
@@ -1215,11 +1215,15 @@
     // Client-side work-up
     function prepareQuestions($questions){
       $questions.each(function(){
-        $question = $(this);
-        question_pk = $question.data('question-pk')
+        var $question = $(this);
+        var question_pk = $question.data('question-pk')
 
         prepareChoices($question);
         prepareHighlights($question);
+
+        // Add sequence
+        var sequence = getSequence(question_pk);
+        $question.data('question-sequence', sequence).attr('data-question-sequence', sequence);
 
         // Add url data tags
         list_revision_url = Urls['exams:list_revisions'](CATEGORY_SLUGS, EXAM_PK, question_pk);
@@ -1262,9 +1266,14 @@
         history.replaceState({url: $initial_question.data('url')}, '', $initial_question.data('url'));
 
         // variables used by many functions
-        total = SESSION_QUESTIONS.length;
+        total = SESSION_QUESTION_PKS.length;
         $("#question-total").html(total);
         session_mode = $('body').data('session-mode');
+
+        // Set sequence for initial question
+        initial_question_pk = $initial_question.data('question-pk');
+        initial_question_sequence = getSequence(initial_question_pk);
+        $("#question-sequence").html(initial_question_sequence);
 
         initializeKeyboard();
         updateData();
@@ -1300,7 +1309,6 @@
 
          fetchAnswers();
          fetchHighlights();
-         SESSION_QUESTIONS.sort();
          fetchList(fetch_list_index);
          updateSizes();
          $(window).resize(updateSizes);

@@ -528,9 +528,12 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
 
     current_question = session.get_current_question(question_pk)
     current_question_sequence = session.get_question_sequence(current_question)
-    session_question_pks = str(list(session.get_questions().values_list('pk', flat=True)))
 
-    marked_questions = Question.objects.filter(marking_users=request.user).distinct().values_list('pk', flat=True)
+    session_questions = session.get_questions().values_list('pk', 'global_sequence')
+    # This produces a dictionary of keys being question_pks and values
+    # being global_sequences
+    session_question_pks = json.dumps(dict(session_questions))
+    marked_questions = Question.objects.filter(exam__pk=exam_pk, marking_users=request.user).distinct().values_list('pk', flat=True)
     marked_question_pks = str(list(marked_questions))
 
     # We need 10 initial questions (idealy: five before and 10 after)
@@ -542,11 +545,9 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
         end_sequence = 11 - current_question_sequence
     initial_questions = session.get_questions()\
                                .order_global_sequence()[start_sequence:end_sequence]
-    initial_question_sequence_start = session.get_question_sequence(initial_questions.first())
 
     context = {'session': session,
                'initial_questions': initial_questions,
-               'initial_question_sequence_start': initial_question_sequence_start,
                'category_slugs': slugs,
                'current_question': current_question,
                'current_question_sequence': current_question_sequence,
