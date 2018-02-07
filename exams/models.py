@@ -331,7 +331,6 @@ class Question(models.Model):
         return self.mnemonic_set.filter(is_deleted=False)
 
 
-
 class Revision(models.Model):
     question = models.ForeignKey(Question)
     submitter = models.ForeignKey(User, null=True, blank=True)
@@ -427,6 +426,15 @@ class Choice(models.Model):
     def __str__(self):
         return self.text
 
+class ExamBlueprint(models.Model):
+    name = models.CharField(max_length=55)
+    exam = models.ForeignKey(Exam, related_name='exam_blueprint')
+    is_deleted = models.BooleanField(default=False)
+
+class ExamBuluprintSubject(models.Model):
+    exam_bueprint = models.ForeignKey(ExamBlueprint, related_name='exam_blueprint_subjects')
+    subject = models.ForeignKey(Subject)
+    number_of_question = models.PositiveIntegerField()
 
 questions_choices = (
     ('ALL','All complete'),
@@ -470,6 +478,7 @@ class Session(models.Model):
     has_finished = models.NullBooleanField(default=None)
 
     objects = managers.SessionQuerySet.as_manager()
+    exam_bueprint = models.ForeignKey(ExamBlueprint, null=True, blank=True)
 
     def get_score(self):
         try:
@@ -708,3 +717,5 @@ class Mnemonic(models.Model):
             return "Mnemonic #{} of Q#{}".format(self.pk, self.question.pk)
         else:
             return "Mnemonic #{}".format(self.pk)
+
+
