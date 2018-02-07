@@ -174,7 +174,7 @@
         background: yellow;
     }
 
-    .highlight.active{
+    .question-body[data-was-solved="false"] .highlight{
         cursor: pointer;
     }
 
@@ -433,6 +433,7 @@
     MARKED_QUESTIONS = {{ marked_questions_list }};
     INITIAL_QUESTIONS = [];
     PREVIOUS_ANSWERS = null;
+    PREVIOUS_HIGHLIGHTS = null;
     toastr.options.positionClass = "toast-top-left";
     toastr.options.preventDuplicates = true;
     active_keys = {};
@@ -578,7 +579,7 @@
         var selection = window.getSelection().toString();
         if (selection.length >= 3) {
             var escapedSelection = $("<div>").text(selection).html();
-            var replacement = $('<span></span>').addClass('active highlight').html(selection);
+            var replacement = $('<span></span>').addClass('highlight').html(selection);
             var replacementHtml = replacement.prop('outerHTML');
             $(this).html($(this).html().replace(escapedSelection, replacementHtml));
             // Bind only once
@@ -815,7 +816,7 @@
         if (was_solved){
           $("#contribute,#add-mnemonics").show();
           $("#submit").hide();
-          $question.find(".highlight").removeClass('active').off('click');
+          $question.off('click', '.highlight')
           $question.find(".question-choice").prop("disabled", "disabled");
         } else {
             $("#contribute,#add-mnemonics").hide();
@@ -825,7 +826,10 @@
             // binds the handlers.
             $question.find(".question-text").off('mouseup touchend').on('mouseup touchend', highlightText);
             $question.find(".question-choice").off('change').on('change', toggleChoices);
-            $question.find(".highlight").addClass('active').off('click').on('click', removeHighlight);
+            // We use event delegation as highlights could be added
+            // after firing initializeInteractions.
+            $question.off('click', '.highlight')
+                     .on('click', '.highlight', removeHighlight);
             $(".question-body.show .choice-text").off('click').on('click', function() {
                 if (!$(this).hasClass("strike")){
                    // If a choice is striked, it is no longer checked.
@@ -867,9 +871,12 @@
 
         // Disable choices upon submission
         $question.find(".question-choice").prop("disabled", "disabled")
-        // Disable interactions after submission
-        $question.find(".highlight").removeClass("active");
-        $question.find(".question-text, .question-choice, .choice-text, .highlight").off();
+        // Disable interactions after submission.  As for highlights,
+        // we use event delegation to handle potential addition of
+        // highlights afterwards (i.e. as a result of delayed
+        // network).
+        $question.off('click', '.highlight')
+        $question.find(".question-text, .question-choice, .choice-text").off();
 
         $checkedChoice = $question.find(".question-choice:checked");
 
@@ -1058,6 +1065,27 @@
       });
     }
 
+    function fetchHighlights(){
+      $.ajax({method: 'get',
+              url: "{% url 'highlight-list' %}",
+              data: {format: 'json',
+                     session_pk: {{ session.pk }} },
+              success: function(data){
+                  PREVIOUS_HIGHLIGHTS = {};
+                  data.map(function(item){
+                    PREVIOUS_HIGHLIGHTS[item.revision.question_id] = {revision_id: item.revision.id,
+                                                             highlighted_text: item.highlighted_text,
+                                                             stricken_choices: item.stricken_choices};
+                  });
+
+                  $('.question-body').each(function(){
+                    $question = $(this);
+                    prepareHighlights($question);
+                  });
+              }
+      });
+    }
+
     function fetchList(since_pk){
       $.ajax({method: 'get',
               url: "{% url 'exams:list_partial_session_questions' category_slugs session.exam.pk session.pk %}",
@@ -1096,6 +1124,31 @@
       });
     }
 
+    function prepareHighlights($question) {
+      // If we do not have the PREVIOUS_HIGHLIGHTS yet, we cannot
+      // prepare the highlights.
+      if (PREVIOUS_HIGHLIGHTS === null){
+        return
+      }
+
+      question_pk = $question.data('question-pk')
+      highlight = PREVIOUS_HIGHLIGHTS[question_pk];
+      if (highlight !== undefined){
+        best_latest_revision_pk = $question.data('best-latest-revision-pk');
+        if (best_latest_revision_pk == highlight.revision_id){
+          // If the highlighted question text is not empty, include
+          // it.
+          if (highlight.highlighted_text){
+            $question.find('.question-text').html(highlight.highlighted_text);
+          }
+          $.each(highlight.stricken_choices, function(index){
+            choice_pk = highlight.stricken_choices[index]
+            $question.find('tr[data-choice-pk=' + choice_pk + '] .choice-text').addClass('strike');
+          });
+        }
+      }
+    }
+
     function prepareChoices($question) {
       // This shuffle choices and checked the previously selected
       // choice and randomizes choice rows.
@@ -1108,12 +1161,12 @@
 
       // First: Tag the previously selected choice:
       question_pk = $question.data('question-pk')
-      if (PREVIOUS_ANSWERS[question_pk] !== undefined){
+      choice_pk = PREVIOUS_ANSWERS[question_pk];
+      if (choice_pk !== undefined){
         $question.data('was-solved', true).attr('data-was-solved', 'true')
         $question.find('.question-choice').attr('disabled', true)
 
-        choice_pk = PREVIOUS_ANSWERS[question_pk];
-        // If question was not skipped
+        // If question was not skipped (not null)
         if (choice_pk){
           $checkbox = $question.find('tr[data-choice-pk=' + choice_pk + '] input[type="checkbox"]');
           $checkbox.prop('checked', true)
@@ -1157,6 +1210,7 @@
         question_pk = $question.data('question-pk')
 
         prepareChoices($question);
+        prepareHighlights($question);
 
         if (session_mode == 'SOLVED' || session_mode == 'INCOMPLETE'){
           $question.data('was-solved', true).attr('data-was-solved', 'true')
@@ -1229,6 +1283,7 @@
          });
 
          fetchAnswers();
+         fetchHighlights();
          fetchList();
          updateSizes();
          $(window).resize(updateSizes);

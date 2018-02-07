@@ -1,4 +1,4 @@
-from exams.models import Answer, Session, Highlight
+from exams.models import *
 from rest_framework import serializers, viewsets, permissions
 from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
@@ -8,10 +8,17 @@ class AnswerSerializer(serializers.ModelSerializer):
         model = Answer
         fields = ('question_id', 'choice_id')
 
+class RevisionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Revision
+        fields = ('id', 'question_id')
+
 class HighlightSerializer(serializers.ModelSerializer):
+    revision = RevisionSerializer(read_only=True)
+
     class Meta:
         model = Highlight
-        fields = ('revision_id', 'highlighted_text', 'stricken_choices')
+        fields = ('revision', 'highlighted_text', 'stricken_choices')
 
 class HasSessionAccess(permissions.BasePermission):
     def has_permission(self, request, view):
