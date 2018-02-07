@@ -174,7 +174,7 @@
         background: yellow;
     }
 
-    .highlight.active{
+    .question-body[data-was-solved="false"] .highlight{
         cursor: pointer;
     }
 
@@ -225,7 +225,8 @@
       display: block;
     }
 
-    .question-body .choice-table tbody.unrandomized{
+    .question-body .choice-table tbody.unprepared,
+    #question-pool:not(.choices-were-animated) .choice-table tbody{
       visibility: hidden;
     }
 
@@ -376,7 +377,7 @@
                  </div>
              </div>
 
-             <div id="keyboard-hint" data-toggle="tooltip" data-html="true" data-title="<h5>Keyboard shortcuts</h5><p><strong>Hint: </strong>  In Fudul, you can go through a whole exam without touching the mouse!  Here is how:</p><table id='keyboard-instructions'><tr><th><kbd>→</kbd></th><td>Go to next question.</td></tr><tr><th><kbd>←</kbd></th><td>Go to previous question.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>↑</kbd></th><td>Select previous choice.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>↓</kbd></th><td>Select next choice.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>Enter</kbd></th><td>Submit answer to current question.</td></tr><tr><th><kbd>Alt</kbd>+<kbd>M</kbd></th><td>Toggle mark on current question.</td></tr></table>" class="col-auto animated">
+             <div id="keyboard-hint" data-toggle="tooltip" data-html="true" data-title="<h5>Keyboard shortcuts</h5><p><strong>Hint: </strong>  In Fudul, you can go through a whole exam without touching the mouse!  Here is how:</p><table id='keyboard-instructions'><tr><th><kbd>→</kbd></th><td>Go to next question.</td></tr><tr><th><kbd>←</kbd></th><td>Go to previous question.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>↑</kbd></th><td>Select previous choice.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>↓</kbd></th><td>Select next choice.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>Enter</kbd></th><td>Submit answer to current question.</td></tr><tr><th><kbd>Alt</kbd>+<kbd>M</kbd></th><td>Toggle mark on current question.</td></tr>{% if session.is_examinable %}<tr><th><kbd>Alt</kbd>+<kbd>U</kbd></th><td>Find an unsolved question in this session.</td></tr>{% endif %}</table>" class="col-auto animated">
                  <i data-toggle class="fas fa-keyboard ml-2"></i>
              </div>
 
@@ -429,12 +430,14 @@
     </div><!--container-fluid-->
         <script src="{% static 'js/toastr.js' %}"></script>
         <script>
-    SOLVED_QUESTIONS = {{ solved_questions_list }};
     MARKED_QUESTIONS = {{ marked_questions_list }};
     INITIAL_QUESTIONS = [];
+    PREVIOUS_ANSWERS = null;
+    PREVIOUS_HIGHLIGHTS = null;
     toastr.options.positionClass = "toast-top-left";
     toastr.options.preventDuplicates = true;
     active_keys = {};
+    animation_events = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
     was_solved_markup = '<i class="far fa-check-square"></i>';
     is_marked_markup = '<i class="fas fa-flag"></i>';
     wrong_answer_markup = '<i class="fas fa-times text-danger mx-1"></i>'
@@ -486,7 +489,6 @@
     function navigate() {
         action = $(this).data('action');
 
-        animation_events = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
         // If no previous or no next, just return
         if (current_sequence == 1 && action == 'previous'){
           $("#question-sequence").addClass("animated flash").css('color', 'yellow');
@@ -577,7 +579,7 @@
         var selection = window.getSelection().toString();
         if (selection.length >= 3) {
             var escapedSelection = $("<div>").text(selection).html();
-            var replacement = $('<span></span>').addClass('active highlight').html(selection);
+            var replacement = $('<span></span>').addClass('highlight').html(selection);
             var replacementHtml = replacement.prop('outerHTML');
             $(this).html($(this).html().replace(escapedSelection, replacementHtml));
             // Bind only once
@@ -814,7 +816,7 @@
         if (was_solved){
           $("#contribute,#add-mnemonics").show();
           $("#submit").hide();
-          $question.find(".highlight").removeClass('active').off('click');
+          $question.off('click', '.highlight')
           $question.find(".question-choice").prop("disabled", "disabled");
         } else {
             $("#contribute,#add-mnemonics").hide();
@@ -824,7 +826,10 @@
             // binds the handlers.
             $question.find(".question-text").off('mouseup touchend').on('mouseup touchend', highlightText);
             $question.find(".question-choice").off('change').on('change', toggleChoices);
-            $question.find(".highlight").addClass('active').off('click').on('click', removeHighlight);
+            // We use event delegation as highlights could be added
+            // after firing initializeInteractions.
+            $question.off('click', '.highlight')
+                     .on('click', '.highlight', removeHighlight);
             $(".question-body.show .choice-text").off('click').on('click', function() {
                 if (!$(this).hasClass("strike")){
                    // If a choice is striked, it is no longer checked.
@@ -866,9 +871,12 @@
 
         // Disable choices upon submission
         $question.find(".question-choice").prop("disabled", "disabled")
-        // Disable interactions after submission
-        $question.find(".highlight").removeClass("active");
-        $question.find(".question-text, .question-choice, .choice-text, .highlight").off();
+        // Disable interactions after submission.  As for highlights,
+        // we use event delegation to handle potential addition of
+        // highlights afterwards (i.e. as a result of delayed
+        // network).
+        $question.off('click', '.highlight')
+        $question.find(".question-text, .question-choice, .choice-text").off();
 
         $checkedChoice = $question.find(".question-choice:checked");
 
@@ -945,6 +953,17 @@
         } else if (active_keys[18] && active_keys[77]) { // alt + m
           _paq.push(['trackEvent', 'show_session', 'mark-question', 'keyboard-mark']);
           $('#mark').trigger('click');
+        } else if (active_keys[18] && active_keys[85]) { // alt + u
+          _paq.push(['trackEvent', 'show_session', 'find-pending', 'keyboard-pending']);
+          if (session_mode == 'SOLVED' || session_mode == 'INCOMPLETE'){
+            return
+          }
+          question_sequence = $('.question-body[data-was-solved=false]').data('question-sequence');
+          if (question_sequence){
+            showQuestion(question_sequence);
+          } else {
+            toastr.success("Yay!  No pending in this session.");
+          }
         } else if (active_keys[17] && active_keys[13]) { // ctrl + enter
           _paq.push(['trackEvent', 'show_session', 'mark-question', 'keyboard-submit']);
           $("#submit").trigger('click');
@@ -1023,6 +1042,50 @@
       }
     }
 
+    function fetchAnswers(){
+      $.ajax({method: 'get',
+              url: "{% url 'answer-list' %}",
+              data: {format: 'json',
+                     session_pk: {{ session.pk }} },
+              success: function(data){
+                  PREVIOUS_ANSWERS = {};
+                  data.map(function(item){
+                    PREVIOUS_ANSWERS[item.question_id] = item.choice_id;
+                  });
+
+                  // We cacn only prepare questions after we get
+                  // PREVIOUS_ANSWERS, so let's do it now!
+                  prepareQuestions($('.question-body'));
+                  // Some interactions depend on whether the question
+                  // was solved or not.  That's why we only
+                  // initialize interactions after we have prepared
+                  // the questions.
+                  initializeInteractions();
+              }
+      });
+    }
+
+    function fetchHighlights(){
+      $.ajax({method: 'get',
+              url: "{% url 'highlight-list' %}",
+              data: {format: 'json',
+                     session_pk: {{ session.pk }} },
+              success: function(data){
+                  PREVIOUS_HIGHLIGHTS = {};
+                  data.map(function(item){
+                    PREVIOUS_HIGHLIGHTS[item.revision.question_id] = {revision_id: item.revision.id,
+                                                             highlighted_text: item.highlighted_text,
+                                                             stricken_choices: item.stricken_choices};
+                  });
+
+                  $('.question-body').each(function(){
+                    $question = $(this);
+                    prepareHighlights($question);
+                  });
+              }
+      });
+    }
+
     function fetchList(since_pk){
       $.ajax({method: 'get',
               url: "{% url 'exams:list_partial_session_questions' category_slugs session.exam.pk session.pk %}",
@@ -1061,9 +1124,63 @@
       });
     }
 
-    function shuffleChoices($choices) {
+    function prepareHighlights($question) {
+      // If we do not have the PREVIOUS_HIGHLIGHTS yet, we cannot
+      // prepare the highlights.
+      if (PREVIOUS_HIGHLIGHTS === null){
+        return
+      }
+
+      question_pk = $question.data('question-pk')
+      highlight = PREVIOUS_HIGHLIGHTS[question_pk];
+      if (highlight !== undefined){
+        best_latest_revision_pk = $question.data('best-latest-revision-pk');
+        if (best_latest_revision_pk == highlight.revision_id){
+          // If the highlighted question text is not empty, include
+          // it.
+          if (highlight.highlighted_text){
+            $question.find('.question-text').html(highlight.highlighted_text);
+          }
+          $.each(highlight.stricken_choices, function(index){
+            choice_pk = highlight.stricken_choices[index]
+            $question.find('tr[data-choice-pk=' + choice_pk + '] .choice-text').addClass('strike');
+          });
+        }
+      }
+    }
+
+    function prepareChoices($question) {
+      // This shuffle choices and checked the previously selected
+      // choice and randomizes choice rows.
+
+      // If we do not have the PREVIOUS_ANSWERS yet, we cannot
+      // prepare the choices.
+      if (PREVIOUS_ANSWERS === null){
+        return
+      }
+
+      // First: Tag the previously selected choice:
+      question_pk = $question.data('question-pk')
+      choice_pk = PREVIOUS_ANSWERS[question_pk];
+      if (choice_pk !== undefined){
+        $question.data('was-solved', true).attr('data-was-solved', 'true')
+        $question.find('.question-choice').attr('disabled', true)
+
+        // If question was not skipped (not null)
+        if (choice_pk){
+          $checkbox = $question.find('tr[data-choice-pk=' + choice_pk + '] input[type="checkbox"]');
+          $checkbox.prop('checked', true)
+        }
+      } else {
+        $question.data('was-solved', false).attr('data-was-solved', 'false')
+      }
+
+      // Second: randomizes choice rows
+      $tbody = $question.find('.choice-table tbody')
+      $choice_rows = $tbody.find('tr');
+      $choice_rows.detach()
       // Based on https://stackoverflow.com/a/2450976
-      var currentIndex = $choices.length, temporaryValue, randomIndex;
+      var currentIndex = $choice_rows.length, temporaryValue, randomIndex;
 
       // While there remain elements to shuffle...
       while (0 !== currentIndex) {
@@ -1073,32 +1190,31 @@
         currentIndex -= 1;
 
         // And swap it with the current element.
-        temporaryValue = $choices[currentIndex];
-        $choices[currentIndex] = $choices[randomIndex];
-        $choices[randomIndex] = temporaryValue;
+        temporaryValue = $choice_rows[currentIndex];
+        $choice_rows[currentIndex] = $choice_rows[randomIndex];
+        $choice_rows[randomIndex] = temporaryValue;
       }
 
-      return $choices;
+      $tbody.append($choice_rows)
+      // We use the 'unrandomized' class to hide the choices until
+      // they are randomized to avoid confusing layout changes
+      $tbody.removeClass('unprepared')
+
     }
+
 
     // Client-side work-up
     function prepareQuestions($questions){
       $questions.each(function(){
         $question = $(this);
-        $tbody = $question.find('.choice-table tbody')
-        $choice_rows = $tbody.find('tr');
-        $choice_rows.detach()
-        shuffleChoices($choice_rows)
-        $tbody.append($choice_rows)
-        // Using the 'unrandomized' class, we hide the choices until
-        // they are randomized to avoid confusing layout changes
-        $tbody.removeClass('unrandomized')
         question_pk = $question.data('question-pk')
-        if (session_mode == 'SOLVED' || session_mode == 'INCOMPLETE' || SOLVED_QUESTIONS.indexOf(question_pk) != -1){
+
+        prepareChoices($question);
+        prepareHighlights($question);
+
+        if (session_mode == 'SOLVED' || session_mode == 'INCOMPLETE'){
           $question.data('was-solved', true).attr('data-was-solved', 'true')
           $question.find('.question-choice').attr('disabled', true)
-        } else {
-          $question.data('was-solved', false).attr('data-was-solved', 'false')
         }
 
         if (MARKED_QUESTIONS.indexOf(question_pk) != -1){
@@ -1107,6 +1223,12 @@
           $question.data('is-marked', false).attr('data-is-marked', 'false')
         }
       });
+
+      $question_pool = $('#question-pool')
+      if (!$question_pool.hasClass('choices-were-animated')){
+        $question_pool.addClass('choices-were-animated')
+        $('.question-body.show tbody').addClass('animated fadeIn').one(animation_events, function(){$(this).removeClass()});
+      }
     }
 
     // Show mobile sliders in tablets
@@ -1128,11 +1250,8 @@
         total = $("#question-total").html();
         session_mode = $('body').data('session-mode');
 
-        prepareQuestions($('.question-body'));
-
         initializeKeyboard();
         updateData();
-        initializeInteractions();
 
         // Depending on user agent, we control tooltip initalization.
         // Note that this must NOT be overridden anywhere in the
@@ -1163,6 +1282,8 @@
            INITIAL_QUESTIONS.push(pk);
          });
 
+         fetchAnswers();
+         fetchHighlights();
          fetchList();
          updateSizes();
          $(window).resize(updateSizes);

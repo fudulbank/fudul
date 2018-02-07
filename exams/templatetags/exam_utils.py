@@ -6,16 +6,6 @@ from django.template.defaultfilters import linebreaksbr
 register = template.Library()
 
 @register.filter
-def was_chosen(choice, session):
-    return choice.answer_set.filter(session=session).exists()
-
-@register.filter
-def get_relevant_highlight(revision, session):
-    if not session:
-        return None    
-    return revision.get_relevant_highlight(session)
-
-@register.filter
 def has_changed_choices(revision, previous_revision):
     previous_choice_texts = previous_revision.choice_set\
                                              .values_list('text')
@@ -40,29 +30,6 @@ def get_choice_pairs(revision, previous_revision):
             previous_choice_text = previous_choice.text
         yield new_choice.text, previous_choice_text, new_choice.is_right
         index += 1
-
-@register.simple_tag
-def get_question_text(highlight, revision, session):
-    if highlight and \
-       highlight.revision.text == revision.text and \
-       highlight.highlighted_text:
-        text = highlight.highlighted_text
-    else:
-        text = revision.text
-
-    line_broken = linebreaksbr(text, autoescape=False)
-
-    return line_broken
-
-@register.simple_tag
-def stricken_choice_class(choice, highlight, session):
-    """Returs 'strike' or an empty string depending on whether the choice
-       was previously stricken"""
-    if highlight and \
-       highlight.stricken_choices.filter(text=choice.text).exists():
-            return 'strike'
-    else:
-        return ''
 
 @register.filter
 def get_question_sequence(question, session):
