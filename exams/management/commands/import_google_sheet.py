@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from exams import models
+from exams.models import *
 from string import ascii_uppercase
 import csv
 
@@ -7,25 +7,45 @@ import csv
 class Command(BaseCommand):
     help = "Update a global sequence that makes it easy to account for question trees."
     def add_arguments(self, parser):
-        parser.add_argument('--csv-path', dest='csv_path',
+        parser.add_argument('--csv-path',
                             type=str)
-        parser.add_argument('--exam-pk', dest='exam_pk',
+        parser.add_argument('--default-source-name',
+                            type=str, default="Unclassified")
+        parser.add_argument('--exam-pk',
                             type=str)
-        parser.add_argument('--sequence', dest='sequence',
+        parser.add_argument('--skip-until',
                             type=int, default=None)
         parser.add_argument('--disapproved', dest='is_disapproved',
                             action='store_true', default=False)
+        parser.add_argument('--dry', action='store_true',
+                            default=False)
 
     def handle(self, *args, **options):
         csv_file = open(options['csv_path'])
         csv_reader = csv.reader(csv_file)
-        exam = models.Exam.objects.get(pk=options['exam_pk'])
+        exam = Exam.objects.get(pk=options['exam_pk'])
         subject_pool = exam.subject_set.all()
         exam_type_pool = exam.exam_types.all()
         final_exam_type = exam_type_pool.get(name="Final")
         source_pool = exam.get_sources()
-        issue_pool = models.Issue.objects.all()
-        unclassified_source = source_pool.get(name="Unclassified")
+        issue_pool = Issue.objects.all()
+        unclassified_source = source_pool.get(name=options['default_source_name'])
+
+        # ROW DISTRIBUTION
+        COL_SEQUENCE = 0
+        COL_TEXT = 1
+        COL_CHOICE_START = 2
+        COL_CHOICE_END = 6
+        COL_ANSWER = 7
+        COL_SUBJECT_START = 8
+        COL_SUBJECT_END = 11
+        COL_SOURCE = 12
+        COL_EXAM_TYPE = 13
+        COL_ISSUE_START = 14
+        COL_ISSUE_END = 15
+        COL_PARENT_QUESTION = 16
+        COL_EXPLANATION = 17
+        COL_REFERENCE = 18
 
         # The latest question imported is initially None.
         question = None
@@ -37,21 +57,21 @@ class Command(BaseCommand):
             # We will only mark imported revision as a apporved if a
             # right answer was specified.
             is_approved = False
-            sequence = int(row[0])
+            sequence = int(row[COL_SEQUENCE])
             print("Handling %d..." % sequence)
-            if options['sequence'] and \
-               options['sequence'] > sequence:
+            if options['skip_until'] and \
+               options['skip_until'] > sequence:
                 continue
-            text = row[1].strip()
+            text = row[COL_TEXT].strip()
             if not text:
                 continue
-            choices = [models.Choice(text=choice.strip()) for choice in row[2:7] if choice.strip()]
+            choices = [Choice(text=choice.strip()) for choice in row[COL_CHOICE_START:COL_CHOICE_END + 1] if choice.strip()]
 
             # Check if the right answer column is filled
             if row[7]:
                 try:
-                    answer_index = ascii_uppercase.index(row[7])
-                    print("Right answer is %s (%s)"  % (row[7], choices[answer_index].text))
+                    answer_index = ascii_uppercase.index(row[COL_ANSWER])
+                    print("Right answer is %s (%s)"  % (row[COL_ANSWER], choices[answer_index].text))
                     choices[answer_index].is_right = True
                     if not options['is_disapproved']:
                         is_approved = True
@@ -67,18 +87,18 @@ class Command(BaseCommand):
             # weird way for fetching objects to optimize the code and
             # avoid insane number of database hits.
 
-            subject_entries = [entry.strip().lower() for entry in row[8:12] if entry.strip()]
+            subject_entries = [entry.strip().lower() for entry in row[COL_SUBJECT_START:COL_SUBJECT_END + 1] if entry.strip()]
             print("Subjects:", ",".join(subject_entries))
             subjects = [subject for subject in subject_pool if subject.name.lower() in subject_entries]
 
-            source_entry = row[12].strip().lower()
+            source_entry = row[COL_SOURCE].strip().lower()
             print("Source:", source_entry)
             if source_entry:
                 source = [source for source in source_pool if source.name.lower() == source_entry][0]
             else:
                 source = unclassified_source
 
-            exam_type_entry = row[13].strip().lower()
+            exam_type_entry = row[COL_EXAM_TYPE].strip().lower()
             print("Exam type:", exam_type_entry)
             if exam_type_entry:
                 exam_type = [exam_type for exam_type in exam_type_pool if exam_type.name.lower() == exam_type_entry][0]
@@ -88,39 +108,53 @@ class Command(BaseCommand):
                 # here.
                 exam_type = final_exam_type
 
-            issue_entries = [entry.strip() for entry in row[14:16] if entry.strip()]
+            issue_entries = [entry.strip() for entry in row[COL_ISSUE_START:COL_ISSUE_END + 1] if entry.strip()]
             print("Issues:", ",".join(issue_entries))
             issues = [issue for issue in issue_pool if issue.name in issue_entries]
 
             # If parent_question is specified, it is VERY LIKELY to be
             # the latest imported revision
 
-            parent_question_pk = row[16] or None
+            parent_question_pk = row[COL_PARENT_QUESTION] or None
             if parent_question_pk:
                 parent_question = question
             else:
                 parent_question = None
 
             try:
-                reference = row[17]
+                explanation = row[COL_EXPLANATION]
+            except IndexError:
+                # Not all Google Sheets have explanations
+                explanation = ""
+
+            try:
+                reference = row[COL_REFERENCE]
             except IndexError:
                 # Not all Google Sheets have references
                 reference = ""
 
-            question = models.Question.objects.create(exam=exam,
-                                                      parent_question=parent_question)
-            question.subjects.add(*subjects)
-            question.exam_types.add(exam_type)
-            question.sources.add(source)
-            question.issues.add(*issues)
-            revision = models.Revision.objects.create(question=question,
-                                                      text=text,
-                                                      reference=reference,
-                                                      change_summary="Imported from Google Sheets",
-                                                      is_approved=is_approved,
-                                                      is_first=True,
-                                                      is_last=True)
-            for choice in choices:
-                choice.revision = revision
+            if not options['dry']:
+                question = Question.objects.create(exam=exam,
+                                                          parent_question=parent_question)
+                question.subjects.add(*subjects)
+                question.exam_types.add(exam_type)
+                question.sources.add(source)
+                question.issues.add(*issues)
 
-            models.Choice.objects.bulk_create(choices)
+                revision = Revision.objects.create(question=question,
+                                                   text=text,
+                                                   change_summary="Imported from Google Sheets",
+                                                   is_approved=is_approved,
+                                                   is_first=True,
+                                                   is_last=True)
+                if explanation:
+                    ExplanationRevision.objects.create(question=question,
+                                                       is_first=True,
+                                                       is_last=True,
+                                                       reference=reference,
+                                                       explanation_text=explanation_text)
+
+                for choice in choices:
+                    choice.revision = revision
+
+                Choice.objects.bulk_create(choices)
