@@ -1108,7 +1108,7 @@
 
       // First: Tag the previously selected choice:
       question_pk = $question.data('question-pk')
-      if (PREVIOUS_ANSWERS[question_pk] != undefined){
+      if (PREVIOUS_ANSWERS[question_pk] !== undefined){
         $question.data('was-solved', true).attr('data-was-solved', 'true')
         $question.find('.question-choice').attr('disabled', true)
 
