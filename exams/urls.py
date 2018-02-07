@@ -1,7 +1,7 @@
 from django.conf.urls import url
-from . import views
 from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
+from . import views
 
 urlpatterns =[
     url(r'^$', views.list_meta_categories, name='list_meta_categories'),
@@ -52,7 +52,7 @@ urlpatterns =[
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/questions/(?P<pk>\d+)/$', views.list_revisions, name='list_revisions'),
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/questions/(?P<pk>\d+)/edit/$', views.submit_revision,name='submit_revision'),
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/session/(?P<session_pk>\d+)/(?:(?P<question_pk>\d+)/)?$', views.show_session, name='show_session'),
-    url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/session/(?P<session_pk>\d+)/list$', views.list_partial_session_questions, name='list_partial_session_questions'),
+    url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/session/partial_questions$', views.list_partial_session_questions, name='list_partial_session_questions'),
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/session/(?P<session_pk>\d+)/results/$', views.show_session_results, name='show_session_results'),
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/contributions/$',views.approve_user_contributions, name='approve_user_contributions'),
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/$', views.create_session, name='create_session'),

@@ -37,19 +37,19 @@
       background-color: #404E67;
     }
 
-    .question-body .check [data-fa-i2svg],
-    .question-body .correct [data-fa-i2svg]{
+    .question-body .check svg,
+    .question-body .correct svg{
       visibility: hidden;
     }
 
-    body[data-session-mode="SOLVED"] .check [data-fa-i2svg],
-    body[data-session-mode="SOLVED"] .correct [data-fa-i2svg],
-    body[data-session-mode="INCOMPLETE"] .check [data-fa-i2svg],
-    body[data-session-mode="INCOMPLETE"] .correct [data-fa-i2svg],
-    body:not([data-session-mode="UNEXPLAINED"]) .question-body[data-was-solved="true"] .check [data-fa-i2svg],
-    body:not([data-session-mode="UNEXPLAINED"]) .question-body[data-was-solved="true"] .correct [data-fa-i2svg],
-    body[data-session-mode="UNEXPLAINED"][data-has-finished="true"] .question-body[data-was-solved="true"] .check [data-fa-i2svg],
-    body[data-session-mode="UNEXPLAINED"][data-has-finished="true"] .question-body[data-was-solved="true"] .correct [data-fa-i2svg]{
+    body[data-session-mode="SOLVED"] .check svg,
+    body[data-session-mode="SOLVED"] [data-has-correction="false"]:not([data-is-right="true"]) .correct svg,
+    body[data-session-mode="INCOMPLETE"] .check svg,
+    body[data-session-mode="INCOMPLETE"] [data-has-correction="false"]:not([data-is-right="true"]) .correct svg,
+    body:not([data-session-mode="UNEXPLAINED"]) .question-body[data-was-solved="true"] .check svg,
+    body:not([data-session-mode="UNEXPLAINED"]) .question-body[data-was-solved="true"] [data-has-correction="false"]:not([data-is-right="true"]) .correct svg,
+    body[data-session-mode="UNEXPLAINED"][data-has-finished="true"] .question-body[data-was-solved="true"] .check svg,
+    body[data-session-mode="UNEXPLAINED"][data-has-finished="true"] .question-body[data-was-solved="true"] [data-has-correction="false"]:not([data-is-right="true"]) .correct svg{
       visibility: visible !important;
     }
 
@@ -354,7 +354,7 @@
                 <h2 class="brand-text">Fudul</h2></a>
             </div>
             <div class="ml-auto col-sm-6 text-center"> <a target="_blank" href="{% url 'exams:create_session' category_slugs session.exam.pk %}">{{ session.exam.name }}</a> <span class="separator">•</span> Session id: <span id="session-pk">{{ session.pk }}</span> <span class="d-none d-sm-inline">({{ session.get_session_mode_display }})</span><br> Question id: <a target="_blank" href="{% url 'exams:list_revisions' category_slugs session.exam.pk current_question.pk %}" id="question-pk">{{ current_question.pk }}</a> </div>
-            <div class="col-sm-3 top-question-id font-weight-bold text-sm-right text-center my-2 mb-sm-0"><i class="fas fa-spinner fa-pulse fa-fw mr-1" id="question-loading" title="Loading session questions..."></i><div id="question-sequence">{{ current_question_sequence }}</div> of <div id="question-total">{{ session.get_questions.count }}</div></div>
+            <div class="col-sm-3 top-question-id font-weight-bold text-sm-right text-center my-2 mb-sm-0"><i class="fas fa-spinner fa-pulse fa-fw mr-1" id="question-loading" title="Loading session questions..."></i><div id="question-sequence">{{ current_question_sequence }}</div> of <div id="question-total"></div></div>
         </div><!--top-info-->
         <div id="top-options" class="row text-center">
           <div class="col-6 text-sm-left">
@@ -429,11 +429,19 @@
       </div><!--footer-->
     </div><!--container-fluid-->
         <script src="{% static 'js/toastr.js' %}"></script>
+        <script src="{% url 'js_reverse' %}"></script>
         <script>
-    MARKED_QUESTIONS = {{ marked_questions_list }};
+
+    MARKED_QUESTIONS = {{ marked_question_pks }};
+    SESSION_QUESTIONS = {{ session_question_pks }};
+    CATEGORY_SLUGS = '{{ category_slugs }}';
+    EXAM_PK = {{ session.exam.pk }};
+    SESSION_PK = {{ session.pk }};
+    SESSION_QUESTIONS.sort();
     INITIAL_QUESTIONS = [];
     PREVIOUS_ANSWERS = null;
     PREVIOUS_HIGHLIGHTS = null;
+    fetch_list_index = 0;
     toastr.options.positionClass = "toast-top-left";
     toastr.options.preventDuplicates = true;
     active_keys = {};
@@ -659,6 +667,7 @@
         url = "{% url 'exams:delete_correction' %}?" + $.param({choice_pk: choice_pk})
         pk_selector = "[data-choice-pk=" + choice_pk + "]";
         $choice_row = $(".question-body tr" + pk_selector);
+        $choice_row.data('has-correction', false).attr('data-has-correction', 'false');
         $(this).tooltip('hide');
         $choice_row.find('.answer-correction-notification').tooltip('dispose');
 
@@ -1026,7 +1035,7 @@
          }, 500);
       });
 
-      for (var i = 1; i <= {{ session.get_questions.count }}; i++) {
+      for (var i = 1; i <= SESSION_QUESTIONS.length; i++) {
          $('.question-body[data-question-sequence="' + i.toString() + '"]')
          $question = $('.question-body[data-question-sequence="' + i.toString() + '"]')
          question_pk = $question.data('question-pk');
@@ -1086,16 +1095,24 @@
       });
     }
 
-    function fetchList(since_pk){
+    function fetchList(fetch_list_index){
+      current_targets = SESSION_QUESTIONS.slice(fetch_list_index, fetch_list_index + 50).join(',');
+      if (!current_targets.length){
+        $("#question-loading").hide();
+        constructNavigationTable();
+        highlightActiveRow();
+        $("#open-navigation").tooltip('dispose');
+        return
+      }
       $.ajax({method: 'get',
-              url: "{% url 'exams:list_partial_session_questions' category_slugs session.exam.pk session.pk %}",
-              data: {since_pk: since_pk},
+              url: "{% url 'exams:list_partial_session_questions' category_slugs session.exam.pk %}",
+              data: {pks: current_targets},
               success: function(data){
                 $questions = $(data.html);
 
                 // assign question sequence on front-end. make sure
                 // this does not conflict with initial questions.
-                sequence = data.start_sequence;
+                sequence = fetch_list_index + 1;
                 prepareQuestions($questions);
                 $questions.each(function(){
                   $this = $(this);
@@ -1103,23 +1120,17 @@
 
                   if (INITIAL_QUESTIONS.indexOf(question_pk) != -1){
                     $questions.find('[data-question-pk=' +  question_pk + ']').remove()
+                    $final_question = $('.question-body[data-question-pk=' +  question_pk + ']');
                   } else {
-                    $this.attr('data-question-sequence', sequence)
+                    $final_question = $this
                   }
+                  $final_question.data('question-sequence', sequence).attr('data-question-sequence', sequence)
                   sequence++;
                 });
 
                 $("#question-pool").append($questions);
-                last_pk = $questions.filter(":last").data('question-pk')
-                if (last_pk && !data.done){
-                  fetchList(last_pk);
-                } else if (data.done){
-                  // hide the loading image.
-                  $("#question-loading").hide();
-                  constructNavigationTable();
-                  highlightActiveRow();
-                  $("#open-navigation").tooltip('dispose');
-                }
+                fetch_list_index += 50;
+                fetchList(fetch_list_index);
               }
       });
     }
@@ -1212,6 +1223,12 @@
         prepareChoices($question);
         prepareHighlights($question);
 
+        // Add url data tags
+        list_revision_url = Urls['exams:list_revisions'](CATEGORY_SLUGS, EXAM_PK, question_pk);
+        question_url = Urls['exams:show_session'](CATEGORY_SLUGS, EXAM_PK, SESSION_PK, question_pk);
+        $question.data('list-revision-url', list_revision_url).attr('data-list-revision-url', list_revision_url);
+        $question.data('url', question_url).attr('data-url', question_url);
+
         if (session_mode == 'SOLVED' || session_mode == 'INCOMPLETE'){
           $question.data('was-solved', true).attr('data-was-solved', 'true')
           $question.find('.question-choice').attr('disabled', true)
@@ -1247,7 +1264,8 @@
         history.replaceState({url: $initial_question.data('url')}, '', $initial_question.data('url'));
 
         // variables used by many functions
-        total = $("#question-total").html();
+        total = SESSION_QUESTIONS.length;
+        $("#question-total").html(total);
         session_mode = $('body').data('session-mode');
 
         initializeKeyboard();
@@ -1284,7 +1302,8 @@
 
          fetchAnswers();
          fetchHighlights();
-         fetchList();
+         SESSION_QUESTIONS.sort();
+         fetchList(fetch_list_index);
          updateSizes();
          $(window).resize(updateSizes);
 

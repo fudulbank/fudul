@@ -496,50 +496,24 @@ def create_session_automatically(request, slugs, exam_pk):
 
 @login_required
 @require_safe
+@permission_required('exams.access_exam', fn=objectgetter(Exam, 'exam_pk'), raise_exception=True)
+@cache_page(60 * 60 * 24 * 3) # 3 days
 @decorators.ajax_only
-@permission_required('exams.access_session', fn=objectgetter(Session, 'session_pk'), raise_exception=True)
-def list_partial_session_questions(request, slugs, exam_pk, session_pk):
-    session = get_object_or_404(Session.objects.select_related('exam',
-                                                               'exam__category')\
-                                               .undeleted(),
-                                pk=session_pk)
+def list_partial_session_questions(request, slugs, exam_pk):
+    try:
+        pks = [int(pk) for pk in request.GET.get('pks').split(',')]
+        if not pks:
+            raise TypeError
+    except TypeError:
+        return HttpResponseBadRequest('No valid "pks" parameter was provided')
 
-    questions = session.get_questions().order_global_sequence()
-
-    # It would be more logical to use 'global_sequence' since it's the
-    # one that's actually used in ordering, but pk is the one rendered
-    # by session_question.html and thus accessible via the JavaScript,
-    # and it functions just as well!
-    since_pk = request.GET.get('since_pk')
-    if since_pk:
-        questions = questions.filter(pk__gt=since_pk)
-
-    count = request.GET.get('count') or 100
-    questions = questions[:count]
-
-    first_question = questions.first()
-    if first_question:
-        start_sequence = session.get_question_sequence(first_question)
-    else:
-        start_sequence = None
-
+    questions = Question.objects.filter(exam__pk=exam_pk, pk__in=pks)
     template = get_template("exams/partials/partial_session_question_list.html")
-    context = {'session': session,
-               'questions': questions,
-               'category_slugs': slugs,
-               'user': request.user}
+    context = {'questions': questions, 'user': request.user}
     html = template.render(context)
     minified_html = html_minify(html)
 
-    if count  > questions.count():
-        done = True
-    else:
-        done = False
-
-    return {'html': minified_html,
-            'start_sequence': start_sequence,
-            'done': done}
-
+    return {'html': minified_html}
 
 @login_required
 @require_safe
@@ -554,9 +528,10 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
 
     current_question = session.get_current_question(question_pk)
     current_question_sequence = session.get_question_sequence(current_question)
+    session_question_pks = str(list(session.get_questions().values_list('pk', flat=True)))
 
     marked_questions = Question.objects.filter(marking_users=request.user).distinct().values_list('pk', flat=True)
-    marked_questions_list = str(list(marked_questions))
+    marked_question_pks = str(list(marked_questions))
 
     # We need 10 initial questions (idealy: five before and 10 after)
     if current_question_sequence >= 5:
@@ -575,7 +550,8 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
                'category_slugs': slugs,
                'current_question': current_question,
                'current_question_sequence': current_question_sequence,
-               'marked_questions_list': marked_questions_list}
+               'session_question_pks': session_question_pks,
+               'marked_question_pks': marked_question_pks}
 
     return render(request, "exams/show_session.html", context)
 

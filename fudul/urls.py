@@ -2,9 +2,13 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.decorators.cache import cache_page
+from django_js_reverse.views import urls_js
+from rest_framework import routers
+
 from exams.admin import editor_site
 from exams.api import HighlightViewSet, AnswerViewSet
-from rest_framework import routers
+
 
 router = routers.DefaultRouter()
 router.register(r'answers', AnswerViewSet, base_name="answer")
@@ -22,6 +26,7 @@ urlpatterns = [
     url(r'', include('core.urls')),
     url(r'^ckeditor/', include('ckeditor_uploader.urls')),
     url(r'^notifications/', include('notifications.urls', namespace='notifications')),
+    url(r'^jsreverse/$', cache_page(60 * 60 * 24 * 7)(urls_js), name='js_reverse'),
 ]
 
 if settings.DEBUG:
