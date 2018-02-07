@@ -1108,13 +1108,16 @@
 
       // First: Tag the previously selected choice:
       question_pk = $question.data('question-pk')
-      if (PREVIOUS_ANSWERS[question_pk] !== undefined){
+      if (PREVIOUS_ANSWERS[question_pk] != undefined){
         $question.data('was-solved', true).attr('data-was-solved', 'true')
         $question.find('.question-choice').attr('disabled', true)
 
         choice_pk = PREVIOUS_ANSWERS[question_pk];
-        $checkbox = $question.find('tr[data-choice-pk=' + choice_pk + '] input[type="checkbox"]');
-        $checkbox.prop('checked', true)
+        // If question was not skipped
+        if (choice_pk){
+          $checkbox = $question.find('tr[data-choice-pk=' + choice_pk + '] input[type="checkbox"]');
+          $checkbox.prop('checked', true)
+        }
       } else {
         $question.data('was-solved', false).attr('data-was-solved', 'false')
       }

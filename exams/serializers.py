@@ -19,7 +19,7 @@ class HasSessionAccess(permissions.BasePermission):
         if request.user.is_superuser:
             return True
         else:
-            session = get_object_or_404(Session, session_pk)
+            session = get_object_or_404(Session, pk=session_pk)
             return session.submitter == request.user
 
 # ViewSets define the view behavior.
