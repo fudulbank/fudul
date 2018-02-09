@@ -504,7 +504,7 @@
         return
       }
 
-      $.ajax({url: '{% url "exams:count_correct_percentage" %}',
+      $.ajax({url: '{% url "exams:get_correct_percentage" %}',
               success: function(data){
                 if (data.correct_percentage >= 75) {
                   bar_class = 'bg-success';

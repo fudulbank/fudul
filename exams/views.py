@@ -1212,12 +1212,13 @@ def count_answers(request):
 @csrf.csrf_exempt
 @require_safe
 @decorators.ajax_only
-def count_correct_percentage(request):
-    recent_answers = Answer.objects.filter(choice__isnull=False,
-                                           )\
-                                   .order_by('-submission_date')[:200]
-    first_answer = recent_answers.last()
-    correct_count = Answer.objects.filter(submission_date__gte=first_answer.submission_date,
+def get_correct_percentage(request):
+    try:
+        recent_answer = Answer.objects.filter(choice__isnull=False)\
+                                      .order_by('-submission_date')[199]
+    except IndexError:
+        recent_answer = Answer.objects.first()
+    correct_count = Answer.objects.filter(submission_date__gte=recent_answer.submission_date,
                                           choice__isnull=False,
                                           choice__is_right=True).count()
 
