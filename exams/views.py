@@ -1,4 +1,5 @@
 from dal import autocomplete
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
@@ -499,7 +500,7 @@ def create_session_automatically(request, slugs, exam_pk):
 @login_required
 @require_safe
 @permission_required('exams.access_exam', fn=objectgetter(Exam, 'exam_pk'), raise_exception=True)
-@cache_page(60 * 60 * 12) # 12 hours
+@cache_page(settings.CACHE_PERIODS['EXPENSIVE_UNCHANGEABLE']) # 12 hours
 @decorators.ajax_only
 def list_partial_session_questions(request, slugs, exam_pk):
     try:
@@ -561,7 +562,7 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
 @require_safe
 @login_required
 @permission_required('exams.access_session', fn=objectgetter(Session, 'session_pk'), raise_exception=True)
-@cache_page(60 * 60 * 24 * 3) # 3 days
+@cache_page(settings.CACHE_PERIODS['STABLE']) # 3 days
 def show_session_results(request, slugs, exam_pk, session_pk):
     category = Category.objects.get_from_slugs_or_404(slugs)
 

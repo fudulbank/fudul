@@ -41,7 +41,7 @@ def show_index(request):
         return render(request, 'index.html', context)
 
     else:
-        return cache_page(60 * 60 * 3)(show_index_unauthenticated)(request)
+        return cache_page(settings.CACHE_PERIODS['EXPENSIVE_CHANGEABLE'])(show_index_unauthenticated)(request)
 
 def show_index_unauthenticated(request):
     question_count = Question.objects.undeleted().count()
@@ -60,7 +60,7 @@ def show_index_unauthenticated(request):
                                           .distinct()\
                                           .order_by('?')\
                                           .first()
-        cache.set('sample_question', sample_question, 60 * 60 * 12)
+        cache.set('sample_question', sample_question, settings.CACHE_PERIODS['EXPENSIVE_UNCHANGEABLE'])
 
     # For development environment
     if not sample_question:
@@ -179,7 +179,7 @@ def get_privileged_file(request, path):
 
 @login_required
 @require_safe
-@cache_page(60 * 60 * 24) # One day
+@cache_page(settings.CACHE_PERIODS['STABLE'])
 def show_about(request):
     team = CoreMember.objects.order_by('?')
 
