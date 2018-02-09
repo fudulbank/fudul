@@ -73,18 +73,34 @@ class QuestionQuerySet(models.QuerySet):
                    .distinct()
 
     def approved(self):
-        incomplete = self.incomplete().values_list('pk')
         return self.undeleted()\
+                   .without_blocking_issues()\
+                   .has_examinable_choices()\
+                   .solved()\
                    .filter(revision__is_approved=True,
                            revision__is_deleted=False)\
-                   .exclude(pk__in=incomplete)\
                    .distinct()
 
+    def solved(self):
+        return self.undeleted()\
+                   .filter(revision__choice__is_right=True,
+                           revision__is_deleted=False,
+                           revision__is_last=True)\
+                   .distinct()
+    
     def unsolved(self):
         return self.undeleted()\
                    .filter(~Q(revision__choice__is_right=True),
                            revision__is_deleted=False,
                            revision__is_last=True)\
+                   .distinct()
+
+    def has_examinable_choices(self):
+        return self.undeleted()\
+                   .filter(revision__is_deleted=False,
+                           revision__is_last=True)\
+                   .annotate(choice_count=Count('revision__choice'))\
+                   .filter(choice_count__gt=1)\
                    .distinct()
 
     def lacking_choices(self):
@@ -111,6 +127,11 @@ class QuestionQuerySet(models.QuerySet):
     def with_blocking_issues(self):
         return self.undeleted()\
                    .filter(issues__is_blocker=True)\
+                   .distinct()
+
+    def without_blocking_issues(self):
+        return self.undeleted()\
+                   .exclude(issues__is_blocker=True)\
                    .distinct()
 
     def with_no_issues(self):
@@ -152,6 +173,7 @@ class QuestionQuerySet(models.QuerySet):
                self.approved()
 
     def incomplete(self):
+        # Any added filter should be reverted in approved()
         return self.with_blocking_issues() | \
                self.unsolved() | \
                self.lacking_choices()
