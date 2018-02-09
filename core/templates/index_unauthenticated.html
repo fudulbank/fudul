@@ -332,6 +332,7 @@
         <h1 class="mt-md-4">
           <span class="d-none d-sm-inline"> Meet </span><span class="logo-askew-f">Fu</span><span class="logo-askew-d">d</span><span class="logo-askew-l">ul<i class="far fa-fw fa-heart d-none d-md-inline-block" data-fa-transform="shrink-8 up-6 left-6"></i></span>
         </h1>
+
         <p>The question bank built by and for examiners.  Processed <strong><span data-number="{{ answer_count }}" id="answer-count">{{ answer_count|intcomma }}</span> answers</strong> and counting.</p>
         <a href="{% url 'userena_signup' %}" class="btn w-50 btn-lg btn-success text-white mb-2"><i class="mr-1 fas fa-user-plus"></i> Join</a><br>
         <a href="{% url 'userena_signin' %}" class="btn w-50 btn-lg btn-secondary text-white mb-4"><i class="mr-1 fas fa-sign-in-alt"></i> Login</a> </div>
@@ -340,6 +341,19 @@
       </div>
     </header>
 <div style="background: white; position: absolute;">
+  <div class="row mt-4 justify-content-center">
+    <div class="col-10 col-md-8">
+      <div class="row justify-content-center">
+        <div class="col-10 col-sm-8 col-md-6 col-lg-4 text-center">
+          <p>Of the answers recently submitted to Fudul, <strong class="correct-percentage">0%</strong> were correct.</p>
+          <div class="progress">
+            <div id="correct-percentage" class="progress-bar progress-bar-striped bg-success correct-percentage" role="progressbar" style="width: 0%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">0%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="row mt-4 justify-content-center">
     <div class="col-10 col-md-8">
       <h2 class="text-center">Try!</h2>
@@ -489,6 +503,23 @@
       if (answer_countup){
         return
       }
+
+      $.ajax({url: '{% url "exams:count_correct_percentage" %}',
+              success: function(data){
+                if (data.correct_percentage >= 75) {
+                  bar_class = 'bg-success';
+                } else if (75 > data.correct_percentage >= 60){
+                  bar_class = 'bg-warning';
+                } else {
+                  bar_class = 'bg-danger';
+                }
+                correct_percentage_formatted = data.correct_percentage.toString() + "%"
+                $("#correct-percentage").show().css('width', correct_percentage_formatted).attr('aria-valuenow', data.correct_percentage)
+                $("#correct-percentage").removeClass('bg-success bg-warning bg-danger').addClass(bar_class)
+                $(".correct-percentage").html(correct_percentage_formatted);
+              }
+      });
+
       $.ajax({url: '{% url "exams:count_answers" %}',
               success: function(data){
                 // Make sure no duplicate countup is set.
@@ -601,6 +632,7 @@
         $(this).css('visibility', 'hidden');
       });
 
+      updateCouner();
       $(setTimer);
       $(window).on('focus', setTimer);
       $(window).on('blur', clearTimer);

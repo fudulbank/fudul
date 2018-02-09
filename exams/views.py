@@ -7,12 +7,14 @@ from django.db.models import Q
 from django.http import HttpResponseRedirect, Http404, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
 from django.template.loader import get_template
+from django.utils import timezone
 from django.views.decorators import csrf
 from django.views.decorators.cache import cache_page
 from django.views.decorators.http import require_POST, require_safe
 from htmlmin.minify import html_minify
 from notifications.models import Notification
 from rules.contrib.views import permission_required, objectgetter
+from datetime import timedelta
 import json
 
 from core import decorators
@@ -1207,6 +1209,22 @@ def count_answers(request):
                                   .count()
             }
 
+@csrf.csrf_exempt
+@require_safe
+@decorators.ajax_only
+def count_correct_percentage(request):
+    recent_answers = Answer.objects.filter(choice__isnull=False,
+                                           )\
+                                   .order_by('-submission_date')[:200]
+    first_answer = recent_answers.last()
+    correct_count = Answer.objects.filter(submission_date__gte=first_answer.submission_date,
+                                          choice__isnull=False,
+                                          choice__is_right=True).count()
+
+    correct_percentage = correct_count / 200
+    correct_percentage = round(correct_percentage, 3) * 100
+
+    return {'correct_percentage': correct_percentage}
 
 @login_required
 @decorators.ajax_only
