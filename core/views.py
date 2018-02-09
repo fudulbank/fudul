@@ -2,6 +2,7 @@ from dal import autocomplete
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
@@ -13,9 +14,9 @@ from django.views.static import serve
 
 from . import decorators, utils
 from .models import CoreMember
-from exams import models as exam_models
-from teams import models as team_models
-from accounts import models as account_models
+from exams.models import *
+from teams.models import Team
+from accounts.models import College
 import accounts.utils
 import teams.utils
 
@@ -31,8 +32,8 @@ def show_index(request):
                                                   .order_by('-pk')[:8]
         context = {'latest_sessions': latest_sessions}
         if teams.utils.is_editor(request.user):
-            revision_pool = exam_models.Revision.objects.undeleted()\
-                                                         .filter(submitter=request.user)
+            revision_pool = Revision.objects.undeleted()\
+                                            .filter(submitter=request.user)
             added_question_count = revision_pool.filter(is_first=True).count()
             context['added_question_count'] = added_question_count
             edited_question_count = revision_pool.exclude(is_first=True).count()
@@ -40,30 +41,34 @@ def show_index(request):
         return render(request, 'index.html', context)
 
     else:
-        return cache_page(60 * 60 * 12)(show_index_unauthenticated)(request)
+        return cache_page(60 * 60 * 3)(show_index_unauthenticated)(request)
 
 def show_index_unauthenticated(request):
-    question_count = exam_models.Question.objects.undeleted().count()
-    answer_count = exam_models.Answer.objects\
-                                      .filter(choice__isnull=False)\
-                                      .count()
+    question_count = Question.objects.undeleted().count()
+    answer_count = Answer.objects.filter(choice__isnull=False)\
+                                 .count()
 
     # To give a less confusing expereince, exclude any question with
-    # correction. 
-    question = exam_models.Question.objects.approved()\
-                                           .filter(answer__isnull=False,
-                                                   parent_question__isnull=True,
-                                                   child_question__isnull=True)\
-                                           .exclude(revision__choice__answer_correction__isnull=False)\
-                                           .distinct()\
-                                           .order_by('?')\
-                                           .first()
-    # For development environment 
-    if not question:
-        question = exam_models.Question.objects.first()
+    # correction.
+    sample_question = cache.get('sample_question')
+    if not sample_question:
+        sample_question = Question.objects.approved()\
+                                          .filter(answer__isnull=False,
+                                                  parent_question__isnull=True,
+                                                  child_question__isnull=True)\
+                                          .exclude(revision__choice__answer_correction__isnull=False)\
+                                          .distinct()\
+                                          .order_by('?')\
+                                          .first()
+        cache.set('sample_question', sample_question, 60 * 60 * 12)
+
+    # For development environment
+    if not sample_question:
+        sample_question = Question.objects.first()
+
     context = {'question_count': question_count,
                'answer_count': answer_count,
-               'question': question}
+               'question': sample_question}
     return render(request, 'index_unauthenticated.html', context)
 
 class UserAutocomplete(autocomplete.Select2QuerySetView):
@@ -89,13 +94,13 @@ def show_indicator_index(request):
     if not request.user.is_superuser:
         raise PermissionDenied
 
-    teams = team_models.Team.objects.all()
-    colleges = account_models.College.objects.filter(profile__isnull=False)\
-                                             .distinct()
-    exams = exam_models.Exam.objects.select_related('category')\
+    teams = Team.objects.all()
+    colleges = College.objects.filter(profile__isnull=False)\
+                              .distinct()
+    exams = Exam.objects.select_related('category')\
                                     .filter(session__isnull=False)\
                                     .distinct()
-    sources = exam_models.Source.objects.all()
+    sources = Source.objects.all()
     exam_date_json = utils.get_exam_date_json()
 
     context = {'is_indicators_active': True,
@@ -114,12 +119,11 @@ def show_team_indicators(request, pk):
     if not request.user.is_superuser:
         raise PermissionDenied
 
-    team = get_object_or_404(team_models.Team, pk=pk)
+    team = get_object_or_404(Team, pk=pk)
     categories = team.categories.all()
 
-    team_question_pool = exam_models.Question.objects\
-                                             .undeleted()\
-                                             .under_categories(categories)
+    team_question_pool = Question.objects.undeleted()\
+                                         .under_categories(categories)
 
     context = {'is_indicators_active': True,
                'team': team,
@@ -134,8 +138,8 @@ def show_college_indicators(request, pk):
     if not request.user.is_superuser:
         raise PermissionDenied
 
-    colleges = account_models.College.objects.filter(profile__isnull=False)\
-                                             .distinct()
+    colleges = College.objects.filter(profile__isnull=False)\
+                              .distinct()
     college = get_object_or_404(colleges, pk=pk)
     csv_filename = 'indicators/college-{}.csv'.format(college.pk)
 
@@ -151,7 +155,7 @@ def show_exam_indicators(request, pk):
     # PERMISSION CHECK
     if not request.user.is_superuser:
         raise PermissionDenied
-    exams = exam_models.Exam.objects.filter(session__isnull=False)\
+    exams = Exam.objects.filter(session__isnull=False)\
                                     .distinct()
     exam = get_object_or_404(exams, pk=pk)
     exam_date_json = utils.get_exam_date_json(exam)
@@ -179,10 +183,10 @@ def get_privileged_file(request, path):
 def show_about(request):
     team = CoreMember.objects.order_by('?')
 
-    question_count = utils.round_to(exam_models.Question.objects.undeleted().count(), 100)
-    answer_count = utils.round_to(exam_models.Answer.objects.count(), 100)
-    session_count = utils.round_to(exam_models.Session.objects.count(), 10)
-    exam_count = utils.round_to(exam_models.Exam.objects.count(), 5)
+    question_count = utils.round_to(Question.objects.undeleted().count(), 100)
+    answer_count = utils.round_to(Answer.objects.count(), 100)
+    session_count = utils.round_to(Session.objects.count(), 10)
+    exam_count = utils.round_to(Exam.objects.count(), 5)
 
     # An editor is someone who has ever submitted a revision without
     # it being considered a guest contribution.
