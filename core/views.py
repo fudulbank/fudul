@@ -58,6 +58,9 @@ def show_index_unauthenticated(request):
                                            .distinct()\
                                            .order_by('?')\
                                            .first()
+    # For development environment 
+    if not question:
+        question = exam_models.Question.objects.first()
     context = {'question_count': question_count,
                'answer_count': answer_count,
                'question': question}

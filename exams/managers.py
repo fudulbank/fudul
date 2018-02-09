@@ -73,6 +73,8 @@ class QuestionQuerySet(models.QuerySet):
                    .distinct()
 
     def approved(self):
+        # Changes here should be reflected in available() and reverted
+        # in incomplete
         return self.undeleted()\
                    .without_blocking_issues()\
                    .has_examinable_choices()\
@@ -167,10 +169,17 @@ class QuestionQuerySet(models.QuerySet):
                    .filter(marking_users=user)
 
     def available(self):
+        # We use a a query similar to approved(), but without the
+        # unneeded queries (solved, without blocking issues)
+        approved = self.undeleted()\
+                       .filter(revision__is_approved=True,
+                               revision__is_deleted=False)\
+                       .distinct()
+
         return self.with_blocking_issues() | \
                self.unsolved() | \
                self.lacking_choices() | \
-               self.approved()
+               approved
 
     def incomplete(self):
         # Any added filter should be reverted in approved()
