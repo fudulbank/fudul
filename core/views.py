@@ -50,7 +50,7 @@ def show_index_unauthenticated(request):
 
     # To give a less confusing expereince, exclude any question with
     # correction. 
-    question = exam_models.Question.objects.undeleted()\
+    question = exam_models.Question.objects.approved()\
                                            .filter(answer__isnull=False,
                                                    parent_question__isnull=True,
                                                    child_question__isnull=True)\
