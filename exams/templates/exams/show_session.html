@@ -434,7 +434,7 @@
     // Keys represent PKs.  Values represent global_sequences.
     SESSION_QUESTIONS = {{ session_question_pks|safe }};
     SESSION_QUESTION_PKS = Object.keys(SESSION_QUESTIONS).map(function(x){ return parseInt(x)}).sort(function(a, b){return a - b});
-    SESSION_QUESTION_GLOBAL_SEQUENCES = Object.values(SESSION_QUESTIONS).sort(function(a, b){ return a - b});
+    SESSION_QUESTION_GLOBAL_SEQUENCES = SESSION_QUESTION_PKS.map(function(x){ return SESSION_QUESTIONS[x] }).sort(function(a, b){ return a - b});
     SESSION_QUESTION_TOTAL = SESSION_QUESTION_PKS.length;
     CATEGORY_SLUGS = '{{ category_slugs }}';
     EXAM_PK = {{ session.exam.pk }};
