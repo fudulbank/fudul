@@ -435,13 +435,16 @@
     SESSION_QUESTIONS = {{ session_question_pks|safe }};
     SESSION_QUESTION_PKS = Object.keys(SESSION_QUESTIONS).map(x => parseInt(x)).sort((a, b) => a - b);
     SESSION_QUESTION_GLOBAL_SEQUENCES = Object.values(SESSION_QUESTIONS).sort((a, b) => a - b);
+    SESSION_QUESTION_TOTAL = SESSION_QUESTION_PKS.length;
     CATEGORY_SLUGS = '{{ category_slugs }}';
     EXAM_PK = {{ session.exam.pk }};
     SESSION_PK = {{ session.pk }};
+    SESSION_MODE = '{{ session.session_mode }}';
     INITIAL_QUESTIONS = [];
     PREVIOUS_ANSWERS = null;
     PREVIOUS_HIGHLIGHTS = null;
-    fetch_list_index = 0;
+
+    fetched_indexes = [];
     toastr.options.positionClass = "toast-top-left";
     toastr.options.preventDuplicates = true;
     active_keys = {};
@@ -467,30 +470,81 @@
         }
     }
 
-    function showQuestion(targeted_sequence, targeted_url){
-      if (targeted_sequence){
-        $question = $("#question-pool [data-question-sequence=" + targeted_sequence + "]")
-        history.pushState({url: $question.data('url')}, '', $question.data('url'));
+    function showQuestion(target, is_initial){
+      // 'target' could either be a question-sequence or url.  First,
+      // let's check sequence, then URL.
+      $question = $("#question-pool [data-question-sequence=" + target + "]")
+      if ($question.length){
+        if (is_initial){
+          history.replaceState({url: $question.data('url')}, '', $question.data('url'));
+        } else {
+          history.pushState({url: $question.data('url')}, '', $question.data('url'));
+        }
         // Update Piwik URL
         _paq.push(['setCustomUrl', window.location.href]);
-      } else if (targeted_url){
-        $question = $("#question-pool [data-url=\"" + targeted_url + "\"]");
+      } else {
+        $question = $("#question-pool [data-url=\"" + target + "\"]");
       }
+
       // Add 'show' class to the current question
       $question.addClass("show");
       // Remove 'show' class from other questions
       $(".question-body").not($question).removeClass('show');
-      $("#question-sequence").html($question.data('question-sequence'));
+      var question_sequence = $question.data('question-sequence');
+      $("#question-sequence").html(question_sequence);
       $("#question-pk").html($question.data('question-pk'));
       list_revision_url = $question.data('list-revision-url')
       $("#question-pk").attr('href', list_revision_url);
       updateData();
       initializeInteractions();
+
+      // We will fetch questions in two cases:
+      //   1) If this is the initial question, fetch its question set.
+      //   2) If this is the initial question and 10 questions away or less from previous or next question set, fetch either.
+      //   3) If this is not the initial question, and we are 10 questions away from it, fetch the next question set.
+
+      current_set_start_index = Math.floor(question_sequence / 50) * 50
+      next_set_start_index = (Math.floor(question_sequence / 50) + 1) * 50
+      previous_set_start_index = (Math.floor(question_sequence / 50) - 1) * 50
+      previous_set_end_index = current_set_start_index - 1
+
+      if (next_set_start_index > SESSION_QUESTION_TOTAL){
+        next_set_start_index = null;
+      }
+      if (0 > previous_set_start_index){
+        previous_set_start_index = null;
+      }
+
+      if (is_initial){
+        fetchList(current_set_start_index)
+      }
+
+      if (
+        (is_initial &&
+         next_set_start_index &&
+         question_sequence >= (next_set_start_index - 10)) ||
+         (!is_initial &&
+          next_set_start_index &&
+          question_sequence == (next_set_start_index - 10))
+        ){
+          fetchList(next_set_start_index)
+      }
+
+      if (
+        (is_initial &&
+         previous_set_start_index &&
+         question_sequence <= (previous_set_end_index + 10)) ||
+         (!is_initial &&
+          previous_set_start_index &&
+          question_sequence == (previous_set_end_index + 10))
+        ){
+          fetchList(previous_set_start_index)
+      }
     }
 
     window.onpopstate = function(event) {
       if (event.state){
-        showQuestion(null, event.state.url)
+        showQuestion(event.state.url)
       }
     };
 
@@ -504,7 +558,7 @@
             $(this).removeClass().css('color', '');
           });
           return
-        } else if (current_sequence == total && action == 'next'){
+        } else if (current_sequence == SESSION_QUESTION_TOTAL && action == 'next'){
           $("#question-total").addClass("animated flash").css('color', 'yellow');
           $("#question-total").one(animation_events, function(){
             $(this).removeClass().css('color', '');
@@ -729,7 +783,7 @@
 
     function controlExplanation(){
       was_solved = $(".question-body.show").data('was-solved');
-      if (!was_solved || (session_mode == 'UNEXPLAINED' && !$('body').data('has-finished'))){
+      if (!was_solved || (SESSION_MODE == 'UNEXPLAINED' && !$('body').data('has-finished'))){
         $(".question-body.show .explanation-container, #explain").hide()
       }
       else if ($('.question-body.show .explanation-content').text().trim().length){
@@ -743,7 +797,7 @@
     }
     function controlMnemonic(){
       was_solved = $(".question-body.show").data('was-solved');
-      if (!was_solved || (session_mode == 'UNEXPLAINED' && !$('body').data('has-finished'))){
+      if (!was_solved || (SESSION_MODE == 'UNEXPLAINED' && !$('body').data('has-finished'))){
         $(".mnemonics-container, #add-mnemonics").hide()
       } else if( $.trim( $('.mnemonics-content').text() ).length ) {
         $("#add-mnemonics").show().html('<i class="fas fa-book"></i> Add a mnemonic !');
@@ -764,7 +818,7 @@
       // to be applied.
       $("#next").tooltip('dispose');
 
-      if (current_sequence == total){
+      if (current_sequence == SESSION_QUESTION_TOTAL){
         $("#next").css('cursor', 'not-allowed');
         // select whatever button that's visible
         button_name = $("#end:visible, #results:visible").html();
@@ -964,7 +1018,7 @@
           $('#mark').trigger('click');
         } else if (active_keys[18] && active_keys[85]) { // alt + u
           _paq.push(['trackEvent', 'show_session', 'find-pending', 'keyboard-pending']);
-          if (session_mode == 'SOLVED' || session_mode == 'INCOMPLETE'){
+          if (SESSION_MODE == 'SOLVED' || SESSION_MODE == 'INCOMPLETE'){
             return
           }
           question_sequence = $('.question-body[data-was-solved=false]').data('question-sequence');
@@ -1114,20 +1168,27 @@
     }
 
     function fetchList(fetch_list_index){
+      // If the given index was previously fetched, skip!
+      if (fetched_indexes.indexOf(fetch_list_index) != -1){
+        return
+      }
+
       current_targets = SESSION_QUESTION_PKS.slice(fetch_list_index, fetch_list_index + 50).join(',');
+
       if (!current_targets.length){
-        $("#question-loading").hide();
         constructNavigationTable();
         highlightActiveRow();
         $("#open-navigation").tooltip('dispose');
         return
       }
+      $("#question-loading").show();
       $.ajax({method: 'get',
               url: "{% url 'exams:list_partial_session_questions' category_slugs session.exam.pk %}",
               data: {pks: current_targets},
               success: function(data){
-                $questions = $(data.html);
+                fetched_indexes.push(fetch_list_index);
 
+                $questions = $(data.html);
                 $filtered_questions = $questions.filter(function(){
                   var $question = $(this);
                   var question_pk = $question.data('question-pk');
@@ -1137,8 +1198,7 @@
                 prepareQuestions($filtered_questions);
 
                 $("#question-pool").append($filtered_questions);
-                fetch_list_index += 50;
-                fetchList(fetch_list_index);
+                $("#question-loading").hide();
               }
       });
     }
@@ -1241,7 +1301,7 @@
         $question.data('list-revision-url', list_revision_url).attr('data-list-revision-url', list_revision_url);
         $question.data('url', question_url).attr('data-url', question_url);
 
-        if (session_mode == 'SOLVED' || session_mode == 'INCOMPLETE'){
+        if (SESSION_MODE == 'SOLVED' || SESSION_MODE == 'INCOMPLETE'){
           $question.data('was-solved', true).attr('data-was-solved', 'true')
           $question.find('.question-choice').attr('disabled', true)
         }
@@ -1273,16 +1333,16 @@
 
     $(function() {
         $initial_question = $('.question-body.show');
-        history.replaceState({url: $initial_question.data('url')}, '', $initial_question.data('url'));
-
-        // variables used by many functions
-        total = SESSION_QUESTION_PKS.length;
-        $("#question-total").html(total);
-        session_mode = $('body').data('session-mode');
 
         // Set sequence for initial question
         initial_question_pk = $initial_question.data('question-pk');
         initial_question_sequence = getSequence(initial_question_pk);
+        $initial_question.attr('data-question-sequence', initial_question_sequence).data('question-sequence', initial_question_sequence)
+
+        // Show initial question
+        showQuestion(initial_question_sequence, true);
+
+        $("#question-total").html(SESSION_QUESTION_TOTAL);
         $("#question-sequence").html(initial_question_sequence);
 
         initializeKeyboard();
@@ -1319,7 +1379,6 @@
 
          fetchAnswers();
          fetchHighlights();
-         fetchList(fetch_list_index);
          updateSizes();
          $(window).resize(updateSizes);
 
