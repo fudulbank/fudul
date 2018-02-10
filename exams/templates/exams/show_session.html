@@ -1097,24 +1097,27 @@
          }, 500);
       });
 
-      // Detach to reduce DOM manipulation
-      $tbody = $("#navigation-table tbody");
-      $tbody.detach();
+      // Let's not use jQuery.  It's too slow for constructing massive elements.
+      tbody = document.getElementById("navigation-tbody")
+      tbody_content = ""
 
       for (var question_sequence = 1; question_sequence <= SESSION_QUESTION_PKS.length; question_sequence++) {
          var question_index = question_sequence - 1;
          var question_pk = SESSION_QUESTION_PKS[question_index];
          var was_solved = PREVIOUS_ANSWERS[question_pk] !== undefined ? was_solved_markup : '<i class="far fa-square"></i>';
          var is_marked = MARKED_QUESTIONS.indexOf(question_index) != -1 ? is_marked_markup : '';
-         var row = $("<tr class='navigate-row text-center' data-question-sequence='" + question_sequence.toString() + "'><td>" + question_sequence.toString() + "</td><td class='d-sm-table-cell d-none'>" + question_pk.toString() + "</td><td class='d-sm-table-cell d-none is_marked'>" + is_marked + "</td><td class='was_solved'>" + was_solved +"</td></tr>");
-         row.click(function(){
-           _paq.push(['trackEvent', 'show_session', 'navigation', 'click-navigate-row']);
-           targeted_sequence = $(this).data('question-sequence');
-           showQuestion(targeted_sequence);
-         });
-         $tbody.append(row)
+         var row = "<tr class='navigate-row text-center' data-question-sequence='" + question_sequence.toString() + "'><td>" + question_sequence.toString() + "</td><td class='d-sm-table-cell d-none'>" + question_pk.toString() + "</td><td class='d-sm-table-cell d-none is_marked'>" + is_marked + "</td><td class='was_solved'>" + was_solved +"</td></tr>";
+         tbody_content += row;
       }
-      $("#navigation-table").append($tbody);
+
+      tbody.innerHTML = tbody_content;
+
+      $("#navigation-table").find('.navigate-row').click(function(){
+        _paq.push(['trackEvent', 'show_session', 'navigation', 'click-navigate-row']);
+        targeted_sequence = $(this).data('question-sequence');
+        showQuestion(targeted_sequence);
+      });
+      highlightActiveRow();
     }
 
     function fetchAnswers(){
@@ -1138,7 +1141,7 @@
                   initializeInteractions();
                   $("#open-navigation").tooltip('dispose').css('cursor', 'pointer').click(function(){
                     constructNavigationTable();
-                    highlightActiveRow();
+
                     $(this).trigger('click');
                   });
               }
@@ -1465,7 +1468,7 @@
             {% include "exams/modals/common_modal_v4.html" %}
         {% endwith %}
 
-        {% with modal_id='navigate-modal' no_footer=True modal_title="Navigate session" modal_content="<table id='navigation-table' class='table table-sm table-hover'><thead class='text-center thead-dark'><tr><th>Sequence</th><th class='d-sm-table-cell d-none'>ID</th><th class='d-sm-table-cell d-none'>Marked?</th><th>Answered?</th></tr></thead><tbody></tbody></table>" %}
+        {% with modal_id='navigate-modal' no_footer=True modal_title="Navigate session" modal_content="<table id='navigation-table' class='table table-sm table-hover'><thead class='text-center thead-dark'><tr><th>Sequence</th><th class='d-sm-table-cell d-none'>ID</th><th class='d-sm-table-cell d-none'>Marked?</th><th>Answered?</th></tr></thead><tbody id='navigation-tbody'></tbody></table>" %}
             {% include "exams/modals/common_modal_v4.html" %}
         {% endwith %}
 
