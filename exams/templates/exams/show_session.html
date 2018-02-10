@@ -1085,7 +1085,7 @@
       // the navigation modal is special in that it is closed by
       // keyboard and by clicking the backdrop
       $('#navigate-modal').modal({show: false});
-      $("#open-navigation").css('cursor', 'pointer').click(function(){
+      $("#open-navigation").off('click').click(function(){
         _paq.push(['trackEvent', 'show_session', 'navigation', 'open-navigation']);
         $('#navigate-modal').modal('show')
       });
@@ -1136,9 +1136,11 @@
                   // initialize interactions after we have prepared
                   // the questions.
                   initializeInteractions();
-                  constructNavigationTable();
-                  highlightActiveRow();
-                  $("#open-navigation").tooltip('dispose');
+                  $("#open-navigation").tooltip('dispose').css('cursor', 'pointer').click(function(){
+                    constructNavigationTable();
+                    highlightActiveRow();
+                    $(this).trigger('click');
+                  });
               }
       });
     }
