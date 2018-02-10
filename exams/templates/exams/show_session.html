@@ -417,7 +417,7 @@
                  <div data-action="previous" data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> You can also <span class='d-inline d-sm-none'>tap the left screen side</span><span class='d-none d-sm-inline'>press the left keyboard arrow (<kbd>←</kbd>)</span> to go back." id="previous" class="float-left float-sm-none option"><i class="fas fa-chevron-circle-left"></i> Previous</div>
               </div>
               <div class="col-sm-auto col-2">
-                 <div id="open-navigation" class="option"><i class="fas fa-list"></i> <span class="d-none d-sm-inline">Navigate</span></div>
+                 <div id="open-navigation" data-toggle="tooltip" data-html="true" data-title="Give us a second!  We are loading all questions for you. <img height='17' alt='🐣' src='https://cdnjs.cloudflare.com/ajax/libs/emojione/2.2.7/assets/png/1f423.png'>" class="option"><i class="fas fa-list"></i> <span class="d-none d-sm-inline">Navigate</span></div>
               </div>
               <div class="col-sm-auto col-5">
                  <div data-action="next" data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> You can also <span class='d-inline d-sm-none'>tap the right screen side</span><span class='d-none d-sm-inline'>press the right keyboard arrow (<kbd>→</kbd>)</span> to go next." id="next" class="float-right float-sm-none option">Next <i class="fas fa-chevron-circle-right"></i></div>
@@ -1138,6 +1138,7 @@
                   initializeInteractions();
                   constructNavigationTable();
                   highlightActiveRow();
+                  $("#open-navigation").tooltip('dispose');
               }
       });
     }
