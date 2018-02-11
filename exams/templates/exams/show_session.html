@@ -429,8 +429,6 @@
         <script src="{% static 'js/toastr.js' %}"></script>
         <script src="{% url 'js_reverse' %}"></script>
         <script>
-
-    MARKED_QUESTIONS = {{ marked_question_pks }};
     // Keys represent PKs.  Values represent global_sequences.
     SESSION_QUESTIONS = {{ session_question_pks|safe }};
     SESSION_QUESTION_PKS = Object.keys(SESSION_QUESTIONS).map(function(x){ return parseInt(x)}).sort(function(a, b){return a - b});
@@ -440,9 +438,15 @@
     EXAM_PK = {{ session.exam.pk }};
     SESSION_PK = {{ session.pk }};
     SESSION_MODE = '{{ session.session_mode }}';
+    USER_FIRST_NAME = "{{ user.profile.first_name }}";
     INITIAL_QUESTIONS = [];
     PREVIOUS_ANSWERS = null;
     PREVIOUS_HIGHLIGHTS = null;
+    PREVIOUS_MARKS = null;
+
+    // Common selectors
+    $markButton = $("#mark");
+    $submitButton = $("#submit");
 
     fetched_indexes = [];
     toastr.options.positionClass = "toast-top-left";
@@ -462,7 +466,6 @@
     }
 
     function handleMarked(is_marked){
-        $markButton = $("#mark");
         if (is_marked){
             $markButton.addClass("marked");
         } else {
@@ -501,7 +504,7 @@
       var question_sequence = $question.data('question-sequence');
       $("#question-sequence").html(question_sequence);
       $("#question-pk").html($question.data('question-pk'));
-      list_revision_url = $question.data('list-revision-url')
+      var list_revision_url = $question.data('list-revision-url')
       $("#question-pk").attr('href', list_revision_url);
       updateData();
       initializeInteractions();
@@ -511,10 +514,10 @@
       //   2) If this is the initial question and 10 questions away or less from previous or next question set, fetch either.
       //   3) If this is not the initial question, and we are 10 questions away from it, fetch the next question set.
 
-      current_set_start_index = Math.floor(question_sequence / 50) * 50
-      next_set_start_index = (Math.floor(question_sequence / 50) + 1) * 50
-      previous_set_start_index = (Math.floor(question_sequence / 50) - 1) * 50
-      previous_set_end_index = current_set_start_index - 1
+      var current_set_start_index = Math.floor(question_sequence / 50) * 50
+      var next_set_start_index = (Math.floor(question_sequence / 50) + 1) * 50
+      var previous_set_start_index = (Math.floor(question_sequence / 50) - 1) * 50
+      var previous_set_end_index = current_set_start_index - 1
 
       if (next_set_start_index > SESSION_QUESTION_TOTAL){
         next_set_start_index = null;
@@ -543,7 +546,7 @@
          previous_set_start_index &&
          question_sequence <= (previous_set_end_index + 10)) ||
          (!is_initial &&
-          previous_set_start_index &&
+          previous_set_start_index !== null &&
           question_sequence == (previous_set_end_index + 10))
         ){
           fetchList(previous_set_start_index)
@@ -585,7 +588,7 @@
         $question = $("#question-pool [data-question-sequence=" + targeted_sequence + "]")
         if (!$question.length){
           _paq.push(['trackEvent', 'show_session', 'navigation', 'navigate-unloaded']);
-          toastr.warning("You're super fast, {{ user.profile.first_name }}!  Give us a second to bring question #" + targeted_sequence.toString() + ".");
+          toastr.warning("You're super fast, " + USER_FIRST_NAME  + "!  Give us a second to bring question #" + targeted_sequence.toString() + ".");
           $("#question-loading").addClass("animated flash").css('color', 'yellow');
           return
         }
@@ -886,12 +889,12 @@
         was_solved = $question.data('was-solved');
         if (was_solved){
           $("#contribute,#add-mnemonics").show();
-          $("#submit").hide();
+          $submitButton.hide();
           $question.off('click', '.highlight')
           $question.find(".question-choice").prop("disabled", "disabled");
         } else {
             $("#contribute,#add-mnemonics").hide();
-            $("#submit").show();
+            $submitButton.show();
             // We turn off handlers first to ensure they don't get
             // triggered more than once as the user navigates and
             // binds the handlers.
@@ -1023,7 +1026,7 @@
         	_paq.push(['trackEvent', 'show_session', 'navigation', 'keyboard-next']);
         } else if (active_keys[18] && active_keys[77]) { // alt + m
           _paq.push(['trackEvent', 'show_session', 'mark-question', 'keyboard-mark']);
-          $('#mark').trigger('click');
+          $markButton.trigger('click');
         } else if (active_keys[18] && active_keys[85]) { // alt + u
           _paq.push(['trackEvent', 'show_session', 'find-pending', 'keyboard-pending']);
           if (SESSION_MODE == 'SOLVED' || SESSION_MODE == 'INCOMPLETE'){
@@ -1037,7 +1040,7 @@
           }
         } else if (active_keys[17] && active_keys[13]) { // ctrl + enter
           _paq.push(['trackEvent', 'show_session', 'mark-question', 'keyboard-submit']);
-          $("#submit").trigger('click');
+          $submitButton.trigger('click');
         } else if (active_keys[17] && active_keys[38] || active_keys[17] && active_keys[40]){ // ctrl + up or ctrl + down
           total_choices = $('.question-body.show .question-choice').length
           $checked_choice = $('.question-body.show .question-choice:enabled:checked')
@@ -1105,7 +1108,7 @@
          var question_index = question_sequence - 1;
          var question_pk = SESSION_QUESTION_PKS[question_index];
          var was_solved = PREVIOUS_ANSWERS[question_pk] !== undefined ? was_solved_markup : '<i class="far fa-square"></i>';
-         var is_marked = MARKED_QUESTIONS.indexOf(question_index) != -1 ? is_marked_markup : '';
+         var is_marked = PREVIOUS_MARKS.indexOf(question_index) != -1 ? is_marked_markup : '';
          var row = "<tr class='navigate-row text-center' data-question-sequence='" + question_sequence.toString() + "'><td>" + question_sequence.toString() + "</td><td class='d-sm-table-cell d-none'>" + question_pk.toString() + "</td><td class='d-sm-table-cell d-none is_marked'>" + is_marked + "</td><td class='was_solved'>" + was_solved +"</td></tr>";
          tbody_content += row;
       }
@@ -1124,7 +1127,7 @@
       $.ajax({method: 'get',
               url: "{% url 'answer-list' %}",
               data: {format: 'json',
-                     session_pk: {{ session.pk }} },
+                     session_pk: SESSION_PK },
               success: function(data){
                   PREVIOUS_ANSWERS = {};
                   data.map(function(item){
@@ -1148,11 +1151,29 @@
       });
     }
 
+    function fetchMarks(){
+      $.ajax({method: 'get',
+              url: "{% url 'marked-list' %}",
+              data: {format: 'json',
+                     exam_pk: EXAM_PK },
+              success: function(data){
+                  PREVIOUS_MARKS = data.map(function(item){ return item.id });
+
+                  $('.question-body').each(function(){
+                    $question = $(this);
+                    question_pk = $question.data('question-pk');
+                    applyMark($question, question_pk);
+                  });
+              }
+      });
+    }
+
+
     function fetchHighlights(){
       $.ajax({method: 'get',
               url: "{% url 'highlight-list' %}",
               data: {format: 'json',
-                     session_pk: {{ session.pk }} },
+                     session_pk: SESSION_PK },
               success: function(data){
                   PREVIOUS_HIGHLIGHTS = {};
                   data.map(function(item){
@@ -1293,6 +1314,18 @@
 
     }
 
+    function applyMark($question, question_pk){
+      if (PREVIOUS_MARKS.indexOf(question_pk) != -1){
+        $question.data('is-marked', true).attr('data-is-marked', 'true')
+        // If the marked question is currently being shown, highlight
+        // the mark button.
+        if ($question.hasClass('show')){
+          handleMarked(true)
+        }
+      } else {
+        $question.data('is-marked', false).attr('data-is-marked', 'false')
+      }
+    }
 
     // Client-side work-up
     function prepareQuestions($questions){
@@ -1308,8 +1341,8 @@
         $question.data('question-sequence', question_sequence).attr('data-question-sequence', question_sequence);
 
         // Add url data tags
-        list_revision_url = Urls['exams:list_revisions'](CATEGORY_SLUGS, EXAM_PK, question_pk);
-        question_url = Urls['exams:show_session'](CATEGORY_SLUGS, EXAM_PK, SESSION_PK, question_pk);
+        var list_revision_url = Urls['exams:list_revisions'](CATEGORY_SLUGS, EXAM_PK, question_pk);
+        var question_url = Urls['exams:show_session'](CATEGORY_SLUGS, EXAM_PK, SESSION_PK, question_pk);
         $question.data('list-revision-url', list_revision_url).attr('data-list-revision-url', list_revision_url);
         $question.data('url', question_url).attr('data-url', question_url);
 
@@ -1318,10 +1351,8 @@
           $question.find('.question-choice').attr('disabled', true)
         }
 
-        if (MARKED_QUESTIONS.indexOf(question_pk) != -1){
-          $question.data('is-marked', true).attr('data-is-marked', 'true')
-        } else {
-          $question.data('is-marked', false).attr('data-is-marked', 'false')
+        if (PREVIOUS_MARKS){
+          applyMark($question, question_pk);
         }
       });
 
@@ -1371,7 +1402,7 @@
         } else if (isMobile) {
           // In mobile phones, we don't want to show a tooltip on the
           // 'Mark' button
-          $('[data-toggle="tooltip"]').not("#mark").tooltip();
+          $('[data-toggle="tooltip"]').not($markButton).tooltip();
         } else {
           $('[data-toggle="tooltip"]').tooltip();
         }
@@ -1391,6 +1422,7 @@
 
          fetchAnswers();
          fetchHighlights();
+         fetchMarks();
          updateSizes();
          $(window).resize(updateSizes);
 
@@ -1408,9 +1440,9 @@
           $("#confirm-end-modal a.submit-button").prop("href", "{% url 'exams:show_session_results' category_slugs session.exam.pk session.pk %}");
           $("#confirm-end-modal").modal('show');
         });
-        $('#submit').click(submitChoice);
+        $submitButton.click(submitChoice);
         $('#previous, #next').click(navigate);
-        $('#mark').click(toggleMarked);
+        $markButton.click(toggleMarked);
             // initialize project edit modal
         $('#modify-question-modal, #explain-question-modal,#add-mnemonics-modal').modal({
           keyboard: false,

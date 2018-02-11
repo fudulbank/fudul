@@ -536,8 +536,6 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     # This produces a dictionary of keys being question_pks and values
     # being global_sequences
     session_question_pks = json.dumps(dict(session_questions))
-    marked_questions = Question.objects.filter(exam__pk=exam_pk, marking_users=request.user).distinct().values_list('pk', flat=True)
-    marked_question_pks = str(list(marked_questions))
 
     # We need 10 initial questions (idealy: five before and 10 after)
     if current_question_sequence >= 5:
@@ -553,9 +551,7 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
                'initial_questions': initial_questions,
                'category_slugs': slugs,
                'current_question': current_question,
-               'current_question_sequence': current_question_sequence,
-               'session_question_pks': session_question_pks,
-               'marked_question_pks': marked_question_pks}
+               'session_question_pks': session_question_pks}
 
     return render(request, "exams/show_session.html", context)
 

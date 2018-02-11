@@ -8,6 +8,11 @@ class AnswerSerializer(serializers.ModelSerializer):
         model = Answer
         fields = ('question_id', 'choice_id')
 
+class QuestionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Question
+        fields = ('id',)
+
 class RevisionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Revision
@@ -32,6 +37,18 @@ class HasSessionAccess(permissions.BasePermission):
             session = get_object_or_404(Session, pk=session_pk)
             return session.submitter == request.user
 
+class HasExamAccess(permissions.BasePermission):
+    def has_permission(self, request, view):
+        exam_pk = request.query_params.get('exam_pk')
+        if not exam_pk:
+            return False
+
+        if request.user.is_superuser:
+            return True
+        else:
+            exam = get_object_or_404(Exam, pk=exam_pk)
+            return exam.can_user_access(request.user)
+
 class AnswerViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = AnswerSerializer
     permission_classes = (HasSessionAccess,)
@@ -49,3 +66,13 @@ class HighlightViewSet(viewsets.ReadOnlyModelViewSet):
         session_pk = self.request.query_params.get('session_pk')
         return Highlight.objects.filter(session_id=session_pk,
                                         session__is_deleted=False)
+
+class MarkedQuestionViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = QuestionSerializer
+    permission_classes = (HasExamAccess,)
+
+    def get_queryset(self):
+        exam_pk = self.request.query_params.get('exam_pk')
+        return Question.objects.filter(exam__pk=exam_pk,
+                                       marking_users=self.request.user)\
+                               .distinct()
