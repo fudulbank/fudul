@@ -431,16 +431,22 @@
         <script>
     // Keys represent PKs.  Values represent global_sequences.
     SESSION_QUESTIONS = {{ session_question_pks|safe }};
-    SESSION_QUESTION_PKS = Object.keys(SESSION_QUESTIONS).map(function(x){ return parseInt(x)})
-    SESSION_QUESTION_GLOBAL_SEQUENCES = SESSION_QUESTION_PKS.map(function(x){ return SESSION_QUESTIONS[x] }).sort(function(a, b){ return a - b});
-    // Sort SESSION_QUESTION_PKS as per their global_sequences.
-    SESSION_QUESTION_PKS = SESSION_QUESTION_PKS.sort(function(a, b){return SESSION_QUESTIONS[a] - SESSION_QUESTIONS[b]});
-    SESSION_QUESTION_TOTAL = SESSION_QUESTION_PKS.length;
     CATEGORY_SLUGS = '{{ category_slugs }}';
     EXAM_PK = {{ session.exam.pk }};
     SESSION_PK = {{ session.pk }};
     SESSION_MODE = '{{ session.session_mode }}';
     USER_FIRST_NAME = "{{ user.profile.first_name }}";
+
+    SESSION_QUESTION_PKS = Object.keys(SESSION_QUESTIONS).map(function(x){ return parseInt(x)})
+    SESSION_QUESTION_GLOBAL_SEQUENCES = SESSION_QUESTION_PKS.map(function(x){ return SESSION_QUESTIONS[x] }).sort(function(a, b){ return a - b});
+    // Sort SESSION_QUESTION_PKS per their global_sequences, if those
+    // do not include any null values.  Otherwise, sort per pks.
+    if (SESSION_QUESTION_GLOBAL_SEQUENCES.indexOf(null) != -1){
+      SESSION_QUESTION_PKS = SESSION_QUESTION_PKS.sort(function(a, b){return SESSION_QUESTIONS[a] - SESSION_QUESTIONS[b]});
+    } else {
+      SESSION_QUESTION_PKS = SESSION_QUESTION_PKS.sort(function(a, b){return a - b});
+    }
+    SESSION_QUESTION_TOTAL = SESSION_QUESTION_PKS.length;
     PREVIOUS_ANSWERS = null;
     PREVIOUS_HIGHLIGHTS = null;
     PREVIOUS_MARKS = null;
@@ -1192,20 +1198,6 @@
       });
     }
 
-    function getSequence(question_pk){
-      // If any global_sequence is null due to a newly created
-      // questions, let's sort per question_pk.  Otherwise,
-      // use global_sequence.
-      if (SESSION_QUESTION_GLOBAL_SEQUENCES.indexOf(null) != -1){
-        var value = question_pk
-        var values = SESSION_QUESTION_PKS
-      } else {
-        var value = SESSION_QUESTIONS[question_pk]
-        var values = SESSION_QUESTION_GLOBAL_SEQUENCES
-      }
-      return values.indexOf(value) + 1;
-    }
-
     function fetchList(fetch_list_index, question_sequence){
       // If the given index was previously fetched, skip!
       if (fetched_indexes.indexOf(fetch_list_index) != -1){
@@ -1347,7 +1339,7 @@
         prepareHighlights($question);
 
         // Add sequence
-        var question_sequence = getSequence(question_pk);
+        var question_sequence = SESSION_QUESTION_PKS.indexOf(question_pk) + 1;
         $question.data('question-sequence', question_sequence).attr('data-question-sequence', question_sequence);
 
         // Add url data tags
@@ -1389,7 +1381,7 @@
 
         // Set sequence for initial question
         initial_question_pk = $initial_question.data('question-pk');
-        initial_question_sequence = getSequence(initial_question_pk);
+        initial_question_sequence = SESSION_QUESTION_PKS.indexOf(initial_question_pk) + 1;
         $initial_question.attr('data-question-sequence', initial_question_sequence).data('question-sequence', initial_question_sequence)
 
         // Show initial question
