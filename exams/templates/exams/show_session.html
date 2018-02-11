@@ -431,8 +431,10 @@
         <script>
     // Keys represent PKs.  Values represent global_sequences.
     SESSION_QUESTIONS = {{ session_question_pks|safe }};
-    SESSION_QUESTION_PKS = Object.keys(SESSION_QUESTIONS).map(function(x){ return parseInt(x)}).sort(function(a, b){return a - b});
+    SESSION_QUESTION_PKS = Object.keys(SESSION_QUESTIONS).map(function(x){ return parseInt(x)})
     SESSION_QUESTION_GLOBAL_SEQUENCES = SESSION_QUESTION_PKS.map(function(x){ return SESSION_QUESTIONS[x] }).sort(function(a, b){ return a - b});
+    // Sort SESSION_QUESTION_PKS as per their global_sequences.
+    SESSION_QUESTION_PKS = SESSION_QUESTION_PKS.sort(function(a, b){return SESSION_QUESTIONS[a] - SESSION_QUESTIONS[b]});
     SESSION_QUESTION_TOTAL = SESSION_QUESTION_PKS.length;
     CATEGORY_SLUGS = '{{ category_slugs }}';
     EXAM_PK = {{ session.exam.pk }};
@@ -503,9 +505,10 @@
       $(".question-body").not($question).removeClass('show');
       var question_sequence = $question.data('question-sequence');
       $("#question-sequence").html(question_sequence);
-      $("#question-pk").html($question.data('question-pk'));
       var list_revision_url = $question.data('list-revision-url')
-      $("#question-pk").attr('href', list_revision_url);
+      $("#question-pk").html($question.data('question-pk'))
+                       .attr('href', list_revision_url);
+
       updateData();
       initializeInteractions();
 
@@ -1108,7 +1111,7 @@
          var question_index = question_sequence - 1;
          var question_pk = SESSION_QUESTION_PKS[question_index];
          var was_solved = PREVIOUS_ANSWERS[question_pk] !== undefined ? was_solved_markup : '<i class="far fa-square"></i>';
-         var is_marked = PREVIOUS_MARKS.indexOf(question_index) != -1 ? is_marked_markup : '';
+         var is_marked = PREVIOUS_MARKS.indexOf(question_pk) != -1 ? is_marked_markup : '';
          var row = "<tr class='navigate-row text-center' data-question-sequence='" + question_sequence.toString() + "'><td>" + question_sequence.toString() + "</td><td class='d-sm-table-cell d-none'>" + question_pk.toString() + "</td><td class='d-sm-table-cell d-none is_marked'>" + is_marked + "</td><td class='was_solved'>" + was_solved +"</td></tr>";
          tbody_content += row;
       }
