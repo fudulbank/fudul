@@ -500,7 +500,7 @@ def create_session_automatically(request, slugs, exam_pk):
 @login_required
 @require_safe
 @permission_required('exams.access_exam', fn=objectgetter(Exam, 'exam_pk'), raise_exception=True)
-@cache_page(settings.CACHE_PERIODS['EXPENSIVE_UNCHANGEABLE']) # 12 hours
+@cache_page(settings.CACHE_PERIODS['EXPENSIVE_UNCHANGEABLE'])
 @decorators.ajax_only
 def list_partial_session_questions(request, slugs, exam_pk):
     try:
@@ -521,6 +521,7 @@ def list_partial_session_questions(request, slugs, exam_pk):
 @login_required
 @require_safe
 @permission_required('exams.access_session', fn=objectgetter(Session, 'session_pk'), raise_exception=True)
+#@cache_page(settings.CACHE_PERIODS['STABLE'])
 def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     category = Category.objects.get_from_slugs_or_404(slugs)
     session = get_object_or_404(Session.objects.select_related('exam',
@@ -530,25 +531,13 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
                                 pk=session_pk)
 
     current_question = session.get_current_question(question_pk)
-    current_question_sequence = session.get_question_sequence(current_question)
 
     session_questions = session.get_questions().values_list('pk', 'global_sequence')
     # This produces a dictionary of keys being question_pks and values
     # being global_sequences
     session_question_pks = json.dumps(dict(session_questions))
 
-    # We need 10 initial questions (idealy: five before and 10 after)
-    if current_question_sequence >= 5:
-        start_sequence = current_question_sequence - 5
-        end_sequence = current_question_sequence + 5
-    else:
-        start_sequence = 0
-        end_sequence = 11 - current_question_sequence
-    initial_questions = session.get_questions()\
-                               .order_global_sequence()[start_sequence:end_sequence]
-
     context = {'session': session,
-               'initial_questions': initial_questions,
                'category_slugs': slugs,
                'current_question': current_question,
                'session_question_pks': session_question_pks}
@@ -558,7 +547,7 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
 @require_safe
 @login_required
 @permission_required('exams.access_session', fn=objectgetter(Session, 'session_pk'), raise_exception=True)
-@cache_page(settings.CACHE_PERIODS['STABLE']) # 3 days
+@cache_page(settings.CACHE_PERIODS['STABLE'])
 def show_session_results(request, slugs, exam_pk, session_pk):
     category = Category.objects.get_from_slugs_or_404(slugs)
 

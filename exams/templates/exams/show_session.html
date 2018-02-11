@@ -388,9 +388,9 @@
           <div id="question-col" class="col-8 col-sm-10 col-lg-12 px-0 px-lg-5 order-2">
             <div id="question-container">
               <div id="question-pool">
-                {% for question in initial_questions %}
+                {% with question=current_question %}
                  {% include 'exams/partials/session_question.html' %}
-                {% endfor %}
+                {% endwith %}
               </div>
               <button type="button" id="submit" class="btn">Submit <i class="fas fa-angle-right"></i></button>
               <div class="row">
@@ -441,7 +441,6 @@
     SESSION_PK = {{ session.pk }};
     SESSION_MODE = '{{ session.session_mode }}';
     USER_FIRST_NAME = "{{ user.profile.first_name }}";
-    INITIAL_QUESTIONS = [];
     PREVIOUS_ANSWERS = null;
     PREVIOUS_HIGHLIGHTS = null;
     PREVIOUS_MARKS = null;
@@ -1213,20 +1212,28 @@
         return
       }
 
-      current_targets = SESSION_QUESTION_PKS.slice(fetch_list_index, fetch_list_index + 50).join(',');
+      current_targets = SESSION_QUESTION_PKS.slice(fetch_list_index, fetch_list_index + 50);
+      current_target_str = current_targets.join(',');
       $("#question-loading").show();
       $.ajax({method: 'get',
               url: "{% url 'exams:list_partial_session_questions' category_slugs session.exam.pk %}",
-              data: {pks: current_targets},
+              data: {pks: current_target_str},
               success: function(data){
                 fetched_indexes.push(fetch_list_index);
 
                 $questions = $(data.html);
-                $filtered_questions = $questions.filter(function(){
-                  var $question = $(this);
-                  var question_pk = $question.data('question-pk');
-                  return INITIAL_QUESTIONS.indexOf(question_pk) == -1
-                });
+
+                // Do not bother with filtering except if we know
+                // that we need it.
+                if (current_targets.indexOf(initial_question_pk) != -1){
+                  $filtered_questions = $questions.filter(function(){
+                    var $question = $(this);
+                    var question_pk = $question.data('question-pk');
+                    return question_pk != initial_question_pk
+                  });
+                } else {
+                  $filtered_questions = $questions
+                }
 
                 prepareQuestions($filtered_questions);
 
@@ -1416,11 +1423,6 @@
                                title: help_me_tooltip})
          $("#help-me").click(function(){
            _paq.push(['trackEvent', 'show_session', 'click-get-help', 'click-get-help']);
-         });
-
-         $('.question-body').each(function(){
-           pk = $(this).data('question-pk')
-           INITIAL_QUESTIONS.push(pk);
          });
 
          fetchAnswers();
