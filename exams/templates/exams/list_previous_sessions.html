@@ -136,8 +136,7 @@ tr td:last-child{
         $deleteConfirmationButton = $("#confirm-delete-session-modal .submit-button")
         $('tbody').on('click','.confirm-delete-session',function () {
             $(this).tooltip("hide");
-            row_node = table.row(this).node();
-            var pk = $(row_node).data('pk');
+            var pk = $(this).data('pk');
             $deleteConfirmationButton.data('pk', pk);
             $("#confirm-delete-session-modal .modal-title").html("Forgive me for session #" + pk);
             $("#confirm-delete-session-modal").modal('show');
