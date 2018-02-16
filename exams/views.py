@@ -325,9 +325,9 @@ def show_explanation_revision(request, pk):
 @login_required
 def list_revisions(request, slugs, exam_pk, pk):
     # PERMISSION CHECK
-    # No need.  Similar to list_contributions
-
     category = Category.objects.get_from_slugs_or_404(slugs)
+    if not category.can_user_access(request.user):
+        raise PermissionDenied
 
     question = get_object_or_404(Question.objects.select_related('exam',
                                                                  'exam__category'),
@@ -796,7 +796,7 @@ def show_revision_comparison(request, pk, review=False):
                                  pk=pk, is_deleted=False)
 
     # PERMISSION CHECK
-    if not revision.question.exam.can_user_edit(request.user):
+    if not revision.question.exam.can_user_access(request.user):
         raise PermissionDenied
 
     context = {'revision': revision,
