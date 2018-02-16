@@ -7,8 +7,8 @@ import exams.utils
 class Command(BaseCommand):
     def handle(self, *args, **options):
         # HOME PAGE
+        sample_question = cache.get('sample_question')
         if not sample_question:
-            sample_question = cache.get('sample_question')
             # To give a less confusing expereince, exclude any question with
             # correction.
             sample_question = Question.objects.approved()\
