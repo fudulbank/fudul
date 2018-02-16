@@ -128,3 +128,23 @@ def get_user_allowed_categories(user):
         if cat.can_user_access(user):
             categories.append(cat)
     return categories
+
+
+def get_correct_percentage():
+    # How many questions are considered "recent"?
+    RECENT_COUNT = 100
+
+    try:
+        recent_answer = models.Answer.objects.filter(choice__isnull=False)\
+                                     .order_by('-submission_date')[RECENT_COUNT - 1]
+    except IndexError:
+        recent_answer = models.Answer.objects.first()
+    correct_count = models.Answer.objects.filter(submission_date__gte=recent_answer.submission_date,
+                                                 choice__isnull=False,
+                                                 choice__is_right=True)\
+                                         .count()
+
+    correct_percentage = correct_count / RECENT_COUNT
+    correct_percentage = round(correct_percentage, 3) * 100
+
+    return correct_percentage

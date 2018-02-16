@@ -41,34 +41,28 @@ def show_index(request):
         return render(request, 'index.html', context)
 
     else:
-        return cache_page(settings.CACHE_PERIODS['EXPENSIVE_CHANGEABLE'])(show_index_unauthenticated)(request)
+        # To maximize speed, we use the 'update_cache' management
+        # command to update the variables.  To make sure that we are
+        # updating the cached variables before they are requested
+        # while expired, we add 60 seconds to the view's cache.
+        return cache_page(settings.CACHE_PERIODS['DYNAMIC'])(show_index_unauthenticated)(request)
 
 def show_index_unauthenticated(request):
-    question_count = Question.objects.undeleted().count()
-    answer_count = Answer.objects.filter(choice__isnull=False)\
-                                 .count()
+    cached_values = cache.get_many(['sample_question',
+                                    'question_count', 'answer_count',
+                                    'correct_percentage'])
 
-    # To give a less confusing expereince, exclude any question with
-    # correction.
-    sample_question = cache.get('sample_question')
-    if not sample_question:
-        sample_question = Question.objects.approved()\
-                                          .filter(answer__isnull=False,
-                                                  parent_question__isnull=True,
-                                                  child_question__isnull=True)\
-                                          .exclude(revision__choice__answer_correction__isnull=False)\
-                                          .distinct()\
-                                          .order_by('?')\
-                                          .first()
-        cache.set('sample_question', sample_question, settings.CACHE_PERIODS['EXPENSIVE_UNCHANGEABLE'])
-
-    # For development environment
-    if not sample_question:
-        sample_question = Question.objects.first()
+    sample_question = cached_values.get('sample_question',
+                                        Question.objects.first())
+    question_count = cached_values.get('question_count', 0)
+    answer_count = cached_values.get('answer_count',
+                                     Answer.objects.filter(choice__isnull=False).count())
+    correct_percentage = cached_values.get('correct_percentage', 0)
 
     context = {'question_count': question_count,
                'answer_count': answer_count,
-               'question': sample_question}
+               'question': sample_question,
+               'correct_percentage': correct_percentage}
     return render(request, 'index_unauthenticated.html', context)
 
 class UserAutocomplete(autocomplete.Select2QuerySetView):

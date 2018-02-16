@@ -345,9 +345,9 @@
     <div class="col-10 col-md-8">
       <div class="row justify-content-center">
         <div class="col-10 col-sm-8 col-md-6 col-lg-4 text-center">
-          <p>Of the answers recently submitted to Fudul, <strong class="correct-percentage">0%</strong> were answered correctly.</p>
+          <p>Of the answers recently submitted to Fudul, <strong class="correct-percentage">{{ correct_percentage }}%</strong> were answered correctly.</p>
           <div class="progress">
-            <div id="correct-percentage" class="progress-bar progress-bar-striped bg-success correct-percentage" role="progressbar" style="width: 0%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">0%</div>
+            <div id="correct-percentage" class="progress-bar progress-bar-striped bg-success correct-percentage" role="progressbar" style="width: {{ correct_percentage }}%;" aria-valuenow="{{ correct_percentage }}" aria-valuemin="0" aria-valuemax="100">0%</div>
           </div>
         </div>
       </div>
