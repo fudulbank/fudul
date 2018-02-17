@@ -2,6 +2,7 @@ Django>=1.11.8,<1.11.99
 django-autocomplete-light>=3.2,<3.2.99
 django-bootstrap3>=8.2.3,<8.2.99
 django-js-reverse>=0.8.1,<0.8.99
+django-silk>=2.0.0,<2.2.99
 django-ckeditor>=5.3,<5.3.99
 django-guardian>=1.4.8,<1.4.99
 django-htmlmin>=0.10,<0.10.99

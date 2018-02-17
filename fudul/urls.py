@@ -19,6 +19,7 @@ urlpatterns = [
     url(r'^api/', include(router.urls)),
     url(r'^admin/', include('loginas.urls')),
     url(r'^admin/', admin.site.urls),
+    url(r'^silk/', include('silk.urls', namespace='silk')),
     url(r'^api-auth/', include('rest_framework.urls')),
     url(r'^accounts/', include('accounts.urls')),
     url(r'^mailer/', include('mailer.urls', namespace="mailer")),
