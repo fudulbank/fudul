@@ -497,6 +497,18 @@ class Session(models.Model):
                               .distinct()\
                               .count()
 
+    def get_incorrect_answer_count(self):
+        return self.answer_set.of_undeleted_questions()\
+                              .filter(choice__is_right=False)\
+                              .distinct()\
+                              .count()
+
+    def get_skipped_answer_count(self):
+        return self.answer_set.of_undeleted_questions()\
+                              .filter(choice__isnull=True)\
+                              .distinct()\
+                              .count()
+
     def is_examinable(self):
         return self.session_mode not in ['INCOMPLETE', 'SOLVED']
 
