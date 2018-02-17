@@ -76,27 +76,40 @@ def get_user_question_stats(target, user, result, percent=False):
     #    other incorrect/skipped answers).
     question_pool = get_user_questions(user)
 
-    if type(target) is models.Exam:
-        question_pool = question_pool.filter(exam=target)
-    elif type(target) is models.Subject:
-        question_pool = question_pool.filter(subjects=target)
-    elif type(target) is models.Session:
-        question_pool = question_pool.filter(answer__session=target)
+    # Subject and Exam models have a similar way of calculation. 
+    if type(target) in [models.Subject, models.Exam]:
+        if type(target) is models.Exam:
+            pool = pool.filter(exam=target)
+        elif type(target) is models.Subject:
+            pool = pool.filter(subjects=target)
 
-    if result == 'correct':
-        count = question_pool.correct_by_user(user)\
-                             .count()
-    elif result == 'incorrect':
-        count = question_pool.incorrect_by_user(user)\
-                             .count()
-    elif result == 'skipped':
-        count = question_pool.skipped_by_user(user)\
-                             .count()
-    elif result == 'total':
-        count = question_pool.count()        
+        if result == 'correct':
+            count = pool.correct_by_user(user)\
+                        .count()
+        elif result == 'incorrect':
+            count = pool.incorrect_by_user(user)\
+                        .count()
+        elif result == 'skipped':
+            count = pool.skipped_by_user(user)\
+                        .count()
+        elif result == 'total':
+            count = pool.count()        
+
+    elif type(target) is models.Session:
+        pool = models.Answer.objects.filter(session=target)\
+                                    .of_undeleted_questions()\
+                                    .distinct()
+        if result == 'correct':
+            count = target.get_correct_answer_count()
+        elif result == 'incorrect':
+            count = target.get_incorrect_answer_count()
+        elif result == 'skipped':
+            count = target.get_skipped_answer_count()
+        elif result == 'total':
+            count = pool.count()        
 
     if percent:
-        total = question_pool.count()
+        total = pool.count()
         if not total:
             return 0
         return "%.0f" % (count / total * 100)
