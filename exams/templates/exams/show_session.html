@@ -551,7 +551,7 @@
 
       if (
         (is_initial &&
-         previous_set_start_index &&
+         previous_set_start_index !== null &&
          question_sequence <= (previous_set_end_index + 10)) ||
          (!is_initial &&
           previous_set_start_index !== null &&
