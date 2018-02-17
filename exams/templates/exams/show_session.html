@@ -1234,6 +1234,16 @@
                 prepareQuestions($filtered_questions);
 
                 $("#question-pool").append($filtered_questions);
+
+                // This is a workaround for iOS 9.x browsers that
+                // cannot render dynmically added FontAwesome icons.
+
+                if ((navigator.userAgent.indexOf('iPhone') != -1 ||
+                     navigator.userAgent.indexOf('iPad') != -1) &&
+                    navigator.userAgent.index('OS 9_') != -1){
+                      FontAwesome.dom.i2svg({node: document.getElementById('question-pool')})
+                }
+
                 if (question_sequence){
                   showQuestion(question_sequence);
                 }
