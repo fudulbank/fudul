@@ -41,7 +41,7 @@
             {% get_user_question_stats exam user 'skipped' as skipped_count %}
             <tr data-pk="{{ exam.pk }}">
               <td class="exam-name"><a href="{% url 'exams:show_my_performance_per_exam' exam.pk %}">{{ exam.name }}</a> <span data-toggle="tooltip" title="Number of questions answered." class="font-small-2">({{ total_count }})</span></td>
-              {% with target=exam %}
+              {% with target=exam total=total_count %}
                 {% include 'exams/partials/performance_column.html' %}
               {% endwith %}
               <td>

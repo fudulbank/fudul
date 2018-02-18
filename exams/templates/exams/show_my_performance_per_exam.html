@@ -41,7 +41,7 @@
             {% get_user_question_stats subject user 'skipped' as skipped_count %}
 			      <tr>
 			        <td>{{ subject.name }} <span data-toggle="tooltip" title="Number of questions answered." class="font-small-2">({{ total_count }})</span></td>
-              {% with target=subject %}
+              {% with target=subject total=total_count %}
                 {% include 'exams/partials/performance_column.html' %}
               {% endwith %}
               <td>

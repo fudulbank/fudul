@@ -926,12 +926,12 @@ def approve_question(request, slugs, exam_pk, pk):
 def show_my_performance(request):
     user_questions = utils.get_user_questions(request.user)
     total_questions = user_questions.count()
-    correct_count = user_questions.correct_by_user(request.user)\
+    correct_count = Question.objects.correct_by_user(request.user)\
+                                    .count()
+    incorrect_count = Question.objects.incorrect_by_user(request.user)\
                                       .count()
-    incorrect_count = user_questions.incorrect_by_user(request.user)\
-                                        .count()
-    skipped_count = user_questions.skipped_by_user(request.user)\
-                                      .count()
+    skipped_count = Question.objects.skipped_by_user(request.user)\
+                                    .count()
 
     # Only get exams which the user has taken
     exams = Exam.objects.select_related('category')\

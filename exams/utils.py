@@ -60,7 +60,7 @@ def get_user_questions(user):
     return models.Question.objects.undeleted()\
                                   .filter(pk__in=pks)
 
-def get_user_question_stats(target, user, result, percent=False):
+def get_user_question_stats(target, user, result, total=None, percent=False):
     # Target can either be an exam, subject or session.
     #
     # Here, two rules kick in:
@@ -77,17 +77,17 @@ def get_user_question_stats(target, user, result, percent=False):
     # Subject and Exam models have a similar way of calculation.
     if type(target) in [models.Subject, models.Exam]:
         if type(target) is models.Exam:
-            pks = models.Answer.objects.filter(question__exam=target,
-                                               session__submitter=user,
-                                               session__is_deleted=False)\
-                                       .values('question')
-            pool = models.Question.objects.undeleted().filter(pk__in=pks)
+            all_pks = models.Answer.objects.filter(session__submitter=user,
+                                                   question__exam=target,
+                                                   session__is_deleted=False)\
+                                           .values('question')
+            pool = models.Question.objects.undeleted().filter(exam=target)
         elif type(target) is models.Subject:
-            pks = models.Answer.objects.filter(question__subjects=target,
-                                               session__submitter=user,
-                                               session__is_deleted=False)\
-                                       .values('question')
-            pool = models.Question.objects.undeleted().filter(pk__in=pks)
+            all_pks = models.Answer.objects.filter(session__submitter=user,
+                                                   question__subjects=target,
+                                                   session__is_deleted=False)\
+                                           .values('question')
+            pool = models.Question.objects.undeleted().filter(subjects=target)
 
         if result == 'correct':
             count = pool.correct_by_user(user)\
@@ -99,8 +99,7 @@ def get_user_question_stats(target, user, result, percent=False):
             count = pool.skipped_by_user(user)\
                         .count()
         elif result == 'total':
-            count = pool.count()
-
+            count = pool.filter(pk__in=all_pks).count()
     elif type(target) is models.Session:
         pool = models.Answer.objects.filter(session=target)\
                                     .of_undeleted_questions()\
@@ -115,8 +114,11 @@ def get_user_question_stats(target, user, result, percent=False):
             count = pool.count()
 
     if percent:
-        total = pool.count()
-        if not total:
+        # If total was not provided
+        if total is None:
+            print("Getting total...")
+            total = pool.count()
+        if total == 0:
             return 0
         return "%.0f" % (count / total * 100)
     else:
