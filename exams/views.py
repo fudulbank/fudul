@@ -924,7 +924,11 @@ def approve_question(request, slugs, exam_pk, pk):
 @require_safe
 @login_required
 def show_my_performance(request):
-    user_questions = utils.get_user_questions(request.user)
+    user_question_pks = Answer.objects.filter(session__submitter=request.user,
+                                              session__is_deleted=False)\
+                                      .values('question')
+    user_questions = Question.objects.undeleted()\
+                                     .filter(pk__in=user_question_pks)
     total_questions = user_questions.count()
     correct_count = Question.objects.correct_by_user(request.user)\
                                     .count()

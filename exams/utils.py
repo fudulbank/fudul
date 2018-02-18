@@ -53,13 +53,6 @@ def get_user_privileged_exams(user):
 
     return exams
 
-def get_user_questions(user):
-    pks = models.Answer.objects.filter(session__submitter=user,
-                                       session__is_deleted=False)\
-                               .values('question')
-    return models.Question.objects.undeleted()\
-                                  .filter(pk__in=pks)
-
 def get_user_question_stats(target, user, result, total=None, percent=False):
     # Target can either be an exam, subject or session.
     #
