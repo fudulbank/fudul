@@ -74,10 +74,9 @@ def get_user_question_stats(target, user, result, percent=False):
     #    of the user.  For example, if a question has one correct
     #    answer, then the user got it (regardless of whether it has
     #    other incorrect/skipped answers).
-    question_pool = get_user_questions(user)
-
     # Subject and Exam models have a similar way of calculation. 
     if type(target) in [models.Subject, models.Exam]:
+        pool = get_user_questions(user)
         if type(target) is models.Exam:
             pool = pool.filter(exam=target)
         elif type(target) is models.Subject:
