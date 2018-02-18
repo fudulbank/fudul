@@ -166,9 +166,7 @@ class SessionForm(forms.ModelForm):
                                'INCORRECT': common_pool.approved().incorrect_by_user(self.user),
                                'SKIPPED': common_pool.approved().skipped_by_user(self.user),
                                'MARKED': common_pool.approved().filter(marking_users=self.user),
-                               'INCOMPLETE': common_pool.with_blocking_issues() |\
-                                             common_pool.unsolved() |\
-                                             common_pool.lacking_choices()
+                               'INCOMPLETE': common_pool.incomplete()
                                }
 
         filter_choices = []
