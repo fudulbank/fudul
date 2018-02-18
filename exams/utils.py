@@ -74,13 +74,20 @@ def get_user_question_stats(target, user, result, percent=False):
     #    of the user.  For example, if a question has one correct
     #    answer, then the user got it (regardless of whether it has
     #    other incorrect/skipped answers).
-    # Subject and Exam models have a similar way of calculation. 
+    # Subject and Exam models have a similar way of calculation.
     if type(target) in [models.Subject, models.Exam]:
-        pool = get_user_questions(user)
         if type(target) is models.Exam:
-            pool = pool.filter(exam=target)
+            pks = models.Answer.objects.filter(question__exam=target,
+                                               session__submitter=user,
+                                               session__is_deleted=False)\
+                                       .values('question')
+            pool = models.Question.objects.undeleted().filter(pk__in=pks)
         elif type(target) is models.Subject:
-            pool = pool.filter(subjects=target)
+            pks = models.Answer.objects.filter(question__subjects=target,
+                                               session__submitter=user,
+                                               session__is_deleted=False)\
+                                       .values('question')
+            pool = models.Question.objects.undeleted().filter(pk__in=pks)
 
         if result == 'correct':
             count = pool.correct_by_user(user)\
@@ -92,7 +99,7 @@ def get_user_question_stats(target, user, result, percent=False):
             count = pool.skipped_by_user(user)\
                         .count()
         elif result == 'total':
-            count = pool.count()        
+            count = pool.count()
 
     elif type(target) is models.Session:
         pool = models.Answer.objects.filter(session=target)\
@@ -105,7 +112,7 @@ def get_user_question_stats(target, user, result, percent=False):
         elif result == 'skipped':
             count = target.get_skipped_answer_count()
         elif result == 'total':
-            count = pool.count()        
+            count = pool.count()
 
     if percent:
         total = pool.count()
@@ -131,7 +138,7 @@ def get_exam_question_count_per_meta(exam, meta, approved_only=False):
         question_pool = exam.question_set.approved()
     else:
         question_pool = exam.question_set
-        
+
     return question_pool.filter(**query).distinct().count()
 
 def get_user_allowed_categories(user):

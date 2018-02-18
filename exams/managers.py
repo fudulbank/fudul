@@ -174,16 +174,14 @@ class QuestionQuerySet(models.QuerySet):
                                revision__is_deleted=False)\
                        .distinct()
 
-        return self.with_blocking_issues() | \
-               self.unsolved() | \
-               self.lacking_choices() | \
+        return self.incomplete() | \
                approved
 
     def incomplete(self):
         # Any added filter should be reverted in approved()
-        return self.with_blocking_issues() | \
-               self.unsolved() | \
-               self.lacking_choices()
+        return self.lacking_choices() | \
+               self.with_blocking_issues() | \
+               self.unsolved()
 
     def under_categories(self, categories):
         deepest_category_level = utils.get_deepest_category_level()
