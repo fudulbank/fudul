@@ -1,22 +1,38 @@
 from django.core.management.base import BaseCommand
-from exams.models import Question
+from django.db.models import Q
+from exams.models import Session, Question
 
 class Command(BaseCommand):
-    help = "Clean-up questions: Update the global sequence and mark questions with zero revisions as deleted."
+    help = "Clean-up tasks for the exam app"
 
     def handle(self, *args, **options):
+        # This script does three things:
+        #  1) Mark sessions with no accessible questions as deleted.
+        #  2) Mark questions with no revisions as deleted.
+        #  3) Update the global sequence of questions.
+
+        # 1) Mark sessions with no accessible questions as deleted.
+        Session.objects.undeleted()\
+                       .exclude(~Q(session_mode="INCOMPLETE"),
+                                questions__is_deleted=False,
+                                questions__revision__is_deleted=False,
+                                questions__revision__is_approved=True)\
+                       .exclude(session_mode="INCOMPLETE",
+                                questions__revision__is_deleted=False)\
+                       .update(is_deleted=True)
+
         sorted_questions = []
         count = 1
         # To give global sequence more stability, we won't exclude
         # deleted question here.
         for question in Question.objects.order_by('pk'):
-            # If the question is not marked as deleted, but it has
-            # zero revisions, mark it as deleted.
+            # 2) Update the global sequence of questions.
             if not question.is_deleted and \
                not question.revision_set.filter(is_deleted=False).count():
                 question.is_deleted = True
                 question.save()
 
+            # 3) Update the global sequence of questions.
             if question.pk in sorted_questions:
                 continue
 

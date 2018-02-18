@@ -419,7 +419,6 @@ def create_session(request, slugs, exam_pk):
         raise Http404
 
     latest_sessions = exam.session_set.undeleted()\
-                                      .with_accessible_questions()\
                                       .filter(submitter=request.user)\
                                       .order_by('-pk')[:10]
 
@@ -526,8 +525,7 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     category = Category.objects.get_from_slugs_or_404(slugs)
     session = get_object_or_404(Session.objects.select_related('exam',
                                                                'exam__category')\
-                                               .undeleted()\
-                                               .with_accessible_questions(),
+                                               .undeleted(),
                                 pk=session_pk)
 
     current_question = session.get_current_question(question_pk)
@@ -687,7 +685,6 @@ def list_previous_sessions(request):
     sessions = request.user.session_set\
                            .select_related('exam', 'exam__category')\
                            .undeleted()\
-                           .with_accessible_questions()
 
     context = {'sessions':sessions,
                'is_previous_active': True}
