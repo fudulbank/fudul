@@ -108,8 +108,7 @@ def get_user_question_stats(target, user, result, total=None, percent=False):
 
     if percent:
         # If total was not provided
-        if total is None:
-            print("Getting total...")
+        if total is None or total == '':
             total = pool.count()
         if total == 0:
             return 0
