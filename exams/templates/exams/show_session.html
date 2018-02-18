@@ -527,7 +527,7 @@
       var previous_set_start_index = (Math.floor(question_sequence / 50) - 1) * 50
       var previous_set_end_index = current_set_start_index - 1
 
-      if (next_set_start_index > SESSION_QUESTION_TOTAL){
+      if (next_set_start_index >= SESSION_QUESTION_TOTAL){
         next_set_start_index = null;
       }
       if (0 > previous_set_start_index){
