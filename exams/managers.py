@@ -160,9 +160,7 @@ class QuestionQuerySet(models.QuerySet):
         return self.order_by('-pk')
 
     def undeleted(self):
-        return self.annotate(revision_count=Count('revision'))\
-                   .filter(is_deleted=False)\
-                   .exclude(revision_count=0)
+        return self.filter(is_deleted=False)
 
     def marked_by_user(self,user):
         return self.undeleted()\
