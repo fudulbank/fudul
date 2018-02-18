@@ -11,12 +11,12 @@ class Command(BaseCommand):
         if not sample_question:
             # To give a less confusing expereince, exclude any question with
             # correction.
-            sample_question = Question.objects.approved()\
-                                              .filter(answer__isnull=False,
-                                                      parent_question__isnull=True,
-                                                      child_question__isnull=True)\
-                                              .exclude(revision__choice__answer_correction__isnull=False)\
-                                              .distinct()\
+            possible_pks = Question.objects.approved()\
+                                           .filter(parent_question__isnull=True,
+                                                   child_question__isnull=True,
+                                                   revision__choice__answer_correction__isnull=True)\
+                                           .values('pk')                                              
+            sample_question = Question.objects.filter(pk__in=possible_pks)\
                                               .order_by('?')\
                                               .first()
             cache.set('sample_question', sample_question,
