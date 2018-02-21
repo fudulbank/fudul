@@ -48,10 +48,11 @@ tbody tr td.action-button{
             <div class="collapse" id="assignForm">
               <div class="card border">
                 <div class="card-body">
-                  <p>You can assign editors to specific questions.  You can select more than one question by pressing <kbd>Ctrl</kbd> (to select one more question) or <kbd>Shift</kbd> (to select the questions between).  The question will be assigned to the user until they edit it.</p>
+                  <p>You can assign editors to specific questions.  You can select more than one question by pressing <kbd>Ctrl</kbd> (to select one more question) or <kbd>Shift</kbd> (to select the questions between).  The question will be assigned to the user until they clear it from their side.</p>
                   <p><strong><span id="selection-count">0</span> questions</strong> are now selected.</p>
                   {{ assignment_form }}
-                  <button id="submit-assignment" disabled class="btn btn-success">Assign</button>
+                  <button id="submit-assignment" data-action="assign" disabled class="btn btn-success">Assign</button>
+                  <button id="clear-assignment" data-action="clear" disabled class="btn btn-danger">Clear</button>
                 </div>
               </div>
             </div>
@@ -135,18 +136,21 @@ tbody tr td.action-button{
             order: [[ 4, "desc" ]]
         });
 
-        function controlSubmit(){
-          if ($("#id_editor").val() && tables.rows({selected: true}).count()){
-            $("#submit-assignment").attr('disabled', false)
+        function controlButtons(){
+          if (tables.rows({selected: true}).count()){
+            $("#clear-assignment").attr('disabled', false)
+            if ($("#id_editor").val()){
+              $("#submit-assignment").attr('disabled', false)
+            }
           } else {
-            $("#submit-assignment").attr('disabled', true)
+            $("#submit-assignment, #clear-assignment").attr('disabled', true)
           }
         }
 
         tables.on('select deselect', function(){
           var count = tables.rows({selected: true}).count();
           $("#selection-count").html(count);
-          controlSubmit();
+          controlButtons();
         })
 
         $("#open-assignment").click(function(){
@@ -155,27 +159,37 @@ tbody tr td.action-button{
           $('.dt-buttons').toggle( column.visible() );
         });
 
-        $("#id_editor").change(controlSubmit);
+        $("#id_editor").change(controlButtons);
 
-        $("#submit-assignment").click(function(){
+        $("#submit-assignment, #clear-assignment").click(function(){
+          var action = $(this).data('action')
           var pks = []
           tables.rows( { selected: true } ).every(function(){
             pk = this.data().question.id;
             pks.push(pk)
           })
           pks_str = pks.join(",")
-          var editor_pk = $("#id_editor").val()
+          if (action == 'assign'){
+            var editor_pk = $("#id_editor").val()
+            var clear = false
+          } else if (action == 'clear'){
+            var editor_pk = null;
+            var clear = true;
+          }
           $.ajax({url: "{% url 'exams:assign_questions' %}",
                   method: 'POST',
-                  data: {pks: pks_str, editor_pk: editor_pk},
+                  data: {pks: pks_str, editor_pk: editor_pk, clear: clear},
                   success: function(){
                     var editor_name = $("#id_editor").select2('data')[0].text;
                     tables.rows( { selected: true } ).every(function(){
                       data = this.data()
-                      data.assigned_editor = editor_name;
+                      if (action == 'assign'){
+                        data.assigned_editor = editor_name;
+                      } else if (action == 'clear'){
+                        data.assigned_editor = "";
+                      }
                       this.data(data);
                     })
-
                   }}
           );
         });
@@ -186,7 +200,7 @@ tbody tr td.action-button{
           backdrop: 'static',
           show    : false,
         });
-        $('tbody').on('click','tr td:not(.select):not(.action-button)',function () {
+        $('tbody').on('click','tr td:not(.select-checkbox):not(.action-button)',function () {
             question_id = tables.row(this).cell('.question-id').data();
             url =  Urls['exams:show_question'](question_id);
             $("#show-question-modal").modal('show');
@@ -212,8 +226,7 @@ tbody tr td.action-button{
 				                toastr.options.positionClass = "toast-top-left";
 				                toastr.info("Question was successfuly deleted");
 
-												row = tables.row("tr[data-pk=" +  pk + "]");
-												row.remove().draw(false);
+                        tables.cell('.question-id:contains(' + pk +')').row().remove().draw(false);
 												$("#confirm-delete-question-modal").modal('hide');
 				            } else {
 				                toastr.error(data.message);
