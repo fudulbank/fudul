@@ -1268,8 +1268,12 @@ def assign_questions(request):
     except TypeError:
         return HttpResponseBadRequest('No valid "pks" parameter was provided')
 
-    editor_pk = request.POST.get('editor_pk')
-    assigned_editor = User.objects.get(pk=editor_pk)
+    clear = request.POST.get('clear')
+    if clear == 'true':
+        assigned_editor = None
+    elif clear == 'false':
+        editor_pk = request.POST.get('editor_pk')
+        assigned_editor = User.objects.get(pk=editor_pk)
 
     questions = Question.objects.filter(pk__in=pks)
     questions.update(assigned_editor=assigned_editor)
