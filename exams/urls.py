@@ -8,6 +8,7 @@ urlpatterns =[
     url(r'^ajax/general/questions$', views.QuestionAutocomplete.as_view(), name='autocomplete_questions'),
     url(r'^ajax/general/count_answers$', views.count_answers, name='count_answers'),
     url(r'^ajax/general/correct_percentage$', views.get_correct_percentage, name='get_correct_percentage'),
+    url(r'^ajax/collectors/assign_questions$', views.assign_questions, name='assign_questions'),
     url(r'^ajax/collectors/show_question/(?P<pk>\d+)(?:/(?P<revision_pk>\d+))?$', views.show_question, name='show_question'),
     url(r'^ajax/collectors/show_explanation_revision/(?P<pk>\d+)$', views.show_explanation_revision, name='show_explanation_revision'),
     url(r'^ajax/collectors/handle_question/(?P<exam_pk>\d+)(?:/(?P<question_pk>\d+))?$', views.handle_question, name='handle_question'),

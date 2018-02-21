@@ -1,4 +1,4 @@
-{% extends 'base_new.html' %}{% load static %}
+{% extends 'base_new.html' %}{% load static exam_utils %}
 {% block title %}Fudul | {{ exam.name }}: List questions ({{ list_name }}){% endblock %}
 {% block head %}
 <style type="text/css">
@@ -14,6 +14,11 @@ tbody tr td:last-child{
         font-weight: bolder;
         color: white;
     }
+
+.dt-buttons{
+  display: none;
+}
+
 </style>
 {% endblock %}
 
@@ -30,33 +35,155 @@ tbody tr td:last-child{
 			{% for parent_category in exam.category.get_parent_categories %}
 			<li class="breadcrumb-item"><a href="{% url 'exams:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
 			{% endfor %}
-			<li class="breadcrumb-item"><a href="{% url 'exams:show_category' exam.category.get_slugs %}">{{ exam.category.name }}</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'exams:create_session' exam.category.get_slugs exam.pk %}">{{ exam.name }}</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'exams:list_questions' exam.category.get_slugs exam.pk %}">List</a></li>
+			<li class="breadcrumb-item"><a href="{% url 'exams:show_category' category_slugs %}">{{ exam.category.name }}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:create_session' category_slugs exam.pk %}">{{ exam.name }}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:list_questions' category_slugs exam.pk %}">List</a></li>
       <li class="breadcrumb-item active">{{ list_name }}</li>
 {% endblock %}
 
 {% block content %}
     <div class="card">
         <div class="card-body">
+          {% if exam.category|is_editor:user %}
           <div class="card-block">
-{% with exam_pk=exam.pk category_slug=exam.category.get_slugs %}
-{% include 'exams/partials/question_table.html' %}
-{% endwith %}
+            <p>
+              <button id="open-assignment" class="btn btn-seconday" type="button" data-toggle="collapse" data-target="#assignForm" aria-expanded="false" aria-controls="assignForm">
+                Question assignment
+              </button>
+            </p>
+            <div class="collapse" id="assignForm">
+              <div class="card border">
+                <div class="card-body">
+                  <p>You can assign editors to specific questions.  You can select more than one question by pressing <kbd>Shift</kbd>.  The question will be assigned to the user until they edit it.</p>
+                  <p><strong><span id="selection-count">0</span> questions</strong> are now selected.</p>
+                  {{ assignment_form }}
+                  <button id="submit-assignment" disabled class="btn btn-success">Assign</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+          <div class="card-block">
+            <table class="table table-striped table-bordered datatable dt-responsive">
+              <thead>
+                  <tr>
+                      <th></th>
+                      <th data-priority="1">ID</th>
+                      <th data-priority="2">Text</th>
+                      <th>Assigned editor</th>
+                      <th>Date of last latest_revision</th>
+                      <th data-priority="2">Actions</th>
+                  </tr>
+              </thead>
+              <tbody>
+              </tbody>
+            </table>
           </div>
         </div>
     </div>
 {% endblock %}
 {% block customscript %}
+
+<div id="action-button" style="display: none">
+  <div class="dropdown">
+    <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="ft-settings"></i> Actions</button>
+    <div class="dropdown-menu">
+      <a class="list-revisions dropdown-item"><i class="ft-list"></i> History</a>
+      <a data-url="{% url 'exams:contribute_mnemonics' %}" class="dropdown-item review-mnemonics"><i class="ft-eye"></i> Review Mnemonics</a>
+      <a class="submit-revision dropdown-item"><i class="ft-edit-2"></i> Edit</a>
+      <a class="dropdown-item confirm-delete-question"><i class="ft-trash-2"></i> Delete</a>
+    </div>
+  </div>
+</div>
+
+{{ assignment_form.media }}
 {% include 'partials/import_datatables.html' %}
 <script src="{% static 'js/toastr.js' %}"></script>
+<script src="{% url 'js_reverse' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js" integrity="sha384-kOzY9L5wBXCCeXrHKAMsNCiXCP+c9gu/TfMTC+vTjH542f0KEPZdw69IG2d4khx/" crossorigin="anonymous"></script>
 <script>
+    EXAM_PK = {{ exam.pk }};
+    CATEGORY_SLUGS = '{{ category_slugs }}';
+
     $(function () {
         tables = $(".datatable").DataTable({
-					  "columnDefs": [
-				    { "orderable": false, "targets": 4 }
-					],
-            "order": [[ 3, "desc" ]]
+            ajax: {url: '{% url "question-list" %}?exam_pk={{ exam.pk }}&selector={{ selector }}&format=json', dataSrc:""},
+            deferRender: true,
+            dom: 'Bfrtip',
+            buttons: [
+              'selectAll',
+              'selectNone'
+            ],
+            columns: [
+              {data: function(){return ''}, orderable: false, visible: false, className: 'select-checkbox'},
+              {data: 'question.id', className: 'question-id'},
+              {data: 'summary'},
+              {data: 'assigned_editor', className: 'assigned-editor'},
+              {data: 'submission_date', render: function(data){ return moment(data).format("D MMMM, YYYY") }},
+              //{data: function(){return ''}, orderable: false},
+              {data: 'question.id',
+               render: function(question_id){
+                    var action_data = $(document.getElementById('action-button').innerHTML);
+                    var list_revision_url = Urls['exams:list_revisions'](CATEGORY_SLUGS, EXAM_PK, question_id);
+                    var submit_revision_url = Urls['exams:submit_revision'](CATEGORY_SLUGS, EXAM_PK, question_id);
+                    action_data.find('.list-revisions').attr('href', list_revision_url);
+                    action_data.find('.submit-revision').attr('href', submit_revision_url);
+                    action_data.find('.confirm-delete-question, .review-mnemonics').attr('data-pk', question_id);
+                    return action_data.prop('outerHTML');
+                },
+                orderable: false,
+                className: 'action-button'},
+            ],
+            select: {
+              style:    'os',
+              selector: 'td.select-checkbox'
+            },
+            order: [[ 4, "desc" ]]
+        });
+
+        function controlSubmit(){
+          if ($("#id_editor").val() && tables.rows({selected: true}).count()){
+            $("#submit-assignment").attr('disabled', false)
+          } else {
+            $("#submit-assignment").attr('disabled', true)
+          }
+        }
+
+        tables.on('select deselect', function(){
+          var count = tables.rows({selected: true}).count();
+          $("#selection-count").html(count);
+          controlSubmit();
+        })
+
+        $("#open-assignment").click(function(){
+          var column = tables.column( 0 );
+          column.visible( ! column.visible() );
+          $('.dt-buttons').toggle( column.visible() );
+        });
+
+        $("#id_editor").change(controlSubmit);
+
+        $("#submit-assignment").click(function(){
+          var pks = []
+          tables.rows( { selected: true } ).every(function(){
+            pk = this.data().question.id;
+            pks.push(pk)
+          })
+          pks_str = pks.join(",")
+          var editor_pk = $("#id_editor").val()
+          $.ajax({url: "{% url 'exams:assign_questions' %}",
+                  method: 'POST',
+                  data: {pks: pks_str, editor_pk: editor_pk},
+                  success: function(){
+                    var editor_name = $("#id_editor").select2('data')[0].text;
+                    tables.rows( { selected: true } ).every(function(){
+                      data = this.data()
+                      data.assigned_editor = editor_name;
+                      this.data(data);
+                    })
+
+                  }}
+          );
         });
 
         // initialize project edit modal
@@ -65,19 +192,17 @@ tbody tr td:last-child{
           backdrop: 'static',
           show    : false,
         });
-        $('tbody').on('click','tr td:not(:last-child)',function () {
-            row_node = tables.row(this).node();
-            url = $(row_node).data('url');
-            title_part = tables.row(this).cell('.question-id').data();
+        $('tbody').on('click','tr td:not(:first-child):not(:last-child)',function () {
+            question_id = tables.row(this).cell('.question-id').data();
+            url =  Urls['exams:show_question'](question_id);
             $("#show-question-modal").modal('show');
-            $("#show-question-modal .modal-title").html("Question #" + title_part);
+            $("#show-question-modal .modal-title").html("Question #" + question_id);
             $("#show-question-modal .modal-body").load(url);
-
         });
 				$deleteConfirmationButton = $("#confirm-delete-question-modal .submit-button")
         $('tbody').on('click','.confirm-delete-question',function () {
-            var url = $(this).data('url');
             var pk = $(this).data('pk');
+            var url = Urls['exams:delete_question'](pk);
             $deleteConfirmationButton.data('url', url).data('pk', pk);
             $("#confirm-delete-question-modal").modal('show');
         });
@@ -109,7 +234,7 @@ tbody tr td:last-child{
           backdrop: 'static',
           show    : false,
         });
-        $('.review-mnemonics').on('click',function () {
+        $('tbody').on('click', '.review-mnemonics', function () {
             var question_pk = $(this).data('pk');
             url = "{% url 'exams:contribute_mnemonics' %}?" + $.param({question_pk: question_pk})
             title_part = tables.row(this).cell('.question-id').data();

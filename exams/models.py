@@ -155,6 +155,14 @@ class Exam(models.Model):
             category = category.parent_category
         return sources
 
+    def get_editors(self):
+        members = User.objects.none()
+        category = self.category
+        while category:
+            members |= User.objects.filter(team_memberships__categories=category)
+            category = category.parent_category
+        return members
+
     def can_user_access(self, user):
         return self.category.can_user_access(user)
 
@@ -221,6 +229,9 @@ class Question(models.Model):
                                            related_name="child_question",
                                            on_delete=models.SET_NULL,
                                            default=None)
+    assigned_editor = models.ForeignKey(User, null=True, blank=True,
+                                        on_delete=models.SET_NULL,
+                                        related_name="assigned_questions")
 
     def __str__(self):
         latest_revision = self.get_latest_revision()

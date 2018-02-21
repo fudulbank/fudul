@@ -1,15 +1,14 @@
 from dal import autocomplete
 from django import forms
+from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
-
 from django.forms.models import inlineformset_factory
 import itertools
 import random
 
-from accounts.utils import get_user_college
 from . import models, utils
 import teams.utils
-
+import accounts.utils
 
 class MetaChoiceField(forms.ModelMultipleChoiceField):
     def __init__(self, *args, **kwargs):
@@ -35,6 +34,10 @@ class StatusChoiceField(forms.ModelMultipleChoiceField):
             css_class = "text-success"
         return "{} <strong class='{}'>({})</strong>".format(obj.name, css_class, blocker_str)
 
+class UserChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return accounts.utils.get_user_credit(obj, full=True)
+    
 # shared widgets for exam_types, sources and subjects in QuestionForm and SessionForm
 select2_widget = autocomplete.ModelSelect2Multiple(attrs={'data-width': '100%'})
 
@@ -363,3 +366,11 @@ class ContributeMnemonic(forms.ModelForm):
         fields=['text','image']
 
 
+class AssignQuestionForm(forms.Form):
+    editor = UserChoiceField(widget=autocomplete.ModelSelect2(),
+                             queryset=User.objects.none())
+
+    def __init__(self, *args, **kwargs):
+        exam = kwargs.pop('exam', None)        
+        super(AssignQuestionForm, self).__init__(*args, **kwargs)
+        self.fields['editor'].queryset = exam.get_editors()

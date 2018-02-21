@@ -1,17 +1,34 @@
 from exams.models import *
+from accounts.utils import get_user_credit
 from rest_framework import serializers, viewsets, permissions
 from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
+from django.template.defaultfilters import truncatewords, linebreaksbr
 
 class AnswerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Answer
         fields = ('question_id', 'choice_id')
 
-class QuestionSerializer(serializers.ModelSerializer):
+class QuestionIdSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
         fields = ('id',)
+
+class RevisionSummarySerializer(serializers.ModelSerializer):
+    question = QuestionIdSerializer(read_only=True)
+    summary = serializers.SerializerMethodField()
+    assigned_editor = serializers.SerializerMethodField()
+
+    def get_assigned_editor(self, obj):
+        return get_user_credit(obj.question.assigned_editor)
+
+    def get_summary(self, obj):
+        return linebreaksbr(truncatewords(obj.text, 70))
+
+    class Meta:
+        model = Revision
+        fields = ('question', 'summary', 'submission_date', 'assigned_editor')
 
 class RevisionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -68,11 +85,54 @@ class HighlightViewSet(viewsets.ReadOnlyModelViewSet):
                                         session__is_deleted=False)
 
 class MarkedQuestionViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = QuestionSerializer
+    serializer_class = QuestionIdSerializer
     permission_classes = (HasExamAccess,)
 
     def get_queryset(self):
         exam_pk = self.request.query_params.get('exam_pk')
         return Question.objects.filter(exam__pk=exam_pk,
                                        marking_users=self.request.user)\
+                               .distinct()
+
+
+class QuestionSummaryViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = RevisionSummarySerializer
+    permission_classes = (HasExamAccess,)
+
+    def get_queryset(self):
+        exam_pk = self.request.query_params.get('exam_pk')
+        exam = get_object_or_404(Exam, pk=exam_pk)
+        selector = self.request.query_params.get('selector')
+        question_pool = exam.question_set.all()
+        try:
+            issue_pk = int(selector)
+        except ValueError:
+            if selector == 'all':
+                questions = question_pool
+            elif selector == 'no_answer':
+                questions = question_pool.unsolved()
+            elif selector == 'no_issues':
+                questions = question_pool.with_no_issues()
+            elif selector == 'blocking_issues':
+                questions = question_pool.with_blocking_issues()
+            elif selector == 'nonblocking_issues':
+                questions = question_pool.with_nonblocking_issues()
+            elif selector == 'approved':
+                questions = question_pool.with_approved_latest_revision()
+            elif selector == 'pending':
+                questions = question_pool.with_pending_latest_revision()
+            elif selector == 'lacking_choices':
+                questions = question_pool.lacking_choices()
+            else:
+                raise Http404
+        else:
+            issue = get_object_or_404(Issue, pk=issue_pk)
+            questions = exam.question_set.undeleted()\
+                                         .filter(issues=issue)
+
+        return Revision.objects.select_related('question',
+                                               'question__assigned_editor',
+                                               'question__assigned_editor__profile')\
+                               .filter(question__in=questions,
+                                       is_last=True)\
                                .distinct()

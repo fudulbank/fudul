@@ -55,7 +55,7 @@ def get_user_college(user):
     return college
 
 
-def get_user_credit(contributing_user, viewing_user=None):
+def get_user_credit(contributing_user, viewing_user=None, full=False):
     if not contributing_user:
         return None
 
@@ -64,12 +64,13 @@ def get_user_credit(contributing_user, viewing_user=None):
     else:
         profile = None
 
-    if viewing_user and \
-       viewing_user.is_authenticated() and \
-       teams.utils.is_editor(viewing_user):
-        full = True
-    else:
-        full = False
+    if not full:
+        if viewing_user and \
+           viewing_user.is_authenticated() and \
+           teams.utils.is_editor(viewing_user):
+            full = True
+        else:
+            full = False
 
     if profile:
         if profile.display_full_name == 'Y' or full:

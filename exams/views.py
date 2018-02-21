@@ -228,53 +228,45 @@ def update_exam_stats(request, pk):
 def list_questions(request, slugs, pk, selector=None):
     category = Category.objects.get_from_slugs_or_404(slugs)
 
-    exam = get_object_or_404(Exam, pk=pk, category=category)
+    exam = get_object_or_404(Exam.objects.select_related('category'), pk=pk, category=category)
+    assignment_form = forms.AssignQuestionForm(exam=exam)
 
     # PERMISSION CHECK
     if not exam.can_user_access(request.user):
         raise PermissionDenied
 
     context = {'exam': exam,
+               'category_slugs': slugs,
+               'selector': selector,
+               'assignment_form': assignment_form,
                'is_browse_active': True}
 
     if selector:
-        question_pool = exam.question_set.all()
         try:
             issue_pk = int(selector)
         except ValueError:
             if selector == 'all':
-                questions = question_pool
                 context['list_name'] = "all questions"
             elif selector == 'no_answer':
-                questions = question_pool.unsolved()
                 context['list_name'] = "no right answers"
             elif selector == 'no_issues':
-                questions = question_pool.with_no_issues()
                 context['list_name'] = "no issues"
             elif selector == 'blocking_issues':
-                questions = question_pool.with_blocking_issues()
                 context['list_name'] = "blocking issues"
             elif selector == 'nonblocking_issues':
-                questions = question_pool.with_nonblocking_issues()
                 context['list_name'] = "non-blocking issues"
             elif selector == 'approved':
-                questions = question_pool.with_approved_latest_revision()
                 context['list_name'] = "approved latesting revision"
             elif selector == 'pending':
-                questions = question_pool.with_pending_latest_revision()
                 context['list_name'] = "pending latesting revision"
             elif selector == 'lacking_choices':
-                questions = question_pool.lacking_choices()
                 context['list_name'] = "lacking choices"
             else:
                 raise Http404
         else:
             issue = get_object_or_404(Issue, pk=issue_pk)
             context['list_name'] = issue.name
-            questions = exam.question_set.undeleted()\
-                                         .filter(issues=issue)
 
-        context['questions'] = questions
         return render(request, 'exams/list_questions_by_selector.html', context)
     else:
         context['issues'] = Issue.objects.all()
@@ -1265,3 +1257,20 @@ def contribute_mnemonics(request):
 
     context = {'question': question, 'form': form, 'mnemonics':mnemonics,'exam':exam}
     return render(request, 'exams/partials/contribute_mnemonics.html', context)
+
+@login_required
+@require_POST
+@decorators.ajax_only
+@csrf.csrf_exempt
+def assign_questions(request):
+    try:
+        pks = [int(pk) for pk in request.POST.get('pks').split(',')]
+    except TypeError:
+        return HttpResponseBadRequest('No valid "pks" parameter was provided')
+
+    editor_pk = request.POST.get('editor_pk')
+    assigned_editor = User.objects.get(pk=editor_pk)
+
+    questions = Question.objects.filter(pk__in=pks)
+    questions.update(assigned_editor=assigned_editor)
+    return {}
