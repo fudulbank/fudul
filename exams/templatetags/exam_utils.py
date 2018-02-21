@@ -1,7 +1,6 @@
 from django import template
 from django.db.models import Q
 from exams import utils, models
-from django.template.defaultfilters import linebreaksbr
 
 register = template.Library()
 
