@@ -192,7 +192,7 @@ tbody tr td:last-child{
           backdrop: 'static',
           show    : false,
         });
-        $('tbody').on('click','tr td:not(:first-child):not(:last-child)',function () {
+        $('tbody').on('click','tr td:not(.select):not(.action-button)',function () {
             question_id = tables.row(this).cell('.question-id').data();
             url =  Urls['exams:show_question'](question_id);
             $("#show-question-modal").modal('show');
