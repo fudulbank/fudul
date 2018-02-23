@@ -40,6 +40,9 @@ class Issue(models.Model):
     code_name = models.CharField(max_length=50)
     is_blocker = models.BooleanField(default=False)
 
+    def get_selector(self):
+        return 'i-' + str(self.pk)
+
     def __str__(self):
         if self.is_blocker:
             blocker_str = "blocker"

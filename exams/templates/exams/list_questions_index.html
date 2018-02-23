@@ -94,7 +94,7 @@
                 {% for issue in issues %}
                 {% with issue_count=exam|get_exam_question_count_per_meta:issue %}
                 <tr>
-                  <td><a href="{% url 'exams:list_questions_by_selector' category_slug exam.pk issue.pk %}">{{ issue.name }}</a></td>
+                  <td><a href="{% url 'exams:list_questions_by_selector' category_slug exam.pk issue.get_selector %}">{{ issue.name }}</a></td>
                   <td data-order="{{ issue_count }}">{{ issue_count }} ({% widthratio issue_count total_count 100 %}%)</td>
                 </tr>
                 {% endwith %}
