@@ -124,6 +124,7 @@ tbody tr td.action-button{
                   method: 'POST',
                   data: {pks: pks_str, clear: true},
                   success: function(){
+                    $("#selection-count").html("0");
                     selectors = []
                     for (index in pks){
                       selectors.push(".question-id:contains(" + pks[index] + ")");
