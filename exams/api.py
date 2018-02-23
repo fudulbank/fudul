@@ -126,33 +126,34 @@ class QuestionSummaryViewSet(viewsets.ReadOnlyModelViewSet):
             exam = get_object_or_404(Exam, pk=exam_pk)
         selector = self.request.query_params.get('selector')
         question_pool = exam.question_set.all()
-        try:
-            issue_pk = int(selector)
-        except ValueError:
-            if selector == 'all':
-                questions = question_pool
-            elif selector == 'assigned':
-                questions = question_pool.filter(assigned_editor=self.request.user)
-            elif selector == 'no_answer':
-                questions = question_pool.unsolved()
-            elif selector == 'no_issues':
-                questions = question_pool.with_no_issues()
-            elif selector == 'blocking_issues':
-                questions = question_pool.with_blocking_issues()
-            elif selector == 'nonblocking_issues':
-                questions = question_pool.with_nonblocking_issues()
-            elif selector == 'approved':
-                questions = question_pool.with_approved_latest_revision()
-            elif selector == 'pending':
-                questions = question_pool.with_pending_latest_revision()
-            elif selector == 'lacking_choices':
-                questions = question_pool.lacking_choices()
-            else:
-                raise Http404
-        else:
-            issue = get_object_or_404(Issue, pk=issue_pk)
+        if selector.startswith('i-'):
+            issue_pk = int(selector[2:])
             questions = exam.question_set.undeleted()\
-                                         .filter(issues=issue)
+                                         .filter(issues__pk=issue_pk)
+        elif selector.startswith('s-'):
+            subject_pk = int(selector[2:])
+            questions = exam.question_set.undeleted()\
+                                         .filter(subjects__pk=subject_pk)
+        elif selector == 'all':
+            questions = question_pool
+        elif selector == 'assigned':
+            questions = question_pool.filter(assigned_editor=self.request.user)
+        elif selector == 'no_answer':
+            questions = question_pool.unsolved()
+        elif selector == 'no_issues':
+            questions = question_pool.with_no_issues()
+        elif selector == 'blocking_issues':
+            questions = question_pool.with_blocking_issues()
+        elif selector == 'nonblocking_issues':
+            questions = question_pool.with_nonblocking_issues()
+        elif selector == 'approved':
+            questions = question_pool.with_approved_latest_revision()
+        elif selector == 'pending':
+            questions = question_pool.with_pending_latest_revision()
+        elif selector == 'lacking_choices':
+            questions = question_pool.lacking_choices()
+        else:
+            raise Http404
 
         return Revision.objects.select_related('question',
                                                'question__assigned_editor',

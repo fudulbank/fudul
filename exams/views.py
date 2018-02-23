@@ -242,33 +242,34 @@ def list_questions(request, slugs, pk, selector=None):
                'is_browse_active': True}
 
     if selector:
-        try:
-            issue_pk = int(selector)
-        except ValueError:
-            if selector == 'all':
-                context['list_name'] = "all questions"
-            elif selector == 'no_answer':
-                context['list_name'] = "no right answers"
-            elif selector == 'no_issues':
-                context['list_name'] = "no issues"
-            elif selector == 'blocking_issues':
-                context['list_name'] = "blocking issues"
-            elif selector == 'nonblocking_issues':
-                context['list_name'] = "non-blocking issues"
-            elif selector == 'approved':
-                context['list_name'] = "approved latesting revision"
-            elif selector == 'pending':
-                context['list_name'] = "pending latesting revision"
-            elif selector == 'lacking_choices':
-                context['list_name'] = "lacking choices"
-            else:
-                raise Http404
-        else:
+        if selector.startswith('i-'):
+            issue_pk = int(selector[2:])
             issue = get_object_or_404(Issue, pk=issue_pk)
             context['list_name'] = issue.name
-
+        elif selector.startswith('s-'):
+            subject_pk = int(selector[2:])
+            subject = get_object_or_404(exam.subject_set, pk=subject_pk)
+            context['list_name'] = subject.name
+        elif selector == 'all':
+            context['list_name'] = "all questions"
+        elif selector == 'no_answer':
+            context['list_name'] = "no right answers"
+        elif selector == 'no_issues':
+            context['list_name'] = "no issues"
+        elif selector == 'blocking_issues':
+            context['list_name'] = "blocking issues"
+        elif selector == 'nonblocking_issues':
+            context['list_name'] = "non-blocking issues"
+        elif selector == 'approved':
+            context['list_name'] = "approved latesting revision"
+        elif selector == 'pending':
+            context['list_name'] = "pending latesting revision"
+        elif selector == 'lacking_choices':
+            context['list_name'] = "lacking choices"
+        else:
+            raise Http404
         return render(request, 'exams/list_questions_by_selector.html', context)
-    else:
+    else: # if no selector
         context['issues'] = Issue.objects.all()
         return render(request, 'exams/list_questions_index.html', context)
 

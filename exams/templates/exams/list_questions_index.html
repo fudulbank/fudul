@@ -107,6 +107,34 @@
 
     <div class="card">
       <div class="card-header">
+						<h4 class="card-title">Questions per subject</h4>
+      </div>
+      <div class="card-body">
+        <div class="card-block">
+          <table style="width: 100%" class="table table-striped table-bordered datatable dt-responsive">
+            <thead>
+              <tr>
+                <th>Subject</th>
+                <th># questions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for subject in exam.subject_set.all %}
+              {% with subject_count=subject.question_set.count %}
+              <tr>
+                <td><a href="{% url 'exams:list_questions_by_selector' category_slug exam.pk subject.get_selector %}">{{ subject.name }}</a></td>
+                <td data-order="{{ subject_count }}">{{ subject_count }} ({% widthratio subject_count total_count 100 %}%)</td>
+              </tr>
+              {% endwith %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
 						<h4 class="card-title">Other lists</h4>
       </div>
       <div class="card-body">

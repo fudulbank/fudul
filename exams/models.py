@@ -207,6 +207,9 @@ class Subject(models.Model):
     is_deleted = models.BooleanField(default=False)
     objects = managers.MetaInformationQuerySet.as_manager()
 
+    def get_selector(self):
+        return 's-' + str(self.pk)
+
     def __str__(self):
         return self.name
 
