@@ -124,11 +124,12 @@ tbody tr td.action-button{
                   method: 'POST',
                   data: {pks: pks_str, clear: true},
                   success: function(){
-                    selector = ""
+                    selectors = []
                     for (index in pks){
-                      selector += ":contains(" + pks[index] + ")";
+                      selectors.push(".question-id:contains(" + pks[index] + ")");
                     }
-                    tables.row(selector).remove().draw(false);
+                    selector_str = selectors.join(",")
+                    tables.cells(selector_str).rows().remove().draw(false);
                   }}
           );
         });
