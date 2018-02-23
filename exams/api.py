@@ -28,7 +28,28 @@ class RevisionSummarySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Revision
-        fields = ('question', 'summary', 'submission_date', 'assigned_editor')
+        fields = ('question', 'summary', 'submission_date',
+                  'assigned_editor')
+        
+class RevisionAssignmentSerializer(serializers.ModelSerializer):
+    question = QuestionIdSerializer(read_only=True)
+    summary = serializers.SerializerMethodField()
+    category_slugs = serializers.SerializerMethodField()
+    exam_id = serializers.SerializerMethodField()
+
+    def get_summary(self, obj):
+        return linebreaksbr(truncatewords(obj.text, 70))
+
+    def get_category_slugs(self, obj):
+        return obj.question.exam.category.get_slugs()
+
+    def get_exam_id(self, obj):
+        return obj.question.exam_id
+
+    class Meta:
+        model = Revision
+        fields = ('question', 'summary', 'submission_date',
+                  'category_slugs', 'exam_id')
 
 class RevisionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -101,7 +122,8 @@ class QuestionSummaryViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         exam_pk = self.request.query_params.get('exam_pk')
-        exam = get_object_or_404(Exam, pk=exam_pk)
+        if exam_pk:
+            exam = get_object_or_404(Exam, pk=exam_pk)
         selector = self.request.query_params.get('selector')
         question_pool = exam.question_set.all()
         try:
@@ -109,6 +131,8 @@ class QuestionSummaryViewSet(viewsets.ReadOnlyModelViewSet):
         except ValueError:
             if selector == 'all':
                 questions = question_pool
+            elif selector == 'assigned':
+                questions = question_pool.filter(assigned_editor=self.request.user)
             elif selector == 'no_answer':
                 questions = question_pool.unsolved()
             elif selector == 'no_issues':
@@ -136,3 +160,15 @@ class QuestionSummaryViewSet(viewsets.ReadOnlyModelViewSet):
                                .filter(question__in=questions,
                                        is_last=True)\
                                .distinct()
+
+class QuestionAssignmentViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = RevisionAssignmentSerializer
+
+    def get_queryset(self):
+        return Revision.objects.select_related('question',
+                                               'question__exam',
+                                               'question__exam__category',
+                                               'question__assigned_editor',
+                                               'question__assigned_editor__profile')\
+                               .filter(question__assigned_editor=self.request.user,
+                                       is_last=True)

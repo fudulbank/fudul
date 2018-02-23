@@ -7,14 +7,15 @@ from django_js_reverse.views import urls_js
 from rest_framework import routers
 
 from exams.admin import editor_site
-from exams.api import HighlightViewSet, AnswerViewSet, MarkedQuestionViewSet, QuestionSummaryViewSet
+from exams.api import *
 
 
 router = routers.DefaultRouter()
 router.register(r'answers', AnswerViewSet, base_name="answer")
 router.register(r'highlights', HighlightViewSet, base_name="highlight")
 router.register(r'marked', MarkedQuestionViewSet, base_name="marked")
-router.register(r'question_summary', QuestionSummaryViewSet, base_name="question")
+router.register(r'question_summary', QuestionSummaryViewSet, base_name="summary")
+router.register(r'question_assignment', QuestionAssignmentViewSet, base_name="assigned")
 
 urlpatterns = [
     url(r'^api/', include(router.urls)),

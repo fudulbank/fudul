@@ -37,6 +37,7 @@ urlpatterns =[
     url(r'^performance/(?P<exam_pk>\d+)/$', views.show_my_performance_per_exam, name='show_my_performance_per_exam'),
 
     url(r'^search/$', views.search, name='search'),
+    url(r'^assigned/$', views.list_assigned_questions, name='list_assigned_questions'),
 
     # Indicators were moved to the core app
     url(r'^indicators/$', RedirectView.as_view(pattern_name='show_indicator_index')),

@@ -1278,3 +1278,10 @@ def assign_questions(request):
     questions = Question.objects.filter(pk__in=pks)
     questions.update(assigned_editor=assigned_editor)
     return {}
+
+
+@login_required
+@require_safe
+#@cache_page(settings.CACHE_PERIODS['STABLE'])
+def list_assigned_questions(request):
+    return render(request, 'exams/list_assigned_questions.html')
