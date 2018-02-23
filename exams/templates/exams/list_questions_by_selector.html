@@ -104,7 +104,7 @@ tbody tr td.action-button{
         tables = $(".datatable").DataTable({
             ajax: {url: '{% url "summary-list" %}?exam_pk={{ exam.pk }}&selector={{ selector }}&format=json', dataSrc:""},
             deferRender: true,
-            dom: 'Bfrtip',
+            dom: 'Bfrtipl',
             buttons: [
               'selectAll',
               'selectNone'
