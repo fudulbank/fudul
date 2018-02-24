@@ -468,7 +468,7 @@
 
     function updateData(){
         current_sequence =  parseInt($("#question-sequence").html());
-        data = {question_pk: $(".question-body.show").data('question-pk'),
+        data = {question_pk: $current_question.data('question-pk'),
                 session_pk: $("#session-pk").html()}
     }
 
@@ -483,35 +483,35 @@
     function showQuestion(target, is_initial){
       // 'target' could either be a question-sequence or url.  First,
       // let's check sequence, then URL.
-      $question = $("#question-pool [data-question-sequence=" + target + "]")
-      if ($question.length){
+      $current_question = $("#question-pool [data-question-sequence=" + target + "]")
+      if ($current_question.length){
         if (is_initial){
-          history.replaceState({url: $question.data('url')}, '', $question.data('url'));
+          history.replaceState({url: $current_question.data('url')}, '', $current_question.data('url'));
         } else {
-          history.pushState({url: $question.data('url')}, '', $question.data('url'));
+          history.pushState({url: $current_question.data('url')}, '', $current_question.data('url'));
         }
         // Update Piwik URL
         _paq.push(['setCustomUrl', window.location.href]);
       } else {
-        $question = $("#question-pool [data-url=\"" + target + "\"]");
+        $current_question = $("#question-pool [data-url=\"" + target + "\"]");
       }
 
       // If question is still unfound despite looking by URL,
       // fetch it.
-      if (!$question.length) {
+      if (!$current_question.length) {
         question_set_start_index = Math.floor(target / 50) * 50
         fetchList(question_set_start_index, target);
         return
       }
 
       // Add 'show' class to the current question
-      $question.addClass("show");
+      $current_question.addClass("show");
       // Remove 'show' class from other questions
-      $(".question-body").not($question).removeClass('show');
-      var question_sequence = $question.data('question-sequence');
+      $(".question-body").not($current_question).removeClass('show');
+      var question_sequence = $current_question.data('question-sequence');
       $("#question-sequence").html(question_sequence);
-      var list_revision_url = $question.data('list-revision-url')
-      $("#question-pk").html($question.data('question-pk'))
+      var list_revision_url = $current_question.data('list-revision-url')
+      $("#question-pk").html($current_question.data('question-pk'))
                        .attr('href', list_revision_url);
 
       updateData();
@@ -593,8 +593,8 @@
 
         // If question sequence has not been loaded yet, prevent
         // and highlight the question-loading spinner
-        $question = $("#question-pool [data-question-sequence=" + targeted_sequence + "]")
-        if (!$question.length){
+        $current_question = $("#question-pool [data-question-sequence=" + targeted_sequence + "]")
+        if (!$current_question.length){
           _paq.push(['trackEvent', 'show_session', 'navigation', 'navigate-unloaded']);
           toastr.warning("You're super fast, " + USER_FIRST_NAME  + "!  Give us a second to bring question #" + targeted_sequence.toString() + ".");
           $("#question-loading").addClass("animated flash").css('color', 'yellow');
@@ -617,9 +617,8 @@
             data: data,
             cache: false,
             success: function(data){
-               $question = $(".question-body.show");
                $question_row = $('.navigate-row[data-question-sequence="' + current_sequence + '"]');
-               $question.data('is-marked', data.is_marked);
+               $current_question.data('is-marked', data.is_marked);
                handleMarked(data.is_marked);
                if (data.is_marked){
                  $question_row.find('td.is_marked').html(is_marked_markup);
@@ -664,7 +663,7 @@
             var replacementHtml = replacement.prop('outerHTML');
             $(this).html($(this).html().replace(escapedSelection, replacementHtml));
             // Bind only once
-            $(".question-body.show .highlight").off('click').on('click', removeHighlight);
+            $current_question.find(".highlight").off('click').on('click', removeHighlight);
             submitHighlight();
         }
 
@@ -678,9 +677,9 @@
       $choice_row.find('.check').append(html);
     }
 
-    function initializeMnemonicInteractions($question){
-      question_pk = $question.data('question-pk');
-      $question.find(".like-mnemonic").off('click').on('click', function() {
+    function initializeMnemonicInteractions(){
+      question_pk = $current_question.data('question-pk');
+      $current_question.find(".like-mnemonic").off('click').on('click', function() {
            action = $(this).data('action');
            mnemonic_pk = $(this).data('mnemonic-pk');
            url = "{% url 'exams:contribute_mnemonics' %}?" + $.param({question_pk: question_pk});
@@ -692,15 +691,14 @@
                success: function(data){
                  if (data.success == 1){
                    toastr.success("Your vote was submitted.");
-                   $(".question-body.show .mnemonics-content").html(data.mnemonic_html);
-
+                   $current_question.find(".mnemonics-content").html(data.mnemonic_html);
                  } else {
                    toastr.error(data.message)
                  }
                }
            });
       });
-      $question.find(".delete-mnemonic").off('click').on( 'click', function() {
+      $current_question.find(".delete-mnemonic").off('click').on( 'click', function() {
            action = $(this).data('action');
            mnemonic_pk = $(this).data('mnemonic-pk');
            url = "{% url 'exams:contribute_mnemonics' %}?" + $.param({question_pk: question_pk});
@@ -712,7 +710,7 @@
                success: function(data){
                  if (data.success == 1){
                    toastr.success("Your mnemonic is deleted.");
-                   $(".question-body.show .mnemonics-content").html(data.mnemonic_html);
+                   $current_question.find(".mnemonics-content").html(data.mnemonic_html);
 
 
                  } else {
@@ -723,11 +721,11 @@
       });
     }
 
-    function initializeCorrectionInteractions($question){
+    function initializeCorrectionInteractions(){
       // Here, we are selecting the SVG (i.e. '[data-fa-i2svg]')
       // within the '.correct' cell
-      $question.off('click', '.correct [data-fa-i2svg]')
-               .on('click', '.correct [data-fa-i2svg]', function () {
+      $current_question.off('click', '.correct [data-fa-i2svg]')
+                       .on('click', '.correct [data-fa-i2svg]', function () {
           _paq.push(['trackEvent', 'show_session', 'answer_correction', 'click-correct']);
           $("#correct-answer-modal").modal('show');
           choice_pk = $(this).closest('tr').data('choice-pk');
@@ -735,7 +733,7 @@
           $("#correct-answer-modal .modal-body").load(url);
       });
 
-      $question.find('.delete').off('click').on('click', function(){
+      $current_question.find('.delete').off('click').on('click', function(){
         choice_pk = $(this).data('choice-pk');
         url = "{% url 'exams:delete_correction' %}?" + $.param({choice_pk: choice_pk})
         pk_selector = "[data-choice-pk=" + choice_pk + "]";
@@ -763,7 +761,7 @@
         });
       });
 
-      $question.find(".support-correction, .oppose-correction").off('click').click(function(){
+      $current_question.find(".support-correction, .oppose-correction").off('click').click(function(){
         action = $(this).data('action');
         choice_pk = $(this).data('choice-pk');
         url = "{% url 'exams:correct_answer' %}?" + $.param({choice_pk: choice_pk})
@@ -784,8 +782,8 @@
         });
       });
 
-      $question.off('click', '.answer-correction-notification[data-fa-i2svg]')
-               .on('click', '.answer-correction-notification[data-fa-i2svg]', function(){
+      $current_question.off('click', '.answer-correction-notification[data-fa-i2svg]')
+                       .on('click', '.answer-correction-notification[data-fa-i2svg]', function(){
                  _paq.push(['trackEvent', 'show_session', 'answer_correction', 'click-notification']);
                  $('.answer-correction-notification').not(this).tooltip('hide');
 
@@ -801,21 +799,22 @@
     }
 
     function controlExplanation(){
-      was_solved = $(".question-body.show").data('was-solved');
+      was_solved = $current_question.data('was-solved');
       if (!was_solved || (SESSION_MODE == 'UNEXPLAINED' && !$('body').data('has-finished'))){
-        $(".question-body.show .explanation-container, #explain").hide()
+        $current_question.find(".explanation-container").hide()
+        $("#explain").hide()
       }
-      else if ($('.question-body.show .explanation-content').text().trim().length){
+      else if ($current_question.find(".explanation-content").text().trim().length){
         $("#explain").show().html('<i class="fas fa-cubes"></i> Improve this explanation!');
-        $(".question-body.show .explanation-container").show();
+        $current_question.find(".explanation-container").show();
       }
       else {
-        $(".question-body.show .explanation-container").hide();
+        $current_question.find(".explanation-container").hide();
         $("#explain").show().html("Add an explanation!");
       }
     }
     function controlMnemonic(){
-      was_solved = $(".question-body.show").data('was-solved');
+      was_solved = $current_question.data('was-solved');
       if (!was_solved || (SESSION_MODE == 'UNEXPLAINED' && !$('body').data('has-finished'))){
         $(".mnemonics-container, #add-mnemonics").hide()
       } else if( $.trim( $('.mnemonics-content').text() ).length ) {
@@ -863,6 +862,12 @@
       $('.navigate-row').not($question_row).removeClass('table-active');
     }
 
+    function disableHighlightInteractions(){
+      $current_question.off('click', '.highlight')
+      $current_question.find(".choice-text").off('click')
+      $current_question.find(".question-text").off('mouseup touchend')
+    }
+
     function initializeInteractions() {
         // Check whether we have any unsolved questions. Changing
         // data-has-finished to true will cause expalantions to show
@@ -872,14 +877,14 @@
           $('body').data('has-finished', true).attr('data-has-finished', true);
         }
 
-        $question = $(".question-body.show");
-        $question.find('[data-toggle="tooltip"]').tooltip();
+        // $current_question is defined in showQuestion
+        $current_question.find('[data-toggle="tooltip"]').tooltip();
 
-        initializeCorrectionInteractions($question);
-        initializeMnemonicInteractions($question);
+        initializeCorrectionInteractions();
+        initializeMnemonicInteractions();
         highlightActiveRow();
         controlNavigationButtons();
-        handleMarked($question.data('is-marked'));
+        handleMarked($current_question.data('is-marked'));
 
         // Show contributors as a tooltip
         $("#contributors").tooltip('dispose');
@@ -888,31 +893,31 @@
       	});
         $("#contributors").tooltip({html: true,
                                     trigger: 'click',
-                                    title: $(".question-body.show .tooltip-body").get(0)})
+                                    title: $current_question.find(".tooltip-body").get(0)})
 
         // Disable interaction if question was solved.
 
         controlExplanation();
         controlMnemonic();
-        was_solved = $question.data('was-solved');
+        was_solved = $current_question.data('was-solved');
         if (was_solved){
           $("#contribute,#add-mnemonics").show();
           $submitButton.hide();
-          $question.off('click', '.highlight')
-          $question.find(".question-choice").prop("disabled", "disabled");
+          disableHighlightInteractions();
+          $current_question.find(".question-choice").prop("disabled", "disabled");
         } else {
             $("#contribute,#add-mnemonics").hide();
             $submitButton.show();
             // We turn off handlers first to ensure they don't get
             // triggered more than once as the user navigates and
             // binds the handlers.
-            $question.find(".question-text").off('mouseup touchend').on('mouseup touchend', highlightText);
-            $question.find(".question-choice").off('change').on('change', toggleChoices);
+            $current_question.find(".question-text").off('mouseup touchend').on('mouseup touchend', highlightText);
+            $current_question.find(".question-choice").off('change').on('change', toggleChoices);
             // We use event delegation as highlights could be added
             // after firing initializeInteractions.
-            $question.off('click', '.highlight')
-                     .on('click', '.highlight', removeHighlight);
-            $(".question-body.show .choice-text").off('click').on('click', function() {
+            $current_question.off('click', '.highlight')
+                             .on('click', '.highlight', removeHighlight);
+            $current_question.find(".choice-text").off('click').on('click', function() {
                 if (!$(this).hasClass("strike")){
                    // If a choice is striked, it is no longer checked.
                     $(this).closest("tr").find(".question-choice").prop('checked', false).trigger('change');
@@ -924,9 +929,9 @@
     }
 
     function submitHighlight(){
-      data.best_latest_revision_pk = $(".question-body.show").data('best-latest-revision-pk');
-      data.highlighted_text = $(".question-body.show .question-text").html();
-      stricken_choice_pks = $('.question-body.show .choice-text.strike').map(function(){return $(this).closest('tr').data('choice-pk')}).get();
+      data.best_latest_revision_pk = $current_question.data('best-latest-revision-pk');
+      data.highlighted_text = $current_question.find(".question-text").html();
+      stricken_choice_pks = $current_question.find(".choice-text.strike").map(function(){return $(this).closest('tr').data('choice-pk')}).get();
       data.stricken_choice_pks = JSON.stringify(stricken_choice_pks);
 
       $.ajax({
@@ -938,29 +943,28 @@
 
     function submitChoice() {
         $(this).hide();
-        $question = $(".question-body.show");
 
         // if question was previously solved, don't submit.
-        if ($question.data('was-solved')){
+        if ($current_question.data('was-solved')){
           return
         }
         // Mark question as solved
         // We also set was-solved using .attr() to change the DOM and
         // be able to apply CSS.
-        $question.data('was-solved', true).attr('data-was-solved', true);
+        $current_question.data('was-solved', true).attr('data-was-solved', true);
         question_row = $('.navigate-row[data-question-sequence="' + current_sequence + '"]');
         question_row.find('td.was_solved').html(was_solved_markup);
 
         // Disable choices upon submission
-        $question.find(".question-choice").prop("disabled", "disabled")
+        $current_question.find(".question-choice").prop("disabled", "disabled")
         // Disable interactions after submission.  As for highlights,
         // we use event delegation to handle potential addition of
         // highlights afterwards (i.e. as a result of delayed
         // network).
-        $question.off('click', '.highlight')
-        $question.find(".question-text, .question-choice, .choice-text").off();
+        $current_question.off('click', '.highlight')
+        $current_question.find(".question-text, .question-choice, .choice-text").off();
 
-        $checkedChoice = $question.find(".question-choice:checked");
+        $checkedChoice = $current_question.find(".question-choice:checked");
 
         // Do we have a choice, or was it skipped?
         if ($checkedChoice.length) {
@@ -1000,6 +1004,7 @@
 
                     controlExplanation();
                     controlMnemonic();
+                    disableHighlightInteractions();
                     $("#contribute,#add-mnemonics").show();
                 } else {
                   toastr.error(data.message);
@@ -1050,10 +1055,11 @@
           _paq.push(['trackEvent', 'show_session', 'mark-question', 'keyboard-submit']);
           $submitButton.trigger('click');
         } else if (active_keys[17] && active_keys[38] || active_keys[17] && active_keys[40]){ // ctrl + up or ctrl + down
-          total_choices = $('.question-body.show .question-choice').length
-          $checked_choice = $('.question-body.show .question-choice:enabled:checked')
+          e.preventDefault() // prevent arrow scroll.
+          total_choices = $current_question.find(".question-choice").length
+          $checked_choice = $current_question.find(".question-choice:enabled:checked")
           if ($checked_choice.length){
-            choice_index = $('.question-body.show .question-choice').index($checked_choice);
+            choice_index = $current_question.find(".question-choice").index($checked_choice);
             if (active_keys[38] && choice_index == 0){ // Up while at top
               // We are at the topmost choice, we cannot go up.
               return
@@ -1073,7 +1079,7 @@
             // If no choice is already checked, arrows always select the first choice.
             target_index = 0;
           }
-          target_choice = $('.question-body.show .question-choice:enabled').get(target_index)
+          target_choice = $current_question.find('.question-choice:enabled').get(target_index)
           $(target_choice).prop('checked', true).trigger('change');
         } else {
           // If no matching keyboard shortcut, do not execuse
@@ -1375,7 +1381,7 @@
       $question_pool = $('#question-pool')
       if (!$question_pool.hasClass('choices-were-animated')){
         $question_pool.addClass('choices-were-animated')
-        $('.question-body.show tbody').addClass('animated fadeIn').one(animation_events, function(){$(this).removeClass()});
+        $current_question.find('tbody').addClass('animated fadeIn').one(animation_events, function(){$(this).removeClass()});
       }
     }
 
