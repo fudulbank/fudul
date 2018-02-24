@@ -1214,8 +1214,8 @@
         return
       }
 
-      current_targets = SESSION_QUESTION_PKS.slice(fetch_list_index, fetch_list_index + 50);
-      current_target_str = current_targets.join(',');
+      var current_targets = SESSION_QUESTION_PKS.slice(fetch_list_index, fetch_list_index + 50);
+      var current_target_str = current_targets.join(',');
       $("#question-loading").show();
       $.ajax({method: 'get',
               url: "{% url 'exams:list_partial_session_questions' category_slugs session.exam.pk %}",
