@@ -51,11 +51,13 @@ tbody tr td.action-button{
 {% block customscript %}
 
 <div id="action-button" style="display: none">
-  <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="ft-settings"></i> Actions</button>
-  <div class="dropdown-menu">
-    <a class="list-revisions dropdown-item"><i class="ft-list"></i> History</a>
-    <a class="submit-revision dropdown-item"><i class="ft-edit-2"></i> Edit</a>
-    <a class="dropdown-item confirm-delete-question"><i class="ft-trash-2"></i> Delete</a>
+  <div class="dropdown">
+    <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="ft-settings"></i> Actions</button>
+    <div class="dropdown-menu">
+      <a class="list-revisions dropdown-item"><i class="ft-list"></i> History</a>
+      <a class="submit-revision dropdown-item"><i class="ft-edit-2"></i> Edit</a>
+      <a class="dropdown-item confirm-delete-question"><i class="ft-trash-2"></i> Delete</a>
+    </div>
   </div>
 </div>
 {% include 'partials/import_datatables.html' %}

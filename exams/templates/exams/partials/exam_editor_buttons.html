@@ -1,9 +1,11 @@
 {% load exam_utils %}
 {% if exam.category|is_editor:user %}
-<button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="ft-user"></i> Editors</button>
-<div class="dropdown-menu">
-  <a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}" class="{% if is_add_active %}active {% endif %}dropdown-item"><i class="ft-plus"></i> Add questions</a>
-  <a href="{% url 'exams:list_questions' exam.category.get_slugs exam.pk %}" class="{% if is_list_active %}active {% endif %}dropdown-item"><i class="ft-list"></i> List questions</a>
-  <a href="{% url 'exams:approve_user_contributions' exam.category.get_slugs exam.pk %}" class="{% if is_review_active %}active {% endif %}dropdown-item"><i class="ft-eye"></i> Review contributions</a>
+<div class="dropdown">
+  <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="ft-user"></i> Editors</button>
+  <div class="dropdown-menu">
+    <a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}" class="{% if is_add_active %}active {% endif %}dropdown-item"><i class="ft-plus"></i> Add questions</a>
+    <a href="{% url 'exams:list_questions' exam.category.get_slugs exam.pk %}" class="{% if is_list_active %}active {% endif %}dropdown-item"><i class="ft-list"></i> List questions</a>
+    <a href="{% url 'exams:approve_user_contributions' exam.category.get_slugs exam.pk %}" class="{% if is_review_active %}active {% endif %}dropdown-item"><i class="ft-eye"></i> Review contributions</a>
+  </div>
 </div>
 {% endif %}
