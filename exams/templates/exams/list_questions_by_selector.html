@@ -114,7 +114,7 @@ tbody tr td.action-button{
               {data: 'question.id', className: 'question-id'},
               {data: 'summary'},
               {data: 'assigned_editor', className: 'assigned-editor'},
-              {data: 'submission_date', render: function(data){ return moment(data).format("D MMMM, YYYY") }},
+              {data: 'submission_date', render: function(data){ return moment(data).format("MMM. D, YYYY, H:mm") }},
               //{data: function(){return ''}, orderable: false},
               {data: 'question.id',
                render: function(question_id){
