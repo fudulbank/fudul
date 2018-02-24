@@ -225,6 +225,10 @@ class ChoiceQuerySet(models.QuerySet):
     def order_by_alphabet(self):
         return self.order_by('text')
 
+    def select_related_for_session(self):
+        return self.select_related('answer_correction',
+                                   'answer_correction__submitter')
+
     def order_randomly(self):
         return self.order_by('?')
 
