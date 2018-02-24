@@ -117,6 +117,14 @@ def get_question_edited_count(user, question_pool=None):
                         .distinct().count()
 
 @register.filter
+def get_question_assigned_count(user, question_pool=None):
+    if not question_pool:
+        question_pool = models.Question.objects\
+                                       .undeleted()
+
+    return question_pool.filter(assigned_editor=user).count()
+
+@register.filter
 def is_mnemonic_submiiter(mnemonic,user):
     if mnemonic.submitter == user :
         return True
