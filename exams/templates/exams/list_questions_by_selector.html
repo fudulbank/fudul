@@ -201,7 +201,8 @@ tbody tr td.action-button{
           show    : false,
         });
         $('tbody').on('click','tr td:not(.select-checkbox):not(.action-button)',function () {
-            question_id = tables.row(this).cell('.question-id').data();
+            $question_id_cell = $(this).siblings('.question-id');
+            question_id = tables.cell($question_id_cell).data();
             url =  Urls['exams:show_question'](question_id);
             $("#show-question-modal").modal('show');
             $("#show-question-modal .modal-title").html("Question #" + question_id);
