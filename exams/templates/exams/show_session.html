@@ -15,7 +15,6 @@
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:300,300i,400,400i,500,500i%7COpen+Sans:300,300i,400,400i,600,600i,700,700i">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw" crossorigin="anonymous">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/iCheck/1.0.2/skins/minimal/green.css" integrity="sha384-k4Vbkz38zXOdopeWoK6R8+WQ0vSkJIoIfCagttB7wpWLp3A7jQENS59KHGYzQZ+6" crossorigin="anonymous">
         <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
         {% include 'partials/piwik.html' %}
         <style>
@@ -314,10 +313,6 @@
 
     }
 
-    .icheckbox_minimal-green.disabled {
-       cursor: not-allowed;
-    }
-
     #keyboard-instructions th{
       text-align: center;
     }
@@ -431,7 +426,6 @@
         <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha384-xBuQ/xzmlsLoJpyjoggmTEz8OWUFM0/RC5BsqQBDX2v5cMvDHcMakNTNrHIW2I5f" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/iCheck/1.0.2/icheck.min.js" integrity="sha384-fro86Q7AQA74lBpygl530tK1E36/rPV+oakVwbKyTT98X8lzz3+yQ4AJEBlRvSNV" crossorigin="anonymous"></script>
         <script src="{% static 'js/toastr.js' %}"></script>
         <script src="{% url 'js_reverse' %}"></script>
         <script>
@@ -650,9 +644,9 @@
               $choice.closest('tr').find('.choice-text.strike').removeClass('strike');
               submitHighlight();
             }
-            $otherChoices.iCheck('uncheck');
+            $otherChoices.prop("checked", false);
         } else {
-            $choice.iCheck('uncheck');
+            $choice.prop("checked", false);
         }
     }
 
@@ -910,7 +904,7 @@
           $("#contribute,#add-mnemonics").show();
           $submitButton.hide();
           disableHighlightInteractions();
-          $current_question.find(".question-choice").iCheck('disable');
+          $current_question.find(".question-choice").prop("disabled", "disabled");
         } else {
             $("#contribute,#add-mnemonics").hide();
             $submitButton.show();
@@ -918,7 +912,7 @@
             // triggered more than once as the user navigates and
             // binds the handlers.
             $current_question.find(".question-text").off('mouseup touchend').on('mouseup touchend', highlightText);
-            $current_question.find(".question-choice").off('ifToggled').on('ifToggled', toggleChoices);
+            $current_question.find(".question-choice").off('change').on('change', toggleChoices);
             // We use event delegation as highlights could be added
             // after firing initializeInteractions.
             $current_question.off('click', '.highlight')
@@ -926,7 +920,7 @@
             $current_question.find(".choice-text").off('click').on('click', function() {
                 if (!$(this).hasClass("strike")){
                    // If a choice is striked, it is no longer checked.
-                    $(this).closest("tr").find(".question-choice").iCheck('uncheck').trigger('ifToggled');
+                    $(this).closest("tr").find(".question-choice").prop('checked', false).trigger('change');
                 }
                 $(this).toggleClass("strike");
                 submitHighlight();
@@ -962,7 +956,7 @@
         question_row.find('td.was_solved').html(was_solved_markup);
 
         // Disable choices upon submission
-        $current_question.find(".question-choice").iCheck('disable');
+        $current_question.find(".question-choice").prop("disabled", "disabled")
         // Disable interactions after submission.  As for highlights,
         // we use event delegation to handle potential addition of
         // highlights afterwards (i.e. as a result of delayed
@@ -1086,7 +1080,7 @@
             target_index = 0;
           }
           target_choice = $current_question.find('.question-choice:enabled').get(target_index)
-          $(target_choice).iCheck('check').trigger('ifToggled');
+          $(target_choice).prop('checked', true).trigger('change');
         } else {
           // If no matching keyboard shortcut, do not execuse
           // upcoming code snippet
@@ -1304,11 +1298,12 @@
       choice_pk = PREVIOUS_ANSWERS[question_pk];
       if (choice_pk !== undefined){
         $question.data('was-solved', true).attr('data-was-solved', 'true')
-        $question.find('.question-choice').iCheck('disable');
+        $question.find('.question-choice').attr('disabled', true)
+
         // If question was not skipped (not null)
         if (choice_pk){
           $checkbox = $question.find('tr[data-choice-pk=' + choice_pk + '] input[type="checkbox"]');
-          $checkbox.iCheck('check');
+          $checkbox.prop('checked', true)
         }
       } else {
         $question.data('was-solved', false).attr('data-was-solved', 'false')
@@ -1356,9 +1351,6 @@
 
     // Client-side work-up
     function prepareQuestions($questions){
-      $questions.find('input.question-choice').iCheck({
-        checkboxClass: 'icheckbox_minimal-green mr-2',
-      });
       $questions.each(function(){
         var $question = $(this);
         var question_pk = $question.data('question-pk')
@@ -1378,7 +1370,7 @@
 
         if (SESSION_MODE == 'SOLVED' || SESSION_MODE == 'INCOMPLETE'){
           $question.data('was-solved', true).attr('data-was-solved', 'true')
-          $question.find('.question-choice').iCheck('disable');
+          $question.find('.question-choice').attr('disabled', true)
         }
 
         if (PREVIOUS_MARKS){
