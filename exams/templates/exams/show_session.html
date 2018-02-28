@@ -1316,7 +1316,7 @@
         if (current_targets !== undefined && PREVIOUS_CORRECTIONS){
           for (index in PREVIOUS_CORRECTIONS){
             correction = PREVIOUS_CORRECTIONS[index]
-            if (current_targets.indexOf(correction.question_id)){
+            if (current_targets.indexOf(correction.question_id) == -1){
               continue
             }
             updateCorrectionTooltip(correction.html, correction.choice_id);
