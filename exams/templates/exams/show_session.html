@@ -674,8 +674,6 @@
       pk_selector = "[data-choice-pk=" + choice_pk + "]";
       $choice_row = $(".question-body tr" + pk_selector);
       $choice_row.data('has-correction', true).attr('data-has-correction', 'true');
-      $choice_row.find('.answer-correction-notification').tooltip('dispose');
-      $choice_row.find(".answer-correction-tooltip-container").remove();
       notification = '<i class="fas fa-exclamation-triangle text-warning answer-correction-notification mx-1"></i>';
       $choice_row.find('.check').html(notification + html);
     }
