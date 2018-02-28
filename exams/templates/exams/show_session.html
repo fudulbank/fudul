@@ -1428,16 +1428,17 @@
 
 
         // Actions are delegated are defined here.
-        $("#question-pool").tooltip({selector: '.answer-correction-notification',
-                                   html: true,
-                                   trigger: 'click',
-                                   title: function(){
-                                       $tooltip = $(this).closest("td").find('.answer-correction-tooltip-body').clone(true);
-                                       $tooltip.find('[data-toggle="tooltip"]').tooltip();
-                                       return $tooltip.get(0)
-                                   }
+        $(document).tooltip({selector: '.answer-correction-notification',
+                             html: true,
+                             trigger: 'click',
+                             title: function(){
+                                 $tooltip = $(this).closest("td").find('.answer-correction-tooltip-body').clone(true);
+                                 $tooltip.find('[data-toggle="tooltip"]').tooltip();
+                                 return $tooltip.get(0)
+                             }
         });
-        $('.answer-correction-notification').on('show.bs.tooltip', function(){
+        $(document).on('show.bs.tooltip', '.answer-correction-notification', function(){
+            $('.answer-correction-notification').not(this).tooltip('hide');
             _paq.push(['trackEvent', 'show_session', 'answer_correction', 'click-notification']);
         });
         $(document).on('click', '.delete-correction', function(){
