@@ -60,7 +60,6 @@ class ExamType(models.Model):
     def __str__(self):
         return self.name
 
-
 class Category(models.Model):
     slug = models.SlugField(max_length=50)
     name = models.CharField(max_length=100)
@@ -235,6 +234,9 @@ class Question(models.Model):
                                            related_name="child_question",
                                            on_delete=models.SET_NULL,
                                            default=None)
+    best_revision = models.OneToOneField('Revision', null=True, blank=True,
+                                         on_delete=models.SET_NULL,
+                                         related_name="best_of")
     assigned_editor = models.ForeignKey(User, null=True, blank=True,
                                         on_delete=models.SET_NULL,
                                         related_name="assigned_questions")
@@ -245,6 +247,10 @@ class Question(models.Model):
             return str(self.pk)
         return textwrap.shorten(latest_revision.text, 70,
                                 placeholder='...')
+
+    def update_best_revision(self):
+        best_revision = self.get_best_revision()
+        self.best_revision = best_revision
 
     def update_latest(self):
         latest_revision = self.get_latest_revision()
@@ -282,7 +288,7 @@ class Question(models.Model):
         else:
             return Answer.objects.filter(session=session, question=self).exists()
 
-    def get_best_latest_revision(self):
+    def get_best_revision(self):
         return self.get_latest_approved_revision() or \
                self.get_latest_revision_by_editor() or \
                self.get_latest_revision()
@@ -346,8 +352,6 @@ class Question(models.Model):
 
     def get_available_mnemonics(self):
         return self.mnemonic_set.filter(is_deleted=False)
-
-
 
 class Revision(models.Model):
     question = models.ForeignKey(Question)

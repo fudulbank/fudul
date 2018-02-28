@@ -450,6 +450,7 @@
     PREVIOUS_ANSWERS = null;
     PREVIOUS_HIGHLIGHTS = null;
     PREVIOUS_MARKS = null;
+    PREVIOUS_CORRECTIONS = null;
 
     // Common selectors
     $markButton = $("#mark");
@@ -672,9 +673,11 @@
     function updateCorrectionTooltip(html, choice_pk){
       pk_selector = "[data-choice-pk=" + choice_pk + "]";
       $choice_row = $(".question-body tr" + pk_selector);
+      $choice_row.data('has-correction', true).attr('data-has-correction', 'true');
       $choice_row.find('.answer-correction-notification').tooltip('dispose');
       $choice_row.find(".answer-correction-tooltip-container").remove();
-      $choice_row.find('.check').append(html);
+      notification = '<i class="fas fa-exclamation-triangle text-warning answer-correction-notification mx-1"></i>';
+      $choice_row.find('.check').html(notification + html);
     }
 
     function initializeMnemonicInteractions(){
@@ -929,7 +932,7 @@
     }
 
     function submitHighlight(){
-      data.best_latest_revision_pk = $current_question.data('best-latest-revision-pk');
+      data.best_revision_pk = $current_question.data('best-latest-revision-pk');
       data.highlighted_text = $current_question.find(".question-text").html();
       stricken_choice_pks = $current_question.find(".choice-text.strike").map(function(){return $(this).closest('tr').data('choice-pk')}).get();
       data.stricken_choice_pks = JSON.stringify(stricken_choice_pks);
@@ -1141,6 +1144,21 @@
       highlightActiveRow();
     }
 
+    function fetchCorrections(){
+      $.ajax({method: 'get',
+              url: "{% url 'correction-list' %}",
+              data: {format: 'json',
+                     session_pk: SESSION_PK },
+              success: function(data){
+                  PREVIOUS_CORRECTIONS = data;
+                  $.each(PREVIOUS_CORRECTIONS, function(index, correction){
+                    updateCorrectionTooltip(correction.html, correction.choice_id)
+                  });
+                  initializeCorrectionInteractions();
+              }
+      });
+    }
+
     function fetchAnswers(){
       $.ajax({method: 'get',
               url: "{% url 'answer-list' %}",
@@ -1237,7 +1255,7 @@
                   $filtered_questions = $questions
                 }
 
-                prepareQuestions($filtered_questions);
+                prepareQuestions($filtered_questions, current_targets);
 
                 $("#question-pool").append($filtered_questions);
 
@@ -1268,8 +1286,8 @@
       question_pk = $question.data('question-pk')
       highlight = PREVIOUS_HIGHLIGHTS[question_pk];
       if (highlight !== undefined){
-        best_latest_revision_pk = $question.data('best-latest-revision-pk');
-        if (best_latest_revision_pk == highlight.revision_id){
+        best_revision_pk = $question.data('best-latest-revision-pk');
+        if (best_revision_pk == highlight.revision_id){
           // If the highlighted question text is not empty, include
           // it.
           if (highlight.highlighted_text){
@@ -1350,13 +1368,26 @@
     }
 
     // Client-side work-up
-    function prepareQuestions($questions){
+    function prepareQuestions($questions, current_targets){
       $questions.each(function(){
         var $question = $(this);
         var question_pk = $question.data('question-pk')
 
         prepareChoices($question);
         prepareHighlights($question);
+
+        // We add corrections only if we are prapring a specific target
+        // (i.e. fetched by AJAX). Otherwise, fetchCorrections will
+        // add the corrections after it fetches them.
+        if (current_targets !== undefined && PREVIOUS_CORRECTIONS){
+          for (index in PREVIOUS_CORRECTIONS){
+            correction = PREVIOUS_CORRECTIONS[index]
+            if (current_targets.indexOf(correction.question_id)){
+              continue
+            }
+            updateCorrectionTooltip(correction.html, correction.choice_id);
+          }
+        }
 
         // Add sequence
         var question_sequence = SESSION_QUESTION_PKS.indexOf(question_pk) + 1;
@@ -1439,6 +1470,7 @@
 
          fetchAnswers();
          fetchHighlights();
+         fetchCorrections();
          fetchMarks();
          updateSizes();
          $(window).resize(updateSizes);

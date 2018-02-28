@@ -1,9 +1,12 @@
 from exams.models import *
 from accounts.utils import get_user_credit
-from rest_framework import serializers, viewsets, permissions
+from rest_framework import serializers, views, viewsets, permissions
+from rest_framework.response import Response
+from django.template.loader import get_template
 from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from django.template.defaultfilters import truncatewords, linebreaksbr
+
 
 class AnswerSerializer(serializers.ModelSerializer):
     class Meta:
@@ -173,3 +176,31 @@ class QuestionAssignmentViewSet(viewsets.ReadOnlyModelViewSet):
                                                'question__assigned_editor__profile')\
                                .filter(question__assigned_editor=self.request.user,
                                        is_last=True)
+
+class CorrectionList(views.APIView):
+    permission_classes = (HasSessionAccess,)
+
+    def get(self, request, format=None):
+        session_pk = request.query_params.get('session_pk')
+
+        if not session_pk:
+            raise Http404
+
+        choices_with_corrections = Choice.objects.select_related('answer_correction',
+                                                                 'revision',
+                                                                 'revision__question')\
+                                                 .filter(revision__question__session__pk=session_pk,
+                                                         revision__best_of__isnull=False,
+                                                         answer_correction__isnull=False)
+
+        data = []
+
+        for choice in choices_with_corrections:            
+            template = get_template("exams/partials/show_answer_correction.html")
+            context = {'choice': choice, 'user': request.user}
+            html = template.render(context)
+            data.append({'question_id': choice.revision.question.pk,
+                         'choice_id': choice.pk,
+                         'html': html})
+
+        return Response(data)

@@ -18,6 +18,7 @@ router.register(r'question_summary', QuestionSummaryViewSet, base_name="summary"
 router.register(r'question_assignment', QuestionAssignmentViewSet, base_name="assigned")
 
 urlpatterns = [
+    url(r'^api/corrections/$', CorrectionList.as_view(), name="correction-list"),
     url(r'^api/', include(router.urls)),
     url(r'^admin/', include('loginas.urls')),
     url(r'^admin/', admin.site.urls),

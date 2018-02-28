@@ -195,6 +195,9 @@ def handle_question(request, exam_pk, question_pk=None):
             explanation.question = question
             explanation.save()
 
+        question.best_revision = revision
+        question.save()
+
         show_url = reverse('exams:approve_user_contributions', args=(exam.category.get_slugs(), exam.pk))
         return {"question_pk": question.pk,
                 "show_url": show_url}
@@ -285,7 +288,7 @@ def show_question(request, pk, revision_pk=None):
         revision = get_object_or_404(Revision, pk=revision_pk)
         explanation_revision = None
     else:
-        revision = question.get_best_latest_revision()
+        revision = question.get_best_revision()
         explanation_revision = question.get_latest_explanation_revision()
 
     # PERMISSION CHECK
@@ -615,9 +618,9 @@ def submit_highlight(request):
     if not session.submitter == request.user:
         raise Exception("You cannot highlight a question in this session.")
 
-    best_latest_revision_pk = request.POST.get('best_latest_revision_pk')
-    best_latest_revision = get_object_or_404(Revision,
-                                             pk=best_latest_revision_pk)
+    best_revision_pk = request.POST.get('best_revision_pk')
+    best_revision = get_object_or_404(Revision,
+                                      pk=best_revision_pk)
     stricken_choice_pks = request.POST.get('stricken_choice_pks', '[]')
     stricken_choice_pks = json.loads(stricken_choice_pks)
     stricken_choices = Choice.objects.filter(pk__in=stricken_choice_pks)
@@ -625,12 +628,12 @@ def submit_highlight(request):
 
     try:
         highlight = Highlight.objects.get(session=session,
-                                          revision=best_latest_revision)
+                                          revision=best_revision)
     except Highlight.DoesNotExist:
         highlight = Highlight.objects.create(session=session,
-                                             revision=best_latest_revision)
+                                             revision=best_revision)
 
-    highlight.revision = best_latest_revision
+    highlight.revision = best_revision
 
     if not '<span ' in highlighted_text:
         highlighted_text = ""
@@ -745,7 +748,6 @@ def contribute_revision(request):
             new_revision.save()
             revision_form.save_m2m()
 
-
             # This test relies on choices, so the choices have to be saved
             # before.
             new_revision.is_approved = utils.test_revision_approval(new_revision)
@@ -823,6 +825,8 @@ def delete_revision(request, pk):
     else:
         # Mark the new last revision as such
         question.update_latest()
+        question.update_best_revision()
+        question.save()
 
     return {}
 
@@ -873,6 +877,11 @@ def mark_revision_approved(request, pk):
     revision.approved_by= request.user
     revision.save()
 
+    question.update_best_revision()
+    question.save()
+
+    return {}
+
 @login_required
 @require_POST
 @csrf.csrf_exempt
@@ -882,6 +891,7 @@ def mark_revision_pending(request, pk):
                                     .select_related('question',
                                                     'question__exam')
     revision = get_object_or_404(revision_pool, pk=pk)
+    question = revision.question
     exam = revision.question.exam
 
     # PERMISSION CHECK
@@ -892,6 +902,10 @@ def mark_revision_pending(request, pk):
     revision.approved_by= request.user
     revision.save()
 
+    question.update_best_revision()
+    question.save()
+
+    return {}
 
 @login_required
 def approve_question(request, slugs, exam_pk, pk):
