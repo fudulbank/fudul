@@ -741,7 +741,6 @@
         $choice_row = $(".question-body tr" + pk_selector);
         $choice_row.data('has-correction', false).attr('data-has-correction', 'false');
         $(this).tooltip('hide');
-        $choice_row.find('.answer-correction-notification').tooltip('dispose');
 
         $.ajax({
             url: url,
@@ -781,21 +780,6 @@
               }
             }
         });
-      });
-
-      $current_question.off('click', '.answer-correction-notification[data-fa-i2svg]')
-                       .on('click', '.answer-correction-notification[data-fa-i2svg]', function(){
-                 _paq.push(['trackEvent', 'show_session', 'answer_correction', 'click-notification']);
-                 $('.answer-correction-notification').not(this).tooltip('hide');
-
-                 // We clone the tooltip to allow re-initlizations.
-                 // We pass 'true' to copy events
-                 tooltip = $(this).closest("td").find('.answer-correction-tooltip-body').clone(true).get(0);
-                 $(this).tooltip('dispose')
-                        .tooltip({html: true,
-                                  trigger: 'click',
-                                  title: tooltip})
-                        .tooltip('show');
       });
     }
 
@@ -1490,6 +1474,22 @@
         $submitButton.click(submitChoice);
         $('#previous, #next').click(navigate);
         $markButton.click(toggleMarked);
+
+
+        // Actions that can be delegated are defined here.
+        $("#question-pool").tooltip({selector: '.answer-correction-notification',
+                                   html: true,
+                                   trigger: 'click',
+                                   title: function(){
+                                       tooltip = $(this).closest("td").find('.answer-correction-tooltip-body').clone(true).get(0);
+                                       return tooltip
+                                   }
+        });
+        $("#question-pool").on('show.bs.tooltip', function(){
+            _paq.push(['trackEvent', 'show_session', 'answer_correction', 'click-notification']);
+            $('.answer-correction-notification').not(this).tooltip('hide');
+        });
+
             // initialize project edit modal
         $('#modify-question-modal, #explain-question-modal,#add-mnemonics-modal').modal({
           keyboard: false,
