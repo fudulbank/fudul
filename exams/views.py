@@ -541,7 +541,6 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
 @require_safe
 @login_required
 @permission_required('exams.access_session', fn=objectgetter(Session, 'session_pk'), raise_exception=True)
-@cache_page(settings.CACHE_PERIODS['STABLE'])
 def show_session_results(request, slugs, exam_pk, session_pk):
     category = Category.objects.get_from_slugs_or_404(slugs)
 
@@ -1297,6 +1296,5 @@ def assign_questions(request):
 
 @login_required
 @require_safe
-#@cache_page(settings.CACHE_PERIODS['STABLE'])
 def list_assigned_questions(request):
     return render(request, 'exams/list_assigned_questions.html')
