@@ -1189,9 +1189,21 @@
                   $filtered_questions = $questions
                 }
 
-                prepareQuestions($filtered_questions, current_targets);
+                prepareQuestions($filtered_questions);
 
                 $("#question-pool").append($filtered_questions);
+
+                // If we have corrections, add them to currently
+                // targetted questions
+                if (PREVIOUS_CORRECTIONS){
+                  for (index in PREVIOUS_CORRECTIONS){
+                    correction = PREVIOUS_CORRECTIONS[index]
+                    if (current_targets.indexOf(correction.question_id) == -1){
+                      continue
+                    }
+                    updateCorrectionTooltip(correction.html, correction.choice_id);
+                  }
+                }
 
                 // This is a workaround for iOS 9.x browsers that
                 // cannot render dynmically added FontAwesome icons.
@@ -1302,26 +1314,13 @@
     }
 
     // Client-side work-up
-    function prepareQuestions($questions, current_targets){
+    function prepareQuestions($questions){
       $questions.each(function(){
         var $question = $(this);
         var question_pk = $question.data('question-pk')
 
         prepareChoices($question);
         prepareHighlights($question);
-
-        // We add corrections only if we are prapring a specific target
-        // (i.e. fetched by AJAX). Otherwise, fetchCorrections will
-        // add the corrections after it fetches them.
-        if (current_targets !== undefined && PREVIOUS_CORRECTIONS){
-          for (index in PREVIOUS_CORRECTIONS){
-            correction = PREVIOUS_CORRECTIONS[index]
-            if (current_targets.indexOf(correction.question_id) == -1){
-              continue
-            }
-            updateCorrectionTooltip(correction.html, correction.choice_id);
-          }
-        }
 
         // Add sequence
         var question_sequence = SESSION_QUESTION_PKS.indexOf(question_pk) + 1;
