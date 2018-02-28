@@ -194,9 +194,8 @@ class CorrectionList(views.APIView):
                                                          answer_correction__isnull=False)
 
         data = []
-
+        template = get_template("exams/partials/show_answer_correction.html")
         for choice in choices_with_corrections:            
-            template = get_template("exams/partials/show_answer_correction.html")
             context = {'choice': choice, 'user': request.user}
             html = template.render(context)
             data.append({'question_id': choice.revision.question.pk,

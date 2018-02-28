@@ -283,7 +283,7 @@
       margin-bottom: 0
     }
 
-    .answer-correction-header .delete{
+    .answer-correction-header .delete-correction{
       padding: 5px;
       margin: -5px -5px -5px auto;
       background: 0 0;
@@ -732,54 +732,6 @@
           choice_pk = $(this).closest('tr').data('choice-pk');
           url = "{% url 'exams:correct_answer' %}?" + $.param({choice_pk: choice_pk});
           $("#correct-answer-modal .modal-body").load(url);
-      });
-
-      $current_question.find('.delete').off('click').on('click', function(){
-        choice_pk = $(this).data('choice-pk');
-        url = "{% url 'exams:delete_correction' %}?" + $.param({choice_pk: choice_pk})
-        pk_selector = "[data-choice-pk=" + choice_pk + "]";
-        $choice_row = $(".question-body tr" + pk_selector);
-        $choice_row.data('has-correction', false).attr('data-has-correction', 'false');
-        $(this).tooltip('hide');
-
-        $.ajax({
-            url: url,
-            type: 'POST',
-            success: function(data){
-              if (data.success == 1){
-                toastr.success("Your correction was removed.")
-                if (data.correction_html){ // if we have a new submitter
-                  updateCorrectionTooltip(data.correction_html, choice_pk);
-                } else {
-                  // Before there was a correction, it was marked as a wrong answer
-                  $choice_row.find('.check').html(wrong_answer_markup);
-                }
-              } else {
-                toastr.error(data.message)
-              }
-            }
-        });
-      });
-
-      $current_question.find(".support-correction, .oppose-correction").off('click').click(function(){
-        action = $(this).data('action');
-        choice_pk = $(this).data('choice-pk');
-        url = "{% url 'exams:correct_answer' %}?" + $.param({choice_pk: choice_pk})
-        _paq.push(['trackEvent', 'show_session', 'answer_correction', 'delete-notification']);
-
-        $.ajax({
-            url: url,
-            type: 'POST',
-            data: {'action': action},
-            success: function(data){
-              if (data.success == 1){
-                toastr.success("Your vote was submitted.")
-                updateCorrectionTooltip(data.correction_html, choice_pk);
-              } else {
-                toastr.error(data.message)
-              }
-            }
-        });
       });
     }
 
@@ -1476,18 +1428,66 @@
         $markButton.click(toggleMarked);
 
 
-        // Actions that can be delegated are defined here.
+        // Actions are delegated are defined here.
         $("#question-pool").tooltip({selector: '.answer-correction-notification',
                                    html: true,
                                    trigger: 'click',
                                    title: function(){
-                                       tooltip = $(this).closest("td").find('.answer-correction-tooltip-body').clone(true).get(0);
-                                       return tooltip
+                                       $tooltip = $(this).closest("td").find('.answer-correction-tooltip-body').clone(true);
+                                       $tooltip.find('[data-toggle="tooltip"]').tooltip();
+                                       return $tooltip.get(0)
                                    }
         });
-        $("#question-pool").on('show.bs.tooltip', function(){
+        $('.answer-correction-notification').on('show.bs.tooltip', function(){
             _paq.push(['trackEvent', 'show_session', 'answer_correction', 'click-notification']);
-            $('.answer-correction-notification').not(this).tooltip('hide');
+        });
+        $(document).on('click', '.delete-correction', function(){
+          choice_pk = $(this).data('choice-pk');
+          url = "{% url 'exams:delete_correction' %}?" + $.param({choice_pk: choice_pk})
+          pk_selector = "[data-choice-pk=" + choice_pk + "]";
+          var $choice_row = $current_question.find("tr" + pk_selector);
+          $choice_row.data('has-correction', false).attr('data-has-correction', 'false');
+          $('.answer-correction-notification').tooltip('hide');
+          $(this).tooltip('hide');
+
+          $.ajax({
+              url: url,
+              type: 'POST',
+              success: function(data){
+                if (data.success == 1){
+                  toastr.success("Your correction was removed.")
+                  if (data.correction_html){ // if we have a new submitter
+                    updateCorrectionTooltip(data.correction_html, choice_pk);
+                  } else {
+                    // Before there was a correction, it was marked as a wrong answer
+                    $choice_row.find('.check').html(wrong_answer_markup);
+                  }
+                } else {
+                  toastr.error(data.message)
+                }
+              }
+          });
+        });
+
+        $(document).on('click', ".support-correction, .oppose-correction", function(){
+          action = $(this).data('action');
+          choice_pk = $(this).data('choice-pk');
+          url = "{% url 'exams:correct_answer' %}?" + $.param({choice_pk: choice_pk})
+          _paq.push(['trackEvent', 'show_session', 'answer_correction', 'delete-notification']);
+
+          $.ajax({
+              url: url,
+              type: 'POST',
+              data: {'action': action},
+              success: function(data){
+                if (data.success == 1){
+                  toastr.success("Your vote was submitted.")
+                  updateCorrectionTooltip(data.correction_html, choice_pk);
+                } else {
+                  toastr.error(data.message)
+                }
+              }
+          });
         });
 
             // initialize project edit modal
