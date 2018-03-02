@@ -109,16 +109,20 @@
                     <th data-toggle="tooltip" title="Number of users who have ever created a session" data-priority="2"># users</th>
                     <th data-priority="4">Category</th>
                     <th data-priority="3"># questions</th>
+                    <th data-priority="5"># pending duplicates</th>
 				        </tr>
 				    </thead>
 				    <tbody>
 				       {% for exam in exams %}
+               {% with category_slugs=exam.category.get_slugs %}
 				            <tr>
 				                <td><a href="{% url 'show_exam_indicators' exam.pk %}">{{ exam.name }}</a></td>
                         <td>{{ exam.get_user_count }}</td>
 				                <td><a href="{{ exam.category.get_absolute_url }}">{{ exam.category }}</a></td>
-                        <td>{{ exam.question_set.count }}</td>
+                        <td><a href="{% url 'exams:list_questions_by_selector' category_slugs exam.pk 'all' %}">{{ exam.question_set.count }}</a></td>
+                        <td><a href="{% url 'exams:list_duplicates' category_slugs exam.pk %}">{{ exam.get_pending_duplicate_count }}</a></td>
 			            </tr>
+               {% endwith %}
 				       {% endfor %}
 				    </tbody>
 				</table>

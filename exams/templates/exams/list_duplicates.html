@@ -1,0 +1,106 @@
+{% extends 'base_new.html' %}{% load static exam_utils %}
+{% block title %}Fudul | {{ exam.name }}: List duplicates ({{ duplicates.count }}){% endblock %}
+{% block header_title %}
+<h1>{{ exam.name }}: List duplicates ({{ duplicates.count }})</h1>
+{% with is_list_active=True %}
+{% include 'exams/partials/exam_editor_buttons.html' %}
+{% endwith %}
+{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
+{% endblock %}
+
+{% block breadcrumb %}
+      <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
+			{% for parent_category in exam.category.get_parent_categories %}
+			<li class="breadcrumb-item"><a href="{% url 'exams:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
+			{% endfor %}
+			<li class="breadcrumb-item"><a href="{% url 'exams:show_category' category_slugs %}">{{ exam.category.name }}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:create_session' category_slugs exam.pk %}">{{ exam.name }}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:list_questions' category_slugs exam.pk %}">List</a></li>
+      <li class="breadcrumb-item active">Duplicates</li>
+{% endblock %}
+
+{% block content %}
+      <div class="card border">
+        <div class="card-body">
+          <div class="card-block">
+            <p>Welcome to the <strong>Duplication Catcher</strong>.  This tool scans the question bank once everyday to look for questions that are similar.  You can either keep one verion of the question or ignore it.  By choosing to keep one version, all sources, subjects, exam types, corrections, and answers get merged, all with one click!</p>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="card-block">
+            {% for duplicate in duplicates %}
+            <div class="card duplicate-container border-bottom">
+              <div class="card-body row">
+                <div class="col-sm-9">
+                  <h3>Report #{{ duplicate.pk }}</h3>
+                  <p><strong><a href="{% url 'exams:list_revisions' category_slugs exam.pk duplicate.first_revision.question.pk %}">Question #{{ duplicate.first_revision.question.pk }}</a> ({{ duplicate.get_first_user_count }} users answered)</strong><br>{{ duplicate.first_revision.text|linebreaksbr }}</p>
+                  <ul type="A">
+                  {% for choice in duplicate.first_revision.choice_set.order_by_alphabet %}
+                    <li><span {% if choice.is_right %} data-toggle="tooltip" data-title="This choice is the right one" style="font-weight: 800;" class="success darken-4"{% endif %}>{{ choice.text }}</span></li>
+                  {% endfor %}
+                  </ul>
+                  <hr>
+                  <h3></h3>
+                  <p><em></em></p>
+                  <p><strong><a href="{% url 'exams:list_revisions' category_slugs exam.pk duplicate.second_revision.question.pk %}">Question #{{ duplicate.second_revision.question.pk }}</a> ({{ duplicate.get_second_user_count }} users answered)</strong><br>{{ duplicate.second_revision.text|linebreaksbr }}</p>
+                  <ul type="A">
+                  {% for choice in duplicate.second_revision.choice_set.order_by_alphabet %}
+                    <li><span {% if choice.is_right %} data-toggle="tooltip" data-title="This choice is the right one" style="font-weight: 800;" class="success darken-4"{% endif %}>{{ choice.text }}</span></li>
+                  {% endfor %}
+                  </ul>
+                </div>
+                <div class="col-sm-3 align-self-center border-left text-center">
+                  <strong>Similarity:</strong> %{{ duplicate.get_percentage|floatformat }}<br>
+                  <div class="btn-group-vertical">
+                    <button class="btn btn-success duplicate-decision" data-pk="{{ duplicate.pk }}" data-action="keep_first"><i class="ft-check-square"></i> Keep first</button>
+                    <button class="btn btn-success duplicate-decision" data-pk="{{ duplicate.pk }}" data-action="keep_second"><i class="ft-check-square"></i> Keep second</button>
+                    <button class="btn btn-warning duplicate-decision" data-pk="{{ duplicate.pk }}" data-action="decline"><i class="ft-delete"></i> Ignore</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% empty %}
+            <p>No duplicates for {{ exam.name }}.  Get back to the <a href="{% url 'exams:list_questions' category_slugs exam.pk %}">list of questions</a>.</p>
+            {% endfor %}
+          </div>
+        </div>
+    </div>
+{% endblock %}
+{% block customscript %}
+
+<script src="{% static 'js/toastr.js' %}"></script>
+
+<script>
+    $(function () {
+      $('[data-toggle="tooltip"]').tooltip();
+      $('button.duplicate-decision').click(function(){
+        $button = $(this)
+        var action = $button.data('action');
+        var pk = $button.data('pk');
+        $.ajax({url: '{% url "exams:handle_duplicate" %}',
+                data: {action: action, pk: pk},
+                method: 'POST',
+                success: function(data){
+                  if (data.success == 1){
+                    toastr.success("Report #" + pk + " was successfully handled.")
+                    $button.closest('.duplicate-container').remove()
+                  } else {
+                    toastr.error(data.message)
+                  }
+                }
+        });
+      });
+    });
+
+{% include 'exams/modals/adjust_modal_size.js' %}
+</script>
+{% with category_pk=exam.category.pk  parent_category_pk=exam.category.parent_category.pk %}
+  {% include 'exams/partials/dynamic_sidebar.html' %}
+{% endwith %}
+{% endblock %}

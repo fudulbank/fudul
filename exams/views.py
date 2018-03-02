@@ -1302,3 +1302,51 @@ def assign_questions(request):
 @require_safe
 def list_assigned_questions(request):
     return render(request, 'exams/list_assigned_questions.html')
+
+@login_required
+@require_safe
+def list_duplicates(request, slugs, pk):
+    exam = get_object_or_404(Exam, pk=pk)
+
+    if not exam.can_user_edit(request.user):
+        raise PermissionDenied
+
+    duplicates = Duplicate.objects.select_related('first_revision',
+                                                  'second_revision',
+                                                  'first_revision__question',
+                                                  'first_revision__question__exam')\
+                                  .filter(status="PENDING")
+    context = {'exam': exam, 'duplicates': duplicates,
+               'category_slugs': slugs}
+    return render(request, 'exams/list_duplicates.html', context)
+
+@login_required
+@require_POST
+@decorators.ajax_only
+@csrf.csrf_exempt
+def handle_duplicate(request):
+    pk = request.POST.get('pk')
+    action = request.POST.get('action')
+
+    duplicate = get_object_or_404(Duplicate.objects.select_related('first_revision',
+                                                                   'first_revision__question',
+                                                                   'first_revision__question__exam'),
+                                  pk=pk)
+
+    if not duplicate.first_revision.question.exam.can_user_edit(request.user):
+        raise PermissionDenied
+
+    if action == 'keep_first':
+        duplicate.keep_first()
+        duplicate.status = 'KEPT_FIRST'
+    elif action == 'keep_second':
+        duplicate.keep_second()
+        duplicate.status = 'KEPT_SECOND'
+    elif action == 'decline':
+        duplicate.status = 'DECLINED'
+
+    duplicate.reviser = request.user
+    duplicate.revision_date = timezone.now()
+    duplicate.save()
+
+    return {}

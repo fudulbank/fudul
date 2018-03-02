@@ -144,6 +144,11 @@ class Exam(models.Model):
                                     default=True, blank=True)
     objects = managers.ExamQuerySet.as_manager()
 
+    def get_pending_duplicate_count(self):
+        return Duplicate.objects.filter(status='PENDING',
+                                        first_revision__question__exam=self)\
+                                .count()
+
     def get_user_count(self):
         return User.objects.filter(session__exam=self)\
                            .distinct()\
@@ -744,3 +749,125 @@ class Mnemonic(models.Model):
             return "Mnemonic #{} of Q#{}".format(self.pk, self.question.pk)
         else:
             return "Mnemonic #{}".format(self.pk)
+
+
+class Duplicate(models.Model):
+    first_revision = models.ForeignKey(Revision,
+                                       related_name="first_duplicates")
+    second_revision = models.ForeignKey(Revision,
+                                        related_name="second_duplicates")
+    ratio = models.FloatField()
+
+    reviser = models.ForeignKey(User, null=True, blank=True)
+    revision_date = models.DateTimeField(null=True, blank=True)
+
+    status_choices = (
+        ('PENDING', 'Pending'),
+        ('KEPT_FIRST', 'Kept first'),
+        ('KEPT_SECOND', 'Kept second'),
+        ('DECLINED', 'Declined'),
+    )
+    status = models.CharField(max_length=20, choices=status_choices,
+                              default="PENDING")
+    submission_date = models.DateTimeField(auto_now_add=True)
+
+    def get_percentage(self):
+        return self.ratio * 100
+
+    def get_first_user_count(self):
+        return self.get_user_count(self.first_revision)
+
+    def get_second_user_count(self):
+        return self.get_user_count(self.second_revision)
+
+    def get_user_count(self, revision):
+        question = revision.question
+        user_pks = Answer.objects.filter(choice__revision__question=question)\
+                                 .values('session__submitter')
+        return User.objects.filter(pk__in=user_pks)\
+                           .count()
+
+    def keep_first(self):
+        self.keep(self.first_revision, self.second_revision)
+
+    def keep_second(self):
+        self.keep(self.second_revision, self.first_revision)
+
+    def keep(self, revision_to_keep, revision_to_delete):
+        question_to_keep = revision_to_keep.question
+        question_to_delete = revision_to_delete.question
+
+        # Merge corrections
+        corrections_to_deleted = AnswerCorrection.objects.select_related('choice')\
+                                                         .filter(choice__revision=revision_to_delete)
+        for correction in corrections_to_deleted:
+            choice_text = correction.choice.text
+            try:
+                choice_to_keep = revision_to_keep.choice_set.filter('answer_correction')\
+                                                            .get(text__iexact=choice_text,
+                                                                 answer_correction__isnull=True)
+            except Choice.DoesNotExist:
+                pass
+            else:
+                correction.choice = choice_to_keep
+
+        # MERGE ANSWERS
+        # The answer merge happens in two steps:
+        # 1) We replace the question field of all skipped answers.
+        # 2) We get the alternative choice, replace the choice
+        #    field, and replace the question field of all
+        #    non-skipped answers. 
+        Answer.objects.filter(question=question_to_delete,
+                              choice__isnull=True)\
+                      .update(question=question_to_keep)
+        choice_texts_to_delete  = Answer.objects.filter(question=question_to_delete)\
+                                                .values_list('choice__text', flat=True)\
+                                                .distinct()
+        choice_texts_to_keep = revision_to_keep.choice_set.values_list('text', flat=True)
+        for choice_text in choice_texts_to_delete:
+            if choice_text not in choice_texts_to_keep:
+                continue
+            choice = revision_to_keep.choice_set.get(text__iexact=choice_text)
+            answers = Answer.objects.filter(question=question_to_delete,
+                                            choice__text=choice_text)\
+                                    .update(choice=choice,
+                                            question_to_keep=question_to_keep)
+
+        # MERGE SESSIONS
+        # Get all sessions with the question to deleted but not
+        # the question to keep.
+        sessions = Session.objects.filter(questions=question_to_delete)\
+                                  .exclude(questions=question_to_keep)
+
+        for session in sessions:
+            session.questions.add(question_to_keep)
+            session.questions.remvove(question_to_delete)
+
+        # MERGE THE SOURCES
+        for source in question_to_delete.sources.all():
+            question_to_keep.sources.add(source)
+
+        # MERGE THE SUBJECT
+        for subject in question_to_delete.subjects.all():
+            question_to_keep.subjects.add(subject)
+
+        # MERGE THE SUBJECT
+        for exam_type in question_to_delete.exam_types.all():
+            question_to_keep.exam_types.add(exam_type)
+
+        # MERGE MARKING USERS
+        question_to_keep.marking_users.add(*question_to_delete.marking_users.all())
+
+        # MERGE ASSIGNED EDITOR
+        # We merge the assigned editor only if 
+        if not question_to_keep.assigned_editor and \
+           question_to_delete.assigned_editor:
+            question_to_keep.assigned_editor = question_to_delete.assigned_editor
+            question_to_keep.save()
+
+        question_to_delete.is_deleted = True
+        question_to_delete.save()
+        question_to_delete.revision_set.update(is_deleted=True)
+
+    def __str__(self):
+        return "Duplicatef of %s" % ", ".join(["R#{}".format(pk) for pk in self.revisions.values_list('pk', flat=True)])
