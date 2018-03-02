@@ -545,7 +545,7 @@ def show_session_results(request, slugs, exam_pk, session_pk):
     category = Category.objects.get_from_slugs_or_404(slugs)
 
     session = get_object_or_404(Session.objects.undeleted()\
-                                               .select_related('exam')\
+                                               .select_related('exam', 'submitter')\
                                                .exclude(session_mode__in=['INCOMPLETE', 'SOLVED']),
                                 pk=session_pk)
 
@@ -586,7 +586,8 @@ def show_session_results(request, slugs, exam_pk, session_pk):
 def toggle_marked(request):
     question_pk = request.POST.get('question_pk')
     session_pk = request.POST.get('session_pk')
-    session = get_object_or_404(Session.objects.undeleted(),
+    session = get_object_or_404(Session.objects.select_related('submitter')\
+                                               .undeleted(),
                                 pk=session_pk)
     question = get_object_or_404(session.get_questions(), pk=question_pk,
                                  is_deleted=False)
@@ -610,7 +611,8 @@ def toggle_marked(request):
 @decorators.ajax_only
 def submit_highlight(request):
     session_pk = request.POST.get('session_pk')
-    session = get_object_or_404(Session.objects.undeleted(),
+    session = get_object_or_404(Session.objects.select_related('submitter')\
+                                               .undeleted(),
                                 pk=session_pk)
 
     # PERMISSION CHECKS
@@ -654,7 +656,7 @@ def submit_answer(request):
     question_pk = request.POST.get('question_pk')
     session_pk = request.POST.get('session_pk')
     choice_pk = request.POST.get('choice_pk')
-    session = get_object_or_404(Session.objects.undeleted(), pk=session_pk)
+    session = get_object_or_404(Session.objects.select_related('submitter').undeleted(), pk=session_pk)
     question = get_object_or_404(session.get_questions(), pk=question_pk)
 
     # PERMISSION CHECKS
@@ -835,7 +837,8 @@ def delete_revision(request, pk):
 @decorators.ajax_only
 def delete_explanation_revision(request, pk):
     explanation_pool = ExplanationRevision.objects.undeleted()\
-                                                  .select_related('question',
+                                                  .select_related('submitter',
+                                                                  'question',
                                                                   'question__exam',
                                                                   'question__exam__category')
     explanation_revision = get_object_or_404(explanation_pool, pk=pk)
@@ -1053,8 +1056,8 @@ def correct_answer(request):
     if request.method == 'GET':
         form = forms.AnswerCorrectionForm()
     elif request.method == 'POST':
-        if AnswerCorrection.objects.filter(choice=choice).exists():
-            correction = AnswerCorrection.objects.get(choice=choice)
+        correction = AnswerCorrection.objects.select_related('submitter').filter(choice=choice).first()
+        if correction:
             if correction.submitter == request.user:
                 raise Exception("You were the one that submitted this correction, so you cannot vote.")
 
@@ -1174,7 +1177,8 @@ def delete_session(request):
         request.user.marked_questions.remove(*questions_to_unmark)
     elif deletion_type == 'session':
         session_pk = request.POST.get('pk')
-        session = Session.objects.get(pk=session_pk)
+        session = Session.objects.select_related('submitter')\
+                                 .get(pk=session_pk)
 
         # PERMISSION CHECK
         if session.submitter != request.user:
@@ -1236,7 +1240,7 @@ def contribute_mnemonics(request):
                 return {'mnemonic_html':mnemonic_html}
         elif Mnemonic.objects.filter(question=question).exists():
             mnemonic_pk = request.POST.get('mnemonic_pk')
-            mnemonic = get_object_or_404(Mnemonic, pk=mnemonic_pk)
+            mnemonic = get_object_or_404(Mnemonic.objects.select_related('submitter'), pk=mnemonic_pk)
             if action == 'like':
                 if mnemonic.submitter == request.user:
                     raise Exception("You were the one that submitted this mnemonic, so you cannot vote.")
