@@ -447,10 +447,11 @@
       SESSION_QUESTION_PKS = SESSION_QUESTION_PKS.sort(function(a, b){return a - b});
     }
     SESSION_QUESTION_TOTAL = SESSION_QUESTION_PKS.length;
-    PREVIOUS_ANSWERS = null;
     PREVIOUS_HIGHLIGHTS = null;
-    PREVIOUS_MARKS = null;
     PREVIOUS_CORRECTIONS = null;
+    MARKS = null;
+    ANSWERS = null;
+    has_constructed_navigation = false;
 
     // Common selectors
     $markButton = $("#mark");
@@ -468,9 +469,9 @@
     isMobile = navigator.userAgent.match(/iPhone/i) != null || (navigator.userAgent.match(/Android/i) != null && navigator.userAgent.match(/Mobile/i) != null);
 
     function updateData(){
-        current_sequence =  parseInt($("#question-sequence").html());
+
         data = {question_pk: $current_question.data('question-pk'),
-                session_pk: $("#session-pk").html()}
+                session_pk: SESSION_PK}
     }
 
     function handleMarked(is_marked){
@@ -509,8 +510,9 @@
       $current_question.addClass("show");
       // Remove 'show' class from other questions
       $(".question-body").not($current_question).removeClass('show');
-      var question_sequence = $current_question.data('question-sequence');
-      $("#question-sequence").html(question_sequence);
+      // The following is intentionally a global variable.
+      current_sequence = $current_question.data('question-sequence');
+      $("#question-sequence").html(current_sequence);
       var list_revision_url = $current_question.data('list-revision-url')
       $("#question-pk").html($current_question.data('question-pk'))
                        .attr('href', list_revision_url);
@@ -523,9 +525,9 @@
       //   2) If this is the initial question and 10 questions away or less from previous or next question set, fetch either.
       //   3) If this is not the initial question, and we are 10 questions away from it, fetch the next question set.
 
-      var current_set_start_index = Math.floor(question_sequence / 50) * 50
-      var next_set_start_index = (Math.floor(question_sequence / 50) + 1) * 50
-      var previous_set_start_index = (Math.floor(question_sequence / 50) - 1) * 50
+      var current_set_start_index = Math.floor(current_sequence / 50) * 50
+      var next_set_start_index = (Math.floor(current_sequence / 50) + 1) * 50
+      var previous_set_start_index = (Math.floor(current_sequence / 50) - 1) * 50
       var previous_set_end_index = current_set_start_index - 1
 
       if (next_set_start_index >= SESSION_QUESTION_TOTAL){
@@ -542,10 +544,10 @@
       if (
         (is_initial &&
          next_set_start_index &&
-         question_sequence >= (next_set_start_index - 10)) ||
+         current_sequence >= (next_set_start_index - 10)) ||
          (!is_initial &&
           next_set_start_index &&
-          question_sequence == (next_set_start_index - 10))
+          current_sequence == (next_set_start_index - 10))
         ){
           fetchList(next_set_start_index)
       }
@@ -553,10 +555,10 @@
       if (
         (is_initial &&
          previous_set_start_index !== null &&
-         question_sequence <= (previous_set_end_index + 10)) ||
+         current_sequence <= (previous_set_end_index + 10)) ||
          (!is_initial &&
           previous_set_start_index !== null &&
-          question_sequence == (previous_set_end_index + 10))
+          current_sequence == (previous_set_end_index + 10))
         ){
           fetchList(previous_set_start_index)
       }
@@ -615,19 +617,37 @@
         $.ajax({
             url: "{% url 'exams:toggle_marked' %}",
             type: 'POST',
-            data: data,
+            data: {session_pk: SESSION_PK,
+                   question_pk: $current_question.data('question-pk')},
             cache: false,
             success: function(data){
-               $question_row = $('.navigate-row[data-question-sequence="' + current_sequence + '"]');
+               var question_pk = $current_question.data('question-pk');
+               var marked_index = MARKS.indexOf(question_pk);
                $current_question.data('is-marked', data.is_marked);
                handleMarked(data.is_marked);
                if (data.is_marked){
-                 $question_row.find('td.is_marked').html(is_marked_markup);
+                 if (marked_index == -1){
+                   MARKS.push(question_pk)
+                 }
                  _paq.push(['trackEvent', 'show_session', 'mark-question', 'add-mark']);
                } else {
-                 $question_row.find('td.is_marked').html("");
+                 if (marked_index != -1){
+                   MARKED.slice(marked_index, 1);
+                 }
                  _paq.push(['trackEvent', 'show_session', 'mark-question', 'remove-mark']);
                }
+
+               // If we have a navigation table, let's update it.
+               // Otherwise, let's save the DOM queries.
+               if (has_constructed_navigation){
+                 var $question_row = $('.navigate-row[data-question-sequence="' + current_sequence + '"]');
+                 if (data.is_marked){
+                   $question_row.find('td.is_marked').html(is_marked_markup);
+                 } else {
+                   $question_row.find('td.is_marked').html("");
+                 }
+               }
+
                $("#mark-icon").show();
                $("#mark-loading").hide();
 
@@ -679,7 +699,7 @@
     }
 
     function initializeMnemonicInteractions(){
-      question_pk = $current_question.data('question-pk');
+      var question_pk = $current_question.data('question-pk');
       $current_question.find(".like-mnemonic").off('click').on('click', function() {
            action = $(this).data('action');
            mnemonic_pk = $(this).data('mnemonic-pk');
@@ -794,7 +814,7 @@
 
     function highlightActiveRow(){
       // Mark row as active
-      $question_row = $('.navigate-row[data-question-sequence="' + current_sequence + '"]');
+      var $question_row = $('.navigate-row[data-question-sequence="' + current_sequence + '"]');
       $question_row.addClass('table-active');
       $('.navigate-row').not($question_row).removeClass('table-active');
     }
@@ -819,9 +839,14 @@
 
         initializeCorrectionInteractions();
         initializeMnemonicInteractions();
-        highlightActiveRow();
         controlNavigationButtons();
         handleMarked($current_question.data('is-marked'));
+
+        // If we have a navigation table, let's update it.
+        // Otherwise, let's save the DOM queries.
+        if (has_constructed_navigation){
+          highlightActiveRow();
+        }
 
         // Show contributors as a tooltip
         $("#contributors").tooltip('dispose');
@@ -866,10 +891,14 @@
     }
 
     function submitHighlight(){
-      data.best_revision_pk = $current_question.data('best-latest-revision-pk');
-      data.highlighted_text = $current_question.find(".question-text").html();
-      stricken_choice_pks = $current_question.find(".choice-text.strike").map(function(){return $(this).closest('tr').data('choice-pk')}).get();
-      data.stricken_choice_pks = JSON.stringify(stricken_choice_pks);
+      var stricken_choice_pks = $current_question.find(".choice-text.strike").map(function(){return $(this).closest('tr').data('choice-pk')}).get();
+      stricken_choice_pks = JSON.stringify(stricken_choice_pks);
+
+      var data = {best_revision_pk: $current_question.data('best-latest-revision-pk'),
+                  highlighted_text: $current_question.find(".question-text").html(),
+                  stricken_choice_pks: stricken_choice_pks,
+                  session_pk: SESSION_PK,
+                  question_pk: $current_question.data('question-pk')}
 
       $.ajax({
           url: "{% url 'exams:submit_highlight' %}",
@@ -889,8 +918,14 @@
         // We also set was-solved using .attr() to change the DOM and
         // be able to apply CSS.
         $current_question.data('was-solved', true).attr('data-was-solved', true);
-        question_row = $('.navigate-row[data-question-sequence="' + current_sequence + '"]');
-        question_row.find('td.was_solved').html(was_solved_markup);
+
+
+        // If we have a navigation table, let's update it.
+        // Otherwise, let's save the DOM queries.
+        if (has_constructed_navigation){
+          var $question_row = $('.navigate-row[data-question-sequence="' + current_sequence + '"]');
+          $question_row.find('td.was_solved').html(was_solved_markup);
+        }
 
         // Disable choices upon submission
         $current_question.find(".question-choice").prop("disabled", "disabled")
@@ -926,7 +961,13 @@
         } else {
             choice_pk = null;
         }
-        data.choice_pk = choice_pk;
+
+        var question_pk = $current_question.data('question-pk')
+        ANSWERS[question_pk] = choice_pk;
+
+        var data = {session_pk: SESSION_PK,
+                    question_pk: question_pk,
+                    choice_pk: choice_pk}
 
         $.ajax({
             url: "{% url 'exams:submit_answer' %}",
@@ -982,7 +1023,7 @@
           if (SESSION_MODE == 'SOLVED' || SESSION_MODE == 'INCOMPLETE'){
             return
           }
-          question_sequence = $('.question-body[data-was-solved=false]').data('question-sequence');
+          var question_sequence = $('.question-body[data-was-solved=false]').data('question-sequence');
           if (question_sequence){
             showQuestion(question_sequence);
           } else {
@@ -1058,11 +1099,11 @@
       for (var question_sequence = 1; question_sequence <= SESSION_QUESTION_PKS.length; question_sequence++) {
          var question_index = question_sequence - 1;
          var question_pk = SESSION_QUESTION_PKS[question_index];
-         var was_solved = PREVIOUS_ANSWERS[question_pk] !== undefined ? was_solved_markup : '<i class="far fa-square"></i>';
-         // In case PREVIOUS_MARKS was not populated yet, we can
-         // safely skip it.
-         if (PREVIOUS_MARKS){
-           var is_marked = PREVIOUS_MARKS.indexOf(question_pk) != -1 ? is_marked_markup : '';
+         var was_solved = ANSWERS[question_pk] !== undefined ? was_solved_markup : '<i class="far fa-square"></i>';
+         // In case MARKS was not populated yet, we can safely skip
+         // it.
+         if (MARKS){
+           var is_marked = MARKS.indexOf(question_pk) != -1 ? is_marked_markup : '';
          }
          var row = "<tr class='navigate-row text-center' data-question-sequence='" + question_sequence.toString() + "'><td>" + question_sequence.toString() + "</td><td class='d-sm-table-cell d-none'>" + question_pk.toString() + "</td><td class='d-sm-table-cell d-none is_marked'>" + is_marked + "</td><td class='was_solved'>" + was_solved +"</td></tr>";
          tbody_content += row;
@@ -1076,6 +1117,7 @@
         showQuestion(targeted_sequence);
       });
       highlightActiveRow();
+      has_constructed_navigation = true;
     }
 
     function fetchCorrections(){
@@ -1099,13 +1141,13 @@
               data: {format: 'json',
                      session_pk: SESSION_PK },
               success: function(data){
-                  PREVIOUS_ANSWERS = {};
+                  ANSWERS = {};
                   data.map(function(item){
-                    PREVIOUS_ANSWERS[item.question_id] = item.choice_id;
+                    ANSWERS[item.question_id] = item.choice_id;
                   });
 
-                  // We cacn only prepare questions after we get
-                  // PREVIOUS_ANSWERS, so let's do it now!
+                  // We can only prepare questions after we get
+                  // ANSWERS, so let's do it now!
                   prepareQuestions($('.question-body'));
                   // Some interactions depend on whether the question
                   // was solved or not.  That's why we only
@@ -1127,11 +1169,11 @@
               data: {format: 'json',
                      exam_pk: EXAM_PK },
               success: function(data){
-                  PREVIOUS_MARKS = data.map(function(item){ return item.id });
+                  MARKS = data.map(function(item){ return item.id });
 
                   $('.question-body').each(function(){
-                    $question = $(this);
-                    question_pk = $question.data('question-pk');
+                    var $question = $(this);
+                    var question_pk = $question.data('question-pk');
                     applyMark($question, question_pk);
                   });
               }
@@ -1229,8 +1271,8 @@
         return
       }
 
-      question_pk = $question.data('question-pk')
-      highlight = PREVIOUS_HIGHLIGHTS[question_pk];
+      var question_pk = $question.data('question-pk')
+      var highlight = PREVIOUS_HIGHLIGHTS[question_pk];
       if (highlight !== undefined){
         best_revision_pk = $question.data('best-latest-revision-pk');
         if (best_revision_pk == highlight.revision_id){
@@ -1251,15 +1293,15 @@
       // This shuffle choices and checked the previously selected
       // choice and randomizes choice rows.
 
-      // If we do not have the PREVIOUS_ANSWERS yet, we cannot
-      // prepare the choices.
-      if (PREVIOUS_ANSWERS === null){
+      // If we do not have the ANSWERS yet, we cannot prepare the
+      // choices.
+      if (ANSWERS === null){
         return
       }
 
       // First: Tag the previously selected choice:
-      question_pk = $question.data('question-pk')
-      choice_pk = PREVIOUS_ANSWERS[question_pk];
+      var question_pk = $question.data('question-pk')
+      var choice_pk = ANSWERS[question_pk];
       if (choice_pk !== undefined){
         $question.data('was-solved', true).attr('data-was-solved', 'true')
         $question.find('.question-choice').attr('disabled', true)
@@ -1301,7 +1343,7 @@
     }
 
     function applyMark($question, question_pk){
-      if (PREVIOUS_MARKS.indexOf(question_pk) != -1){
+      if (MARKS.indexOf(question_pk) != -1){
         $question.data('is-marked', true).attr('data-is-marked', 'true')
         // If the marked question is currently being shown, highlight
         // the mark button.
@@ -1337,7 +1379,7 @@
           $question.find('.question-choice').attr('disabled', true)
         }
 
-        if (PREVIOUS_MARKS){
+        if (MARKS){
           applyMark($question, question_pk);
         }
       });
@@ -1375,7 +1417,6 @@
         $("#question-sequence").html(initial_question_sequence);
 
         initializeKeyboard();
-        updateData();
 
         // Depending on user agent, we control tooltip initalization.
         // Note that this must NOT be overridden anywhere in the
@@ -1499,19 +1540,19 @@
 
         $("#contribute").click(function () {
             $("#modify-question-modal").modal('show');
-            url = "{% url 'exams:contribute_revision' %}?" + $.param({question_pk: data.question_pk})
+            url = "{% url 'exams:contribute_revision' %}?" + $.param({question_pk: $current_question.data('question-pk')})
             $("#modify-question-modal .modal-body").load(url);
         });
         // initialize project edit modal
         $("#explain, a.explain").click(function () {
             $("#explain-question-modal").modal('show');
-            url = "{% url 'exams:contribute_explanation' %}?" + $.param({question_pk: data.question_pk});
+            url = "{% url 'exams:contribute_explanation' %}?" + $.param({question_pk: $current_question.data('question-pk')});
             $("#explain-question-modal .modal-body").load(url);
         });
 
         $(".add-mnemonics").click(function () {
             $("#add-mnemonics-modal").modal('show');
-            url = "{% url 'exams:contribute_mnemonics' %}?" + $.param({question_pk: data.question_pk});
+            url = "{% url 'exams:contribute_mnemonics' %}?" + $.param({question_pk: $current_question.data('question-pk')});
             $("#add-mnemonics-modal .modal-body").load(url);
         });
 
