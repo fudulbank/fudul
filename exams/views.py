@@ -1315,7 +1315,8 @@ def list_duplicates(request, slugs, pk):
                                                   'second_revision',
                                                   'first_revision__question',
                                                   'first_revision__question__exam')\
-                                  .filter(status="PENDING")
+                                  .filter(status="PENDING",
+                                          first_revision__question__exam=exam)
     context = {'exam': exam, 'duplicates': duplicates,
                'category_slugs': slugs}
     return render(request, 'exams/list_duplicates.html', context)
