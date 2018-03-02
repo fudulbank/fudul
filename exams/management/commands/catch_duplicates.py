@@ -17,7 +17,7 @@ class Command(BaseCommand):
                             type=int)
 
     def handle(self, *args, **options):
-        for exam in Exam.objects.all():
+        for exam in Exam.objects.order_by('pk'):
             if options['verbose']:
                 print("Scanning {}...".format(exam.name))
             pool = list(Revision.objects.filter(best_of__isnull=False,
