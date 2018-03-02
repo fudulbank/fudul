@@ -1,4 +1,4 @@
-{% with correction=choice.answer_correction %}{% load account_utils exam_utils %}
+{% with correction=choice.answer_correction %}{% load account_utils core_utils exam_utils %}
 <div class="answer-correction-tooltip-container">
   <div class="answer-correction-tooltip-body">
     <div class="answer-correction-header">
@@ -10,7 +10,7 @@
 
     <div class="text-left">
       <p>{{ correction.submitter|get_user_credit:user }} suggests that <strong>"{{ choice }}"</strong> is the correct answer, giving the following justification:</p>
-      <p class="ml-4 font-italic">{{ correction.justification|linebreaksbr }}</p>
+      <p class="ml-4 font-italic">{{ correction.justification|urlize_target_blank|linebreaksbr }}</p>
       <p>{% if correction.supporting_users.exists %}<span class="supporting-users" data-toggle="tooltip" data-html="true" title="<ul>{% for voting_user in correction.supporting_users.all %}<li>{{ voting_user|get_user_credit:user }}</li>{% endfor %}</ul>">{{ correction.supporting_users.count }} users supported this correction</span>.{% endif %}{% if correction.opposing_users.exists %} <span class="opposing-users" data-toggle="tooltip" data-html="true" title="<ul>{% for voting_user in correction.opposing_users.all %}<li>{{ voting_user|get_user_credit:user }}</li>{% endfor %}</ul>">{{ correction.opposing_users.count }} users opposed this correction</span>.{% endif %}</p>
     </div>
 
