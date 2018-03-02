@@ -147,6 +147,7 @@ class Exam(models.Model):
     def get_pending_duplicate_count(self):
         return Duplicate.objects.filter(status='PENDING',
                                         first_revision__question__exam=self)\
+                                .distinct()\
                                 .count()
 
     def get_user_count(self):
