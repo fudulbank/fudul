@@ -832,7 +832,7 @@ class Duplicate(models.Model):
             answers = Answer.objects.filter(question=question_to_delete,
                                             choice__text=choice_text)\
                                     .update(choice=choice,
-                                            question_to_keep=question_to_keep)
+                                            question=question_to_keep)
 
         # MERGE SESSIONS
         # Get all sessions with the question to deleted but not
