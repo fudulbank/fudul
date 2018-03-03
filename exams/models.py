@@ -842,7 +842,7 @@ class Duplicate(models.Model):
 
         for session in sessions:
             session.questions.add(question_to_keep)
-            session.questions.remvove(question_to_delete)
+            session.questions.remove(question_to_delete)
 
         # MERGE THE SOURCES
         for source in question_to_delete.sources.all():
