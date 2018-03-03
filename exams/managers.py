@@ -322,3 +322,21 @@ class AnswerQuerySet(models.QuerySet):
 class MnemonicQuerySet(models.QuerySet):
     def undeleted(self,question):
         self.filter(question=question,is_deleted=False)
+
+class DuplicateContainerQuerySet(models.QuerySet):
+    def with_undeleted_questions(self):
+        return self.filter(duplicate__question__is_deleted=False,
+                           duplicate__question__revision__is_deleted=False)\
+                   .annotate(question_count=Count('duplicate__question'))\
+                   .filter(question_count__gte=2)\
+                   .distinct()
+
+class DuplicateQuerySet(models.QuerySet):
+    def undeleted_question(self):
+        return self.filter(question__is_deleted=False,
+                           question__revision__is_deleted=False)\
+                   .distinct()
+
+    def select_for_list(self):
+        return self.select_related('question',
+                                   'question__best_revision')

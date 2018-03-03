@@ -1311,14 +1311,14 @@ def list_duplicates(request, slugs, pk):
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
 
-    duplicates = Duplicate.objects.select_related('first_revision',
-                                                  'second_revision',
-                                                  'first_revision__question',
-                                                  'first_revision__question__exam')\
-                                  .filter(status="PENDING",
-                                          first_revision__question__exam=exam)\
-                                  .distinct()
-    context = {'exam': exam, 'duplicates': duplicates,
+    duplicate_containers = DuplicateContainer.objects\
+                                             .select_related('primary_question',
+                                                             'primary_question__best_revision')\
+                                             .filter(status="PENDING",
+                                                     primary_question__exam=exam)\
+                                             .with_undeleted_questions()\
+                                             .distinct()
+    context = {'exam': exam, 'duplicate_containers': duplicate_containers,
                'category_slugs': slugs}
     return render(request, 'exams/list_duplicates.html', context)
 
@@ -1327,28 +1327,28 @@ def list_duplicates(request, slugs, pk):
 @decorators.ajax_only
 @csrf.csrf_exempt
 def handle_duplicate(request):
-    pk = request.POST.get('pk')
+    question_pk = request.POST.get('question_pk')
+    container_pk = request.POST.get('container_pk')
     action = request.POST.get('action')
 
-    duplicate = get_object_or_404(Duplicate.objects.select_related('first_revision',
-                                                                   'first_revision__question',
-                                                                   'first_revision__question__exam'),
-                                  pk=pk)
+    container = get_object_or_404(DuplicateContainer.objects.select_related('primary_question',
+                                                                            'primary_question__exam'),
+                                  pk=container_pk,
+                                  status="PENDING")
 
-    if not duplicate.first_revision.question.exam.can_user_edit(request.user):
+    if not container.primary_question.exam.can_user_edit(request.user):
         raise PermissionDenied
 
-    if action == 'keep_first':
-        duplicate.keep_first()
-        duplicate.status = 'KEPT_FIRST'
-    elif action == 'keep_second':
-        duplicate.keep_second()
-        duplicate.status = 'KEPT_SECOND'
+    if action == 'keep':
+        question_to_keep = get_object_or_404(Question.objects.select_related('best_revision'),
+                                             pk=question_pk)
+        container.keep(question_to_keep)
+        container.status = 'KEPT'
     elif action == 'decline':
-        duplicate.status = 'DECLINED'
+        container.status = 'DECLINED'
 
-    duplicate.reviser = request.user
-    duplicate.revision_date = timezone.now()
-    duplicate.save()
+    container.reviser = request.user
+    container.revision_date = timezone.now()
+    container.save()
 
     return {}
