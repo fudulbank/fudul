@@ -38,23 +38,24 @@
             <div class="card duplicate-container border-bottom">
               <div class="card-body row">
                 <div class="col-sm-9">
-                  <h3>Report #{{ duplicate_container.pk }}</h3>
-                  <p><strong><a href="{% url 'exams:list_revisions' category_slugs exam.pk duplicate_container.primary_question.pk %}">Question #{{ duplicate_container.primary_question.pk }}</a> (Primary question; {{ duplicate_container.get_primary_user_count }} users answered)</strong><br>{{ duplicate_container.primary_question.best_revision.text|linebreaksbr }}</p>
+                  <h3 class="text-bold-600">Report #{{ duplicate_container.pk }}</h3>
+                  <h5 class="text-bold-600"><a href="{% url 'exams:list_revisions' category_slugs exam.pk duplicate_container.primary_question.pk %}">Question #{{ duplicate_container.primary_question.pk }}</a></h5>
+                  <p class="font-small-3">(<abbr class="primary-question">Primary question;</abbr> {{ duplicate_container.primary_question.get_answering_user_count }} users answered)</p>
+                  <p>{{ duplicate_container.primary_question.best_revision.text|linebreaksbr }}</p>
                   <ul type="A">
                   {% for choice in duplicate_container.primary_question.best_revision.choice_set.order_by_alphabet %}
                     <li><span {% if choice.is_right %} data-toggle="tooltip" data-title="This choice is the right one" style="font-weight: 800;" class="success darken-4"{% endif %}>{{ choice.text }}</span></li>
                   {% endfor %}
                   </ul>
                   {% for duplicate in duplicate_container.duplicate_set.undeleted_question.select_for_list %}
-                  <p><strong><a href="{% url 'exams:list_revisions' category_slugs exam.pk duplicate.question.pk %}">Question #{{ duplicate.question.pk }}</a> ({{ duplicate.get_percentage }}% similar to the primary question; {{ duplicate.get_user_count }} users answered)</strong><br>{{ duplicate.question.best_revision.text|linebreaksbr }}</p>
+                  <h5 class="text-bold-600"><a href="{% url 'exams:list_revisions' category_slugs exam.pk duplicate.question.pk %}">Question #{{ duplicate.question.pk }}</a></h5>
+                  <p class="font-small-3">(<strong class="danger darken-4">{{ duplicate.get_percentage }}% similar to the primary question</strong>; {{ duplicate.question.get_answering_user_count }} users answered)</p>
+                  <p>{{ duplicate.question.best_revision.text|linebreaksbr }}</p>
                   <ul type="A">
                   {% for choice in duplicate.question.best_revision.choice_set.order_by_alphabet %}
                     <li><span {% if choice.is_right %} data-toggle="tooltip" data-title="This choice is the right one" style="font-weight: 800;" class="success darken-4"{% endif %}>{{ choice.text }}</span></li>
                   {% endfor %}
                   </ul>
-                  {% if not forloop.last %}
-                  <hr>
-                  {% endif %}
                   {% endfor %}
                 </div>
                 <div class="col-sm-3 align-self-center border-left text-center">
@@ -81,6 +82,7 @@
 <script>
     $(function () {
       $('[data-toggle="tooltip"]').tooltip();
+      $('.primary-question').tooltip({title: "The primary question is the question against which other duplicate questions are compared.  This is notable when there were more than one duplicate question."})
       $('button.duplicate-decision').click(function(){
         $button = $(this)
         var action = $button.data('action');

@@ -254,6 +254,12 @@ class Question(models.Model):
         return textwrap.shorten(latest_revision.text, 70,
                                 placeholder='...')
 
+    def get_answering_user_count(self):
+        user_pks = Answer.objects.filter(choice__revision__question=self)\
+                                 .values('session__submitter')
+        return User.objects.filter(pk__in=user_pks)\
+                           .count()
+
     def update_best_revision(self):
         best_revision = self.get_best_revision()
         self.best_revision = best_revision
@@ -767,12 +773,6 @@ class DuplicateContainer(models.Model):
     submission_date = models.DateTimeField(auto_now_add=True)
     objects = managers.DuplicateContainerQuerySet.as_manager()
 
-    def get_primary_user_count(self):
-        user_pks = Answer.objects.filter(choice__revision__question=self.primary_question)\
-                                 .values('session__submitter')
-        return User.objects.filter(pk__in=user_pks)\
-                           .count()
-
     def get_questions(self):
         return (Question.objects.filter(pk=self.primary_question.pk) | \
                 Question.objects.filter(pk__in=self.duplicate_set.values('question'))).order_by('pk')
@@ -858,12 +858,6 @@ class Duplicate(models.Model):
 
     def get_percentage(self):
         return round(self.ratio * 100, 2)
-
-    def get_user_count(self):
-        user_pks = Answer.objects.filter(choice__revision__question=self.question)\
-                                 .values('session__submitter')
-        return User.objects.filter(pk__in=user_pks)\
-                           .count()
 
     def __str__(self):
         return "Duplicate of Q#{} in container #{}".format(self.question.pk,
