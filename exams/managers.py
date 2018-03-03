@@ -328,7 +328,7 @@ class DuplicateContainerQuerySet(models.QuerySet):
         return self.filter(duplicate__question__is_deleted=False,
                            duplicate__question__revision__is_deleted=False)\
                    .annotate(question_count=Count('duplicate__question'))\
-                   .filter(question_count__gte=2)\
+                   .filter(question_count__gte=1)\
                    .distinct()
 
 class DuplicateQuerySet(models.QuerySet):

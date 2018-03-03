@@ -147,6 +147,7 @@ class Exam(models.Model):
     def get_pending_duplicate_count(self):
         return DuplicateContainer.objects.filter(status='PENDING',
                                                  primary_question__exam=self)\
+                                         .with_undeleted_questions()\
                                          .distinct()\
                                          .count()
 
