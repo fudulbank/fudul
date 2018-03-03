@@ -145,10 +145,10 @@ class Exam(models.Model):
     objects = managers.ExamQuerySet.as_manager()
 
     def get_pending_duplicate_count(self):
-        return Duplicate.objects.filter(status='PENDING',
-                                        first_revision__question__exam=self)\
-                                .distinct()\
-                                .count()
+        return DuplicateContainer.objects.filter(status='PENDING',
+                                                 primary_question__exam=self)\
+                                         .distinct()\
+                                         .count()
 
     def get_user_count(self):
         return User.objects.filter(session__exam=self)\
