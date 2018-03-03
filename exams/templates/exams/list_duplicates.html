@@ -63,7 +63,7 @@
                     {% for question in duplicate_container.get_questions %}
                     <button class="btn btn-success duplicate-decision" data-duplicate-container-pk="{{ duplicate_container.pk }}" data-question-pk="{{ question.pk }}" data-action="keep"><i class="ft-check-square"></i> Keep question #{{ question.pk }}</button>
                     {% endfor %}
-                    <button class="btn btn-warning duplicate-decision" data-pk="{{ duplicate.pk }}" data-action="decline"><i class="ft-delete"></i> Ignore</button>
+                    <button class="btn btn-warning duplicate-decision" data-duplicate-container-pk="{{ duplicate_container.pk }}" data-action="decline"><i class="ft-delete"></i> Ignore</button>
                   </div>
                 </div>
               </div>
