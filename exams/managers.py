@@ -337,6 +337,9 @@ class DuplicateQuerySet(models.QuerySet):
                            question__revision__is_deleted=False)\
                    .distinct()
 
+    def order_by_question_pk(self):
+        return self.order_by('question__pk')
+
     def select_for_list(self):
         return self.select_related('question',
                                    'question__best_revision')
