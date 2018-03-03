@@ -1,5 +1,6 @@
 from difflib import SequenceMatcher
 from django.core.management.base import BaseCommand
+from django.db.models import Count
 from exams.models import Exam, Question, Duplicate, DuplicateContainer
 import datetime
 
@@ -17,6 +18,16 @@ class Command(BaseCommand):
                             type=int)
 
     def handle(self, *args, **options):
+        # Clean up duplicate containers with no undeleted questions
+        obsolete_containers =  DuplicateContainer.objects.filter(status='PENDING',
+                                                                 duplicate__question__is_deleted=False,
+                                                                 duplicate__question__revision__is_deleted=False)\
+                                                         .annotate(question_count=Count('duplicate__question'))\
+                                                         .filter(question_count=0)
+        if options['verbose']:
+            print("Found {} obsolute containers.  Deleting...".format(obsolete_containers.count()))
+        obsolete_containers.delete()
+
         for exam in Exam.objects.order_by('pk'):
             if options['verbose']:
                 print("Scanning {}...".format(exam.name))

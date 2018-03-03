@@ -1316,7 +1316,6 @@ def list_duplicates(request, slugs, pk):
                                                              'primary_question__best_revision')\
                                              .filter(status="PENDING",
                                                      primary_question__exam=exam)\
-                                             .with_undeleted_questions()\
                                              .distinct()
     context = {'exam': exam, 'duplicate_containers': duplicate_containers,
                'category_slugs': slugs}
