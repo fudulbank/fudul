@@ -5,6 +5,11 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <meta property="og:title" content="Fudul | Question #{{ current_question.pk }}">
+        <meta property="og:image" content="{{ request.build_absolute_uri }}{% static 'img/logo-192x192.png' %}">
+        <meta property="og:site_name" content="Fudul">
+        <meta property="og:description" content="Question #{{ current_question.pk }} in {{ current_question.exam.name }}: {{ current_question.best_revision.text|truncatechars:200 }}">
+
         <title>Fudul | Question #{{ current_question.pk }}</title>
 
         <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js" integrity="sha384-0AJY8UERsBUKdWcyF3o2kisLKeIo6G4Tbd8Y6fbyw6qYmn4WBuqcvxokp8m2UzSD" crossorigin="anonymous"></script>
