@@ -342,7 +342,7 @@
 
   </style>
     </head>
-    <body data-session-mode="{{ session.session_mode }}" data-has-finished="{% if session.has_finished %}true{% else %}false{% endif %}">
+    <body data-session-mode="{{ session.session_mode }}" data-has-finished="false">
     <div class="container-fluid" id="container">
         <div id="top-info" class="row align-items-center">
             <div class ="col-sm-3 text-sm-left text-center">
@@ -468,12 +468,6 @@
     isTablet = navigator.userAgent.match(/iPad/i) != null || (navigator.userAgent.match(/Android/i) != null && navigator.userAgent.match(/Mobile/i) == null);
     isMobile = navigator.userAgent.match(/iPhone/i) != null || (navigator.userAgent.match(/Android/i) != null && navigator.userAgent.match(/Mobile/i) != null);
 
-    function updateData(){
-
-        data = {question_pk: $current_question.data('question-pk'),
-                session_pk: SESSION_PK}
-    }
-
     function handleMarked(is_marked){
         if (is_marked){
             $markButton.addClass("marked");
@@ -517,7 +511,6 @@
       $("#question-pk").html($current_question.data('question-pk'))
                        .attr('href', list_revision_url);
 
-      updateData();
       initializeInteractions();
 
       // We will fetch questions in two cases:
@@ -830,7 +823,7 @@
         // data-has-finished to true will cause expalantions to show
         // right away in UNEXPLAINED sessions.
         // This also affects #results and #end buttons.
-        if ($('#question-loading:hidden').length  && !$('.question-body[data-was-solved="false"]').length){
+        if (ANSWERS && Object.keys(ANSWERS).length == SESSION_QUESTION_TOTAL){
           $('body').data('has-finished', true).attr('data-has-finished', true);
         }
 
