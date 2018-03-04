@@ -516,7 +516,8 @@ def list_partial_session_questions(request, slugs, exam_pk):
 @require_safe
 def show_question(request, slugs, exam_pk, question_pk):
     category = Category.objects.get_from_slugs_or_404(slugs)
-    current_question = get_object_or_404(Question.objects.undeleted().select_related('exam'),
+    current_question = get_object_or_404(Question.objects.select_related('best_revision', 'exam')\
+                                                         .undeleted(),
                                          pk=question_pk)
     context = {'category_slugs': slugs,
                'current_question': current_question}
