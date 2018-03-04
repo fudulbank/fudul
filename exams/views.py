@@ -868,6 +868,7 @@ def mark_revision_approved(request, pk):
                                     .select_related('question',
                                                     'question__exam')
     revision = get_object_or_404(revision_pool, pk=pk)
+    question = revision.question
     exam = revision.question.exam
 
     # PERMISSION CHECK
