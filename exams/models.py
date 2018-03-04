@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericRelation
+from django.core.exceptions import MultipleObjectsReturned
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.shortcuts import get_object_or_404
@@ -788,10 +789,9 @@ class DuplicateContainer(models.Model):
         for correction in corrections_to_delete:
             choice_text = correction.choice.text
             try:
-                choice_to_keep = best_revision.choice_set.filter('answer_correction')\
-                                                         .get(text__iexact=choice_text,
+                choice_to_keep = best_revision.choice_set.get(text__iexact=choice_text,
                                                               answer_correction__isnull=True)
-            except Choice.DoesNotExist:
+            except (Choice.DoesNotExist, MultipleObjectsReturned):
                 pass
             else:
                 correction.choice = choice_to_keep
