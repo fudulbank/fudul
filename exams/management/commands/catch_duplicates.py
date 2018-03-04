@@ -24,6 +24,7 @@ class Command(BaseCommand):
                                                                  duplicate__question__revision__is_deleted=False)\
                                                          .annotate(question_count=Count('duplicate__question'))\
                                                          .filter(question_count=0)
+
         if options['verbose']:
             print("Found {} obsolute containers.  Deleting...".format(obsolete_containers.count()))
         obsolete_containers.delete()
@@ -97,3 +98,33 @@ class Command(BaseCommand):
                 if options['verbose']:
                     end_time = datetime.datetime.now()
                     print("Question #{}: It took: {}".format(first_question.pk, end_time - start_time))
+
+        # Some duplicates can be solved automatically: if the ratio is
+        # 100% and the question pks are subsequent, this indicates
+        # that the duplication is the result of a double creation
+        # click.  We can keep the primary question and remoe others.
+        for container in DuplicateContainer.objects.select_related('primary_question',
+                                                                   'primary_question__best_revision')\
+                                           .filter(status="PENDING",
+                                                   duplicate__ratio=1)\
+                                           .exclude(duplicate__ratio__lt=1)\
+                                           .order_by('primary_question')\
+                                           .distinct():
+            consistant = False
+            expected_pk = container.primary_question.pk + 1
+            question_ids = container.duplicate_set.values_list('question', flat=True)\
+                                                  .order_by('question')
+            for question_id in question_ids:
+                if expected_pk == question_id:
+                    consistant = True
+                    expected_pk += 1
+                else:
+                    consistant = False
+                    break
+            if consistant:
+                if options['verbose']:
+                    question_id_str = ", ".join(question_ids)
+                    print("Keeping {}, and deleting {}...".format(container.primary_question.pk, question_id_str))
+                container.keep(container.primary_question)
+                container.status = 'KEPT'
+                container.save()
