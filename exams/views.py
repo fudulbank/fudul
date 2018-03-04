@@ -513,9 +513,17 @@ def list_partial_session_questions(request, slugs, exam_pk):
 
     return {'html': minified_html}
 
+@require_safe
+def show_question(request, slugs, exam_pk, question_pk):
+    category = Category.objects.get_from_slugs_or_404(slugs)
+    current_question = get_object_or_404(Question.objects.undeleted().select_related('exam'),
+                                         pk=question_pk)
+    context = {'category_slugs': slugs,
+               'current_question': current_question}
+    return render(request, "exams/show_question.html", context)
+
 @login_required
 @require_safe
-@permission_required('exams.access_session', fn=objectgetter(Session, 'session_pk'), raise_exception=True)
 #@cache_page(settings.CACHE_PERIODS['STABLE'])
 def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     category = Category.objects.get_from_slugs_or_404(slugs)
@@ -524,8 +532,17 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
                                                .undeleted(),
                                 pk=session_pk)
 
-    current_question = session.get_current_question(question_pk)
 
+    # If the user has no access to the session, direct them to the
+    # question.
+    if not session.can_user_access(request.user):
+        if question_pk:
+            url = reverse('exams:show_question', (slugs, exam_pk, question_pk))
+            return HttpResponseRedirect(url)
+        else:
+            raise PermissionDenied
+
+    current_question = session.get_current_question(question_pk)
     session_questions = session.get_questions().values_list('pk', 'global_sequence')
     # This produces a dictionary of keys being question_pks and values
     # being global_sequences
@@ -586,15 +603,18 @@ def show_session_results(request, slugs, exam_pk, session_pk):
 def toggle_marked(request):
     question_pk = request.POST.get('question_pk')
     session_pk = request.POST.get('session_pk')
-    session = get_object_or_404(Session.objects.select_related('submitter')\
-                                               .undeleted(),
-                                pk=session_pk)
-    question = get_object_or_404(session.get_questions(), pk=question_pk,
-                                 is_deleted=False)
+    question = get_object_or_404(Question.objects.undeleted().select_related('exam'),
+                                 pk=question_pk)
 
     # PERMISSION CHECKS
-    if not session.submitter == request.user:
-        raise Exception("You cannot mark questions in this session.")
+    if session_pk:
+        session = get_object_or_404(Session.objects.select_related('submitter')\
+                                                   .undeleted(),
+                            pk=session_pk)
+        if not session.submitter == request.user:
+            raise Exception("You cannot mark questions in this session.")
+    elif not session_pk and not question.exam.can_user_access(request.user):
+        raise Exception("You cannot mark questions in this exam.")
 
     if utils.is_question_marked(question, request.user):
         question.marking_users.remove(request.user)

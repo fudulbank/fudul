@@ -66,29 +66,45 @@ class HighlightSerializer(serializers.ModelSerializer):
         model = Highlight
         fields = ('revision', 'highlighted_text', 'stricken_choices')
 
+def has_access_question(question_pk, user):
+    pool = Question.objects.select_related('exam').undeleted()
+    question = get_object_or_404(pool, pk=question_pk)
+    return question.exam.can_user_access(user)
+
 class HasSessionAccess(permissions.BasePermission):
     def has_permission(self, request, view):
         session_pk = request.query_params.get('session_pk')
         if not session_pk:
             return False
 
-        if request.user.is_superuser:
-            return True
+        session = get_object_or_404(Session.objects.select_related('submitter'), pk=session_pk)
+        return session.can_user_access(request.user)
+
+class HasSessionOrQuestionAccess(permissions.BasePermission):
+    def has_permission(self, request, view):
+        session_pk = request.query_params.get('session_pk')
+        question_pk = request.query_params.get('question_pk')
+
+        if question_pk:
+            return has_access_question(question_pk, request.user)
+        elif session_pk:
+            session = get_object_or_404(Session.objects.select_related('submitter'), pk=session_pk)
+            return session.can_user_access(request.user)
         else:
-            session = get_object_or_404(Session, pk=session_pk)
-            return session.submitter == request.user
+            return False
 
 class HasExamAccess(permissions.BasePermission):
     def has_permission(self, request, view):
         exam_pk = request.query_params.get('exam_pk')
-        if not exam_pk:
-            return False
+        question_pk = request.query_params.get('question_pk')
 
-        if request.user.is_superuser:
-            return True
-        else:
+        if question_pk:
+            return has_access_question(question_pk, request.user)
+        elif exam_pk:
             exam = get_object_or_404(Exam, pk=exam_pk)
             return exam.can_user_access(request.user)
+        else:
+            return False
 
 class AnswerViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = AnswerSerializer
@@ -114,9 +130,14 @@ class MarkedQuestionViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         exam_pk = self.request.query_params.get('exam_pk')
-        return Question.objects.filter(exam__pk=exam_pk,
-                                       marking_users=self.request.user)\
-                               .distinct()
+        if exam_pk:
+            pool =  Question.objects.filter(exam__pk=exam_pk)
+        question_pk = self.request.query_params.get('question_pk')
+        if question_pk:
+            pool =  Question.objects.filter(pk=question_pk)
+
+        return pool.filter(marking_users=self.request.user)\
+                   .distinct()
 
 
 class QuestionSummaryViewSet(viewsets.ReadOnlyModelViewSet):
@@ -178,20 +199,25 @@ class QuestionAssignmentViewSet(viewsets.ReadOnlyModelViewSet):
                                        is_last=True)
 
 class CorrectionList(views.APIView):
-    permission_classes = (HasSessionAccess,)
+    permission_classes = (HasSessionOrQuestionAccess,)
 
     def get(self, request, format=None):
         session_pk = request.query_params.get('session_pk')
+        question_pk = request.query_params.get('question_pk')
 
-        if not session_pk:
+        if not session_pk and not question_pk:
             raise Http404
 
         choices_with_corrections = Choice.objects.select_related('answer_correction',
                                                                  'revision',
                                                                  'revision__question')\
-                                                 .filter(revision__question__session__pk=session_pk,
-                                                         revision__best_of__isnull=False,
+                                                 .filter(revision__best_of__isnull=False,
                                                          answer_correction__isnull=False)
+
+        if session_pk:
+            choices_with_corrections = choices_with_corrections.filter(revision__question__session__pk=session_pk)
+        elif question_pk:
+            choices_with_corrections = choices_with_corrections.filter(revision__question__pk=question_pk)
 
         data = []
         template = get_template("exams/partials/show_answer_correction.html")

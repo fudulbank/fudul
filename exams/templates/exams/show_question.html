@@ -1,0 +1,553 @@
+<!DOCTYPE html>{% load static exam_utils %}
+{% include 'partials/call_out.html' %}
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <title>Fudul | Question #{{ current_question.pk }}</title>
+
+        <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js" integrity="sha384-0AJY8UERsBUKdWcyF3o2kisLKeIo6G4Tbd8Y6fbyw6qYmn4WBuqcvxokp8m2UzSD" crossorigin="anonymous"></script>
+
+        <link rel="shortcut icon" href="{% static 'img/logo-monkey.png' %}">
+        <link rel="manifest" href="{% static 'manifest.json' %}">
+
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:300,300i,400,400i,500,500i%7COpen+Sans:300,300i,400,400i,600,600i,700,700i">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw" crossorigin="anonymous">
+        <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
+        <link rel="stylesheet" href="{% static 'css/show_session.css' %}">
+        {% include 'partials/piwik.html' %}
+    </head>
+    <body{% if not user.is_authenticated %} class="unauthenticated"{% endif %}>
+    <div class="container-fluid" id="container">
+        <div id="top-info" class="row align-items-center">
+            <div class ="col-sm-3 text-sm-left text-center">
+              <a href="/" class="navbar-brand mt-2 mt-sm-0">
+                <img alt="Fudul logo" src="{% static 'img/logo-monkey.png' %}" class="img-fluid brand-logo">
+                <h2 class="brand-text">Fudul</h2></a>
+            </div>
+            <div class="col-sm-6 text-center"> <a target="_blank" href="{% url 'exams:create_session' category_slugs current_question.exam.pk %}">{{ current_question.exam.name }}</a> <span class="separator">•</span> Single question view <br> Question id: <a target="_blank" href="{% url 'exams:list_revisions' category_slugs current_question.exam.pk current_question.pk %}" id="question-pk">{{ current_question.pk }}</a> </div>
+        </div><!--top-info-->
+        <div id="top-options" class="row text-center">
+          <div class="col-6 text-sm-left">
+               <div class="option" id="contribute">
+                   <a data-placement="left" data-toggle="tooltip" title=" If you have any improvements on the question you can help us with, please submit it here.Your edits will be quickly available to public."> <i class="fas fa-pencil-alt"></i> Edit</a>
+               </div>
+          </div>
+          <div class="col-6 text-sm-right">
+            <div class="row justify-content-end no-gutters">
+            {% if user.is_authenticated %}
+             <div class="col-auto">
+                 <div data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> you can also press <kbd>Alt+M</kbd> to toggle question mark." id="mark" class="option">
+                    <i id="mark-loading" class="fas fa-spinner fa-pulse fa-fw"></i>
+                    <i class="fas fa-flag"></i> Mark
+                 </div>
+             </div>
+             {% endif %}
+
+             <div class="col-auto">
+                 <div data-toggle="modal" data-target="#NormalValues">
+                    <i class="fas fa-flask"></i>  <span class="d-sm-inline d-none">Lab values</span>
+                 </div>
+             </div>
+            </div>
+          </div>
+        </div><!--top-options-->
+
+        <div id="question-row" class="row">
+          <div class="col-2 col-sm-1 d-lg-none mobile-slide previous order-1"></div>
+          <div class="col-2 col-sm-1 d-lg-none mobile-slide next order-3"></div>
+          <div id="question-col" class="col-8 col-sm-10 col-lg-12 px-0 px-lg-5 order-2">
+            <p class="mt-4 alert alert-success">
+              {% with can_user_access=user|can_user_access:current_question.exam %}
+              {% if user.is_authenticated and can_user_access %}
+                <strong>Hey {{ user.profile.first_name }}!</strong>  This is the single question view.  You can also <a target="_blank" href="{% url 'exams:create_session' category_slugs current_question.exam.pk %}">create</a> a full-featured examination session in {{ current_question.exam.name }}.
+              {% elif user.is_authenticated and not can_user_access %}
+                <strong>Hey {{ user.profile.first_name }}!</strong>  This is the single question view.  You can also go to your <a target="_blank" href="{% url 'index' %}">home page</a> to have your own examination expereince.
+              {% else %}
+                <strong>Welcome to Fudul</strong>, the powerful, free question bank built by a community of examinees.  You are seeing a single question.  You can <a target="_blank" href="{% url 'userena_signup' %}">sign-up</a> or <a target="_blank" href="{% url 'userena_signin' %}">log-in</a> with us at no cost to get an access to a full-featured examination platofrm.
+              {% endif %}
+              {% endwith %}
+            </p>
+            <div id="question-container">
+              <div id="question-pool">
+                {% with question=current_question %}
+                 {% include 'exams/partials/session_question.html' %}
+                {% endwith %}
+              </div>
+              <button type="button" id="submit" class="btn">Submit <i class="fas fa-angle-right"></i></button>
+              <div class="row">
+                  <button class="btn btn-outline-primary" id="explain">Improve this explanation!</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="footer" class="row text-center font-weight-bold">
+          <div class="col-sm-6 text-sm-left order-2 order-sm-1">
+           <a id="back" class="float-left float-sm-none option" href="{% url 'exams:create_session' category_slugs current_question.exam.pk %}"><i class="fas fa-sign-out-alt"></i> Back</a>
+           <div id="end" class="float-left float-sm-none option"><i class="fas fa-sign-out-alt"></i> End</div>
+           <div id="contributors" class="float-right float-sm-none option"><i class="fas fa-star"></i> Contributors</div>
+           <div id="help-me" class="float-right float-sm-none option d-none d-sm-inline-block"><i class="fas fa-comment"></i> Get help</div>
+          </div>
+      </div><!--footer-->
+    </div><!--container-fluid-->
+        <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha384-xBuQ/xzmlsLoJpyjoggmTEz8OWUFM0/RC5BsqQBDX2v5cMvDHcMakNTNrHIW2I5f" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+        <script src="{% static 'js/toastr.js' %}"></script>
+        <script src="{% url 'js_reverse' %}"></script>
+        <script>
+
+    isTablet = navigator.userAgent.match(/iPad/i) != null || (navigator.userAgent.match(/Android/i) != null && navigator.userAgent.match(/Mobile/i) == null);
+    isMobile = navigator.userAgent.match(/iPhone/i) != null || (navigator.userAgent.match(/Android/i) != null && navigator.userAgent.match(/Mobile/i) != null);
+    CATEGORY_SLUGS = '{{ category_slugs }}';
+    EXAM_PK = {{ current_question.exam.pk }};
+    MARKS = null;
+    animation_events = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
+
+    // Common selectors
+    $markButton = $("#mark");
+    toastr.options.positionClass = "toast-top-left";
+    toastr.options.preventDuplicates = true;
+
+    function handleMarked(is_marked){
+        if (is_marked){
+            $markButton.addClass("marked");
+        } else {
+            $markButton.removeClass("marked");
+        }
+    }
+
+    function toggleMarked() {
+        $("#mark-icon").hide();
+        $("#mark-loading").css('display', 'inline-block');
+        $.ajax({
+            url: "{% url 'exams:toggle_marked' %}",
+            type: 'POST',
+            data: {question_pk: $current_question.data('question-pk')},
+            cache: false,
+            success: function(data){
+               var question_pk = $current_question.data('question-pk');
+               $current_question.data('is-marked', data.is_marked);
+               handleMarked(data.is_marked);
+               if (data.is_marked){
+                 _paq.push(['trackEvent', 'show_session', 'mark-question', 'add-mark']);
+               } else {
+                 _paq.push(['trackEvent', 'show_session', 'mark-question', 'remove-mark']);
+               }
+
+               $("#mark-icon").show();
+               $("#mark-loading").hide();
+
+            }
+        });
+    }
+
+    function updateCorrectionTooltip(html, choice_pk){
+      var pk_selector = "[data-choice-pk=" + choice_pk + "]";
+      var $choice_row = $(".question-body tr" + pk_selector);
+      $choice_row.data('has-correction', true).attr('data-has-correction', 'true');
+      var notification = '<i class="fas fa-exclamation-triangle text-warning answer-correction-notification mx-1"></i>';
+      $choice_row.find('.check').html(notification + html);
+    }
+
+    function initializeMnemonicInteractions(){
+      var question_pk = $current_question.data('question-pk');
+      $current_question.find(".like-mnemonic").off('click').on('click', function() {
+           action = $(this).data('action');
+           mnemonic_pk = $(this).data('mnemonic-pk');
+           url = "{% url 'exams:contribute_mnemonics' %}?" + $.param({question_pk: question_pk});
+
+           $.ajax({
+               url: url,
+               type: 'POST',
+               data: {'action': action,'mnemonic_pk':mnemonic_pk},
+               success: function(data){
+                 if (data.success == 1){
+                   toastr.success("Your vote was submitted.");
+                   $current_question.find(".mnemonics-content").html(data.mnemonic_html);
+                 } else {
+                   toastr.error(data.message)
+                 }
+               }
+           });
+      });
+      $current_question.find(".delete-mnemonic").off('click').on( 'click', function() {
+           action = $(this).data('action');
+           mnemonic_pk = $(this).data('mnemonic-pk');
+           url = "{% url 'exams:contribute_mnemonics' %}?" + $.param({question_pk: question_pk});
+
+           $.ajax({
+               url: url,
+               type: 'POST',
+               data: {'action': action,'mnemonic_pk':mnemonic_pk},
+               success: function(data){
+                 if (data.success == 1){
+                   toastr.success("Your mnemonic is deleted.");
+                   $current_question.find(".mnemonics-content").html(data.mnemonic_html);
+
+
+                 } else {
+                   toastr.error(data.message)
+                 }
+               }
+           });
+      });
+    }
+
+    function initializeCorrectionInteractions(){
+      // Here, we are selecting the SVG (i.e. '[data-fa-i2svg]')
+      // within the '.correct' cell
+      $current_question.off('click', '.correct [data-fa-i2svg]')
+                       .on('click', '.correct [data-fa-i2svg]', function () {
+          _paq.push(['trackEvent', 'show_session', 'answer_correction', 'click-correct']);
+          $("#correct-answer-modal").modal('show');
+          choice_pk = $(this).closest('tr').data('choice-pk');
+          url = "{% url 'exams:correct_answer' %}?" + $.param({choice_pk: choice_pk});
+          $("#correct-answer-modal .modal-body").load(url);
+      });
+    }
+
+    function controlExplanation(){
+      was_solved = $current_question.data('was-solved');
+      if (!was_solved || (SESSION_MODE == 'UNEXPLAINED' && !$('body').data('has-finished'))){
+        $current_question.find(".explanation-container").hide()
+        $("#explain").hide()
+      }
+      else if ($current_question.find(".explanation-content").text().trim().length){
+        $("#explain").show().html('<i class="fas fa-cubes"></i> Improve this explanation!');
+        $current_question.find(".explanation-container").show();
+      }
+      else {
+        $current_question.find(".explanation-container").hide();
+        $("#explain").show().html("Add an explanation!");
+      }
+    }
+
+    function controlMnemonic(){
+      was_solved = $current_question.data('was-solved');
+      if (!was_solved || (SESSION_MODE == 'UNEXPLAINED' && !$('body').data('has-finished'))){
+        $(".mnemonics-container, #add-mnemonics").hide()
+      } else if( $.trim( $('.mnemonics-content').text() ).length ) {
+        $("#add-mnemonics").show().html('<i class="fas fa-book"></i> Add a mnemonic !');
+        $(".mnemonics-container").show();
+      } else {
+        $(".mnemonics-container").hide();
+        $("#add-mnemonics").show().html('<i class="fas fa-book"></i> Add another mnemonic!');
+      }
+    }
+
+    function initializeInteractions() {
+        // $current_question is defined in showQuestion
+        $current_question.find('[data-toggle="tooltip"]').tooltip();
+
+        initializeCorrectionInteractions();
+        initializeMnemonicInteractions();
+        controlNavigationButtons();
+        handleMarked($current_question.data('is-marked'));
+
+        // Show contributors as a tooltip
+        $("#contributors").tooltip('dispose');
+      	$("#contributors").off('click').click(function(){
+      	    _paq.push(['trackEvent', 'show_session', 'see-contributors', 'see-contributors']);
+      	});
+        $("#contributors").tooltip({html: true,
+                                    trigger: 'click',
+                                    title: $current_question.find(".tooltip-body").get(0)})
+
+        controlExplanation();
+        controlMnemonic();
+        $("#contribute,#add-mnemonics").show();
+        $submitButton.hide();
+        $current_question.find(".question-choice").prop("disabled", "disabled");
+    }
+
+    function updateSizes() {
+      $("#question-container").css({
+        'padding-bottom': $('#footer').height() + 20
+      })
+
+      // The question row should take all the space not taken by other elements
+      row_height = $("#container").height() - $('#top-info').height() - $('#top-options').height() - $('#footer').height();
+      $("#question-row").css({'height': row_height});
+    }
+
+    function fetchCorrections(){
+      $.ajax({method: 'get',
+              url: "{% url 'correction-list' %}",
+              data: {format: 'json',
+                     question_pk: $current_question.data('question-pk') },
+              success: function(data){
+                  PREVIOUS_CORRECTIONS = data;
+                  $.each(PREVIOUS_CORRECTIONS, function(index, correction){
+                    updateCorrectionTooltip(correction.html, correction.choice_id)
+                  });
+                  initializeCorrectionInteractions();
+              }
+      });
+    }
+
+    function fetchMarks(){
+      $.ajax({method: 'get',
+              url: "{% url 'marked-list' %}",
+              data: {format: 'json',
+                     question_pk: $current_question.data('question-pk') },
+              success: function(data){
+                  MARKS = data.map(function(item){ return item.id });
+
+                  $('.question-body').each(function(){
+                    var $question = $(this);
+                    var question_pk = $question.data('question-pk');
+                    applyMark($question, question_pk);
+                  });
+              }
+      });
+    }
+
+    function prepareChoices($question) {
+      // This shuffle choices and checked the previously selected
+      // choice and randomizes choice rows.
+
+
+      // First: Tag the previously selected choice:
+      var question_pk = $question.data('question-pk')
+      $question.data('was-solved', true).attr('data-was-solved', 'true')
+      $question.find('.question-choice').attr('disabled', true)
+
+      // Second: randomizes choice rows
+      $tbody = $question.find('.choice-table tbody')
+      $choice_rows = $tbody.find('tr');
+      $choice_rows.detach()
+      // Based on https://stackoverflow.com/a/2450976
+      var currentIndex = $choice_rows.length, temporaryValue, randomIndex;
+
+      // While there remain elements to shuffle...
+      while (0 !== currentIndex) {
+
+        // Pick a remaining element...
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex -= 1;
+
+        // And swap it with the current element.
+        temporaryValue = $choice_rows[currentIndex];
+        $choice_rows[currentIndex] = $choice_rows[randomIndex];
+        $choice_rows[randomIndex] = temporaryValue;
+      }
+
+      $tbody.append($choice_rows)
+      // We use the 'unrandomized' class to hide the choices until
+      // they are randomized to avoid confusing layout changes
+      $tbody.removeClass('unprepared')
+
+    }
+
+    function applyMark($question, question_pk){
+      if (MARKS.indexOf(question_pk) != -1){
+        $question.data('is-marked', true).attr('data-is-marked', 'true')
+        // If the marked question is currently being shown, highlight
+        // the mark button.
+        if ($question.hasClass('show')){
+          handleMarked(true)
+        }
+      } else {
+        $question.data('is-marked', false).attr('data-is-marked', 'false')
+      }
+    }
+
+    // Client-side work-up
+    function prepareQuestions($questions){
+      $questions.each(function(){
+        var $question = $(this);
+        var question_pk = $question.data('question-pk')
+
+        prepareChoices($question);
+
+        // Add url data tags
+        var list_revision_url = Urls['exams:list_revisions'](CATEGORY_SLUGS, EXAM_PK, question_pk);
+        var question_url = Urls['exams:show_question'](CATEGORY_SLUGS, EXAM_PK, question_pk);
+        $question.data('list-revision-url', list_revision_url).attr('data-list-revision-url', list_revision_url);
+        $question.data('url', question_url).attr('data-url', question_url);
+
+        if (MARKS){
+          applyMark($question, question_pk);
+        }
+      });
+
+      $question_pool = $('#question-pool')
+      if (!$question_pool.hasClass('choices-were-animated')){
+        $question_pool.addClass('choices-were-animated')
+        $current_question.find('tbody').addClass('animated fadeIn').one(animation_events, function(){$(this).removeClass()});
+      }
+    }
+
+    // Show mobile sliders in tablets
+    if (isTablet){
+      $('.mobile-slide').removeClass('d-lg-none');
+      $('#question-col').removeClass('col-lg-12 px-lg-5');
+    }
+
+    $(function() {
+        $current_question = $('.question-body.show');
+        prepareQuestions($('.question-body'));
+
+        // Depending on user agent, we control tooltip initalization.
+        // Note that this must NOT be overridden anywhere in the
+        // code.  Tooltip intialization always has to be limited to
+        // specific subelements of a context
+        if (isTablet){
+          // In tablets, we don't want to show tooltips on the
+          // 'Mark' button as well as navigation buttons.
+          $('[data-toggle="tooltip"]').not($markButton).tooltip();
+        } else if (isMobile) {
+          // In mobile phones, we don't want to show a tooltip on the
+          // 'Mark' button
+          $('[data-toggle="tooltip"]').not($markButton).tooltip();
+        } else {
+          $('[data-toggle="tooltip"]').tooltip();
+        }
+
+        help_me_tooltip = $("#help-me-tooltip").get(0);
+        $("#help-me").tooltip({html: true,
+                               trigger: 'click',
+                               title: help_me_tooltip})
+         $("#help-me").click(function(){
+           _paq.push(['trackEvent', 'show_session', 'click-get-help', 'click-get-help']);
+         });
+
+         fetchCorrections();
+         fetchMarks();
+         updateSizes();
+         $(window).resize(updateSizes);
+
+         $markButton.click(toggleMarked);
+
+
+        // Actions are delegated are defined here.
+        $(document).tooltip({selector: '.answer-correction-notification',
+                             html: true,
+                             trigger: 'click',
+                             title: function(){
+                                 $tooltip = $(this).closest("td").find('.answer-correction-tooltip-body').clone(true);
+                                 $tooltip.find('[data-toggle="tooltip"]').tooltip();
+                                 return $tooltip.get(0)
+                             }
+        });
+        $(document).on('show.bs.tooltip', '.answer-correction-notification', function(){
+            $('.answer-correction-notification').not(this).tooltip('hide');
+            _paq.push(['trackEvent', 'show_session', 'answer_correction', 'click-notification']);
+        });
+        $(document).on('click', '.delete-correction', function(){
+          choice_pk = $(this).data('choice-pk');
+          url = "{% url 'exams:delete_correction' %}?" + $.param({choice_pk: choice_pk})
+          pk_selector = "[data-choice-pk=" + choice_pk + "]";
+          var $choice_row = $current_question.find("tr" + pk_selector);
+          $choice_row.data('has-correction', false).attr('data-has-correction', 'false');
+          $('.answer-correction-notification').tooltip('hide');
+          $(this).tooltip('hide');
+
+          $.ajax({
+              url: url,
+              type: 'POST',
+              success: function(data){
+                if (data.success == 1){
+                  toastr.success("Your correction was removed.")
+                  if (data.correction_html){ // if we have a new submitter
+                    updateCorrectionTooltip(data.correction_html, choice_pk);
+                  } else {
+                    // Before there was a correction, it was marked as a wrong answer
+                    $choice_row.find('.check').html(wrong_answer_markup);
+                  }
+                } else {
+                  toastr.error(data.message)
+                }
+              }
+          });
+        });
+
+        $(document).on('click', ".support-correction, .oppose-correction", function(){
+          action = $(this).data('action');
+          choice_pk = $(this).data('choice-pk');
+          url = "{% url 'exams:correct_answer' %}?" + $.param({choice_pk: choice_pk})
+          _paq.push(['trackEvent', 'show_session', 'answer_correction', 'delete-notification']);
+
+          $.ajax({
+              url: url,
+              type: 'POST',
+              data: {'action': action},
+              success: function(data){
+                if (data.success == 1){
+                  toastr.success("Your vote was submitted.")
+                  updateCorrectionTooltip(data.correction_html, choice_pk);
+                } else {
+                  toastr.error(data.message)
+                }
+              }
+          });
+        });
+
+            // initialize project edit modal
+        $('#modify-question-modal, #explain-question-modal,#add-mnemonics-modal').modal({
+          keyboard: false,
+          backdrop: 'static',
+          show    : false,
+        });
+
+        $("#contribute").click(function () {
+            $("#modify-question-modal").modal('show');
+            url = "{% url 'exams:contribute_revision' %}?" + $.param({question_pk: $current_question.data('question-pk')})
+            $("#modify-question-modal .modal-body").load(url);
+        });
+        // initialize project edit modal
+        $("#explain, a.explain").click(function () {
+            $("#explain-question-modal").modal('show');
+            url = "{% url 'exams:contribute_explanation' %}?" + $.param({question_pk: $current_question.data('question-pk')});
+            $("#explain-question-modal .modal-body").load(url);
+        });
+
+        $(".add-mnemonics").click(function () {
+            $("#add-mnemonics-modal").modal('show');
+            url = "{% url 'exams:contribute_mnemonics' %}?" + $.param({question_pk: $current_question.data('question-pk')});
+            $("#add-mnemonics-modal .modal-body").load(url);
+        });
+    });
+
+        </script>
+        {% include 'exams/partials/normal_values.html' %}
+
+        {% with modal_id='modify-question-modal' no_footer=True modal_title="Edit the question" %}
+             {% include "exams/modals/common_modal_v4.html" %}
+        {% endwith %}
+
+        {% with modal_id='explain-question-modal' no_footer=True modal_title="Explain the answer" %}
+            {% include "exams/modals/common_modal_v4.html" %}
+        {% endwith %}
+
+        {% with modal_id='correct-answer-modal' no_footer=True modal_title="Correct the answer" %}
+            {% include "exams/modals/common_modal_v4.html" %}
+        {% endwith %}
+
+        {% with modal_id='add-mnemonics-modal' no_footer=True modal_title="Add a mnemonic" %}
+            {% include "exams/modals/common_modal_v4.html" %}
+        {% endwith %}
+
+
+        <div class="d-none">
+          <div id="help-me-tooltip">
+            <a data-toggle="tooltip" data-html="true" title="<div style='direction: rtl;'> من حقك تعاتبني<br>من حقك تحاسبني<br>لكن مش من حقك<br>فى عواطفي تكدبني🎶</div>" target="_blank" rel="noopener" href="https://soundcloud.com/yaya26/4sdgcoaj9r6p"><img src="{% static 'img/monerh/reach-out.png' %}" class="img-fluid"></a>
+            <p>Fudul is made better by your feedback and ideas!  Contact us right now:</p>
+            <div class="row justify-content-center">
+              <div class="col-12">
+                <a rel="noopener" target="_blank" href="https://t.me/FudulBot"><i class="fab fa-2x fa-telegram"></i><br>Telegram Live Chat</a>
+              </div>
+            </div>
+            <div class="row justify-content-center mt-3 mb-2">
+              <div class="col-12">
+                <a href="mailto:support@fudulbank.com"><i class="fas fa-2x fa-envelope"></i><br>Support Email</a>
+              </div>
+            </div>
+          </div>
+        </div>
+    </body>
+</html>
