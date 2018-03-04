@@ -812,7 +812,7 @@ class DuplicateContainer(models.Model):
         for choice_text in choice_texts_to_delete:
             if choice_text not in choice_texts_to_keep:
                 continue
-            choice = revision_to_keep.choice_set.get(text__iexact=choice_text)
+            choice = best_revision.choice_set.get(text__iexact=choice_text)
             answers = Answer.objects.filter(question__in=questions_to_delete,
                                             choice__text=choice_text)\
                                     .update(choice=choice,
