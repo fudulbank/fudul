@@ -776,6 +776,16 @@
       }
     }
 
+    function controlSessionFinished(){
+      // Check whether we have any unsolved questions. Changing
+      // data-has-finished to true will cause expalantions to show
+      // right away in UNEXPLAINED sessions.
+      // This also affects #results and #end buttons.
+      if (ANSWERS && Object.keys(ANSWERS).length == SESSION_QUESTION_TOTAL){
+        $('body').data('has-finished', true).attr('data-has-finished', 'true');
+      }
+    }
+
     function controlNavigationButtons(){
       // In case this is a tablet, we do not want the tooltips
       if (isTablet){
@@ -819,14 +829,6 @@
     }
 
     function initializeInteractions() {
-        // Check whether we have any unsolved questions. Changing
-        // data-has-finished to true will cause expalantions to show
-        // right away in UNEXPLAINED sessions.
-        // This also affects #results and #end buttons.
-        if (ANSWERS && Object.keys(ANSWERS).length == SESSION_QUESTION_TOTAL){
-          $('body').data('has-finished', true).attr('data-has-finished', true);
-        }
-
         // $current_question is defined in showQuestion
         $current_question.find('[data-toggle="tooltip"]').tooltip();
 
@@ -910,7 +912,7 @@
         // Mark question as solved
         // We also set was-solved using .attr() to change the DOM and
         // be able to apply CSS.
-        $current_question.data('was-solved', true).attr('data-was-solved', true);
+        $current_question.data('was-solved', true).attr('data-was-solved', 'true');
 
 
         // If we have a navigation table, let's update it.
@@ -957,6 +959,7 @@
 
         var question_pk = $current_question.data('question-pk')
         ANSWERS[question_pk] = choice_pk;
+        controlSessionFinished();
 
         var data = {session_pk: SESSION_PK,
                     question_pk: question_pk,
@@ -1146,6 +1149,7 @@
                   // was solved or not.  That's why we only
                   // initialize interactions after we have prepared
                   // the questions.
+                  controlSessionFinished();
                   initializeInteractions();
                   $("#open-navigation").tooltip('dispose').css('cursor', 'pointer').click(function(){
                     constructNavigationTable();
