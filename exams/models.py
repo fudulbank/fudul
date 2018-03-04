@@ -255,6 +255,11 @@ class Question(models.Model):
         return textwrap.shorten(latest_revision.text, 70,
                                 placeholder='...')
 
+    def get_absolute_url(self):
+        return reverse("exams:show_question",
+                       args=(self.exam.category.get_slugs(),
+                             self.exam.pk, self.pk))
+
     def get_answering_user_count(self):
         user_pks = Answer.objects.filter(choice__revision__question=self)\
                                  .values('session__submitter')
