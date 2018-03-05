@@ -62,7 +62,7 @@ def show_index_unauthenticated(request):
                'answer_count': answer_count,
                'question': sample_question,
                'correct_percentage': correct_percentage}
-    return render(request, 'index_unauthenticated.html', context)
+    return render(request, 'index_unauthenticated_smle.html', context)
 
 class UserAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):

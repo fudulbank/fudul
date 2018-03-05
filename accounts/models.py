@@ -16,6 +16,13 @@ display_full_name_choices = (
     ('N', 'Display only nickname'),
 )
 
+primary_interest_choices = (
+    ('', '------'),
+    ('SMLE', 'SMLE'),
+    ('SNLE', 'SNLE'),
+    ('RESIDENCY', 'Residency exams'),
+    ('COLLEGE', 'Colege exams'),
+)
 
 class Profile(UserenaBaseProfile):
     user = models.OneToOneField(User)
@@ -30,6 +37,8 @@ class Profile(UserenaBaseProfile):
     alternative_email = models.EmailField(blank=True)
     submission_date = models.DateTimeField(auto_now_add=True)
     modification_date = models.DateTimeField(auto_now=True, null=True)
+    primary_interest = models.CharField(max_length=20, choices=primary_interest_choices,default="COLLEGE")
+
     display_full_name = models.CharField(max_length=1, choices=display_full_name_choices,default="N")
     personal_email_unconfirmed = models.EmailField(('unconfirmed email address'),
                                                    blank=True,
