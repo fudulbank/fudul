@@ -520,9 +520,10 @@ class Session(models.Model):
             return correct
 
     def get_questions(self):
-        questions = self.questions.undeleted()
-        if self.question_filter != 'INCOMPLETE':
-            questions = questions.approved()
+        if self.question_filter == 'INCOMPLETE':
+            questions = self.questions.undeleted()
+        else:
+            questions = self.questions.approved()
         return questions
 
     def get_used_questions_count(self):

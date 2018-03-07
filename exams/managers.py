@@ -78,7 +78,7 @@ class QuestionQuerySet(models.QuerySet):
         return self.undeleted()\
                    .without_blocking_issues()\
                    .filter(revision__is_approved=True,
-                           revision__is_deleted=False)\
+                           revision__best_of__isnull=False)\
                    .annotate(choice_count=Count('revision__choice'))\
                    .filter(choice_count__gt=1)\
                    .filter(revision__choice__is_right=True)\
@@ -157,7 +157,7 @@ class QuestionQuerySet(models.QuerySet):
         # unneeded queries (solved, without blocking issues)
         approved = self.undeleted()\
                        .filter(revision__is_approved=True,
-                               revision__is_deleted=False)\
+                               revision__best_of__isnull=False)\
                        .distinct()
 
         return self.incomplete() | \
