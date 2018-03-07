@@ -764,17 +764,19 @@ class Mnemonic(models.Model):
         else:
             return "Mnemonic #{}".format(self.pk)
 
+status_choices = (
+    ('PENDING', 'Pending'),
+    ('KEPT', 'Kept'),
+    ('DECLINED', 'Declined'),
+)
+
+        
 class DuplicateContainer(models.Model):
     primary_question = models.ForeignKey(Question,
                                          related_name="primary_duplicates")
     reviser = models.ForeignKey(User, null=True, blank=True)
     revision_date = models.DateTimeField(null=True, blank=True)
 
-    status_choices = (
-        ('PENDING', 'Pending'),
-        ('KEPT', 'Kept'),
-        ('DECLINED', 'Declined'),
-    )
     status = models.CharField(max_length=20, choices=status_choices,
                               default="PENDING")
     submission_date = models.DateTimeField(auto_now_add=True)
@@ -867,3 +869,45 @@ class Duplicate(models.Model):
     def __str__(self):
         return "Duplicate of Q#{} in container #{}".format(self.question.pk,
                                                            self.container.pk)
+
+class Rule(models.Model):
+    description = models.CharField(max_length=40, blank=True)
+    scope_choices = (
+        ('ALL', 'All'),
+        ('REVISIONS', 'Revisions'),
+        ('CHOICES', 'Choices'),
+    )
+    scope =  models.CharField(max_length=15, choices=scope_choices,
+                              default="ALL")
+    regex_pattern = models.CharField(max_length=120)
+    regex_replacement = models.CharField(max_length=120)
+    is_automatic = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.description or "'{}' -> '{}'".format(self.regex_pattern,
+                                                         self.regex_replacement)
+
+class SuggestedChange(models.Model):
+    rules = models.ManyToManyField(Rule, blank=True)
+    revision = models.ForeignKey(Revision)
+
+    status = models.CharField(max_length=20, choices=status_choices,
+                              default="PENDING")
+    reviser = models.ForeignKey(User, null=True, blank=True)
+    revision_date = models.DateTimeField(null=True, blank=True)
+
+    submission_date = models.DateTimeField(auto_now_add=True)
+
+    def apply_changes(self, revision_text):
+        data = {'text': revision_text,
+                'change_summary': 'Automatic edit'}
+        if revision.figure:
+            file_data = {'figure': revision.figure.file}
+        else:
+            file_data = {}
+        form = RevisionForm(data, file_data, instance=revision)
+        form.is_valid()
+        form.clone()
+
+    def __str__(self):
+        return "Suggested change for Q#%s" % self.revision.question.pk

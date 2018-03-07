@@ -1373,3 +1373,52 @@ def handle_duplicate(request):
     container.save()
 
     return {}
+
+@login_required
+@require_safe
+def list_suggestions(request, slugs, pk):
+    exam = get_object_or_404(Exam.objects.select_related('category',
+                                                         'category__parent_category'),
+                             pk=pk)
+
+    if not exam.can_user_edit(request.user):
+        raise PermissionDenied
+
+    return render(request, 'exams/list_suggestions.html', {'exam': exam, 'category_slugs': slugs})
+
+@login_required
+@require_POST
+@decorators.ajax_only
+@csrf.csrf_exempt
+def handle_suggestion(request):
+    suggestion_pk = request.POST.get('suggestion_pk')
+    suggestion = get_object_or_404(SuggestedChange.objects.select_related('revision', 'revision__question')\
+                                                          .filter(status="PENDING"),
+                                   pk=suggestion_pk)
+
+
+    # Reset approval meta data
+    revision_instance = suggestion.revision
+    revision_instance.approved_by = None
+    revision_instance.approval_date = None
+
+    revision_form = forms.RevisionForm(request.POST,
+                                       request.FILES,
+                                       instance=revision_instance)
+    revisionchoiceformset = forms.RevisionChoiceFormset(request.POST,
+                                                        instance=revision_instance)
+
+    if revision_form.is_valid() and \
+       revisionchoiceformset.is_valid():
+        new_revision = revision_form.clone(revision_instance.question, request.user)
+        revisionchoiceformset.clone(new_revision)
+        return {}
+    else:
+        print(revision_form.errors)
+        print(revisionchoiceformset.errors)
+        raise Exception("Could not save the edit!")
+
+    suggestion.status = 'KEPT'
+    suggestion.reviser = request.user
+    suggestion.revision_date = timezone.now()
+    suggestion.save()

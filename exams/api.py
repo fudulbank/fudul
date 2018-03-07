@@ -3,7 +3,7 @@ from accounts.utils import get_user_credit
 from rest_framework import serializers, views, viewsets, permissions
 from rest_framework.response import Response
 from django.template.loader import get_template
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponseBadRequest, Http404
 from django.shortcuts import get_object_or_404
 from django.template.defaultfilters import truncatewords, linebreaksbr
 
@@ -13,10 +13,35 @@ class AnswerSerializer(serializers.ModelSerializer):
         model = Answer
         fields = ('question_id', 'choice_id')
 
+class RulesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Rule
+        fields = ('regex_pattern', 'regex_replacement', 'scope')
+
+class ChoiceTextSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Choice
+        fields = ('id', 'text', 'is_right')
+
+class RevisionTextSerializer(serializers.ModelSerializer):
+    choice_set = ChoiceTextSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = Revision
+        fields = ('id', 'question_id', 'text', 'choice_set')
+
 class QuestionIdSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
         fields = ('id',)
+
+class SuggestedChangeSerializer(serializers.ModelSerializer):
+    revision = RevisionTextSerializer(read_only=True)
+    rules = RulesSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = SuggestedChange
+        fields = ('id', 'revision', 'rules')
 
 class RevisionSummarySerializer(serializers.ModelSerializer):
     question = QuestionIdSerializer(read_only=True)
@@ -139,7 +164,6 @@ class MarkedQuestionViewSet(viewsets.ReadOnlyModelViewSet):
         return pool.filter(marking_users=self.request.user)\
                    .distinct()
 
-
 class QuestionSummaryViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = RevisionSummarySerializer
     permission_classes = (HasExamAccess,)
@@ -229,3 +253,20 @@ class CorrectionList(views.APIView):
                          'html': html})
 
         return Response(data)
+
+class SuggestedChangeViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = SuggestedChangeSerializer
+
+    def get_queryset(self):
+        exam_pk = self.request.query_params.get('exam_pk')
+
+        if not exam_pk:
+            raise Http404
+
+        return SuggestedChange.objects.select_related('revision',
+                                                      'revision__question')\
+                                      .filter(status="PENDING",
+                                              revision__is_last=True,
+                                              revision__is_deleted=False,
+                                              revision__question__exam__pk=exam_pk)\
+                                      .distinct()

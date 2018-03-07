@@ -1,0 +1,56 @@
+from django.core.management.base import BaseCommand
+from django.db.models import Count
+from exams.models import Exam, Revision, Rule, SuggestedChange
+from exams.forms import RevisionForm 
+import datetime
+import re
+
+
+class Command(BaseCommand):
+    help = "Clean-up tasks for the exam app"
+    def add_arguments(self, parser):
+        parser.add_argument('--verbose', action='store_true',
+                            default=False)
+        parser.add_argument('--dry', action='store_true',
+                            default=False)
+
+    def handle(self, *args, **options):
+        rules = list(Rule.objects.all())
+        # Clean up suggested edits that are no longer related to best revision
+        obsolete_suggestions =  SuggestedChange.objects.exclude(revision__is_last=True,
+                                                                revision__is_deleted=False)\
+                                                       .filter(status="PENDING")\
+
+        if options['verbose']:
+            print("Found {} obsolute suggestions.  Deleting...".format(obsolete_suggestions.count()))
+        obsolete_suggestions.delete()
+
+        for exam in Exam.objects.order_by('pk'):
+            if options['verbose']:
+                print("Scanning {}...".format(exam.name))
+            pool = list(Revision.objects.select_related('question')\
+                                        .filter(question__exam=exam,
+                                                is_last=True,
+                                                is_deleted=False)\
+                                        .undeleted()\
+                                        .order_by('question__pk'))
+
+            for revision in pool:
+                applied_rules = []
+                for rule in rules:
+                    if rule.scope in ['ALL', 'REVISIONS']:
+                        match = re.search(rule.regex_pattern,
+                                          revision.text)
+                        if match:
+                            applied_rules.append(rule)
+                    if rule.scope in ['ALL', 'CHOICES']:
+                        for choice in revision.choice_set.all():
+                            match = re.search(rule.regex_pattern,
+                                              choice.text)
+                            if match:
+                                applied_rules.append(rule)
+                if rules:
+                    suggestion = SuggestedChange.objects.create(revision=revision)
+                    suggestion.rules.add(*applied_rules)
+                    if options['verbose']:
+                        print("We found {} rules for Q#{}".format(len(rules), revision.question.pk))

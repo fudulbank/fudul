@@ -1,0 +1,176 @@
+{% extends 'base_new.html' %}{% load static exam_utils %}
+{% block title %}Fudul | {{ exam.name }}: List suggested changes{% endblock %}
+{% block header_title %}
+<h1>{{ exam.name }}: List suggested changes</h1>
+{% with is_list_active=True %}
+{% include 'exams/partials/exam_editor_buttons.html' %}
+{% endwith %}
+{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
+<style>
+.revision-text{
+  white-space: pre-wrap;
+  font-weight: 700;
+}
+
+.choices li[data-is-right="true"]{
+  font-weight: 700;
+}
+
+.text-replacement{
+  cursor: pointer;
+}
+
+.text-to-remove{
+  text-decoration: line-through;
+  color: red;
+}
+
+.text-to-add{
+  color: green;
+}
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+      <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
+			{% for parent_category in exam.category.get_parent_categories %}
+			<li class="breadcrumb-item"><a href="{% url 'exams:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
+			{% endfor %}
+			<li class="breadcrumb-item"><a href="{% url 'exams:show_category' category_slugs %}">{{ exam.category.name }}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:create_session' category_slugs exam.pk %}">{{ exam.name }}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:list_questions' category_slugs exam.pk %}">List</a></li>
+      <li class="breadcrumb-item active">Suggested changes</li>
+{% endblock %}
+
+{% block content %}
+      <div class="card border">
+        <div class="card-body">
+          <div class="card-block">
+            <p>Welcome to the <strong>Suggested Changes</strong>.  This tool scans the question bank once everyday to look for questions that are similar.  You can either keep one verion of the question or ignore it.  By choosing to keep one version, all sources, subjects, exam types, corrections, and answers get merged, all with one click!</p>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="card-block" id="suggestion-container">
+          </div>
+        </div>
+    </div>
+{% endblock %}
+{% block customscript %}
+
+<script src="{% static 'js/toastr.js' %}"></script>
+<script src="{% url 'js_reverse' %}"></script>
+
+<script>
+    $(function () {
+      $('[data-toggle="tooltip"]').tooltip();
+
+      $(document).on('click', '.text-replacement', function(){
+        $(this).find('.text-to-add').remove();
+        $(this).find('.text-to-remove').contents().unwrap();
+        $(this).contents().unwrap();
+      });
+
+      $(document).on('click', '.submit', function(){
+        var $btn = $(this);
+        var $container = $btn.closest('.suggestion-container')
+        var $revision = $container.find('.revision-text');
+        var $choices = $container.find('.choices li');
+        var suggestion_pk = $container.data('suggestion-pk');
+
+        $container.find('.text-to-remove').remove();
+        $container.find('.text-to-add').contents().unwrap();
+        $container.find('.text-replacement').contents().unwrap();
+
+        var revision_pk = $revision.data('revision-pk');
+        var revision_text = $revision.html();
+
+        var data = {'suggestion_pk': suggestion_pk,
+                    'text': revision_text,
+                    'change_summary': 'Applying automatic suggestion',
+                    'choice_set-TOTAL_FORMS': $choices.length,
+                    'choice_set-INITIAL_FORMS': $choices.length,
+                    'choice_set-MAX_NUM_FORMS': ''}
+
+        $choices.each(function(index){
+          var $choice = $(this)
+          var choice_pk = $choice.data('choice-pk')
+          var is_right = $choice.data('is-right')
+          data['choice_set-' + index + '-id'] = choice_pk;
+          data['choice_set-' + index + '-revision'] = revision_pk;
+          data['choice_set-' + index + '-text'] = $choice.html();
+          if (is_right){
+            is_right_switch = 'on';
+          } else {
+            is_right_switch = '';
+          }
+          data['choice_set-' + index + '-is_right'] = is_right_switch;
+        });
+        $.ajax({url: '{% url "exams:handle_suggestion"  %}',
+                data: data,
+                method: 'POST',
+                success: function(data){
+                  if (data.success){
+                    toastr.success("Solved!")
+                    $container.remove();
+                  } else {
+                    toastr.error(data.message)
+                  }
+                }
+        });
+      });
+
+      function fetchCorrections(){
+        $.ajax({method: 'get',
+                url: "{% url 'suggestion-list' %}",
+                data: {format: 'json',
+                       exam_pk: {{ exam.pk }} },
+                success: function(data){
+                  output = ""
+                  for (suggestion_index in data){
+                    var suggestion = data[suggestion_index];
+                    var processed_revision_text = suggestion.revision.text;
+                    for (rule_index in suggestion.rules){
+                      var rule = suggestion.rules[rule_index];
+                      if (rule.scope != 'ALL' && rule.scope != 'REVISIONS'){
+                        continue
+                      }
+                      var regex_pattern = RegExp(rule.regex_pattern, 'g')
+                      processed_revision_text = processed_revision_text.replace(regex_pattern, function(match){ return '<span class="text-replacement"><span class="text-to-remove">' + match + '</span><span class="text-to-add">' + match.replace(regex_pattern, rule.regex_replacement) + '</span></span>'})
+                    }
+                    output += "<div data-suggestion-pk='" + suggestion.id + "' class='suggestion-container'>"
+                    output += "<h3 class='text-bold-600'><a target='_blank' href='" + Urls['exams:list_revisions']('{{ category_slugs }}', {{ exam.pk }}, suggestion.revision.question_id) + "'>Question #" + suggestion.revision.question_id + "</a></h3>";
+                    output += "<div data-revision-pk='" + suggestion.revision.id + "' class='revision-text'>" + processed_revision_text + "</div><ul class='mt-2 choices' type='A'>"
+                    for (choice_index in suggestion.revision.choice_set){
+                      var choice = suggestion.revision.choice_set[choice_index]
+                      var processed_choice_text = choice.text;
+                      for (rule_index in suggestion.rules){
+                        var rule = suggestion.rules[rule_index];
+                        if (rule.scope != 'CHOICES'){
+                          continue
+                        }
+                        var regex_pattern = RegExp(rule.regex_pattern, 'g')
+                        processed_choice_text = processed_choice_text.replace(regex_pattern, function(match){ return '<span class="text-replacement"><span class="text-to-remove">' + match + '</span><span class="text-to-add">' + match.replace(regex_pattern, rule.regex_replacement) + '</span></span>'})
+                      }
+                      output += "<li data-is-right='" + choice.is_right.toString() +"' data-choice-pk='" + choice.id + "'>" + processed_choice_text + "</li>"
+                    }
+                    output += "</ul><button class='btn btn-success submit'>Submit</button><hr></div>"
+                  }
+                  var element = document.getElementById('suggestion-container')
+                  element.innerHTML = output;
+                }
+        });
+      }
+
+      fetchCorrections();
+    });
+</script>
+{% with category_pk=exam.category.pk  parent_category_pk=exam.category.parent_category.pk %}
+  {% include 'exams/partials/dynamic_sidebar.html' %}
+{% endwith %}
+{% endblock %}
