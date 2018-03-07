@@ -77,32 +77,18 @@ class QuestionQuerySet(models.QuerySet):
         # in incomplete
         return self.undeleted()\
                    .without_blocking_issues()\
-                   .has_examinable_choices()\
-                   .solved()\
                    .filter(revision__is_approved=True,
                            revision__is_deleted=False)\
+                   .annotate(choice_count=Count('revision__choice'))\
+                   .filter(choice_count__gt=1)\
+                   .filter(revision__choice__is_right=True)\
                    .distinct()
 
-    def solved(self):
-        return self.undeleted()\
-                   .filter(revision__choice__is_right=True,
-                           revision__is_deleted=False,
-                           revision__is_last=True)\
-                   .distinct()
-    
     def unsolved(self):
         return self.undeleted()\
                    .filter(~Q(revision__choice__is_right=True),
                            revision__is_deleted=False,
                            revision__is_last=True)\
-                   .distinct()
-
-    def has_examinable_choices(self):
-        return self.undeleted()\
-                   .filter(revision__is_deleted=False,
-                           revision__is_last=True)\
-                   .annotate(choice_count=Count('revision__choice'))\
-                   .filter(choice_count__gt=1)\
                    .distinct()
 
     def lacking_choices(self):
