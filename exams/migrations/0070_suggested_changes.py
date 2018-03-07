@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 ('description', models.CharField(blank=True, max_length=40)),
                 ('scope', models.CharField(choices=[('ALL', 'All'), ('REVISIONS', 'Revisions'), ('CHOICES', 'Choices')], default='ALL', max_length=15)),
                 ('regex_pattern', models.CharField(max_length=120)),
-                ('regex_replacement', models.CharField(max_length=120, is_blank=True)),
+                ('regex_replacement', models.CharField(max_length=120, blank=True)),
                 ('is_automatic', models.BooleanField(default=False)),
             ],
         ),

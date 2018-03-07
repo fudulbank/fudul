@@ -880,7 +880,7 @@ class Rule(models.Model):
     scope =  models.CharField(max_length=15, choices=scope_choices,
                               default="ALL")
     regex_pattern = models.CharField(max_length=120)
-    regex_replacement = models.CharField(max_length=120, is_blank=True)
+    regex_replacement = models.CharField(max_length=120, blank=True)
     is_automatic = models.BooleanField(default=False)
 
     def __str__(self):
