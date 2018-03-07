@@ -49,8 +49,9 @@ class Command(BaseCommand):
                                               choice.text)
                             if match:
                                 applied_rules.append(rule)
-                if rules:
-                    suggestion = SuggestedChange.objects.create(revision=revision)
-                    suggestion.rules.add(*applied_rules)
+                if applied_rules:
+                    if not options['dry']:
+                        suggestion = SuggestedChange.objects.create(revision=revision)
+                        suggestion.rules.add(*applied_rules)
                     if options['verbose']:
                         print("We found {} rules for Q#{}".format(len(rules), revision.question.pk))
