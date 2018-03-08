@@ -72,6 +72,31 @@ class CategoryAdmin(EditorModelAdmin):
     search_fields = ['name']
     inlines = [SourceInline]
 
+class RuleAdmin(admin.ModelAdmin):
+    list_display = ['pk', 'regex_pattern', 'regex_replacement',
+                    'get_count', 'is_disabled', 'is_automatic']
+    list_filter = ['is_disabled', 'is_automatic']
+    actions = ['mark_automatic', 'unmark_automatic', 'mark_disabled',
+               'unmark_disabled']
+
+    def get_count(self, obj):
+        return models.SuggestedChange.objects.filter(rules=obj)\
+                                             .distinct()\
+                                             .count()
+    get_count.short_description = "Suggested change count"
+
+    def mark_disabled(self, request, queryset):
+        queryset.update(is_disabled=True)
+
+    def mark_automatic(self, request, queryset):
+        queryset.update(is_automatic=True)
+
+    def unmark_disabled(self, request, queryset):
+        queryset.update(is_disabled=False)
+
+    def unmark_automatic(self, request, queryset):
+        queryset.update(is_automatic=False)
+
 class SuggestedChangeAdmin(admin.ModelAdmin):
     readonly_fields = ['revision', 'reviser', 'revision_date']
 
@@ -81,7 +106,7 @@ admin.site.register(models.Category, CategoryAdmin)
 admin.site.register(models.Exam, ExamAdmin)
 admin.site.register(models.ExamType)
 admin.site.register(models.Issue)
-admin.site.register(models.Rule)
+admin.site.register(models.Rule, RuleAdmin)
 admin.site.register(models.Session)
 admin.site.register(models.SuggestedChange, SuggestedChangeAdmin)
 editor_site.register(models.Category, CategoryAdmin)
