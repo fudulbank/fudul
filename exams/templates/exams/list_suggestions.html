@@ -85,10 +85,8 @@
         if (action == 'keep'){
           var $revision = $container.find('.revision-text');
           var $choices = $container.find('.choices li');
-          $container.find('.text-to-remove').remove();
-          $container.find('.text-to-add:empty, .text-to-remove:empty').remove()
-          $container.find('.text-to-add').contents().unwrap();
-          $container.find('.text-replacement').contents().unwrap();
+          var replacement = $container.find('.text-to-add').html();
+          $container.find('.text-replacement').prop('outerHTML', replacement);
 
           var revision_pk = $revision.data('revision-pk');
           var revision_text = $revision.html();
