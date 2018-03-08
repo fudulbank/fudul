@@ -413,7 +413,8 @@ class Revision(models.Model):
 
     def get_previous(self):
         return self.question.revision_set\
-                            .filter(submission_date__lt=self.submission_date)\
+                            .filter(is_deleted=False,
+                                    submission_date__lt=self.submission_date)\
                             .order_by('submission_date').last()
 
     def get_right_choice(self):
