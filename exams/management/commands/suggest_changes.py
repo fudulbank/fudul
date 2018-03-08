@@ -69,4 +69,4 @@ class Command(BaseCommand):
                         suggestion, was_created = SuggestedChange.objects.get_or_create(status="PENDING", revision=revision)
                         suggestion.rules.add(*applied_rules)
                     if options['verbose']:
-                        print("We found {} rules for Q#{}".format(len(applied_rules), revision.question.pk))
+                        print("We found {} rules for Q#{} in {}".format(len(applied_rules), revision.question.pk, exam.name))
