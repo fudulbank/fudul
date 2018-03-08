@@ -8,7 +8,7 @@ class Team(models.Model):
     members = models.ManyToManyField(User,
                                      blank=True,
                                      related_name="team_memberships")
-    categories = models.ManyToManyField('exams.Category',
+    categories = models.ManyToManyField('exams.Category', blank=True,
                                         related_name="privileged_teams")
     exams = models.ManyToManyField('exams.Exam',
                                    related_name="privileged_teams")
