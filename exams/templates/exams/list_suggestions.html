@@ -58,6 +58,9 @@
         <div class="card-body">
           <div class="card-block" id="suggestion-container">
           </div>
+          <div class="card-block">
+            <button id="show-more" style="display: none" class="btn btn-primary"><i class="ft-more-horizontal"></i>Show 50 more</button>
+          </div>
         </div>
     </div>
 {% endblock %}
@@ -67,7 +70,19 @@
 <script src="{% url 'js_reverse' %}"></script>
 
 <script>
+    last_index = 0;
+    suggestions = null;
+
     $(function () {
+      $("#show-more").click(function(){
+        target = suggestions.slice(last_index, last_index + 50);
+        if (50 > target.length){
+          $(this).attr('disabled', 'disabled');
+        }
+        constructSuggestions(target);
+        last_index += 50;
+      });
+
       $('[data-toggle="tooltip"]').tooltip();
 
       $(document).on('click', '.text-replacement', function(){
@@ -133,44 +148,54 @@
         });
       });
 
+      function constructSuggestions(suggestions){
+        var output = ""
+        for (suggestion_index in suggestions){
+          var suggestion = suggestions[suggestion_index];
+          var processed_revision_text = suggestion.revision.text;
+          for (rule_index in suggestion.rules){
+            var rule = suggestion.rules[rule_index];
+            if (rule.scope != 'ALL' && rule.scope != 'REVISIONS'){
+              continue
+            }
+            var regex_pattern = RegExp(rule.regex_pattern, 'g')
+            processed_revision_text = processed_revision_text.replace(regex_pattern, function(match){ return '<span class="text-replacement"><span class="text-to-remove">' + match + '</span><span class="text-to-add">' + match.replace(regex_pattern, rule.regex_replacement) + '</span></span>'})
+          }
+          output += "<div data-suggestion-pk='" + suggestion.id + "' class='suggestion-container'>"
+          output += "<h3 class='text-bold-600'><a target='_blank' href='" + Urls['exams:list_revisions']('{{ category_slugs }}', {{ exam.pk }}, suggestion.revision.question_id) + "'>Question #" + suggestion.revision.question_id + "</a></h3>";
+          output += "<div data-revision-pk='" + suggestion.revision.id + "' class='revision-text'>" + processed_revision_text + "</div><ul class='mt-2 choices' type='A'>"
+          for (choice_index in suggestion.revision.choice_set){
+            var choice = suggestion.revision.choice_set[choice_index]
+            var processed_choice_text = choice.text;
+            for (rule_index in suggestion.rules){
+              var rule = suggestion.rules[rule_index];
+              if (rule.scope != 'ALL' && rule.scope != 'CHOICES'){
+                continue
+              }
+              var regex_pattern = RegExp(rule.regex_pattern, 'g')
+              processed_choice_text = processed_choice_text.replace(regex_pattern, function(match){ return '<span class="text-replacement"><span class="text-to-remove">' + match + '</span><span class="text-to-add">' + match.replace(regex_pattern, rule.regex_replacement) + '</span></span>'})
+            }
+            output += "<li data-is-right='" + choice.is_right.toString() +"' data-choice-pk='" + choice.id + "'>" + processed_choice_text + "</li>"
+          }
+          output += "</ul><div class='btn-group' role='group' aria-label='Suggestion actions'><button data-action='keep' class='btn btn-success submit'>Submit</button><button data-action='decline' class='btn btn-warning ignore'>Ignore</button></div><hr></div>"
+        }
+        var element = document.getElementById('suggestion-container')
+        element.innerHTML += output;
+      }
+
       function fetchCorrections(){
         $.ajax({method: 'get',
                 url: "{% url 'suggestion-list' %}",
                 data: {format: 'json',
                        exam_pk: {{ exam.pk }} },
                 success: function(data){
-                  output = ""
-                  for (suggestion_index in data){
-                    var suggestion = data[suggestion_index];
-                    var processed_revision_text = suggestion.revision.text;
-                    for (rule_index in suggestion.rules){
-                      var rule = suggestion.rules[rule_index];
-                      if (rule.scope != 'ALL' && rule.scope != 'REVISIONS'){
-                        continue
-                      }
-                      var regex_pattern = RegExp(rule.regex_pattern, 'g')
-                      processed_revision_text = processed_revision_text.replace(regex_pattern, function(match){ return '<span class="text-replacement"><span class="text-to-remove">' + match + '</span><span class="text-to-add">' + match.replace(regex_pattern, rule.regex_replacement) + '</span></span>'})
-                    }
-                    output += "<div data-suggestion-pk='" + suggestion.id + "' class='suggestion-container'>"
-                    output += "<h3 class='text-bold-600'><a target='_blank' href='" + Urls['exams:list_revisions']('{{ category_slugs }}', {{ exam.pk }}, suggestion.revision.question_id) + "'>Question #" + suggestion.revision.question_id + "</a></h3>";
-                    output += "<div data-revision-pk='" + suggestion.revision.id + "' class='revision-text'>" + processed_revision_text + "</div><ul class='mt-2 choices' type='A'>"
-                    for (choice_index in suggestion.revision.choice_set){
-                      var choice = suggestion.revision.choice_set[choice_index]
-                      var processed_choice_text = choice.text;
-                      for (rule_index in suggestion.rules){
-                        var rule = suggestion.rules[rule_index];
-                        if (rule.scope != 'ALL' && rule.scope != 'CHOICES'){
-                          continue
-                        }
-                        var regex_pattern = RegExp(rule.regex_pattern, 'g')
-                        processed_choice_text = processed_choice_text.replace(regex_pattern, function(match){ return '<span class="text-replacement"><span class="text-to-remove">' + match + '</span><span class="text-to-add">' + match.replace(regex_pattern, rule.regex_replacement) + '</span></span>'})
-                      }
-                      output += "<li data-is-right='" + choice.is_right.toString() +"' data-choice-pk='" + choice.id + "'>" + processed_choice_text + "</li>"
-                    }
-                    output += "</ul><div class='btn-group' role='group' aria-label='Suggestion actions'><button data-action='keep' class='btn btn-success submit'>Submit</button><button data-action='decline' class='btn btn-warning ignore'>Ignore</button></div><hr></div>"
+                  suggestions = data;
+                  var target = suggestions.slice(0, 50);
+                  constructSuggestions(target);
+                  if (data.length > 50){
+                    $("#show-more").show();
+                    last_index = 50;
                   }
-                  var element = document.getElementById('suggestion-container')
-                  element.innerHTML = output;
                 }
         });
       }
