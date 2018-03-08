@@ -72,7 +72,19 @@ class CategoryAdmin(EditorModelAdmin):
     search_fields = ['name']
     inlines = [SourceInline]
 
+class RuleForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(RuleForm, self).__init__(*args, **kwargs)
+        # Do not trim initial and tailing white spaces.
+        self.fields['regex_pattern'].strip = False
+        self.fields['regex_replacement'].strip = False
+
+    class Meta:
+        model = models.Rule
+        fields = '__all__'
+    
 class RuleAdmin(admin.ModelAdmin):
+    form = RuleForm
     list_display = ['pk', 'regex_pattern', 'regex_replacement',
                     'scope', 'get_count', 'is_disabled',
                     'is_automatic']
