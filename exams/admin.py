@@ -74,8 +74,9 @@ class CategoryAdmin(EditorModelAdmin):
 
 class RuleAdmin(admin.ModelAdmin):
     list_display = ['pk', 'regex_pattern', 'regex_replacement',
-                    'get_count', 'is_disabled', 'is_automatic']
-    list_filter = ['is_disabled', 'is_automatic']
+                    'scope', 'get_count', 'is_disabled',
+                    'is_automatic']
+    list_filter = ['scope', 'is_disabled', 'is_automatic']
     actions = ['mark_automatic', 'unmark_automatic', 'mark_disabled',
                'unmark_disabled']
 

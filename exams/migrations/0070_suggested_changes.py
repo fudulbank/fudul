@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('description', models.CharField(blank=True, max_length=40)),
-                ('scope', models.CharField(choices=[('ALL', 'All'), ('REVISIONS', 'Revisions'), ('CHOICES', 'Choices')], default='ALL', max_length=15)),
+                ('scope', models.CharField(choices=[('ALL', 'Both revisions and changes'), ('REVISIONS', 'Revisions'), ('CHOICES', 'Choices')], default='ALL', max_length=15)),
                 ('regex_pattern', models.CharField(max_length=120)),
                 ('regex_replacement', models.CharField(max_length=120, blank=True)),
                 ('is_automatic', models.BooleanField(default=False)),

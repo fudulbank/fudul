@@ -882,7 +882,7 @@ class Duplicate(models.Model):
 class Rule(models.Model):
     description = models.CharField(max_length=40, blank=True)
     scope_choices = (
-        ('ALL', 'All'),
+        ('ALL', 'Both revisions and changes'),
         ('REVISIONS', 'Revisions'),
         ('CHOICES', 'Choices'),
     )
