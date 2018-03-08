@@ -86,6 +86,7 @@
           var $revision = $container.find('.revision-text');
           var $choices = $container.find('.choices li');
           $container.find('.text-to-remove').remove();
+          $container.find('.text-to-add:empty, .text-to-remove:empty').remove()
           $container.find('.text-to-add').contents().unwrap();
           $container.find('.text-replacement').contents().unwrap();
 
