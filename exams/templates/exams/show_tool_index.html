@@ -67,7 +67,7 @@
 {% include 'partials/import_datatables.html' %}
 <script>
     $(function () {
-        tables = $(".datatable").DataTable();
+        tables = $(".datatable").DataTable({paging: false, dom: 't'});
     });
 </script>
 {% endblock %}
