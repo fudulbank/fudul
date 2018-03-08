@@ -458,7 +458,7 @@
       // data-has-finished to true will cause expalantions to show
       // right away in UNEXPLAINED sessions.
       // This also affects #results and #end buttons.
-      if (ANSWERS && Object.keys(ANSWERS).length == SESSION_QUESTION_TOTAL){
+      if (ANSWERS && Object.keys(ANSWERS).length >= SESSION_QUESTION_TOTAL){
         $('body').data('has-finished', true).attr('data-has-finished', 'true');
       }
     }
