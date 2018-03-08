@@ -1384,7 +1384,10 @@ def list_suggestions(request, slugs, pk):
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
 
-    return render(request, 'exams/list_suggestions.html', {'exam': exam, 'category_slugs': slugs})
+    context = {'exam': exam, 'category_slugs': slugs,
+               'pending_count': exam.get_pending_suggested_changes().count()}
+
+    return render(request, 'exams/list_suggestions.html', context)
 
 @login_required
 @require_POST

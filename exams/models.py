@@ -151,6 +151,15 @@ class Exam(models.Model):
                                          .distinct()\
                                          .count()
 
+    def get_pending_suggested_changes(self):
+        return SuggestedChange.objects.select_related('revision',
+                                                      'revision__question')\
+                                      .filter(status="PENDING",
+                                              revision__is_last=True,
+                                              revision__is_deleted=False,
+                                              revision__question__exam=self)\
+                                      .distinct()
+
     def get_user_count(self):
         return User.objects.filter(session__exam=self)\
                            .distinct()\

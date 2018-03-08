@@ -1,7 +1,7 @@
 {% extends 'base_new.html' %}{% load static exam_utils %}
-{% block title %}Fudul | {{ exam.name }}: List suggested changes{% endblock %}
+{% block title %}Fudul | {{ exam.name }}: List suggested changes ({{ pending_count }}){% endblock %}
 {% block header_title %}
-<h1>{{ exam.name }}: List suggested changes</h1>
+<h1>{{ exam.name }}: List suggested changes  ({{ pending_count }})</h1>
 {% with is_list_active=True %}
 {% include 'exams/partials/exam_editor_buttons.html' %}
 {% endwith %}
@@ -50,7 +50,7 @@
       <div class="card border">
         <div class="card-body">
           <div class="card-block">
-            <p>Welcome to the <strong>Suggested Changes</strong>.  This tool scans the question bank once everyday to look for questions that are similar.  You can either keep one verion of the question or ignore it.  By choosing to keep one version, all sources, subjects, exam types, corrections, and answers get merged, all with one click!</p>
+            <p>Welcome to the <strong>Suggested Changes</strong>.  This tool scans the question bank once everyday to suggest changes.  You can approve these changes, cancel some of them by clicking on the change to cancel, or ignore the whole suggested change.</p>
           </div>
         </div>
       </div>
@@ -170,7 +170,7 @@
             }
             output += "<li data-is-right='" + choice.is_right.toString() +"' data-choice-pk='" + choice.id + "'>" + processed_choice_text + "</li>"
           }
-          output += "</ul><div class='btn-group' role='group' aria-label='Suggestion actions'><button data-action='keep' class='btn btn-success submit'>Submit</button><button data-action='decline' class='btn btn-warning ignore'>Ignore</button></div><hr></div>"
+          output += "</ul><div class='btn-group' role='group' aria-label='Suggestion actions'><button data-action='keep' class='btn btn-success submit'>Approve</button><button data-action='decline' class='btn btn-warning ignore'>Ignore</button></div><hr></div>"
         }
         var element = document.getElementById('suggestion-container')
         element.innerHTML += output;

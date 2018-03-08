@@ -268,10 +268,6 @@ class SuggestedChangeViewSet(viewsets.ReadOnlyModelViewSet):
         if not exam_pk:
             raise Http404
 
-        return SuggestedChange.objects.select_related('revision',
-                                                      'revision__question')\
-                                      .filter(status="PENDING",
-                                              revision__is_last=True,
-                                              revision__is_deleted=False,
-                                              revision__question__exam__pk=exam_pk)\
-                                      .distinct()
+        exam = get_object_or_404(Exam, pk=exam_pk)
+
+        return exam.get_pending_suggested_changes()
