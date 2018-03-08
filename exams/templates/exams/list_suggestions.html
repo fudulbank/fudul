@@ -159,7 +159,7 @@
                       var processed_choice_text = choice.text;
                       for (rule_index in suggestion.rules){
                         var rule = suggestion.rules[rule_index];
-                        if (rule.scope != 'CHOICES'){
+                        if (rule.scope != 'ALL' && rule.scope != 'CHOICES'){
                           continue
                         }
                         var regex_pattern = RegExp(rule.regex_pattern, 'g')
