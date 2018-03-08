@@ -1392,33 +1392,38 @@ def list_suggestions(request, slugs, pk):
 @csrf.csrf_exempt
 def handle_suggestion(request):
     suggestion_pk = request.POST.get('suggestion_pk')
+    action = request.POST.get('action')
     suggestion = get_object_or_404(SuggestedChange.objects.select_related('revision', 'revision__question')\
                                                           .filter(status="PENDING"),
                                    pk=suggestion_pk)
 
+    if action == 'keep':
 
-    # Reset approval meta data
-    revision_instance = suggestion.revision
-    revision_instance.approved_by = None
-    revision_instance.approval_date = None
 
-    revision_form = forms.RevisionForm(request.POST,
-                                       request.FILES,
-                                       instance=revision_instance)
-    revisionchoiceformset = forms.RevisionChoiceFormset(request.POST,
-                                                        instance=revision_instance)
+        # Reset approval meta data
+        revision_instance = suggestion.revision
+        revision_instance.approved_by = None
+        revision_instance.approval_date = None
 
-    if revision_form.is_valid() and \
-       revisionchoiceformset.is_valid():
-        new_revision = revision_form.clone(revision_instance.question, request.user)
-        revisionchoiceformset.clone(new_revision)
-        return {}
-    else:
-        print(revision_form.errors)
-        print(revisionchoiceformset.errors)
-        raise Exception("Could not save the edit!")
+        revision_form = forms.RevisionForm(request.POST,
+                                           request.FILES,
+                                           instance=revision_instance)
+        revisionchoiceformset = forms.RevisionChoiceFormset(request.POST,
+                                                            instance=revision_instance)
 
-    suggestion.status = 'KEPT'
+        if revision_form.is_valid() and \
+           revisionchoiceformset.is_valid():
+            new_revision = revision_form.clone(revision_instance.question, request.user)
+            revisionchoiceformset.clone(new_revision)
+            return {}
+        else:
+            print(revision_form.errors)
+            print(revisionchoiceformset.errors)
+            raise Exception("Could not save the edit!")
+        suggestion.status = 'KEPT'
+    elif action == 'decline':
+        suggestion.status = 'DECLINED'
+
     suggestion.reviser = request.user
     suggestion.revision_date = timezone.now()
     suggestion.save()

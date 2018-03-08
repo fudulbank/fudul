@@ -51,7 +51,14 @@ class Command(BaseCommand):
                                 applied_rules.append(rule)
                 if applied_rules:
                     if not options['dry']:
-                        suggestion = SuggestedChange.objects.create(revision=revision)
+                        declined_suggestions = SuggestedChange.objects.filter(revision=revision,
+                                                                              status="DECLINED")
+                        for rule in applied_rules:
+                            declined_suggestions = declined_suggestions.filter(rules__pk=rule.pk)
+                        if declined_suggestions.exists():
+                            print("Revision #{}: An identical previous container was declined. Skip this one.".format(revision.pk))
+                            continue
+                        suggestion, was_created = SuggestedChange.objects.get_or_create(status="PENDING", revision=revision)
                         suggestion.rules.add(*applied_rules)
                     if options['verbose']:
                         print("We found {} rules for Q#{}".format(len(rules), revision.question.pk))

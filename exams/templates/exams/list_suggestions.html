@@ -76,41 +76,50 @@
         $(this).contents().unwrap();
       });
 
-      $(document).on('click', '.submit', function(){
+      $(document).on('click', '.submit, .ignore', function(){
         var $btn = $(this);
+        var action = $btn.data('action');
         var $container = $btn.closest('.suggestion-container')
-        var $revision = $container.find('.revision-text');
-        var $choices = $container.find('.choices li');
         var suggestion_pk = $container.data('suggestion-pk');
 
-        $container.find('.text-to-remove').remove();
-        $container.find('.text-to-add').contents().unwrap();
-        $container.find('.text-replacement').contents().unwrap();
+        if (action == 'keep'){
+          var $revision = $container.find('.revision-text');
+          var $choices = $container.find('.choices li');
+          $container.find('.text-to-remove').remove();
+          $container.find('.text-to-add').contents().unwrap();
+          $container.find('.text-replacement').contents().unwrap();
 
-        var revision_pk = $revision.data('revision-pk');
-        var revision_text = $revision.html();
+          var revision_pk = $revision.data('revision-pk');
+          var revision_text = $revision.html();
 
-        var data = {'suggestion_pk': suggestion_pk,
-                    'text': revision_text,
-                    'change_summary': 'Applying automatic suggestion',
-                    'choice_set-TOTAL_FORMS': $choices.length,
-                    'choice_set-INITIAL_FORMS': $choices.length,
-                    'choice_set-MAX_NUM_FORMS': ''}
+          var data = {'suggestion_pk': suggestion_pk,
+                      'action': action,
+                      'text': revision_text,
+                      'change_summary': 'Applying automatic suggestion',
+                      'choice_set-TOTAL_FORMS': $choices.length,
+                      'choice_set-INITIAL_FORMS': $choices.length,
+                      'choice_set-MAX_NUM_FORMS': ''}
 
-        $choices.each(function(index){
-          var $choice = $(this)
-          var choice_pk = $choice.data('choice-pk')
-          var is_right = $choice.data('is-right')
-          data['choice_set-' + index + '-id'] = choice_pk;
-          data['choice_set-' + index + '-revision'] = revision_pk;
-          data['choice_set-' + index + '-text'] = $choice.html();
-          if (is_right){
-            is_right_switch = 'on';
-          } else {
-            is_right_switch = '';
+          $choices.each(function(index){
+            var $choice = $(this)
+            var choice_pk = $choice.data('choice-pk')
+            var is_right = $choice.data('is-right')
+            data['choice_set-' + index + '-id'] = choice_pk;
+            data['choice_set-' + index + '-revision'] = revision_pk;
+            data['choice_set-' + index + '-text'] = $choice.html();
+            if (is_right){
+              is_right_switch = 'on';
+            } else {
+              is_right_switch = '';
+            }
+            data['choice_set-' + index + '-is_right'] = is_right_switch;
+          });
+        } else if (action == 'decline'){
+          var data = {'action': action,
+                      'suggestion_pk': suggestion_pk
           }
-          data['choice_set-' + index + '-is_right'] = is_right_switch;
-        });
+        }
+
         $.ajax({url: '{% url "exams:handle_suggestion"  %}',
                 data: data,
                 method: 'POST',
@@ -159,7 +168,7 @@
                       }
                       output += "<li data-is-right='" + choice.is_right.toString() +"' data-choice-pk='" + choice.id + "'>" + processed_choice_text + "</li>"
                     }
-                    output += "</ul><button class='btn btn-success submit'>Submit</button><hr></div>"
+                    output += "</ul><div class='btn-group' role='group' aria-label='Suggestion actions'><button data-action='keep' class='btn btn-success submit'>Submit</button><button data-action='decline' class='btn btn-warning ignore'>Ignore</button></div><hr></div>"
                   }
                   var element = document.getElementById('suggestion-container')
                   element.innerHTML = output;
