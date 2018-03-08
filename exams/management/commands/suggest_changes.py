@@ -16,6 +16,12 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         rules = list(Rule.objects.all())
+
+        # Providing initial compiled regexes speeds things up.
+        compiled_rules = {}
+        for rule in rules:
+            compiled_rules[rule.pk] = re.compile(rule.regex_pattern)
+
         # Clean up suggested edits that are no longer related to best revision
         obsolete_suggestions =  SuggestedChange.objects.exclude(revision__is_last=True,
                                                                 revision__is_deleted=False)\
@@ -38,14 +44,15 @@ class Command(BaseCommand):
             for revision in pool:
                 applied_rules = []
                 for rule in rules:
+                    compiled_regex = compiled_rules[rule.pk]
                     if rule.scope in ['ALL', 'REVISIONS']:
-                        match = re.search(rule.regex_pattern,
+                        match = re.search(compiled_regex,
                                           revision.text)
                         if match:
                             applied_rules.append(rule)
                     if rule.scope in ['ALL', 'CHOICES']:
                         for choice in revision.choice_set.all():
-                            match = re.search(rule.regex_pattern,
+                            match = re.search(compiled_regex,
                                               choice.text)
                             if match:
                                 applied_rules.append(rule)
