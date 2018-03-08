@@ -1,6 +1,6 @@
 from exams.models import *
 from accounts.utils import get_user_credit
-from rest_framework import serializers, views, viewsets, permissions
+from rest_framework import serializers, views, viewsets, permissions, pagination
 from rest_framework.response import Response
 from django.template.loader import get_template
 from django.http import HttpResponseBadRequest, Http404
@@ -254,8 +254,13 @@ class CorrectionList(views.APIView):
 
         return Response(data)
 
+class SuggestedChangePagination(pagination.CursorPagination):
+    ordering = 'id'
+    page_size = 50
+
 class SuggestedChangeViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = SuggestedChangeSerializer
+    pagination_class = SuggestedChangePagination
 
     def get_queryset(self):
         exam_pk = self.request.query_params.get('exam_pk')

@@ -70,17 +70,10 @@
 <script src="{% url 'js_reverse' %}"></script>
 
 <script>
-    last_index = 0;
-    suggestions = null;
-
     $(function () {
       $("#show-more").click(function(){
-        target = suggestions.slice(last_index, last_index + 50);
-        if (50 > target.length){
-          $(this).attr('disabled', 'disabled');
-        }
-        constructSuggestions(target);
-        last_index += 50;
+        var next_cursor = $(this).data('cursor');
+        fetchCorrections(next_cursor)
       });
 
       $('[data-toggle="tooltip"]').tooltip();
@@ -134,13 +127,13 @@
           }
         }
 
+        $container.remove();
         $.ajax({url: '{% url "exams:handle_suggestion"  %}',
                 data: data,
                 method: 'POST',
                 success: function(data){
                   if (data.success){
                     toastr.success("Solved!")
-                    $container.remove();
                   } else {
                     toastr.error(data.message)
                   }
@@ -183,19 +176,20 @@
         element.innerHTML += output;
       }
 
-      function fetchCorrections(){
+      function fetchCorrections(cursor){
         $.ajax({method: 'get',
                 url: "{% url 'suggestion-list' %}",
                 data: {format: 'json',
+                       cursor: cursor,
                        exam_pk: {{ exam.pk }} },
                 success: function(data){
-                  suggestions = data;
-                  var target = suggestions.slice(0, 50);
-                  constructSuggestions(target);
-                  if (data.length > 50){
-                    $("#show-more").show();
-                    last_index = 50;
+                  if (data.next){
+                    var next_cursor = new URL(data.next).searchParams.get("cursor");
+                    $("#show-more").data('cursor', next_cursor).show();
+                  } else {
+                    $("#show-more").attr('disabled', 'disabled');
                   }
+                  constructSuggestions(data.results);
                 }
         });
       }
