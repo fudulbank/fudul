@@ -891,6 +891,7 @@ class Rule(models.Model):
     regex_pattern = models.CharField(max_length=120)
     regex_replacement = models.CharField(max_length=120, blank=True)
     is_automatic = models.BooleanField(default=False)
+    is_disabled = models.BooleanField(default=False)
 
     def __str__(self):
         return self.description or "'{}' -> '{}'".format(self.regex_pattern,

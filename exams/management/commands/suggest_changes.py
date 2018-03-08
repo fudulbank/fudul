@@ -15,7 +15,7 @@ class Command(BaseCommand):
                             default=False)
 
     def handle(self, *args, **options):
-        rules = list(Rule.objects.all())
+        rules = list(Rule.objects.filter(is_disabled=False))
 
         # Providing initial compiled regexes speeds things up.
         compiled_rules = {}
