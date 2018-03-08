@@ -25,7 +25,7 @@ class Command(BaseCommand):
         # Clean up suggested edits that are no longer related to best revision
         obsolete_suggestions =  SuggestedChange.objects.exclude(revision__is_last=True,
                                                                 revision__is_deleted=False)\
-                                                       .filter(status="PENDING")\
+                                                       .filter(status="PENDING")
 
         if options['verbose']:
             print("Found {} obsolute suggestions.  Deleting...".format(obsolete_suggestions.count()))
