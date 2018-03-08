@@ -50,12 +50,7 @@ def show_category(request, slugs):
     # To make sidebar 'active'
     context['is_browse_active'] = True
 
-    # If user can edit, show them all the exams.  Otherwise, only
-    # show them exams with approved questions.
-    if category.is_user_editor(request.user):
-        exams = category.exams.all()
-    else:
-        exams = category.exams.with_approved_questions()
+    exams = category.exams.with_approved_questions()
 
     context['exams'] = exams
 
@@ -126,7 +121,7 @@ def delete_question(request, pk):
 
     # PERMISSION CHECK
     if not request.user.is_superuser and \
-       not exam.category.is_user_editor(request.user) and \
+       not exam.can_user_edit(request.user) and \
        not question.is_user_creator(request.user):
         raise Exception("You cannot delete that question!")
 
@@ -405,7 +400,7 @@ def create_session(request, slugs, exam_pk):
         raise PermissionDenied
 
     if not exam.is_public and \
-       not category.is_user_editor(request.user):
+       not exam.can_user_edit(request.user):
         return render(request, "exams/coming_soon.html", {'exam': exam})
 
     # If the exam has no approved questions, it doesn't exist for
@@ -473,7 +468,7 @@ def create_session_automatically(request, slugs, exam_pk):
 
     # DO NOT FUCK WITH US
     if not exam.is_public and \
-       not category.is_user_editor(request.user):
+       not exam.can_user_edit(request.user):
         return render(request, "exams/coming_soon.html", {'exam': exam})
 
     instance = Session(exam=exam,
@@ -832,7 +827,7 @@ def delete_revision(request, pk):
 
     # PERMISSION CHECK
     if not request.user.is_superuser and \
-       not exam.category.is_user_editor(request.user) and \
+       not exam.can_user_edit(request.user) and \
        not revision.submitter == request.user:
         raise Exception("You cannot delete this revision!")
 
@@ -868,7 +863,7 @@ def delete_explanation_revision(request, pk):
 
     # PERMISSION CHECK
     if not request.user.is_superuser and \
-       not exam.category.is_user_editor(request.user) and \
+       not exam.can_user_edit(request.user) and \
        not explanation_revision.submitter == request.user:
         raise Exception("You cannot delete this explanation!")
 
@@ -1278,7 +1273,7 @@ def contribute_mnemonics(request):
 
             elif action == 'delete':
                 if not request.user.is_superuser and \
-                   not exam.category.is_user_editor(request.user) and \
+                   not exam.can_user_edit(request.user) and \
                    not mnemonic.submitter == request.user:
                     raise Exception("You cannot delete this mnemonic!")
 
@@ -1373,6 +1368,17 @@ def handle_duplicate(request):
     container.save()
 
     return {}
+
+@login_required
+@require_safe
+def show_tool_index(request):
+    if request.user.is_superuser:
+        privileged_exams = Exam.objects.all()
+    else:
+        privileged_exams = Exam.objects.filter(privileged_teams__members=request.user)
+    context = {'privileged_exams': privileged_exams}
+
+    return render(request, 'exams/show_tool_index.html', context)
 
 @login_required
 @require_safe

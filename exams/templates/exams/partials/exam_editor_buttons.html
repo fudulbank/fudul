@@ -1,5 +1,5 @@
 {% load exam_utils %}
-{% if exam.category|is_editor:user %}
+{% if exam|can_user_edit:user %}
 <div class="dropdown">
   <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="ft-user"></i> Editors</button>
   <div class="dropdown-menu">

@@ -23,7 +23,7 @@
 
 <div class="row">
    <div class="col-md-8">
-{% if not exam.category|is_editor:user %}
+{% if not exam|can_user_edit:user %}
   <p class="alert alert-warning"><i class="icon-warning22"></i> This page is for user's contributions. <strong>If you are an editor, ask to be given the right access. </strong></p>
 {% endif %}
     <div class="card">
@@ -39,7 +39,7 @@
         </div><!--card-body-->
     </div> <!--card-->
 </div> <!--col-->
-{% if exam.category|is_editor:user %}
+{% if exam|can_user_edit:user %}
 <div class="col-md-4">
     <div id="exam-stats" class="card">
        <div class="card-header">

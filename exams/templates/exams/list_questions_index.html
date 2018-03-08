@@ -160,7 +160,7 @@
                 <td><a href="{% url 'exams:list_questions_by_selector' category_slug exam.pk 'lacking_choices' %}">Lacking choices</a></td>
                 <td data-order="{{ lacking_choices_count }}">{{ lacking_choices_count }} ({% widthratio lacking_choices_count total_count 100 %}%)</td>
               </tr>
-              {% if exam.category|is_editor:user %}
+              {% if exam|can_user_edit:user %}
               <tr>
                 <td><a href="{% url 'exams:list_duplicates' category_slug exam.pk %}">Duplicates</a></td>
                 <td data-order="{{ pending_duplicate_count }}">{{ pending_duplicate_count }}</td>

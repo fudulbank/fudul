@@ -46,9 +46,7 @@
 
 {% block header_title %}
 <h1>{{ exam.name }} Session</h1>
-{% if category|is_editor:user %}
 {% include 'exams/partials/exam_editor_buttons.html' %}
-{% endif %}
 {% endblock %}
 
 {% block breadcrumb %}
@@ -69,7 +67,7 @@
      <div class="card">
        <div class="card-header">
          <h4 class="card-title">Start a new session</h4>
-         {% if category|is_editor:user %}
+         {% if exam|can_user_edit:user %}
          <div class="heading-elements">
            {% if exam.credits %}
            <a id ='credits' data-url='{% url 'exams:show_credits' exam.pk %}' class="btn btn-primary btn-sm"><i class="icon-medal-star position-left"></i> Credits</a>

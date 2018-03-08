@@ -246,6 +246,7 @@
           {% if is_any_editor %}
           <li class=" navigation-header"><span>Editors</span><i data-toggle="tooltip" data-placement="right" data-original-title="Editors" class=" ft-minus"></i>
             <li class="nav-item"><a href="{% url 'exams:list_assigned_questions' %}"><i class="ft-package"></i><span data-i18n="" class="menu-title">Assigned questions</span> <span class="badge badge badge-danger badge-pill float-right">{{ user.assigned_questions.count }}</span></a></li>
+            <li class="nav-item"><a href="{% url 'exams:show_tool_index' %}"><i class="ft-loader"></i><span data-i18n="" class="menu-title">Eitor tools</span></a></li>
 {#          <li class="{% if is_contributions_active %}active {% endif %}nav-item"><a href="{% url 'list_latest_changes' %}"><i class="ft-watch"></i><span data-i18n="" class="menu-title">Latest changes</span><span class="tag tag tag-warning tag-pill float-xs-right mr-2">{{ pending_revision_count }}</span></a></li>#}
 {% if user.is_superuser %}
           <li><a href="{% url 'mailer:list_messages' %}"><i class="ft-mic"></i> <span>Mailer</span></a></li>

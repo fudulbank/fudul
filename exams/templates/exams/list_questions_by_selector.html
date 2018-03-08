@@ -38,7 +38,7 @@ tbody tr td.action-button{
 {% block content %}
     <div class="card">
         <div class="card-body">
-          {% if exam.category|is_editor:user %}
+          {% if exam|can_user_edit:user %}
           <div class="card-block">
             <p>
               <button id="open-assignment" class="btn btn-seconday" type="button" data-toggle="collapse" data-target="#assignForm" aria-expanded="false" aria-controls="assignForm">

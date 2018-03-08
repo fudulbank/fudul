@@ -35,16 +35,8 @@ def get_question_sequence(question, session):
     return session.get_question_sequence(question)
 
 @register.filter
-def is_editor(category, user):
-    if user.is_superuser:
-        return True
-
-    while category:
-        if category.privileged_teams.filter(members__pk=user.pk).exists():
-            return True
-        category = category.parent_category
-
-    return False
+def can_user_edit(exam, user):
+    return exam.can_user_edit(user)
 
 @register.filter
 def get_meta_exam_question_count(exam, meta):

@@ -34,25 +34,6 @@ def get_deepest_category_level():
         count += 1
     return count
 
-def get_user_privileged_exams(user):
-    if user.is_superuser:
-        exams = models.Exam.objects.all()
-    elif teams.utils.is_editor(user):
-        deepest_category_level = get_deepest_category_level()
-        count = 1
-        level = 'category'
-        queries = Q()
-        while deepest_category_level >= count:
-            kwarg = {level + '__privileged_teams__members': user}
-            level  = level + '__parent_category'
-            queries |= Q(**kwarg)
-            count += 1
-        exams = models.Exam.objects.filter(queries)
-    else:
-        exams = models.Exam.objects.none()
-
-    return exams
-
 def get_user_question_stats(target, user, result, total=None, percent=False):
     # Target can either be an exam, subject or session.
     #

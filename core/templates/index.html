@@ -158,12 +158,12 @@
 									  {% if user.is_superuser %}
 										<p>You have a <strong>superuser</strong> access.  You can do everything. Literally.  <a href="{% url 'exams:list_meta_categories' %}">Go ahead</a>!</p>
 										{% else %}
-									  {% with categories=user|get_user_privileged_categories %}
-									  You are part of the editing team!  You can edit exams under{% if categories.count == 1 %}
-										<a href="{% url 'exams:show_category' categories.first.get_slugs %}">{{ categories.first.name }}</a>.{% else %}:
+									  {% with exams=user|get_user_privileged_exams %}
+									  You are part of the editing team!  You can edit {% if exams.count == 1 %}
+										<a href="{% url 'exams:create_session' exams.first.category.get_slugs exams.first.pk %}">{{ exams.name }}</a>.{% else %}:
 										<ul>
-											{% for category in categories %}
-											<li><a href="{% url 'exams:show_category' category.get_slugs %}">{{ category.name }}</a></li>
+											{% for exam in exams %}
+											<li><a href="{% url 'exams:create_session' exam.category.get_slugs %}">{{ exam.name }}</a></li>
 											{% endfor %}
 										</ul>
 										{% endif %}

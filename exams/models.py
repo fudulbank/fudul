@@ -87,9 +87,6 @@ class Category(models.Model):
         if user.is_superuser:
             return True
 
-        if self.is_user_editor(user):
-            return True
-
         user_college = accounts.utils.get_user_college(user)
         category = self
 
@@ -101,18 +98,6 @@ class Category(models.Model):
             category = category.parent_category
 
         return True
-
-    def is_user_editor(self, user):
-        if user.is_superuser:
-            return True
-
-        category = self
-        while category:
-            if category.privileged_teams.filter(members__pk=user.pk).exists():
-                return True
-            category = category.parent_category
-
-        return False
 
     def get_slugs(self):
         slugs = ""
@@ -185,16 +170,11 @@ class Exam(models.Model):
         return self.category.can_user_access(user)
 
     def can_user_edit(self, user):
-        if user.is_superuser:
+        if user.is_superuser or \
+           self.privileged_teams.filter(members__pk=user.pk).exists():
             return True
-
-        category = self.category
-        while category:
-            if category.privileged_teams.filter(members__pk=user.pk).exists():
-                return True
-            category = category.parent_category
-
-        return False
+        else:
+            return False
 
     def get_percentage_of_correct_submitted_answers(self):
         submitted_answers = Answer.objects.filter(session__exam=self,choice__isnull=False).count()

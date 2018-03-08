@@ -113,10 +113,10 @@ def show_team_indicators(request, pk):
         raise PermissionDenied
 
     team = get_object_or_404(Team, pk=pk)
-    categories = team.categories.all()
+    exams = team.exams.all()
 
     team_question_pool = Question.objects.undeleted()\
-                                         .under_categories(categories)
+                                         .filter(exams__in=exams)
 
     context = {'is_indicators_active': True,
                'team': team,

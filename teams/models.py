@@ -10,6 +10,8 @@ class Team(models.Model):
                                      related_name="team_memberships")
     categories = models.ManyToManyField('exams.Category',
                                         related_name="privileged_teams")
+    exams = models.ManyToManyField('exams.Exam',
+                                   related_name="privileged_teams")
 
     def get_member_count(self):
         return self.members.count()
