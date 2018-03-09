@@ -112,7 +112,8 @@ class RuleAdmin(admin.ModelAdmin):
                                                  .exclude(status='PENDING')\
                                                  .distinct()\
                                                  .count()
-            return "{}%".format(kept / resolved)
+            percentage = kept / resolved * 100
+            return "{0:.2f}%".format(percentage)
         else:
             return "N/A"
     get_percentage.short_description = "Approved changes %"
