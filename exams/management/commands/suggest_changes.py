@@ -13,6 +13,7 @@ class Command(BaseCommand):
                             default=False)
         parser.add_argument('--dry', action='store_true',
                             default=False)
+        parser.add_argument('--exam-pk', default=None, type=int)
 
     def handle(self, *args, **options):
         rules = list(Rule.objects.filter(is_disabled=False))
@@ -31,7 +32,12 @@ class Command(BaseCommand):
             print("Found {} obsolute suggestions.  Deleting...".format(obsolete_suggestions.count()))
         obsolete_suggestions.delete()
 
-        for exam in Exam.objects.order_by('pk'):
+        if options['exam_pk']:
+            exams = Exam.objects.filter(pk=options['exam_pk'])
+        else:
+            exams = Exam.objects.order_by('pk')
+
+        for exam in exams:
             if options['verbose']:
                 print("Scanning {}...".format(exam.name))
             pool = list(Revision.objects.select_related('question')\
