@@ -85,9 +85,10 @@ class RuleForm(forms.ModelForm):
     
 class RuleAdmin(admin.ModelAdmin):
     form = RuleForm
+    search_fields = ['regex_pattern', 'regex_replacement']
     list_display = ['pk', 'regex_pattern', 'regex_replacement',
-                    'scope', 'get_count', 'is_disabled',
-                    'is_automatic']
+                    'scope', 'get_count', 'get_percentage',
+                    'is_disabled', 'is_automatic']
     list_filter = ['scope', 'is_disabled', 'is_automatic']
     actions = ['mark_automatic', 'unmark_automatic', 'mark_disabled',
                'unmark_disabled']
@@ -96,7 +97,25 @@ class RuleAdmin(admin.ModelAdmin):
         return models.SuggestedChange.objects.filter(rules=obj)\
                                              .distinct()\
                                              .count()
-    get_count.short_description = "Suggested change count"
+    get_count.short_description = "Suggested change #"
+
+    def get_percentage(self, obj):
+        if obj.is_automatic:
+            return "Automatic"
+
+        resolved = models.SuggestedChange.objects.filter(rules=obj)\
+                                                 .exclude(status='PENDING')\
+                                                 .distinct()\
+                                                 .count()
+        if resolved:
+            kept = models.SuggestedChange.objects.filter(rules=obj, status='KEPT')\
+                                                 .exclude(status='PENDING')\
+                                                 .distinct()\
+                                                 .count()
+            return "{}%".format(kept / resolved)
+        else:
+            return "N/A"
+    get_percentage.short_description = "Approved changes %"
 
     def mark_disabled(self, request, queryset):
         queryset.update(is_disabled=True)
