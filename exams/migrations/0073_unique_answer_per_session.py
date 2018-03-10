@@ -10,14 +10,15 @@ def remove_non_unique(apps, schema_editor):
 
     with connection.cursor() as cursor:
         cursor.execute("SELECT session_id, question_id FROM exams_answer GROUP BY session_id, question_id HAVING COUNT(*) > 1;")
-        for session_id, question_id in cursor.fetchall():
-            non_unique_answers = Answer.objects.filter(session_id=session_id,
-                                                       question_id=question_id)
-            answer_to_keep = non_unique_answers.filter(choice__isnull=False).last() or \
-                             non_unique_answers.first()
-            answers_to_delete = non_unique_answers.exclude(pk=answer_to_keep.pk)
-            print("Deleting {} duplicate answers of session #{} and question #{}".format(answers_to_delete.count(), session_id, question_id))
-            answers_to_delete.delete()
+        results = cursor.fetchall()
+    for session_id, question_id in results:
+        non_unique_answers = Answer.objects.filter(session_id=session_id,
+                                                   question_id=question_id)
+        answer_to_keep = non_unique_answers.filter(choice__isnull=False).last() or \
+                         non_unique_answers.first()
+        answers_to_delete = non_unique_answers.exclude(pk=answer_to_keep.pk)
+        print("Deleting {} duplicate answers of session #{} and question #{}".format(answers_to_delete.count(), session_id, question_id))
+        answers_to_delete.delete()
 
 class Migration(migrations.Migration):
 

@@ -10,14 +10,15 @@ def remove_non_unique(apps, schema_editor):
 
     with connection.cursor() as cursor:
         cursor.execute("SELECT session_id, question_id FROM exams_highlight GROUP BY session_id, question_id HAVING COUNT(*) > 1;")
-        for session_id, question_id in cursor.fetchall():
-            non_unique_highlights = Highlight.objects.filter(session_id=session_id,
-                                                             question_id=question_id)\
-                                                     .order_by('-revision')
-            highlight_to_keep = non_unique_highlights.first()
-            highlights_to_delete = non_unique_highlights.exclude(pk=highlight_to_keep.pk)
-            print("Deleting {} duplicate highlights of session #{} and question #{}".format(highlights_to_delete.count(), session_id, question_id))
-            highlights_to_delete.delete()
+        results = cursor.fetchall()
+    for session_id, question_id in results:
+        non_unique_highlights = Highlight.objects.filter(session_id=session_id,
+                                                         question_id=question_id)\
+                                                 .order_by('-revision')
+        highlight_to_keep = non_unique_highlights.first()
+        highlights_to_delete = non_unique_highlights.exclude(pk=highlight_to_keep.pk)
+        print("Deleting {} duplicate highlights of session #{} and question #{}".format(highlights_to_delete.count(), session_id, question_id))
+        highlights_to_delete.delete()
 
 class Migration(migrations.Migration):
 
