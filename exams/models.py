@@ -627,6 +627,7 @@ class Answer(models.Model):
 
 class Highlight(models.Model):
     session = models.ForeignKey(Session)
+    question = models.ForeignKey(Question, null=True)
 
     # Since revision text and choices are changeable, but we also want
     # to keep the highlights/strikes, let's remember which revision
@@ -638,6 +639,9 @@ class Highlight(models.Model):
                                               related_name="striking_answers")
 
     submission_date = models.DateTimeField(auto_now_add=True, null=True)
+
+    class Meta:
+        unique_together = ("session", "question")
 
     def __str__(self):
         return "Highlight on Q#{} in S#{}".format(self.revision.question.pk,

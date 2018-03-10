@@ -636,29 +636,26 @@ def submit_highlight(request):
         raise Exception("You cannot highlight a question in this session.")
 
     best_revision_pk = request.POST.get('best_revision_pk')
-    best_revision = get_object_or_404(Revision,
+    best_revision = get_object_or_404(Revision.objects.select_related('question'),
                                       pk=best_revision_pk)
     stricken_choice_pks = request.POST.get('stricken_choice_pks', '[]')
     stricken_choice_pks = json.loads(stricken_choice_pks)
     stricken_choices = Choice.objects.filter(pk__in=stricken_choice_pks)
     highlighted_text = request.POST.get('highlighted_text', '')
 
-    try:
-        highlight = Highlight.objects.get(session=session,
-                                          revision=best_revision)
-    except Highlight.DoesNotExist:
-        highlight = Highlight.objects.create(session=session,
-                                             revision=best_revision)
+    highlight, was_created = Highlight.objects.get_or_create(session=session,
+                                                             question=best_revision.question,
+                                                             defaults={'revision': best_revision})
 
     highlight.revision = best_revision
 
     if not '<span ' in highlighted_text:
         highlighted_text = ""
 
-    # Save a database hit if the highlighted text ha not changed
     if highlight.highlighted_text != highlighted_text:
         highlight.highlighted_text = highlighted_text
-        highlight.save()
+
+    highlight.save()
 
     highlight.stricken_choices = stricken_choices
 

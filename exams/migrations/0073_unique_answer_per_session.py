@@ -7,13 +7,11 @@ from django.db import connection
 
 def remove_non_unique(apps, schema_editor):
     Answer = apps.get_model('exams', 'Answer')
-    Session = apps.get_model('exams', 'Session')
 
     with connection.cursor() as cursor:
         cursor.execute("SELECT session_id, question_id FROM exams_answer GROUP BY session_id, question_id HAVING COUNT(*) > 1;")
         for session_id, question_id in cursor.fetchall():
-            session = Session.objects.get(pk=session_id)
-            non_unique_answers = Answer.objects.filter(session=session,
+            non_unique_answers = Answer.objects.filter(session_id=session_id,
                                                        question_id=question_id)
             answer_to_keep = non_unique_answers.filter(choice__isnull=False).last() or \
                              non_unique_answers.first()
