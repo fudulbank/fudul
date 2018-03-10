@@ -7,7 +7,9 @@ from django.db import migrations
 def fill_question(apps, schema_editor):
     Highlight = apps.get_model('exams', 'Highlight')
 
-    for highlight in Highlight.objects.all():
+    for highlight in Highlight.objects.select_related('revision',
+                                                      'revision__question')\
+                                      .all():
         highlight.question = highlight.revision.question
         highlight.save()
 
