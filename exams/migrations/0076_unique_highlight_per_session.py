@@ -27,9 +27,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(remove_non_unique),
-        migrations.AlterUniqueTogether(
-            name='highlight',
-            unique_together=set([('session', 'question')]),
-        ),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[migrations.RunPython(remove_non_unique)],
+            state_operations=[migrations.AlterUniqueTogether(
+                                        name='highlight',
+                                        unique_together=set([('session', 'question')]))]
+            )
     ]
