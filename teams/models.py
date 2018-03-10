@@ -8,8 +8,6 @@ class Team(models.Model):
     members = models.ManyToManyField(User,
                                      blank=True,
                                      related_name="team_memberships")
-    categories = models.ManyToManyField('exams.Category', blank=True,
-                                        related_name="privileged_teams")
     exams = models.ManyToManyField('exams.Exam',
                                    related_name="privileged_teams")
 
@@ -18,11 +16,9 @@ class Team(models.Model):
     get_member_count.short_description = 'Member count'
 
     def get_question_count(self):
-        categories = self.categories.all()
-        
         return exams.models.Question.objects\
+                                    .filter(exam__in=self.exams.all())\
                                     .undeleted()\
-                                    .under_categories(categories)\
                                     .distinct()\
                                     .count()
 

@@ -69,7 +69,7 @@
 				        <tr>
 				            <th data-priority="1">Team</th>
                     <th data-priority="1">Members</th>
-                    <th data-priority="2">Categories</th>
+                    <th data-priority="2">Exams</th>
                     <th data-toggle="tooltip" title="Total number of questions under team categories" data-priority="3"># questions</th>
 				        </tr>
 				    </thead>
@@ -80,8 +80,8 @@
 				                <td>{{ team.members.count }}</td>
                         <td>
                           {% if team.categories.exists %}
-                            {% for category in team.categories.all %}
-                            <a href="{{ category.get_absolute_url }}">{{ category }}</a>{% if not forloop.last %}, {% endif %}
+                            {% for exam in team.exams.all %}
+                            <a href="{{ exam.get_absolute_url }}">{{ exam }}</a>{% if not forloop.last %}, {% endif %}
                             {% endfor %}
                           {% else %}
                           None
