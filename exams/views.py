@@ -1325,14 +1325,15 @@ def list_duplicates(request, slugs, pk):
     if not exam.can_user_edit(request.user):
         raise PermissionDenied
 
-    duplicate_with_questions = Duplicate.objects.filter(container__primary_question__exam=exam)\
+    duplicate_with_questions = Duplicate.objects.filter(question__exam=exam)\
                                                 .with_undeleted_question()
     duplicate_containers = DuplicateContainer.objects\
                                              .select_related('primary_question',
                                                              'primary_question__best_revision')\
                                              .filter(status="PENDING",
                                                      primary_question__exam=exam,
-                                                     primary_question__is_deleted=False)\
+                                                     primary_question__is_deleted=False,
+                                                     primary_question__revision__is_deleted=False)\
                                              .filter(pk__in=duplicate_with_questions.values('container'))\
                                              .distinct()
     context = {'exam': exam, 'duplicate_containers': duplicate_containers,
