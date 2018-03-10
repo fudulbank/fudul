@@ -47,7 +47,7 @@
                     <li><span {% if choice.is_right %} data-toggle="tooltip" data-title="This choice is the right one" style="font-weight: 800;" class="success darken-4"{% endif %}>{{ choice.text }}</span></li>
                   {% endfor %}
                   </ul>
-                  {% for duplicate in duplicate_container.duplicate_set.undeleted_question.select_for_list.order_by_question_pk %}
+                  {% for duplicate in duplicate_container.duplicate_set.with_undeleted_question.select_for_list.order_by_question_pk %}
                   <h5 class="text-bold-600"><a href="{% url 'exams:list_revisions' category_slugs exam.pk duplicate.question.pk %}">Question #{{ duplicate.question.pk }}</a></h5>
                   <p class="font-small-3">(<strong class="danger darken-4">{{ duplicate.get_percentage }}% similar to the primary question</strong>; {{ duplicate.question.get_answering_user_count }} users answered)</p>
                   <p>{{ duplicate.question.best_revision.text|linebreaksbr }}</p>

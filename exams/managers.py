@@ -310,7 +310,7 @@ class MnemonicQuerySet(models.QuerySet):
         self.filter(question=question,is_deleted=False)
 
 class DuplicateQuerySet(models.QuerySet):
-    def undeleted_question(self):
+    def with_undeleted_question(self):
         return self.filter(question__is_deleted=False,
                            question__revision__is_deleted=False)\
                    .distinct()

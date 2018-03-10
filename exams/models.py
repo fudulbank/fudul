@@ -784,8 +784,8 @@ class DuplicateContainer(models.Model):
     submission_date = models.DateTimeField(auto_now_add=True)
 
     def get_questions(self):
-        return (Question.objects.filter(pk=self.primary_question.pk) | \
-                Question.objects.filter(pk__in=self.duplicate_set.values('question'))).order_by('pk')
+        return (Question.objects.undeleted().filter(pk=self.primary_question.pk) | \
+                Question.objects.undeleted().filter(pk__in=self.duplicate_set.values('question'))).order_by('pk')
 
     def keep(self, question_to_keep):
         questions_to_delete = self.get_questions().exclude(pk=question_to_keep.pk)

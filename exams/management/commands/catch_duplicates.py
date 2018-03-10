@@ -19,11 +19,12 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # Clean up duplicate containers with no undeleted questions
-        obsolete_containers =  DuplicateContainer.objects.filter(status='PENDING',
-                                                                 duplicate__question__is_deleted=False,
-                                                                 duplicate__question__revision__is_deleted=False)\
-                                                         .annotate(question_count=Count('duplicate__question'))\
-                                                         .filter(question_count=0)
+        obsolete_containers =  DuplicateContainer.objects.filter(status='PENDING')\
+                                                         .exclude(duplicate__question__is_deleted=False,
+                                                                  duplicate__question__revision__is_deleted=False) | \
+                               DuplicateContainer.objects.filter(status='PENDING')\
+                                                         .exclude(primary_question__is_deleted=False,
+                                                                  primary_question__revision__is_deleted=False)
 
         if options['verbose']:
             print("Found {} obsolute containers.  Deleting...".format(obsolete_containers.count()))
