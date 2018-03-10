@@ -806,36 +806,46 @@ class DuplicateContainer(models.Model):
             else:
                 correction.choice = choice_to_keep
 
-        # MERGE ANSWERS
-        # The answer merge happens in two steps:
+        # MERGE SESSIONS AND ANSWERS
+        # Get all sessions with the question to delete
+
         # 1) We replace the question field of all skipped answers.
         # 2) We get the alternative choice, replace the choice
         #    field, and replace the question field of all
-        #    non-skipped answers. 
-        Answer.objects.filter(question__in=questions_to_delete,
-                              choice__isnull=True)\
-                      .update(question=question_to_keep)
-        choice_texts_to_delete  = Answer.objects.filter(question__in=questions_to_delete)\
-                                                .values_list('choice__text', flat=True)\
-                                                .distinct()
-        choice_texts_to_keep = best_revision.choice_set.values_list('text', flat=True)
-        for choice_text in choice_texts_to_delete:
-            if choice_text not in choice_texts_to_keep:
-                continue
-            choice = best_revision.choice_set.get(text__iexact=choice_text)
-            answers = Answer.objects.filter(question__in=questions_to_delete,
-                                            choice__text=choice_text)\
-                                    .update(choice=choice,
-                                            question=question_to_keep)
+        #    non-skipped answers.
 
-        # MERGE SESSIONS
-        # Get all sessions with the question to deleted but not
-        # the question to keep.
+        # Construct an easy-to-access choice dictionary to
+        # save repeated database queries
+        choices_to_keep = {}
+        for choice in best_revision.choice_set.all():
+            choices_to_keep[choice.text] = choice
+
         sessions = Session.objects.filter(questions__in=questions_to_delete).distinct()
 
         for session in sessions:
             session.questions.add(question_to_keep)
             session.questions.remove(*questions_to_delete)
+            obsolete_answers = session.answer_set.select_related('choice')\
+                                                 .filter(question__in=questions_to_delete)
+            if not session.answer_set.filter(question=question_to_keep).exists() and \
+               obsolete_answers.exist():
+                # For each session, we will look for an obsolete
+                # answers that either has the same choice text, or was
+                # skipped.  If all that exist are obsolete answers
+                # with text that are different, ignore it.
+                answer_to_change = obsolete_answers.filter(choice__text__in=best_revision.choice_set.values('text'))\
+                                                   .distinct()\
+                                                   .first() or \
+                                   obsolete_answers.filter(choice__isnull=True)\
+                                                   .first()
+                if answer_to_change:
+                    # If the choice is not null, replace it with a
+                    # choice that has the same text.
+                    if answer_to_change.choice:
+                        choice = choices_to_keep[answer_to_change.choice.text]
+                        answer_to_change.choice = choice
+                    answer_to_change.question = question_to_keep
+                    answer_to_change.save()
 
         # MERGE THE SOURCES
         for source in Source.objects.filter(question__in=questions_to_delete).distinct():
