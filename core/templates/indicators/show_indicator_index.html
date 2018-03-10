@@ -79,13 +79,11 @@
 				                <td><a href="{% url 'show_team_indicators' team.pk %}">{{ team.name }}</a></td>
 				                <td>{{ team.members.count }}</td>
                         <td>
-                          {% if team.categories.exists %}
                             {% for exam in team.exams.all %}
                             <a href="{{ exam.get_absolute_url }}">{{ exam }}</a>{% if not forloop.last %}, {% endif %}
+                            {% empty %}
+                            None
                             {% endfor %}
-                          {% else %}
-                          None
-                          {% endif %}
                         </td>
                         <td>{{ team.get_question_count }}</td>
 			            </tr>
