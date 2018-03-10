@@ -828,7 +828,7 @@ class DuplicateContainer(models.Model):
             obsolete_answers = session.answer_set.select_related('choice')\
                                                  .filter(question__in=questions_to_delete)
             if not session.answer_set.filter(question=question_to_keep).exists() and \
-               obsolete_answers.exist():
+               obsolete_answers.exists():
                 # For each session, we will look for an obsolete
                 # answers that either has the same choice text, or was
                 # skipped.  If all that exist are obsolete answers
