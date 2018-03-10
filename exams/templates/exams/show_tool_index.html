@@ -29,7 +29,7 @@
               {% for exam in privileged_exams %}
               <tr>
                 <td>{{ exam.name }}</td>
-                <td><a href="{% url 'exams:list_duplicates' exam.category.get_slugs exam.pk %}">{{ exam.get_pending_duplicate_count }}</a></td>
+                <td><a href="{% url 'exams:list_duplicates' exam.category.get_slugs exam.pk %}">{{ exam.get_pending_duplicates.count }}</a></td>
               </tr>
               {% endfor %}
             </tbody>

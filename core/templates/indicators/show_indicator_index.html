@@ -118,7 +118,7 @@
                         <td>{{ exam.get_user_count }}</td>
 				                <td><a href="{{ exam.category.get_absolute_url }}">{{ exam.category }}</a></td>
                         <td><a href="{% url 'exams:list_questions_by_selector' category_slugs exam.pk 'all' %}">{{ exam.question_set.count }}</a></td>
-                        <td><a href="{% url 'exams:list_duplicates' category_slugs exam.pk %}">{{ exam.get_pending_duplicate_count }}</a></td>
+                        <td><a href="{% url 'exams:list_duplicates' category_slugs exam.pk %}">{{ exam.get_pending_duplicates.count }}</a></td>
 			            </tr>
                {% endwith %}
 				       {% endfor %}

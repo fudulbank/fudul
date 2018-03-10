@@ -140,7 +140,7 @@
       <div class="card-body">
         <div class="card-block">
           <table style="width: 100%" class="table table-striped table-bordered datatable dt-responsive">
-            {% with lacking_choices_count=exam.question_set.lacking_choices.count unsolved_count=exam.question_set.unsolved.count pending_duplicate_count=exam.get_pending_duplicate_count %}
+            {% with lacking_choices_count=exam.question_set.lacking_choices.count unsolved_count=exam.question_set.unsolved.count pending_duplicate_count=exam.get_pending_duplicates.count %}
             <thead>
               <tr>
                 <th>Characteristic</th>

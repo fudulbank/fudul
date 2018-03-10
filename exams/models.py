@@ -130,11 +130,19 @@ class Exam(models.Model):
                                     default=True, blank=True)
     objects = managers.ExamQuerySet.as_manager()
 
-    def get_pending_duplicate_count(self):
-        return DuplicateContainer.objects.filter(status='PENDING',
-                                                 primary_question__exam=self)\
-                                         .distinct()\
-                                         .count()
+    def get_pending_duplicates(self):
+        duplicate_with_questions = Duplicate.objects.filter(question__exam=self)\
+                                                    .with_undeleted_question()
+        duplicate_containers = DuplicateContainer.objects\
+                                                 .select_related('primary_question',
+                                                                 'primary_question__best_revision')\
+                                                 .filter(status="PENDING",
+                                                         primary_question__exam=self,
+                                                         primary_question__is_deleted=False,
+                                                         primary_question__revision__is_deleted=False)\
+                                                 .filter(pk__in=duplicate_with_questions.values('container'))\
+                                                 .distinct()
+        return duplicate_containers
 
     def get_pending_suggested_changes(self):
         return SuggestedChange.objects.select_related('revision',
