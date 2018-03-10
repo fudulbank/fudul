@@ -618,6 +618,9 @@ class Answer(models.Model):
 
     objects = managers.AnswerQuerySet.as_manager()
 
+    class Meta:
+        unique_together = ("session", "question")
+
     def __str__(self):
         return "Answer of Q#{} in S#{}".format(self.question.pk,
                                                self.session.pk)
