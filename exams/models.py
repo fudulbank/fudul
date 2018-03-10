@@ -878,6 +878,10 @@ class Rule(models.Model):
     regex_replacement = models.CharField(max_length=120, blank=True)
     is_automatic = models.BooleanField(default=False)
     is_disabled = models.BooleanField(default=False)
+    priority = models.SmallIntegerField(null=True, blank=True)
+
+    class Meta:
+        ordering = ('priority',)
 
     def __str__(self):
         return self.description or "'{}' -> '{}'".format(self.regex_pattern,
