@@ -88,13 +88,13 @@
         var action = $button.data('action');
         var question_pk = $button.data('question-pk');
         var container_pk = $button.data('duplicate-container-pk');
+        $button.closest('.duplicate-container').remove();
         $.ajax({url: '{% url "exams:handle_duplicate" %}',
                 data: {action: action, question_pk: question_pk, container_pk: container_pk},
                 method: 'POST',
                 success: function(data){
                   if (data.success == 1){
                     toastr.success("Report #" + container_pk + " was successfully handled.")
-                    $button.closest('.duplicate-container').remove()
                   } else {
                     toastr.error(data.message)
                   }
