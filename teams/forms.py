@@ -9,7 +9,9 @@ from core.forms import MultipleUserChoiceField
 class TeamForm(forms.ModelForm):
     members = MultipleUserChoiceField(required=False,
                                       widget=autocomplete.ModelSelect2Multiple(url='user_autocomplete', attrs={'data-html': 'true'}),
-                                      queryset=User.objects.all())
+                                      queryset=User.objects.order_by('profile__first_name',
+                                                                     'profile__middle_name',
+                                                                     'profile__last_name'))
 
     class Meta:
         model = models.Team
