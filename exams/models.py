@@ -149,6 +149,7 @@ class Exam(models.Model):
         return User.objects.filter(session__exam=self)\
                            .distinct()\
                            .count()
+    get_user_count.short_description = '# users'
 
     def get_sources(self):
         sources = Source.objects.none()
@@ -183,9 +184,13 @@ class Exam(models.Model):
         else:
             return 0
 
+    def get_absolute_url(self):
+        return reverse("exams:create_session",
+                       args=(self.category.get_slugs(),
+                             self.pk))
 
     def __str__(self):
-        return self.name
+        return "{} ({})".format(self.name, self.category)
 
 class ExamDate(models.Model):
     name = models.CharField(max_length=100)

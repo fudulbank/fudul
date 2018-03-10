@@ -63,10 +63,14 @@ class EditorModelAdmin(admin.ModelAdmin):
     
 class ExamAdmin(EditorModelAdmin):
     search_fields = ['name', 'category__name']
-    list_display = ['__str__', 'category']
-    list_filter = ['category']
+    list_display = ['__str__', 'get_user_count', 'get_question_count']
+    list_filter = ['is_public']
     inlines = [SubjectInline, ExamDateInline]
     readonly_fields = ['is_deleted']
+
+    def get_question_count(self, obj):
+        return obj.question_set.undeleted().count()
+    get_question_count.short_description = '# questions'
 
 class CategoryAdmin(EditorModelAdmin):
     search_fields = ['name']
