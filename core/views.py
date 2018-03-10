@@ -116,7 +116,7 @@ def show_team_indicators(request, pk):
     exams = team.exams.all()
 
     team_question_pool = Question.objects.undeleted()\
-                                         .filter(exams__in=exams)
+                                         .filter(exam__in=exams)
 
     context = {'is_indicators_active': True,
                'team': team,
