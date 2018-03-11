@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from django.db.models import Q
+from django.db.models import Q, Count
 from exams.models import Session, Question
 
 class Command(BaseCommand):
@@ -13,12 +13,17 @@ class Command(BaseCommand):
 
         # 1) Mark sessions with no accessible questions as deleted.
         Session.objects.undeleted()\
-                       .exclude(~Q(session_mode="INCOMPLETE"),
-                                questions__is_deleted=False,
-                                questions__revision__is_deleted=False,
-                                questions__revision__is_approved=True)\
-                       .exclude(session_mode="INCOMPLETE",
-                                questions__revision__is_deleted=False)\
+               .filter(~Q(session_mode="INCOMPLETE"),
+                       questions__is_deleted=False,
+                       questions__best_revision__is_approved=True)\
+               .annotate(question_count=Count('questions'))\
+               .filter(question_count=0)\
+               .update(is_deleted=True)
+        Session.objects.undeleted()\
+                       .filter(session_mode="INCOMPLETE",
+                               questions__is_deleted=False)\
+                       .annotate(question_count=Count('questions'))\
+                       .filter(question_count=0)\
                        .update(is_deleted=True)
 
         sorted_questions = []
@@ -28,7 +33,7 @@ class Command(BaseCommand):
         for question in Question.objects.order_by('pk'):
             # 2) Update the global sequence of questions.
             if not question.is_deleted and \
-               not question.revision_set.filter(is_deleted=False).count():
+               not question.revision_set.filter(is_deleted=False).exists():
                 question.is_deleted = True
                 question.save()
 
