@@ -1040,9 +1040,15 @@ def search(request):
     if q:
         search_fields =['pk','revision__text','revision__choice__text']
         if teams.utils.is_editor(request.user):
-            qs = Question.objects.filter(subjects__exam__category__in=categories,revision__is_last=True,revision__is_deleted=False).distinct()
+            qs = Question.objects.filter(exam__category__in=categories,
+                                         best_revision__is_last=True)\
+                                 .distinct()
         else:
-            qs = Question.objects.filter(subjects__exam__category__in=categories,revision__is_last=True, revision__is_approved=True,revision__is_deleted=False).distinct()
+            qs = Question.objects.undeleted()\
+                                 .filter(exam__category__in=categories,
+                                         best_revision__is_last=True,
+                                         best_revision__is_approved=True)\
+                                 .distinct()
         questions = core.utils.get_search_queryset(qs, search_fields, q)
         return render(request, 'exams/search_results.html', {'questions': questions, 'query': q})
     return render(request, 'exams/search_results.html', {'search': True})
