@@ -347,7 +347,10 @@ class Question(models.Model):
 
     def get_contributors(self):
         contributors = []
-        for revision in self.revision_set.order_by('pk'):
+        for revision in self.revision_set.select_related('submitter',
+                                                         'submitter__profile')\
+                                         .undeleted()\
+                                         .order_by('pk'):
             if not revision.submitter in contributors:
                 contributors.append(revision.submitter)
         return contributors

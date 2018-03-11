@@ -1,6 +1,6 @@
 {% load static exam_utils account_utils %}
 
-{% with explanation_revision=question.get_latest_explanation_revision best_revision=question.get_best_revision %}
+{% with explanation_revision=question.get_latest_explanation_revision best_revision=question.best_revision %}
 <div class="question-body well-sm{% if question == current_question %} show{% endif %}" data-best-latest-revision-pk="{{ best_revision.pk }}" data-question-pk="{{ question.pk }}">
   {% if best_revision.figure %}
      <img class="img-fluid center-block" src="{{ best_revision.figure.url }}">

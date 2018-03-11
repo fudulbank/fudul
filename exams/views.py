@@ -500,7 +500,8 @@ def list_partial_session_questions(request, slugs, exam_pk):
     except TypeError:
         return HttpResponseBadRequest('No valid "pks" parameter was provided')
 
-    questions = Question.objects.filter(exam__pk=exam_pk, pk__in=pks)
+    questions = Question.objects.select_related('best_revision', 'exam')\
+                                .filter(exam__pk=exam_pk, pk__in=pks)
     template = get_template("exams/partials/partial_session_question_list.html")
     context = {'questions': questions, 'user': request.user}
     html = template.render(context)

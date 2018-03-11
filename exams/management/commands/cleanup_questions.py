@@ -30,7 +30,9 @@ class Command(BaseCommand):
         count = 1
         # To give global sequence more stability, we won't exclude
         # deleted question here.
-        for question in Question.objects.order_by('pk'):
+        for question in Question.objects.select_related('parent_question',
+                                                        'child_question')\
+                                        .order_by('pk'):
             # 2) Update the global sequence of questions.
             if not question.is_deleted and \
                not question.revision_set.filter(is_deleted=False).exists():
