@@ -8,7 +8,7 @@ from itertools import chain
 class QuestionQuerySet(models.QuerySet):
     def unapproved(self):
         return self.undeleted()\
-                   .exclude(revision__is_approved=True)\
+                   .exclude(best_revision__is_approved=True)\
                    .distinct()
 
     def used_by_user(self, user, exclude_skipped=True):
@@ -77,8 +77,7 @@ class QuestionQuerySet(models.QuerySet):
         # in incomplete
         return self.undeleted()\
                    .without_blocking_issues()\
-                   .filter(revision__is_approved=True,
-                           revision__best_of__isnull=False)\
+                   .filter(best_revision__is_approved=True)\
                    .annotate(choice_count=Count('revision__choice'))\
                    .filter(choice_count__gt=1)\
                    .filter(revision__choice__is_right=True)\
@@ -156,8 +155,7 @@ class QuestionQuerySet(models.QuerySet):
         # We use a a query similar to approved(), but without the
         # unneeded queries (solved, without blocking issues)
         approved = self.undeleted()\
-                       .filter(revision__is_approved=True,
-                               revision__best_of__isnull=False)\
+                       .filter(best_revision__is_approved=True)\
                        .distinct()
 
         return self.incomplete() | \
@@ -196,8 +194,7 @@ class RevisionQuerySet(models.QuerySet):
 class ExamQuerySet(models.QuerySet):
     def with_approved_questions(self):
         return self.filter(question__is_deleted=False,
-                           question__revision__is_approved=True,
-                           question__revision__is_deleted=False)\
+                           question__best_revision__is_approved=True)\
                    .distinct()
 
 class SessionQuerySet(models.QuerySet):
@@ -231,8 +228,7 @@ class MetaInformationQuerySet(models.QuerySet):
 
     def with_approved_questions(self, exam=None):
         kwargs = {'question__is_deleted': False,
-                  'question__revision__is_deleted': False,
-                  'question__revision__is_approved': True}
+                  'question__best_revision__is_approved': True}
 
         if exam:
             kwargs['question__exam'] = exam
