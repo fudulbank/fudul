@@ -534,7 +534,7 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     # question.
     if not session.can_user_access(request.user):
         if question_pk:
-            url = reverse('exams:show_question', (slugs, exam_pk, question_pk))
+            url = reverse('exams:show_question', args=(slugs, exam_pk, question_pk))
             return HttpResponseRedirect(url)
         else:
             raise PermissionDenied
