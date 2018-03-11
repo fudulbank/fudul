@@ -84,7 +84,9 @@ class Category(models.Model):
         return parent_categories
 
     def can_user_access(self, user):
-        if user.is_superuser:
+        if not user.is_authenticated():
+            return False
+        elif user.is_superuser:
             return True
 
         user_college = accounts.utils.get_user_college(user)

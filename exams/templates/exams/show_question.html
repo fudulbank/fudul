@@ -1,4 +1,5 @@
 <!DOCTYPE html>{% load static exam_utils %}
+{% with can_user_access=user|can_user_access:current_question.exam %}
 {% include 'partials/call_out.html' %}
 <html lang="en">
     <head>
@@ -45,7 +46,7 @@
           </div>
           <div class="col-6 text-sm-right">
             <div class="row justify-content-end no-gutters">
-            {% if user.is_authenticated %}
+            {% if user.is_authenticated and can_user_access %}
              <div class="col-auto">
                  <div data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> you can also press <kbd>Alt+M</kbd> to toggle question mark." id="mark" class="option">
                     <i id="mark-loading" class="fas fa-spinner fa-pulse fa-fw"></i>
@@ -68,15 +69,15 @@
           <div class="col-2 col-sm-1 d-lg-none mobile-slide next order-3"></div>
           <div id="question-col" class="col-8 col-sm-10 col-lg-12 px-0 px-lg-5 order-2">
             <p class="mt-4 alert alert-success">
-              {% with can_user_access=user|can_user_access:current_question.exam %}
-              {% if user.is_authenticated and can_user_access %}
+
+              {% if can_user_access %}
                 <strong>Hey {{ user.profile.first_name }}!</strong>  This is the single question view.  You can also <a target="_blank" href="{% url 'exams:create_session' category_slugs current_question.exam.pk %}">create</a> a full-featured examination session in {{ current_question.exam.name }}.
               {% elif user.is_authenticated and not can_user_access %}
                 <strong>Hey {{ user.profile.first_name }}!</strong>  This is the single question view.  You can also go to your <a target="_blank" href="{% url 'index' %}">home page</a> to have your own examination expereince.
               {% else %}
                 <strong>Welcome to Fudul</strong>, the powerful, free question bank built by a community of examinees.  You are seeing a single question.  You can <a target="_blank" href="{% url 'userena_signup' %}">sign-up</a> or <a target="_blank" href="{% url 'userena_signin' %}">log-in</a> with us at no cost to get an access to a full-featured examination platofrm.
               {% endif %}
-              {% endwith %}
+
             </p>
             <div id="question-container">
               <div id="question-pool">
@@ -559,3 +560,4 @@
         </div>
     </body>
 </html>
+{% endwith %}{# can_user_access #}
