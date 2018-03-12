@@ -191,6 +191,7 @@ def handle_question(request, exam_pk, question_pk=None):
             explanation.save()
 
         question.best_revision = revision
+        question.update_is_approved()
         question.save()
 
         show_url = reverse('exams:approve_user_contributions', args=(exam.category.get_slugs(), exam.pk))
@@ -368,9 +369,10 @@ def submit_revision(request, slugs, exam_pk, pk):
 
             # This test relies on choices, so the choices have to be saved
             # before.
-            if new_revision:
-                new_revision.is_approved = utils.test_revision_approval(new_revision)
-                new_revision.save()
+            new_revision.is_approved = utils.test_revision_approval(new_revision)
+            new_revision.save()
+            question.update_is_approved()
+            question.save()
 
             return HttpResponseRedirect(
                 reverse("exams:list_revisions",
@@ -767,6 +769,8 @@ def contribute_revision(request):
             # before.
             new_revision.is_approved = utils.test_revision_approval(new_revision)
             new_revision.save()
+            question.update_is_approved()
+            question.save()
             return {}
 
     context = {'question': question,
@@ -841,6 +845,7 @@ def delete_revision(request, pk):
         # Mark the new last revision as such
         question.update_latest()
         question.update_best_revision()
+        question.update_is_approved()
         question.save()
 
     return {}
@@ -895,6 +900,7 @@ def mark_revision_approved(request, pk):
     revision.save()
 
     question.update_best_revision()
+    question.update_is_approved()
     question.save()
 
     return {}
@@ -920,6 +926,7 @@ def mark_revision_pending(request, pk):
     revision.save()
 
     question.update_best_revision()
+    question.update_is_approved()
     question.save()
 
     return {}

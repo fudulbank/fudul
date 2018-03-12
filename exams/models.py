@@ -228,6 +228,7 @@ class Question(models.Model):
     exam = models.ForeignKey(Exam)
     exam_types = models.ManyToManyField(ExamType, blank=True)
     is_deleted = models.BooleanField(default=False)
+    is_approved = models.BooleanField(default=False)
     # `global_sequence` is a `pk` field that accounts for question
     # parents and children.  It is used to determine the sequence of
     # question within sessions.
@@ -269,6 +270,17 @@ class Question(models.Model):
     def update_best_revision(self):
         best_revision = self.get_best_revision()
         self.best_revision = best_revision
+
+    def update_is_approved(self):
+        approved_revision = self.get_latest_approved_revision()
+        if approved_revision and \
+           not self.is_deleted and \
+           not self.issues.filter(is_blocker=True).exists() and \
+           approved_revision.choice_set.filter(is_right=True).exists() and \
+           approved_revision.choice_set.count() >= 1:
+            self.is_approved = True
+        else:
+            self.is_approved = False
 
     def update_latest(self):
         latest_revision = self.get_latest_revision()

@@ -108,6 +108,7 @@ class RevisionForm(forms.ModelForm):
         # Mark the last revision as such
         question.update_latest()
         question.update_best_revision()
+        question.update_is_approved()
         question.save()
 
         return new_revision
