@@ -170,7 +170,7 @@ class Exam(models.Model):
         return sources
 
     def get_editors(self):
-        members |= User.objects.filter(team_memberships__exams=self)
+        members = User.objects.filter(team_memberships__exams=self)
         return members
 
     def can_user_access(self, user):
