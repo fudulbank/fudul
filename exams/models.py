@@ -170,11 +170,7 @@ class Exam(models.Model):
         return sources
 
     def get_editors(self):
-        members = User.objects.filter(is_superuser=True)
-        category = self.category
-        while category:
-            members |= User.objects.filter(team_memberships__categories=category)
-            category = category.parent_category
+        members |= User.objects.filter(team_memberships__exams=self)
         return members
 
     def can_user_access(self, user):
