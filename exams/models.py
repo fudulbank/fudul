@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericRelation
+from django.core.exceptions import MultipleObjectsReturned
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.shortcuts import get_object_or_404
@@ -40,6 +41,9 @@ class Issue(models.Model):
     code_name = models.CharField(max_length=50)
     is_blocker = models.BooleanField(default=False)
 
+    def get_selector(self):
+        return 'i-' + str(self.pk)
+
     def __str__(self):
         if self.is_blocker:
             blocker_str = "blocker"
@@ -56,7 +60,6 @@ class ExamType(models.Model):
 
     def __str__(self):
         return self.name
-
 
 class Category(models.Model):
     slug = models.SlugField(max_length=50)
@@ -81,10 +84,9 @@ class Category(models.Model):
         return parent_categories
 
     def can_user_access(self, user):
-        if user.is_superuser:
-            return True
-
-        if self.is_user_editor(user):
+        if not user.is_authenticated():
+            return False
+        elif user.is_superuser:
             return True
 
         user_college = accounts.utils.get_user_college(user)
@@ -98,18 +100,6 @@ class Category(models.Model):
             category = category.parent_category
 
         return True
-
-    def is_user_editor(self, user):
-        if user.is_superuser:
-            return True
-
-        category = self
-        while category:
-            if category.privileged_teams.filter(members__pk=user.pk).exists():
-                return True
-            category = category.parent_category
-
-        return False
 
     def get_slugs(self):
         slugs = ""
@@ -142,10 +132,34 @@ class Exam(models.Model):
                                     default=True, blank=True)
     objects = managers.ExamQuerySet.as_manager()
 
+    def get_pending_duplicates(self):
+        duplicate_with_questions = Duplicate.objects.filter(question__exam=self)\
+                                                    .with_undeleted_question()
+        duplicate_containers = DuplicateContainer.objects\
+                                                 .select_related('primary_question',
+                                                                 'primary_question__best_revision')\
+                                                 .filter(status="PENDING",
+                                                         primary_question__exam=self,
+                                                         primary_question__is_deleted=False,
+                                                         primary_question__revision__is_deleted=False)\
+                                                 .filter(pk__in=duplicate_with_questions.values('container'))\
+                                                 .distinct()
+        return duplicate_containers
+
+    def get_pending_suggested_changes(self):
+        return SuggestedChange.objects.select_related('revision',
+                                                      'revision__question')\
+                                      .filter(status="PENDING",
+                                              revision__is_last=True,
+                                              revision__is_deleted=False,
+                                              revision__question__exam=self)\
+                                      .distinct()
+
     def get_user_count(self):
         return User.objects.filter(session__exam=self)\
                            .distinct()\
                            .count()
+    get_user_count.short_description = '# users'
 
     def get_sources(self):
         sources = Source.objects.none()
@@ -155,20 +169,19 @@ class Exam(models.Model):
             category = category.parent_category
         return sources
 
+    def get_editors(self):
+        members = User.objects.filter(team_memberships__exams=self)
+        return members
+
     def can_user_access(self, user):
         return self.category.can_user_access(user)
 
     def can_user_edit(self, user):
-        if user.is_superuser:
+        if user.is_superuser or \
+           self.privileged_teams.filter(members__pk=user.pk).exists():
             return True
-
-        category = self.category
-        while category:
-            if category.privileged_teams.filter(members__pk=user.pk).exists():
-                return True
-            category = category.parent_category
-
-        return False
+        else:
+            return False
 
     def get_percentage_of_correct_submitted_answers(self):
         submitted_answers = Answer.objects.filter(session__exam=self,choice__isnull=False).count()
@@ -177,9 +190,13 @@ class Exam(models.Model):
         else:
             return 0
 
+    def get_absolute_url(self):
+        return reverse("exams:create_session",
+                       args=(self.category.get_slugs(),
+                             self.pk))
 
     def __str__(self):
-        return self.name
+        return "{} ({})".format(self.name, self.category)
 
 class ExamDate(models.Model):
     name = models.CharField(max_length=100)
@@ -199,6 +216,9 @@ class Subject(models.Model):
     is_deleted = models.BooleanField(default=False)
     objects = managers.MetaInformationQuerySet.as_manager()
 
+    def get_selector(self):
+        return 's-' + str(self.pk)
+
     def __str__(self):
         return self.name
 
@@ -208,6 +228,7 @@ class Question(models.Model):
     exam = models.ForeignKey(Exam)
     exam_types = models.ManyToManyField(ExamType, blank=True)
     is_deleted = models.BooleanField(default=False)
+    is_approved = models.BooleanField(default=False)
     # `global_sequence` is a `pk` field that accounts for question
     # parents and children.  It is used to determine the sequence of
     # question within sessions.
@@ -221,6 +242,12 @@ class Question(models.Model):
                                            related_name="child_question",
                                            on_delete=models.SET_NULL,
                                            default=None)
+    best_revision = models.OneToOneField('Revision', null=True, blank=True,
+                                         on_delete=models.SET_NULL,
+                                         related_name="best_of")
+    assigned_editor = models.ForeignKey(User, null=True, blank=True,
+                                        on_delete=models.SET_NULL,
+                                        related_name="assigned_questions")
 
     def __str__(self):
         latest_revision = self.get_latest_revision()
@@ -228,6 +255,32 @@ class Question(models.Model):
             return str(self.pk)
         return textwrap.shorten(latest_revision.text, 70,
                                 placeholder='...')
+
+    def get_absolute_url(self):
+        return reverse("exams:show_question",
+                       args=(self.exam.category.get_slugs(),
+                             self.exam.pk, self.pk))
+
+    def get_answering_user_count(self):
+        user_pks = Answer.objects.filter(choice__revision__question=self)\
+                                 .values('session__submitter')
+        return User.objects.filter(pk__in=user_pks)\
+                           .count()
+
+    def update_best_revision(self):
+        best_revision = self.get_best_revision()
+        self.best_revision = best_revision
+
+    def update_is_approved(self):
+        approved_revision = self.get_latest_approved_revision()
+        if approved_revision and \
+           not self.is_deleted and \
+           not self.issues.filter(is_blocker=True).exists() and \
+           approved_revision.choice_set.filter(is_right=True).exists() and \
+           approved_revision.choice_set.count() >= 1:
+            self.is_approved = True
+        else:
+            self.is_approved = False
 
     def update_latest(self):
         latest_revision = self.get_latest_revision()
@@ -265,7 +318,7 @@ class Question(models.Model):
         else:
             return Answer.objects.filter(session=session, question=self).exists()
 
-    def get_best_latest_revision(self):
+    def get_best_revision(self):
         return self.get_latest_approved_revision() or \
                self.get_latest_revision_by_editor() or \
                self.get_latest_revision()
@@ -304,7 +357,10 @@ class Question(models.Model):
 
     def get_contributors(self):
         contributors = []
-        for revision in self.revision_set.order_by('pk'):
+        for revision in self.revision_set.select_related('submitter',
+                                                         'submitter__profile')\
+                                         .undeleted()\
+                                         .order_by('pk'):
             if not revision.submitter in contributors:
                 contributors.append(revision.submitter)
         return contributors
@@ -329,7 +385,6 @@ class Question(models.Model):
 
     def get_available_mnemonics(self):
         return self.mnemonic_set.filter(is_deleted=False)
-
 
 class Revision(models.Model):
     question = models.ForeignKey(Question)
@@ -364,7 +419,8 @@ class Revision(models.Model):
 
     def get_previous(self):
         return self.question.revision_set\
-                            .filter(submission_date__lt=self.submission_date)\
+                            .filter(is_deleted=False,
+                                    submission_date__lt=self.submission_date)\
                             .order_by('submission_date').last()
 
     def get_right_choice(self):
@@ -426,15 +482,6 @@ class Choice(models.Model):
     def __str__(self):
         return self.text
 
-class ExamBlueprint(models.Model):
-    name = models.CharField(max_length=55)
-    exam = models.ForeignKey(Exam, related_name='exam_blueprint')
-    is_deleted = models.BooleanField(default=False)
-
-class ExamBuluprintSubject(models.Model):
-    exam_bueprint = models.ForeignKey(ExamBlueprint, related_name='exam_blueprint_subjects')
-    subject = models.ForeignKey(Subject)
-    number_of_question = models.PositiveIntegerField()
 
 questions_choices = (
     ('ALL','All complete'),
@@ -478,7 +525,6 @@ class Session(models.Model):
     has_finished = models.NullBooleanField(default=None)
 
     objects = managers.SessionQuerySet.as_manager()
-    exam_bueprint = models.ForeignKey(ExamBlueprint, null=True, blank=True)
 
     def get_score(self):
         try:
@@ -490,9 +536,10 @@ class Session(models.Model):
             return correct
 
     def get_questions(self):
-        questions = self.questions.undeleted()
-        if self.question_filter != 'INCOMPLETE':
-            questions = questions.approved()
+        if self.question_filter == 'INCOMPLETE':
+            questions = self.questions.undeleted()
+        else:
+            questions = self.questions.approved()
         return questions
 
     def get_used_questions_count(self):
@@ -503,6 +550,18 @@ class Session(models.Model):
     def get_correct_answer_count(self):
         return self.answer_set.of_undeleted_questions()\
                               .filter(choice__is_right=True)\
+                              .distinct()\
+                              .count()
+
+    def get_incorrect_answer_count(self):
+        return self.answer_set.of_undeleted_questions()\
+                              .filter(choice__is_right=False)\
+                              .distinct()\
+                              .count()
+
+    def get_skipped_answer_count(self):
+        return self.answer_set.of_undeleted_questions()\
+                              .filter(choice__isnull=True)\
                               .distinct()\
                               .count()
 
@@ -580,12 +639,16 @@ class Answer(models.Model):
 
     objects = managers.AnswerQuerySet.as_manager()
 
+    class Meta:
+        unique_together = ("session", "question")
+
     def __str__(self):
         return "Answer of Q#{} in S#{}".format(self.question.pk,
                                                self.session.pk)
 
 class Highlight(models.Model):
     session = models.ForeignKey(Session)
+    question = models.ForeignKey(Question, null=True)
 
     # Since revision text and choices are changeable, but we also want
     # to keep the highlights/strikes, let's remember which revision
@@ -597,6 +660,9 @@ class Highlight(models.Model):
                                               related_name="striking_answers")
 
     submission_date = models.DateTimeField(auto_now_add=True, null=True)
+
+    class Meta:
+        unique_together = ("session", "question")
 
     def __str__(self):
         return "Highlight on Q#{} in S#{}".format(self.revision.question.pk,
@@ -721,4 +787,165 @@ class Mnemonic(models.Model):
         else:
             return "Mnemonic #{}".format(self.pk)
 
+status_choices = (
+    ('PENDING', 'Pending'),
+    ('KEPT', 'Kept'),
+    ('DECLINED', 'Declined'),
+)
 
+        
+class DuplicateContainer(models.Model):
+    primary_question = models.ForeignKey(Question,
+                                         related_name="primary_duplicates")
+    reviser = models.ForeignKey(User, null=True, blank=True)
+    revision_date = models.DateTimeField(null=True, blank=True)
+
+    status = models.CharField(max_length=20, choices=status_choices,
+                              default="PENDING")
+    submission_date = models.DateTimeField(auto_now_add=True)
+
+    def get_questions(self):
+        return (Question.objects.undeleted().filter(pk=self.primary_question.pk) | \
+                Question.objects.undeleted().filter(pk__in=self.duplicate_set.values('question'))).order_by('pk')
+
+    def keep(self, question_to_keep):
+        questions_to_delete = self.get_questions().exclude(pk=question_to_keep.pk)
+        best_revision = question_to_keep.best_revision
+
+        # Merge corrections
+        corrections_to_delete = AnswerCorrection.objects\
+                                                .filter(choice__revision__question__in=questions_to_delete)\
+                                                .select_related('choice')
+
+        for correction in corrections_to_delete:
+            choice_text = correction.choice.text
+            try:
+                choice_to_keep = best_revision.choice_set.get(text__iexact=choice_text,
+                                                              answer_correction__isnull=True)
+            except (Choice.DoesNotExist, MultipleObjectsReturned):
+                pass
+            else:
+                correction.choice = choice_to_keep
+
+        # MERGE SESSIONS AND ANSWERS
+        # Get all sessions with the question to delete
+
+        # 1) We replace the question field of all skipped answers.
+        # 2) We get the alternative choice, replace the choice
+        #    field, and replace the question field of all
+        #    non-skipped answers.
+
+        # Construct an easy-to-access choice dictionary to
+        # save repeated database queries
+        choices_to_keep = {}
+        for choice in best_revision.choice_set.all():
+            choices_to_keep[choice.text] = choice
+
+        sessions = Session.objects.filter(questions__in=questions_to_delete).distinct()
+
+        for session in sessions:
+            session.questions.add(question_to_keep)
+            session.questions.remove(*questions_to_delete)
+            obsolete_answers = session.answer_set.select_related('choice')\
+                                                 .filter(question__in=questions_to_delete)
+            if not session.answer_set.filter(question=question_to_keep).exists() and \
+               obsolete_answers.exists():
+                # For each session, we will look for an obsolete
+                # answers that either has the same choice text, or was
+                # skipped.  If all that exist are obsolete answers
+                # with text that are different, ignore it.
+                answer_to_change = obsolete_answers.filter(choice__text__in=best_revision.choice_set.values('text'))\
+                                                   .distinct()\
+                                                   .first() or \
+                                   obsolete_answers.filter(choice__isnull=True)\
+                                                   .first()
+                if answer_to_change:
+                    # If the choice is not null, replace it with a
+                    # choice that has the same text.
+                    if answer_to_change.choice:
+                        choice = choices_to_keep[answer_to_change.choice.text]
+                        answer_to_change.choice = choice
+                    answer_to_change.question = question_to_keep
+                    answer_to_change.save()
+
+        # MERGE THE SOURCES
+        for source in Source.objects.filter(question__in=questions_to_delete).distinct():
+            question_to_keep.sources.add(source)
+
+        # MERGE THE SUBJECT
+        for subject in Subject.objects.filter(question__in=questions_to_delete).distinct():
+            question_to_keep.subjects.add(subject)
+
+        # MERGE THE SUBJECT
+        for exam_type in ExamType.objects.filter(question__in=questions_to_delete).distinct():
+            question_to_keep.exam_types.add(exam_type)
+
+        # MERGE MARKING USERS
+        question_to_keep.marking_users.add(*User.objects.filter(marked_questions__in=questions_to_delete).distinct())
+
+        questions_to_delete.update(is_deleted=True)
+
+    def __str__(self):
+        return "Duplicate container of Q#{} ({} duplicates)".format(self.primary_question.pk,
+                                                                    self.duplicate_set.count())
+
+class Duplicate(models.Model):
+    container = models.ForeignKey(DuplicateContainer, null=True)
+    question = models.ForeignKey(Question, null=True,
+                                 related_name="secondary_duplicates")
+    ratio = models.FloatField()
+    objects = managers.DuplicateQuerySet.as_manager()
+
+    def get_percentage(self):
+        return round(self.ratio * 100, 2)
+
+    def __str__(self):
+        return "Duplicate of Q#{} in container #{}".format(self.question.pk,
+                                                           self.container.pk)
+
+class Rule(models.Model):
+    description = models.CharField(max_length=40, blank=True)
+    scope_choices = (
+        ('ALL', 'Both revisions and changes'),
+        ('REVISIONS', 'Revisions'),
+        ('CHOICES', 'Choices'),
+    )
+    scope =  models.CharField(max_length=15, choices=scope_choices,
+                              default="ALL")
+    regex_pattern = models.CharField(max_length=120)
+    regex_replacement = models.CharField(max_length=120, blank=True)
+    is_automatic = models.BooleanField(default=False)
+    is_disabled = models.BooleanField(default=False)
+    priority = models.SmallIntegerField(null=True, blank=True)
+
+    class Meta:
+        ordering = ('priority',)
+
+    def __str__(self):
+        return self.description or "'{}' -> '{}'".format(self.regex_pattern,
+                                                         self.regex_replacement)
+
+class SuggestedChange(models.Model):
+    rules = models.ManyToManyField(Rule, blank=True)
+    revision = models.ForeignKey(Revision)
+
+    status = models.CharField(max_length=20, choices=status_choices,
+                              default="PENDING")
+    reviser = models.ForeignKey(User, null=True, blank=True)
+    revision_date = models.DateTimeField(null=True, blank=True)
+
+    submission_date = models.DateTimeField(auto_now_add=True)
+
+    def apply_changes(self, revision_text):
+        data = {'text': revision_text,
+                'change_summary': 'Automatic edit'}
+        if revision.figure:
+            file_data = {'figure': revision.figure.file}
+        else:
+            file_data = {}
+        form = RevisionForm(data, file_data, instance=revision)
+        form.is_valid()
+        form.clone()
+
+    def __str__(self):
+        return "Suggested change for Q#%s" % self.revision.question.pk

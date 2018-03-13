@@ -1,0 +1,193 @@
+{% extends 'base_new.html' %}{% load static exam_utils %}
+{% block title %}Fudul | My assigned questions{% endblock %}
+{% block head %}
+<style type="text/css">
+tbody tr td{
+    cursor:pointer;
+}
+
+tbody tr td.action-button{
+    cursor:initial;
+}
+</style>
+{% endblock %}
+
+{% block header_title %}
+<h1>My assigned questions</h1>
+{% endblock %}
+
+{% block breadcrumb %}
+      <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
+      <li class="breadcrumb-item active">My assigned questions</li>
+{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-body">
+          <div class="card-block border p-2 mb-2">
+            <p>These are the questions assigned to you for review.  After you finish reviewing them, please clear the assigment.  You can select more than one question by pressing <kbd>Ctrl</kbd> (to select one more question) or <kbd>Shift</kbd> (to select the questions between).</p>
+            <p><strong><span id="selection-count">0</span> questions</strong> are selected.</p>
+            <button id="clear-assignment" disabled class="btn btn-danger">Clear my assigment</button>
+          </div>
+          <div class="card-block">
+            <table class="table table-striped table-bordered datatable dt-responsive">
+              <thead>
+                  <tr>
+                      <th></th>
+                      <th data-priority="1">ID</th>
+                      <th data-priority="2">Text</th>
+                      <th data-priority="3">Date of latest revision</th>
+                      <th data-priority="2">Actions</th>
+                  </tr>
+              </thead>
+              <tbody>
+              </tbody>
+            </table>
+          </div>
+        </div>
+    </div>
+{% endblock %}
+{% block customscript %}
+
+<div id="action-button" style="display: none">
+  <div class="dropdown">
+    <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="ft-settings"></i> Actions</button>
+    <div class="dropdown-menu">
+      <a class="list-revisions dropdown-item"><i class="ft-list"></i> History</a>
+      <a class="submit-revision dropdown-item"><i class="ft-edit-2"></i> Edit</a>
+      <a class="dropdown-item confirm-delete-question"><i class="ft-trash-2"></i> Delete</a>
+    </div>
+  </div>
+</div>
+{% include 'partials/import_datatables.html' %}
+<script src="{% static 'js/toastr.js' %}"></script>
+<script src="{% url 'js_reverse' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js" integrity="sha384-kOzY9L5wBXCCeXrHKAMsNCiXCP+c9gu/TfMTC+vTjH542f0KEPZdw69IG2d4khx/" crossorigin="anonymous"></script>
+<script>
+    $(function () {
+        tables = $(".datatable").DataTable({
+            ajax: {url: '{% url "assigned-list" %}?format=json', dataSrc:""},
+            deferRender: true,
+            dom: 'Bfrtip',
+            buttons: [
+              'selectAll',
+              'selectNone'
+            ],
+            columns: [
+              {data: function(){return ''}, orderable: false, className: 'select-checkbox'},
+              {data: 'question.id', className: 'question-id'},
+              {data: 'summary'},
+              {data: 'submission_date',
+               render: {'_': function(data){ return moment(data).format("MMM. D, YYYY, H:mm") },
+                        'sort': function(data){ return moment(data).valueOf()}}
+              },
+              {data: 'question.id',
+               render: function( question_id, type, row, meta ){
+                    var $action_data = $('#action-button').clone();
+                    var list_revision_url = Urls['exams:list_revisions'](row.category_slugs, row.exam_id, question_id);
+                    var submit_revision_url = Urls['exams:submit_revision'](row.category_slugs, row.exam_id, question_id);
+                    $action_data.find('.list-revisions').attr('href', list_revision_url);
+                    $action_data.find('.submit-revision').attr('href', submit_revision_url);
+                    $action_data.find('.confirm-delete-question, .review-mnemonics').attr('data-pk', question_id);
+                    return $action_data.prop('innerHTML');
+                },
+                orderable: false,
+                className: 'action-button'},
+            ],
+            select: {
+              style:    'os',
+              selector: 'td.select-checkbox'
+            },
+            order: [[ 3, "desc" ]]
+        });
+
+        function controlClear(){
+          if (tables.rows({selected: true}).count()){
+            $("#clear-assignment").attr('disabled', false)
+          } else {
+            $("#clear-assignment").attr('disabled', true)
+          }
+        }
+
+        tables.on('select deselect', function(){
+          var count = tables.rows({selected: true}).count();
+          $("#selection-count").html(count);
+          controlClear();
+        })
+
+        $("#clear-assignment").click(function(){
+          var pks = []
+          tables.rows( { selected: true } ).every(function(){
+            pk = this.data().question.id;
+            pks.push(pk)
+          })
+          var pks_str = pks.join(",")
+          $.ajax({url: "{% url 'exams:assign_questions' %}",
+                  method: 'POST',
+                  data: {pks: pks_str, clear: true},
+                  success: function(){
+                    $("#selection-count").html("0");
+                    selectors = []
+                    for (index in pks){
+                      selectors.push(".question-id:contains(" + pks[index] + ")");
+                    }
+                    selector_str = selectors.join(",")
+                    tables.cells(selector_str).rows().remove().draw(false);
+                  }}
+          );
+        });
+
+        // initialize project edit modal
+        $('#show-question-modal').modal({
+          keyboard: false,
+          backdrop: 'static',
+          show    : false,
+        });
+        $('tbody').on('click','tr td:not(.select-checkbox):not(.action-button)',function () {
+            $question_id_cell = $(this).siblings('.question-id');
+            question_id = tables.cell($question_id_cell).data();
+            url =  Urls['exams:show_question'](question_id);
+            $("#show-question-modal").modal('show');
+            $("#show-question-modal .modal-title").html("Question #" + question_id);
+            $("#show-question-modal .modal-body").load(url);
+        });
+				$deleteConfirmationButton = $("#confirm-delete-question-modal .submit-button")
+        $('tbody').on('click','.confirm-delete-question',function () {
+            var pk = $(this).data('pk');
+            var url = Urls['exams:delete_question'](pk);
+            $deleteConfirmationButton.data('url', url).data('pk', pk);
+            $("#confirm-delete-question-modal").modal('show');
+        });
+				$deleteConfirmationButton.click(function () {
+				        /* get some values from elements on the page: */
+				        var url = $(this).data('url');
+								var pk = $(this).data('pk');
+				        /* Send the data using post */
+				        var posting = $.post(url);
+				        posting.done(function (data) {
+				            if (data.success == 1) {
+				                // show success message (using toastr)
+				                toastr.options.positionClass = "toast-top-left";
+				                toastr.info("Question was successfuly deleted");
+                        tables.cell('.question-id:contains(' + pk +')').row().remove().draw(false);
+												$("#confirm-delete-question-modal").modal('hide');
+				            } else {
+				                toastr.error(data.message);
+				            }
+				        });
+				    });
+    });
+
+{% include 'exams/modals/adjust_modal_size.js' %}
+</script>
+{% with modal_id='show-question-modal' no_footer=True %}
+    {% include "exams/modals/common_modal_v4.html" %}
+{% endwith %}
+{% with modal_id='confirm-delete-question-modal' modal_title="Delete question" is_small=True modal_content="Are you sure you want to delete this question?" %}
+    {% include "exams/modals/common_modal_v4.html" %}
+{% endwith %}
+{% with modal_id='show-mnemonic-modal' no_footer=True %}
+    {% include "exams/modals/common_modal_v4.html" %}
+{% endwith %}
+{% endblock %}

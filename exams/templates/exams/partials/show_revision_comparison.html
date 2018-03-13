@@ -61,18 +61,17 @@
          {% endfor %}
       </ul>
     </div>
-    {% if review %}
-      <div class="previous-revision">
-        <h3 class="text-bold-600">Previous revision of <a href="{% url 'exams:list_revisions' revision.question.exam.category.get_slugs revision.question.exam.pk revision.question.pk %}">question #{{ revision.question.pk }}</a></h3>
-        {% if previous_revision.figure %}<img class="img-fluid"  src="{{ previous_revision.figure.url }}">{% endif %}
-        <p class="revision-text">{{ previous_revision.text }}</p>
-        <ul>
-           {% for choice in previous_revision.choice_set.order_by_alphabet %}
-             <li data-choice-order="{{ forloop.counter }}" {% if choice.is_right %}class="choice-text text-bold-700 success darken-4"{% endif %}>{{ choice.text|linebreaksbr }}</li>
-           {% endfor %}
-        </ul>
-      </div>
-    {% endif %}
+
+    <div {% if not review %}style="display: none;"{% endif %} class="previous-revision">
+      <h3 class="text-bold-600">Previous revision of <a href="{% url 'exams:list_revisions' revision.question.exam.category.get_slugs revision.question.exam.pk revision.question.pk %}">question #{{ revision.question.pk }}</a></h3>
+      {% if previous_revision.figure %}<img class="img-fluid"  src="{{ previous_revision.figure.url }}">{% endif %}
+      <p class="revision-text">{{ previous_revision.text }}</p>
+      <ul>
+         {% for choice in previous_revision.choice_set.order_by_alphabet %}
+           <li data-choice-order="{{ forloop.counter }}" {% if choice.is_right %}class="choice-text text-bold-700 success darken-4"{% endif %}>{{ choice.text|linebreaksbr }}</li>
+         {% endfor %}
+      </ul>
+    </div>
 
 {% if review %}
  <div class="row">

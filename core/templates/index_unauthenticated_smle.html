@@ -1,0 +1,471 @@
+<!DOCTYPE html>{% load static humanize cache %}
+<html lang="ar" dir="rtl">
+{% include 'partials/call_out.html' %}
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="A comprehensive, collective, free-of-charge question bank built by and for examinees.">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:site" content="@FudulBank">
+  <meta property="og:title" content="فضول | بنك أسئلة للناس، لا للربح">
+  <meta property="og:image" content="{{ request.build_absolute_uri }}{% static 'img/logo-192x192.png' %}">
+  <meta property="og:site_name" content="Fudul">
+  <meta property="og:description" content="A comprehensive, collective, free-of-charge question bank built by and for examinees.">
+
+  <link rel="manifest" href="{% static 'manifest.json' %}">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <link href="https://fonts.googleapis.com/css?family=Aref+Ruqaa|Open+Sans:400,700" rel="stylesheet">
+
+  <link href="{% static 'img/logo-avatar.svg' %}" rel="icon">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw" crossorigin="anonymous">
+  <script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js" integrity="sha384-0AJY8UERsBUKdWcyF3o2kisLKeIo6G4Tbd8Y6fbyw6qYmn4WBuqcvxokp8m2UzSD" crossorigin="anonymous"></script>
+  <title>فضول | بنك أسئلة للناس، لا للربح</title>
+  <style>
+  @font-face {
+    font-family: "KacstOne";
+    font-style: normal;
+    font-weight: normal;
+    src: url("{% static 'fonts/KacstOne.ttf' %}") format("truetype");
+  }
+
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      font-family: 'Open Sans', sans-serif;
+      overflow-x: hidden;
+    }
+
+    header h1, .feature-card h3, .feature-card p{
+      font-family: KacstOne;
+    }
+
+    header h1{
+        line-height: 1.3;
+    }
+
+    #motto{
+      color: red;
+      font-size: 35px;
+      font-family: 'Aref Ruqaa';
+    }
+
+    header {
+      background: #F5F7FA;
+      z-index: -1;
+    }
+
+    header p{
+      font-size: 1.5rem;
+    }
+
+    nav {
+      z-index: 2;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      height: 100%;
+      width: 100%;
+      max-width: 2200px;
+      left: 0;
+      right: 0;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 3rem;
+      font-weight: 700;
+    }
+    h3 {
+      text-shadow: 2px 2px #b2b9b9;
+    }
+
+    .feature-icon:hover svg:not(.fa-money-bill-alt) {
+      animation-name: feature-icon;
+      animation-duration: 1s;
+      animation-direction: alternate;
+      animation-iteration-count: infinite;
+    }
+
+    .question-body .check svg{
+      visibility: hidden;
+    }
+
+    .question-body .explanation-container,
+    #add-mnemonics,
+    .answer-correction-tooltip-container,
+    .question-body .tooltip-container{
+      display: none;
+    }
+
+    .question-body[data-was-solved="true"] .check svg{
+      visibility: visible;
+    }
+
+    .question-body[data-was-solved="true"] .explanation-container{
+      display: block;
+    }
+
+    {# We will not show mnemonics in the sample questions to aviod confusion #}
+    .mnemonics-container{
+      display: none;
+    }
+
+    {# We will not show icons to submit answer corrections #}
+    .correct svg{
+      visibility: hidden;
+    }
+
+    .strike{
+        text-decoration: line-through;
+    }
+
+    td.check, td.correct{
+      width: 17px;
+    }
+
+    .highlight {
+        background: yellow;
+    }
+
+    .highlight.active{
+        cursor: pointer;
+    }
+
+    .question-choice {
+        margin-right: 10px !important;
+        word-wrap: break-word;
+    }
+
+    .brand-logo{
+      vertical-align: sub;
+    }
+    .brand-text{
+      display: inline;
+      padding-left: 10px;
+      color: #c8c8c8;
+      font-family: "Montserrat", Georgia, "Times New Roman", Times, serif;
+      letter-spacing: 1px;
+      font-size: 1.74rem;
+      font-weight: 500;
+    }
+
+    #top-info, .tooltip-inner, #footer{
+      background-color: #404E67;
+    }
+
+    #top-info{
+        font-size: 12pt;
+        color: #FFF;
+    }
+
+    #top-options  {
+        background-color: #929EB4;
+        border-top: 1px solid #fff;
+        line-height: 32px;
+    }
+
+    .option{
+      cursor: not-allowed;
+      display: inline-block;
+      padding: 0 10px;
+      /* For mobile devices */
+      height: auto;
+    }
+
+    #top-info a, a.option, #help-me-tooltip a{
+        color: white;
+    }
+
+    #top-info a:hover, a.option:hover, #help-me-tooltip a:hover{
+        text-decoration: none;
+    }
+
+    @keyframes feature-icon {
+      0% {
+        color: #212529;
+      }
+      to {
+        color: #666;
+      }
+    }
+
+  </style>
+  {% include 'partials/piwik.html' %}
+</head>
+
+<body>
+  <nav class="navbar justify-content-between navbar-light bg-white"> <a class="navbar-brand" href="#">
+    <img src="{% static 'img/logo-avatar.svg' %}" width="30" height="30" class="d-inline-block align-top" alt="">
+    Fudul
+    </a>
+    <div id="social" class="fa-lg"> <a rel="noopener" target="_blank" href="https://twitter.com/FudulBank"><i title="Our Twitter account" class="fab mx-1 fa-twitter"></i></a> <a rel="noopener" target="_blank" href="https://t.me/FudulBank"><i title="Our Telegram channel" class="fab mx-1 fa-telegram"></i></a> <a rel="noopener" target="_blank" href="https://t.me/FudulBot"><i title="Live support" class="fas mx-1 fa-question-circle"></i></a> </div>
+  </nav>
+  <div class="container-fluid">
+    <header class="row justify-content-around align-items-center"> <canvas id="confetti-canvas"></canvas>
+      <div class="col-10 col-sm-9 col-md-8 col-lg-6 col-xl-5 text-center order-2 order-md-1">
+        <p class="mt-md-4">
+          أهلا بك في فضول!
+        </p>
+        <h1>بنك الأسئلة المجّاني للاختبارات الوطنيّة SMLE و SNLE</h1>
+        <p>صحّحنا <strong><span data-number="{{ answer_count }}" id="answer-count">{{ answer_count|intcomma }}</span> إجابة</strong> والعدد في ازدياد!</p>
+        <a href="{% url 'userena_signup' %}" class="btn w-50 btn-lg btn-success text-white mb-2"><i class="mr-1 fas fa-user-plus"></i> انضمّ</a><br>
+        <a href="{% url 'userena_signin' %}" class="btn w-50 btn-lg btn-secondary text-white mb-4"><i class="mr-1 fas fa-sign-in-alt"></i> ادخل</a> </div>
+      <div class="col-8 col-md-4 order-1 order-md-2 text-center text-md-right">
+        <img class="img-fluid" src="{% static 'img/logo-avatar.svg' %}">
+      </div>
+    </header>
+<div style="background: white; position: absolute;">
+  <p id="motto" class="text-center mt-4 mb-0">بنك أسئلة للناس، لا للربح!</p>
+  <div class="row mt-4 justify-content-center" dir="ltr">
+    <div class="col-10 col-md-8">
+      <h2 dir="rtl" class="text-center">تجربة!</h2>
+      <hr class="small">
+      <div id="top-info" class="row py-1 align-items-center">
+          <div class ="col-sm-3 text-sm-right text-center">
+            <a href="/" class="navbar-brand">
+              <img alt="Fudul logo" src="{% static 'img/logo-monkey.png' %}" class="img-fluid brand-logo">
+              <h2 class="brand-text">Fudul</h2></a>
+          </div>
+          <div class="col-sm-6 text-center"> <a target="_blank" href="{% url 'exams:create_session' question.exam.category.get_slugs question.exam.pk %}">{{ question.exam.name }}</a><br> Question id: <a target="_blank" href="{% url 'exams:list_revisions' question.exam.category.get_slugs question.exam.pk question.pk %}" id="question-pk">{{ question.pk }}</a></div>
+      </div><!--top-info-->
+
+      <div id="top-options" class="row mb-4 text-center justify-content-end">
+        <div class="col-6 text-sm-right">
+          <div class="row justify-content-end no-gutters">
+           <div class="col-auto">
+               <div id="mark" class="option">
+                  <i class="fas fa-flag"></i> Mark
+               </div>
+           </div>
+
+           <div class="col-auto">
+               <div class="option" data-toggle="modal" data-target="#NormalValues">
+                  <i class="fas fa-flask"></i>  <span class="d-sm-inline d-none">Lab values</span>
+               </div>
+           </div>
+
+          </div>
+        </div>
+      </div><!--top-options-->
+      {% with session=None %}
+          {% include 'exams/partials/session_question.html' %}
+      {% endwith %}
+      <button disabled type="button" id="submit" class="btn btn-primary mt-3">Submit <i class="fas fa-angle-right"></i></button>
+    </div>
+  </div>
+
+
+  <div class="row mt-4 justify-content-center">
+    <div class="col-10 col-md-8">
+      <h2 class="text-center">مزايا فضول</h2>
+      <hr class="small">
+    </div>
+  </div>
+
+
+    <div class="row mt-4 justify-content-center" dir="rtl">
+      <div class="col-10 col-md-5">
+        <div class="card wow mb-3 fadeIn feature-card">
+          <div class="card-body">
+            <div class="row align-items-center justify-content-center">
+              <div class="col-sm-4 col-md-3 p-4 text-center feature-icon"> <span class="fa-layers fa-fw fa-5x">
+                            <i class="fas fa-money-bill-alt" data-fa-transform="shrink-8" style="color: #5f935f;"></i>
+                            <i class="fas fa-ban"></i>
+                        </span> </div>
+              <div class="col-sm-8 col-md-9 p-4 text-center text-md-right">
+                <div class="card-title">
+                  <h3>مجانيّة</h3></div>
+                <p>على خِلاف غيرها، تُتيح منصّة فضول لعموم المستخدمين والمستخدمات الاستفادة من كامل مزاياها مجانًا، لأن الوصولَ للمعرفة يجب أن يكون على قدم المساواة.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row mt-4 justify-content-center">
+      <div class="col-10 col-md-5">
+        <div class="card wow mb-3 fadeIn">
+          <div class="card-body">
+            <div class="row align-items-center justify-content-center">
+              <div class="col-sm-4 col-md-3 p-4 text-center feature-icon"> <i class="far fa-fw fa-handshake fa-5x"></i> </div>
+              <div class="col-sm-8 col-md-9 p-4 text-center text-md-right">
+                <div class="card-title">
+                  <h3>تعاونيّة</h3></div>
+                <p> فضولٌ منصّةٌ تعاونيّة، وهذا يعني أنها تستند على مشاركة المستخدمين والمستخدمات في تحسين المحتوى وتطويره بتصحيح أسئلة الاختبارات، وتعديل صياغتها، والإبلاغ عن الأخطاء، وإضافة الشروحات لإجاباتها.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row mt-4 justify-content-center">
+      <div class="col-10 col-md-5">
+        <div class="card wow mb-3 fadeIn">
+          <div class="card-body">
+            <div class="row align-items-center justify-content-center">
+              <div class="col-sm-4 col-md-3 p-4 text-center feature-icon"> <i class="far fa-fw fa-lightbulb fa-5x"></i> </div>
+              <div class="col-sm-8 col-md-9 p-4 text-center text-md-right">
+                <div class="card-title">
+                  <h3>شاملة وذكيّة</h3></div>
+                <p>تشمل فضول آلاف الأسئلة المُصحّحة المُحدّثة المُراجعة، كما أنها تتيح أدوات ذكيّة لاختيار الأسئلة، ولتحليل الأداء واقتراح مواطن التحسين، عدا أنها صممت بعناية فائقة لتعمل على الهواتف الذكيّة، والأجهزة اللوحية، وحتى الحواسيب. </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mt-4 justify-content-center">
+      <div class="col-10 col-md-8 text-center">
+        <a data-toggle="tooltip" data-title='This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.' data-html="true" rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" class="mb-5" src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png" /></a>
+      </div>
+    </div>
+
+</div>
+  </div><!--container-->
+  <script src="{% static 'js/index-page-effects.js' %}"></script>
+  <script src="{% static 'js/jquery-3.2.1.min.js' %}"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js" integrity="sha384-3hgmRzlUcHmQydKeUIr2tGXvJZs5gK6VZ+LVpzUkHtkRo2A8fuCMdfN3vw2h9DPJ" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/wow/1.1.2/wow.min.js" integrity="sha384-V27yAyb3yYhZbiwaK9Sgxh9Cywkf/H2al4wcrcp/hKF9ZYT7d5saGJFoO/0v1Cgs" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+  <script>
+    new WOW().init();
+
+    answer_countup = null;
+    timer = null;
+    function updateCouner(){
+      // If count up is already running, stop!
+      if (answer_countup){
+        return
+      }
+
+      $.ajax({url: '{% url "exams:count_answers" %}',
+              success: function(data){
+                // Make sure no duplicate countup is set.
+                if (answer_countup){
+                  return
+                }
+                var current_count = $("#answer-count").data('number');
+                var new_count = data.answer_count;
+      					var answer_countup = setInterval(function() {
+      						if (current_count == new_count) {
+                    setTimer();
+      							clearInterval(answer_countup);
+                    answer_countup = null;
+      						} else {
+                    clearTimer();
+                    current_count++;
+                    var formatted_number = numeral(current_count).format('0,0');
+                    $('#answer-count').data('number', current_count).html(formatted_number);
+                  }
+      					}, 50);
+              }
+      });
+    }
+
+    function setTimer(){
+      if (!timer && document.hasFocus()){
+        timer = setInterval(updateCouner, 1000);
+      }
+    }
+
+    function clearTimer(){
+        if (timer){
+          clearInterval(timer);
+          timer = null;
+        }
+    }
+
+    function toggleChoices() {
+        if ($('.question-choice:checked').length){
+          $("#submit").prop('disabled', false)
+        } else {
+          $("#submit").prop('disabled', true);
+        }
+
+        var $choice = $(this);
+        if ($choice.is(":checked")) {
+            // other sister choices to be removed
+            $otherChoices = $choice.closest('.question-body').find('.question-choice').not($choice);
+            // If a choice is checked, it is no longer striked.
+            if ($choice.closest('tr').find('.choice-text.strike').length){
+              $choice.closest('tr').find('.choice-text.strike').removeClass('strike');
+            }
+            $otherChoices.prop("checked", false);
+        } else {
+            $choice.prop("checked", false);
+        }
+    }
+
+    function removeHighlight(){
+      $(this).contents().unwrap();
+    }
+
+    function highlightText() {
+        var selection = window.getSelection().toString();
+        if (selection.length >= 3) {
+            var escapedSelection = $("<div>").text(selection).html();
+            var replacement = $('<span></span>').addClass('active highlight').html(selection);
+            var replacementHtml = replacement.prop('outerHTML');
+            $(this).html($(this).html().replace(escapedSelection, replacementHtml));
+            // Bind only once
+            $(".question-body .highlight").off('click').on('click', removeHighlight);
+        }
+
+    }
+
+    function controlExplanation(){
+      was_solved = $(".question-body").data('was-solved');
+      if ($('.question-body .explanation-content').text().trim().length){
+        $(".question-body .explanation-container").show();
+      }
+      else {
+        $(".question-body .explanation-container").hide();
+      }
+    }
+
+    $(function() {
+      $('[data-toggle="tooltip"]').tooltip();
+
+      $("h1").on('mouseenter', function(){
+        _paq.push(['trackEvent', 'index', 'header-animation']);
+      });
+
+      $question = $('.question-body');
+      $question.find(".question-text").off('mouseup touchend').on('mouseup touchend', highlightText);
+      $question.find(".question-choice").off('change').on('change', toggleChoices);
+      $question.find(".choice-text").off('click').on('click', function() {
+          if (!$(this).hasClass("strike")){
+             // If a choice is striked, it is no longer checked.
+              $(this).closest("tr").find(".question-choice").prop('checked', false).trigger('change');
+          }
+          $(this).toggleClass("strike");
+      });
+
+      $("#submit").click(function(){
+        _paq.push(['trackEvent', 'index', 'sample-question', 'answered-sample-question']);
+        $question.find(".question-text, .question-choice, .choice-text, .highlight").off();
+        controlExplanation();
+        $question.data('was-solved', true).attr('data-was-solved', true);
+        $question.find(".question-choice").prop("disabled", "disabled");
+        $(this).css('visibility', 'hidden');
+      });
+
+      updateCouner();
+      $(setTimer);
+      $(window).on('focus', setTimer);
+      $(window).on('blur', clearTimer);
+    });
+    </script>
+
+</body>
+</html>

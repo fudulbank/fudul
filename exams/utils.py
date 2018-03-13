@@ -34,33 +34,7 @@ def get_deepest_category_level():
         count += 1
     return count
 
-def get_user_privileged_exams(user):
-    if user.is_superuser:
-        exams = models.Exam.objects.all()
-    elif teams.utils.is_editor(user):
-        deepest_category_level = get_deepest_category_level()
-        count = 1
-        level = 'category'
-        queries = Q()
-        while deepest_category_level >= count:
-            kwarg = {level + '__privileged_teams__members': user}
-            level  = level + '__parent_category'
-            queries |= Q(**kwarg)
-            count += 1
-        exams = models.Exam.objects.filter(queries)
-    else:
-        exams = models.Exam.objects.none()
-
-    return exams
-
-def get_user_questions(user):
-    pks = models.Answer.objects.filter(session__submitter=user,
-                                       session__is_deleted=False)\
-                               .values('question')
-    return models.Question.objects.undeleted()\
-                                  .filter(pk__in=pks)
-
-def get_user_question_stats(target, user, result, percent=False):
+def get_user_question_stats(target, user, result, total=None, percent=False):
     # Target can either be an exam, subject or session.
     #
     # Here, two rules kick in:
@@ -74,30 +48,50 @@ def get_user_question_stats(target, user, result, percent=False):
     #    of the user.  For example, if a question has one correct
     #    answer, then the user got it (regardless of whether it has
     #    other incorrect/skipped answers).
-    question_pool = get_user_questions(user)
+    # Subject and Exam models have a similar way of calculation.
+    if type(target) in [models.Subject, models.Exam]:
+        if type(target) is models.Exam:
+            all_pks = models.Answer.objects.filter(session__submitter=user,
+                                                   question__exam=target,
+                                                   session__is_deleted=False)\
+                                           .values('question')
+            pool = models.Question.objects.undeleted().filter(exam=target)
+        elif type(target) is models.Subject:
+            all_pks = models.Answer.objects.filter(session__submitter=user,
+                                                   question__subjects=target,
+                                                   session__is_deleted=False)\
+                                           .values('question')
+            pool = models.Question.objects.undeleted().filter(subjects=target)
 
-    if type(target) is models.Exam:
-        question_pool = question_pool.filter(exam=target)
-    elif type(target) is models.Subject:
-        question_pool = question_pool.filter(subjects=target)
+        if result == 'correct':
+            count = pool.correct_by_user(user)\
+                        .count()
+        elif result == 'incorrect':
+            count = pool.incorrect_by_user(user)\
+                        .count()
+        elif result == 'skipped':
+            count = pool.skipped_by_user(user)\
+                        .count()
+        elif result == 'total':
+            count = pool.filter(pk__in=all_pks).count()
     elif type(target) is models.Session:
-        question_pool = question_pool.filter(answer__session=target)
-
-    if result == 'correct':
-        count = question_pool.correct_by_user(user)\
-                             .count()
-    elif result == 'incorrect':
-        count = question_pool.incorrect_by_user(user)\
-                             .count()
-    elif result == 'skipped':
-        count = question_pool.skipped_by_user(user)\
-                             .count()
-    elif result == 'total':
-        count = question_pool.count()        
+        pool = models.Answer.objects.filter(session=target)\
+                                    .of_undeleted_questions()\
+                                    .distinct()
+        if result == 'correct':
+            count = target.get_correct_answer_count()
+        elif result == 'incorrect':
+            count = target.get_incorrect_answer_count()
+        elif result == 'skipped':
+            count = target.get_skipped_answer_count()
+        elif result == 'total':
+            count = pool.count()
 
     if percent:
-        total = question_pool.count()
-        if not total:
+        # If total was not provided
+        if total is None or total == '':
+            total = pool.count()
+        if total == 0:
             return 0
         return "%.0f" % (count / total * 100)
     else:
@@ -119,7 +113,7 @@ def get_exam_question_count_per_meta(exam, meta, approved_only=False):
         question_pool = exam.question_set.approved()
     else:
         question_pool = exam.question_set
-        
+
     return question_pool.filter(**query).distinct().count()
 
 def get_user_allowed_categories(user):
@@ -128,3 +122,23 @@ def get_user_allowed_categories(user):
         if cat.can_user_access(user):
             categories.append(cat)
     return categories
+
+
+def get_correct_percentage():
+    # How many questions are considered "recent"?
+    RECENT_COUNT = 100
+
+    try:
+        recent_answer = models.Answer.objects.filter(choice__isnull=False)\
+                                     .order_by('-submission_date')[RECENT_COUNT - 1]
+    except IndexError:
+        recent_answer = models.Answer.objects.first()
+    correct_count = models.Answer.objects.filter(submission_date__gte=recent_answer.submission_date,
+                                                 choice__isnull=False,
+                                                 choice__is_right=True)\
+                                         .count()
+
+    correct_percentage = correct_count / RECENT_COUNT
+    correct_percentage = round(correct_percentage, 3) * 100
+
+    return correct_percentage

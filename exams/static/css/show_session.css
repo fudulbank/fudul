@@ -1,0 +1,321 @@
+body, html, #container{
+    height: 100%
+}
+
+body{
+    background: #fff;
+    font-size: 17px;
+    line-height: 1.8em;
+    font-family: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-weight: 400;
+}
+
+#top-info, .tooltip-inner, #footer{
+  background-color: #404E67;
+}
+
+.question-body .check svg,
+.question-body .correct svg{
+  visibility: hidden;
+}
+
+body[data-session-mode="SOLVED"] .check svg,
+body[data-session-mode="SOLVED"]:not(.unauthenticated) [data-has-correction="false"]:not([data-is-right="true"]) .correct svg,
+body[data-session-mode="INCOMPLETE"] .check svg,
+body[data-session-mode="INCOMPLETE"]:not(.unauthenticated) [data-has-correction="false"]:not([data-is-right="true"]) .correct svg,
+body:not([data-session-mode="UNEXPLAINED"]) .question-body[data-was-solved="true"] .check svg,
+body:not([data-session-mode="UNEXPLAINED"]):not(.unauthenticated) .question-body[data-was-solved="true"] [data-has-correction="false"]:not([data-is-right="true"]) .correct svg,
+body[data-session-mode="UNEXPLAINED"][data-has-finished="true"] .question-body[data-was-solved="true"] .check svg,
+body[data-session-mode="UNEXPLAINED"][data-has-finished="true"]:not(.unauthenticated) .question-body[data-was-solved="true"] [data-has-correction="false"]:not([data-is-right="true"]) .correct svg{
+  visibility: visible !important;
+}
+
+#results, #end, #back{
+  display: none;
+}
+
+body[data-session-mode=INCOMPLETE] #back,
+body[data-session-mode=SOLVED] #back{
+  display: inline-block;
+}
+
+body:not([data-session-mode=INCOMPLETE]):not([data-session-mode=SOLVED])[data-has-finished=true] #results,
+body:not([data-session-mode=INCOMPLETE]):not([data-session-mode=SOLVED])[data-has-finished=false] #end{
+  display: inline-block;
+}
+
+/* Bootstrap tries to reset the font; let's ignore it*/
+.tooltip{
+  font-family: inherit;
+}
+
+.tooltip.bs-tooltip-top .arrow::before{
+  border-top-color: #404E67;
+}
+
+.tooltip.bs-tooltip-bottom .arrow::before{
+  border-bottom-color: #404E67;
+}
+
+.tooltip.hint.bs-tooltip-right .arrow::before{
+  border-right-color: #FFC107;
+}
+
+.tooltip.hint .tooltip-inner{
+  background: #FFC107;
+}
+
+.tooltip.hint .tooltip-inner{
+  color: black;
+}
+
+#top-info{
+    font-size: 12pt;
+    color: #FFF;
+}
+
+.top-question-id {
+    line-height: 15px;
+}
+
+.option{
+  cursor: pointer;
+  display: inline-block;
+  padding: 0 10px;
+  /* For mobile devices */
+  height: auto;
+}
+
+#open-navigation{
+  cursor: not-allowed;
+}
+
+@media (min-width: 576px) {
+  #footer .option{
+    height: 38px;
+  }
+  #top-options .option{
+    height: 32px;
+  }
+}
+
+.separator{
+    color: yellow;
+}
+
+#top-options  {
+    background-color: #929EB4;
+    border-top: 1px solid #fff;
+    line-height: 32px;
+}
+
+#mark.marked{
+    font-weight: 700;
+    padding: 0 9px;
+    color: yellow;
+}
+
+#footer {
+    color: #fff;
+    line-height: 36px;
+    font-size: 12pt;
+    bottom: 0;
+    position: fixed;
+    border-top: solid 2px #fff;
+    border-bottom: solid 2px #404E67;
+    width: 100%;
+}
+
+/* Styling the exam name and "results" (which is a direct link) */
+#top-info a, a.option, #help-me-tooltip a{
+    color: white;
+}
+
+#top-info a:hover, a.option:hover, #help-me-tooltip a:hover{
+    text-decoration: none;
+}
+
+#contributors{
+  cursor:zoom-in;
+}
+
+.strike{
+    text-decoration: line-through;
+}
+
+td.check, td.correct{
+  width: 17px;
+}
+
+.highlight {
+    background: yellow;
+}
+
+.question-body[data-was-solved="false"] .highlight{
+    cursor: pointer;
+}
+
+.correct, .check, .option, .navbar-brand, .mobile-slide{
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.question-choice {
+    margin-right: 10px !important;
+    word-wrap: break-word;
+}
+
+#submit, #explain, #add-mnemonics{
+    margin-top: 20px;
+}
+#add-mnemonics{
+    margin-left: 2%;
+}
+
+#submit{
+    margin-left: 9px;
+    background: #0067A9;
+    color: #fff;
+    font-size: 12pt;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+.tooltip-container, #mark-loading, .explanation-container, #explain, #submit, #contribute, #add-mnemonics,.answer-correction-tooltip-container,.mnemonics-container{
+  display: none;
+}
+
+#question-container{
+  margin-top: 20px;
+}
+
+#question-total, #question-sequence{
+  display: inline-block;
+}
+
+.question-body{
+  display: none;
+}
+
+.question-body.show{
+  display: block;
+}
+
+.question-body .choice-table tbody.unprepared,
+#question-pool:not(.choices-were-animated) .choice-table tbody{
+  visibility: hidden;
+}
+
+.explanation-container,.mnemonics-container{
+  margin-top: 20px;
+}
+
+.explanation-content{
+  overflow-x: auto;
+}
+
+.explanation-reference-header{
+  font-size: 1.2rem;
+}
+
+.brand-logo{
+  vertical-align: sub;
+}
+.brand-text{
+  display: inline;
+  padding-left: 10px;
+  color: #c8c8c8;
+  font-family: "Montserrat", Georgia, "Times New Roman", Times, serif;
+  letter-spacing: 1px;
+  font-size: 1.74rem;
+  font-weight: 500;
+}
+
+.question-body.show, #submit{
+  z-index: 2;
+  position: relative;
+}
+
+#top-info, #top-options, #footer{
+  z-index: 3;
+}
+
+#top-info, #top-options{
+  position: relative;
+}
+
+#normal-values{
+    align-items: center;
+}
+
+.answer-correction-header{
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-align: center;
+  align-items: center;
+  -ms-flex-pack: justify;
+  justify-content: space-around;
+  padding: 5px;
+}
+
+.answer-correction-header .title{
+  margin-bottom: 0
+}
+
+.answer-correction-header .delete-correction{
+  padding: 5px;
+  margin: -5px -5px -5px auto;
+  background: 0 0;
+  border: 0;
+}
+
+/*Any list within a tooltip should be left-aligned*/
+.tooltip-inner ul{
+  text-align: left;
+}
+
+/*By default, Bootstrap has a maximum of 200px, but we look prettier at 250px*/
+.tooltip-inner{
+  max-width: 250px
+}
+.circle {
+   width: 20px;
+   height: 20px;
+   background: lightblue;
+   -moz-border-radius: 10px;
+   -webkit-border-radius: 10px;
+   border-radius: 10px;
+   text-align: center;
+   line-height:15px;
+   color: white;
+   float: right;
+
+}
+
+#keyboard-instructions th{
+  text-align: center;
+}
+
+#keyboard-instructions td{
+  text-align: left;
+}
+
+#keyboard-instructions th, #keyboard-instructions td{
+  padding-bottom: 0.5rem;
+}
+
+@keyframes keyboard-hint {
+   0% {
+    color: black;
+   }
+   50% {
+    color: black;
+   }
+   100% {
+    color: yellow;
+   }
+}
+#keyboard-hint.animated{
+   animation:keyboard-hint 3s ease-in infinite alternate
+}

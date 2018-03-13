@@ -5,7 +5,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
-  <meta name="description" content="A comprehensive, collective, free-of-charge question bank built by and for examiners.">
+  <meta name="description" content="A comprehensive, collective, free-of-charge question bank built by and for examinees.">
   <link rel="manifest" href="{% static 'manifest.json' %}">
   <title>{% block title %}{% endblock %}</title>
 
@@ -237,7 +237,7 @@
           </li>
 
           <li class="{% if is_previous_active %}active {% endif %}nav-item"><a href="{% url 'exams:list_previous_sessions' %}"><i class="ft-edit"></i><span data-i18n="" class="menu-title">Previous sessions</span></a></li>
-          <li class="{% if is_performance_active %}active {% endif %}nav-item"><a href="{% url 'exams:show_my_performance' %}"><i class="ft-bar-chart-2"></i><span data-i18n="" class="menu-title">Performance</span> <span class="badge badge badge-danger badge-pill float-right">Better!</span></a></li>
+          <li class="{% if is_performance_active %}active {% endif %}nav-item"><a href="{% url 'exams:show_my_performance' %}"><i class="ft-bar-chart-2"></i><span data-i18n="" class="menu-title">Performance</span></a></li>
           <li class="{% if is_search_active %}active {% endif %}nav-item"><a href="{% url 'exams:search' %}"><i class="ft-search"></i><span data-i18n="" class="menu-title">Search</span></a></li>
 
 
@@ -245,6 +245,8 @@
 
           {% if is_any_editor %}
           <li class=" navigation-header"><span>Editors</span><i data-toggle="tooltip" data-placement="right" data-original-title="Editors" class=" ft-minus"></i>
+            <li class="nav-item"><a href="{% url 'exams:list_assigned_questions' %}"><i class="ft-package"></i><span data-i18n="" class="menu-title">Assigned questions</span> <span class="badge badge badge-danger badge-pill float-right">{{ user.assigned_questions.count }}</span></a></li>
+            <li class="nav-item"><a href="{% url 'exams:show_tool_index' %}"><i class="ft-loader"></i><span data-i18n="" class="menu-title">Editor tools</span></a></li>
 {#          <li class="{% if is_contributions_active %}active {% endif %}nav-item"><a href="{% url 'list_latest_changes' %}"><i class="ft-watch"></i><span data-i18n="" class="menu-title">Latest changes</span><span class="tag tag tag-warning tag-pill float-xs-right mr-2">{{ pending_revision_count }}</span></a></li>#}
 {% if user.is_superuser %}
           <li><a href="{% url 'mailer:list_messages' %}"><i class="ft-mic"></i> <span>Mailer</span></a></li>

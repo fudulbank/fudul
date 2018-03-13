@@ -1,9 +1,9 @@
 {% load static exam_utils account_utils %}
 
-{% with explanation_revision=question.get_latest_explanation_revision best_latest_revision=question.get_best_latest_revision %}
-<div class="question-body well-sm{% if question == current_question %} show{% endif %}" data-best-latest-revision-pk="{{ best_latest_revision.pk }}" {% if session %}data-list-revision-url="{% url 'exams:list_revisions' category_slugs session.exam.pk question.pk %}" data-url="{% url 'exams:show_session' category_slugs session.exam.pk session.pk question.pk %}"{% endif %} {% if question_sequence %}data-question-sequence="{{ question_sequence }}"{% endif %} data-question-pk="{{ question.pk }}">
-  {% if best_latest_revision.figure %}
-     <img class="img-fluid center-block" src="{{ best_latest_revision.figure.url }}">
+{% with explanation_revision=question.get_latest_explanation_revision best_revision=question.best_revision %}
+<div class="question-body well-sm{% if question == current_question %} show{% endif %}" data-best-latest-revision-pk="{{ best_revision.pk }}" data-question-pk="{{ question.pk }}">
+  {% if best_revision.figure %}
+     <img class="img-fluid center-block" src="{{ best_revision.figure.url }}">
   {% endif %}
 
 <div>
@@ -11,15 +11,15 @@
        <span data-html="true" data-toggle="tooltip" title="<strong>Repeated in:</strong> <ul>{% for source in  question.sources.all %}<li>{{ source.name }}</li>{% endfor %}</ul>" class="d-block float-right badge badge-default badge-success">Repeated {{ question.sources.count }} times </span>
     {% endif %}
     </div>
-    <p class="question-text">{{ best_latest_revision.text|linebreaksbr }}</p>
+    <p class="question-text">{{ best_revision.text|linebreaksbr }}</p>
     <table class="choice-table">
       <tbody class="unprepared">
-        {% for choice in best_latest_revision.choice_set.all %}
-            <tr data-choice-pk="{{ choice.pk }}">
-               <td class="correct">{% if not session.question_filter == 'INCOMPLETE' and not choice.answer_correction %}<i {% if not choice.is_right %}class="far fa-hand-paper"{% endif %}></i>{% endif %}</td>
-               <td class="check">{% if choice.is_right %}<i class="fas fa-check text-success mx-1"></i>{% elif not choice.is_right and choice.answer_correction %}<i class="fas fa-exclamation-triangle text-warning answer-correction-notification mx-1"></i>{% include 'exams/partials/show_answer_correction.html' %}{% elif not choice.is_right %}<i class="fas fa-times text-danger mx-1"></i>{% endif %}</td>
-               <td><input class="question-choice" name="question-choice" type="checkbox"></td>
-               <td><span class="choice-text">{{ choice.text }}</span></td>
+        {% for choice in best_revision.choice_set.select_related_for_session %}
+            <tr data-choice-pk="{{ choice.pk }}" data-is-right="{% if choice.is_right %}true{% else %}false{% endif %}" data-has-correction="false">
+               <td class="correct"><i title="Suggest an alternative right answer" class="far fa-hand-paper"></i></td>
+               <td class="check">{% if choice.is_right %}<i title="Correct answer" class="fas fa-check text-success mx-1"></i>{% elif not choice.is_right %}<i title="Incorrect answer" class="fas fa-times text-danger mx-1"></i>{% endif %}</td>
+               <td><input aria-labelledby="choice-text-{{ choice.pk }}" class="question-choice" name="question-choice" type="checkbox"></td>
+               <td><span id="choice-text-{{ choice.pk }}" class="choice-text">{{ choice.text }}</span></td>
             </tr>
         {% endfor %}
       </tbody>

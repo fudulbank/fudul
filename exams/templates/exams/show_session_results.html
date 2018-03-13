@@ -1,4 +1,4 @@
-{% extends 'base_new.html' %}{% load static %}
+{% extends 'base_new.html' %}{% load cache static %}
 
 {% block title %}Fudul | Session #{{ session.pk }} results{% endblock %}
 
@@ -22,7 +22,7 @@ th, td{
       <li class="breadcrumb-item active">Session #{{ session.pk }} results</li>
 {% endblock %}
 {% block content %}
-
+{% cache CACHE_PERIODS.STABLE show_session_results session.pk %}
 <h1>Session #<a href="{% url 'exams:show_session' session.exam.category.get_slugs session.exam.pk session.pk %}">{{ session.pk }}</a> results</h1>
 
 
@@ -100,6 +100,7 @@ th, td{
           </div>
         </div>
     </div>
+{% endcache %}
 {% endblock %}
 {% block customscript %}
 <script src="{% static 'js/toastr.js' %}"></script>

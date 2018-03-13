@@ -53,7 +53,9 @@ tr td:last-child{
              <td data-html="true" data-toggle="tooltip" title="{{ total_count }} questions on: <ul>{% for subject in session|get_session_subjects %}<li>{{ subject.name }}</li>{% endfor %}</ul>"><a href="{% url 'exams:show_session' category_slugs session.exam.pk session.pk %}">{{ session.exam.name }} ({{ session.pk }})</a></td>
              <td data-order="{{ session.submission_date|date:'U' }}">{{ session.submission_date }}</td>
              <td>{{ total_count }}</td>
-             {% include 'exams/partials/session_score_column.html' %}
+             {% with total=total_count %}
+               {% include 'exams/partials/session_score_column.html' %}
+             {% endwith %}
              <td>
                <div class="dropdown">
                  <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="ft-settings"></i> Actions</button>
@@ -136,8 +138,7 @@ tr td:last-child{
         $deleteConfirmationButton = $("#confirm-delete-session-modal .submit-button")
         $('tbody').on('click','.confirm-delete-session',function () {
             $(this).tooltip("hide");
-            row_node = table.row(this).node();
-            var pk = $(row_node).data('pk');
+            var pk = $(this).data('pk');
             $deleteConfirmationButton.data('pk', pk);
             $("#confirm-delete-session-modal .modal-title").html("Forgive me for session #" + pk);
             $("#confirm-delete-session-modal").modal('show');

@@ -17,13 +17,14 @@ class CustomSignupForm(SignupFormOnlyEmail):
     middle_name = forms.CharField(max_length=30)
     last_name = forms.CharField(max_length=30)
     nickname = forms.CharField(max_length=30,required=False)
-    alternative_email = forms.EmailField()
+    alternative_email = forms.EmailField(required=False)
     institution = forms.CharField(max_length=100)
     college = forms.ModelChoiceField(queryset=models.College.objects.all(),
                                      required=False)
     batch = forms.ModelChoiceField(queryset=models.Batch.objects.all(),
                                    required=False)    
     mobile_number = forms.CharField(max_length=14)
+    primary_interest = forms.ChoiceField(choices=models.primary_interest_choices)
     display_full_name = forms.ChoiceField(choices=models.display_full_name_choices)
 
     def clean(self, *args, **kwargs):
@@ -91,6 +92,7 @@ class CustomSignupForm(SignupFormOnlyEmail):
         user_profile.college = self.cleaned_data.get('college', None)
         user_profile.batch = self.cleaned_data.get('batch', None)
         user_profile.display_full_name = self.cleaned_data['display_full_name']
+        user_profile.primary_interest = self.cleaned_data['primary_interest']
         user_profile.personal_email_unconfirmed = self.cleaned_data['alternative_email']
 
         user_profile.save()

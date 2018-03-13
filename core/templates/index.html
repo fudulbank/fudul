@@ -14,6 +14,23 @@
 #intro a{
 	color: inherit;
 }
+
+#explore-exams {
+	animation-name: explore-exams;
+	animation-duration: 2s;
+	animation-direction: alternate;
+	animation-iteration-count: infinite;
+}
+
+@keyframes explore-exams {
+	0% {
+		color: #404E67;
+	}
+	to {
+		color: #FFCF00;
+	}
+}
+
 </style>
 {% endblock %}
 
@@ -27,18 +44,34 @@
 <div id="intro" class="card">
 	<div class="card-body">
 		<div class="card-block">
-			<p>Fudul is the comprehensive, collective, free-of-charge <strong>question bank</strong> built by and for examiners.</p>
+			<p>Fudul is the comprehensive, collective, free-of-charge <strong>question bank</strong> built by and for examinees.</p>
 		</div>
 		<div class="row justify-content-center">
 			<div class="col-12 col-sm-6 col-md-4">
 				<div class="card height-100 text-center">
-					<div class="card-body">
-            <a href="{% url 'exams:list_meta_categories' %}">
+					<div id="explore-exams" class="card-body">
+						{% if user.profile.primary_interest == 'SMLE' %}
+						<a href="{% url 'exams:create_session' 'LicensingExams' 100 %}">
+							<i class="font-large-3 ft-list"></i>
+							<div class="card-block">
+								<h4 class="card-title">SMLE</h4>
+							</div>
+            </a>
+						{% elif user.profile.primary_interest == 'SNLE' %}
+						<a href="{% url 'exams:create_session' 'LicensingExams' 104 %}">
+							<i class="font-large-3 ft-list"></i>
+							<div class="card-block">
+								<h4 class="card-title">SNLE</h4>
+							</div>
+            </a>
+						{% else %}
+						<a href="{% url 'exams:list_meta_categories' %}">
 							<i class="font-large-3 ft-list"></i>
 							<div class="card-block">
 								<h4 class="card-title">Explore exams</h4>
 							</div>
-            </a>
+						</a>
+						{% endif %}
 					</div>
 				</div>
 			</div>
@@ -84,18 +117,22 @@
 										    </thead>
 										    <tbody>
 										    {% for session in latest_sessions %}
+												{% with total_count=session.get_questions.count %}
 													{% get_user_question_stats session user 'incorrect' as incorrect_count %}
 													{% get_user_question_stats session user 'skipped' as skipped_count %}
 											    <tr>
-											        <td data-html="true" data-toggle="tooltip" title="{{ session.get_questions.count }} questions on: <ul>{% for subject in session|get_session_subjects %}<li>{{ subject.name }}</li>{% endfor %}</ul>">
+											        <td data-html="true" data-toggle="tooltip" title="{{ total_count }} questions on: <ul>{% for subject in session|get_session_subjects %}<li>{{ subject.name }}</li>{% endfor %}</ul>">
 											          {% if session.session_mode == 'SOLVED' or session.session_mode == 'INCOMPLETE' or not session.has_finished %}
 											                  <a href="{% url 'exams:show_session' session.exam.category.get_slugs session.exam.pk session.pk %}"> {{ session.exam.name }} (#{{ session.pk }})</a>
 											          {% else %}
 											                  <a href="{% url 'exams:show_session_results' session.exam.category.get_slugs session.exam.pk session.pk %}"> {{ session.exam.name }} (#{{ session.pk }})</a>
 											          {% endif %}
 											        </td>
-											        {% include 'exams/partials/session_score_column.html' %}
+															{% with total=total_count %}
+													        {% include 'exams/partials/session_score_column.html' %}
+															{% endwith %}
 										      </tr>
+												{% endwith %}
 										    {% endfor %}
 										    </tbody>
 										  </table>
@@ -121,12 +158,12 @@
 									  {% if user.is_superuser %}
 										<p>You have a <strong>superuser</strong> access.  You can do everything. Literally.  <a href="{% url 'exams:list_meta_categories' %}">Go ahead</a>!</p>
 										{% else %}
-									  {% with categories=user|get_user_privileged_categories %}
-									  You are part of the editing team!  You can edit exams under{% if categories.count == 1 %}
-										<a href="{% url 'exams:show_category' categories.first.get_slugs %}">{{ categories.first.name }}</a>.{% else %}:
+									  {% with exams=user|get_user_privileged_exams %}
+									  You are part of the editing team!  You can edit {% if exams.count == 1 %}
+										<a href="{% url 'exams:create_session' exams.first.category.get_slugs exams.first.pk %}">{{ exams.first.name }}</a>.{% else %}:
 										<ul>
-											{% for category in categories %}
-											<li><a href="{% url 'exams:show_category' category.get_slugs %}">{{ category.name }}</a></li>
+											{% for exam in exams %}
+											<li><a href="{% url 'exams:create_session' exam.category.get_slugs exam.pk %}">{{ exam.name }}</a></li>
 											{% endfor %}
 										</ul>
 										{% endif %}

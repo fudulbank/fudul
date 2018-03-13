@@ -7,10 +7,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
         <title>Fudul | {{ session.exam.name }} session #{{ session.pk }}</title>
 
-        <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha384-xBuQ/xzmlsLoJpyjoggmTEz8OWUFM0/RC5BsqQBDX2v5cMvDHcMakNTNrHIW2I5f" crossorigin="anonymous"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-        <script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js" integrity="sha384-0AJY8UERsBUKdWcyF3o2kisLKeIo6G4Tbd8Y6fbyw6qYmn4WBuqcvxokp8m2UzSD" crossorigin="anonymous"></script>
+        <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js" integrity="sha384-0AJY8UERsBUKdWcyF3o2kisLKeIo6G4Tbd8Y6fbyw6qYmn4WBuqcvxokp8m2UzSD" crossorigin="anonymous"></script>
 
         <link rel="shortcut icon" href="{% static 'img/logo-monkey.png' %}">
         <link rel="manifest" href="{% static 'manifest.json' %}">
@@ -19,342 +16,19 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw" crossorigin="anonymous">
         <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
+        <link rel="stylesheet" href="{% static 'css/show_session.css' %}">
         {% include 'partials/piwik.html' %}
-        <style>
-    body, html, #container{
-        height: 100%
-    }
-
-    body{
-        background: #fff;
-        font-size: 17px;
-        line-height: 1.8em;
-        font-family: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        font-weight: 400;
-    }
-
-    #top-info, .tooltip-inner, #footer{
-      background-color: #404E67;
-    }
-
-    .question-body .check [data-fa-i2svg],
-    .question-body .correct [data-fa-i2svg]{
-      visibility: hidden;
-    }
-
-    body[data-session-mode="SOLVED"] .check [data-fa-i2svg],
-    body[data-session-mode="SOLVED"] .correct [data-fa-i2svg],
-    body[data-session-mode="INCOMPLETE"] .check [data-fa-i2svg],
-    body[data-session-mode="INCOMPLETE"] .correct [data-fa-i2svg],
-    body:not([data-session-mode="UNEXPLAINED"]) .question-body[data-was-solved="true"] .check [data-fa-i2svg],
-    body:not([data-session-mode="UNEXPLAINED"]) .question-body[data-was-solved="true"] .correct [data-fa-i2svg],
-    body[data-session-mode="UNEXPLAINED"][data-has-finished="true"] .question-body[data-was-solved="true"] .check [data-fa-i2svg],
-    body[data-session-mode="UNEXPLAINED"][data-has-finished="true"] .question-body[data-was-solved="true"] .correct [data-fa-i2svg]{
-      visibility: visible !important;
-    }
-
-    #results, #end, #back{
-      display: none;
-    }
-
-    body[data-session-mode=INCOMPLETE] #back,
-    body[data-session-mode=SOLVED] #back{
-      display: inline-block;
-    }
-
-    body:not([data-session-mode=INCOMPLETE]):not([data-session-mode=SOLVED])[data-has-finished=true] #results,
-    body:not([data-session-mode=INCOMPLETE]):not([data-session-mode=SOLVED])[data-has-finished=false] #end{
-      display: inline-block;
-    }
-
-    /* Bootstrap tries to reset the font; let's ignore it*/
-    .tooltip{
-      font-family: inherit;
-    }
-
-    .tooltip.bs-tooltip-top .arrow::before{
-      border-top-color: #404E67;
-    }
-
-    .tooltip.bs-tooltip-bottom .arrow::before{
-      border-bottom-color: #404E67;
-    }
-
-    .tooltip.hint.bs-tooltip-right .arrow::before{
-      border-right-color: #FFC107;
-    }
-
-    .tooltip.hint .tooltip-inner{
-      background: #FFC107;
-    }
-
-    .tooltip.hint .tooltip-inner{
-      color: black;
-    }
-
-    #top-info{
-        font-size: 12pt;
-        color: #FFF;
-    }
-
-    .top-question-id {
-        line-height: 15px;
-    }
-
-    .option{
-      cursor: pointer;
-      display: inline-block;
-      padding: 0 10px;
-      /* For mobile devices */
-      height: auto;
-    }
-
-    #open-navigation{
-      cursor: not-allowed;
-    }
-
-    @media (min-width: 576px) {
-      #footer .option{
-        height: 38px;
-      }
-      #top-options .option{
-        height: 32px;
-      }
-    }
-
-    .separator{
-        color: yellow;
-    }
-
-    #top-options  {
-        background-color: #929EB4;
-        border-top: 1px solid #fff;
-        line-height: 32px;
-    }
-
-    #mark.marked{
-        font-weight: 700;
-        padding: 0 9px;
-        color: yellow;
-    }
-
-    #footer {
-        color: #fff;
-        line-height: 36px;
-        font-size: 12pt;
-        bottom: 0;
-        position: fixed;
-        border-top: solid 2px #fff;
-        border-bottom: solid 2px #404E67;
-        width: 100%;
-    }
-
-    /* Styling the exam name and "results" (which is a direct link) */
-    #top-info a, a.option, #help-me-tooltip a{
-        color: white;
-    }
-
-    #top-info a:hover, a.option:hover, #help-me-tooltip a:hover{
-        text-decoration: none;
-    }
-
-    #contributors{
-      cursor:zoom-in;
-    }
-
-    .strike{
-        text-decoration: line-through;
-    }
-
-    td.check, td.correct{
-      width: 17px;
-    }
-
-    .highlight {
-        background: yellow;
-    }
-
-    .question-body[data-was-solved="false"] .highlight{
-        cursor: pointer;
-    }
-
-    .choice-text, .option, .navbar-brand, .mobile-slide{
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-    }
-
-    .question-choice {
-        margin-right: 10px !important;
-        word-wrap: break-word;
-    }
-
-    #submit, #explain, #add-mnemonics{
-        margin-top: 20px;
-    }
-    #add-mnemonics{
-        margin-left: 2%;
-    }
-
-    #submit{
-        margin-left: 9px;
-        background: #0067A9;
-        color: #fff;
-        font-size: 12pt;
-        font-family: Arial, Verdana, Helvetica;
-    }
-
-    .tooltip-container, #mark-loading, .explanation-container, #explain, #submit, #contribute, #add-mnemonics,.answer-correction-tooltip-container,.mnemonics-container{
-      display: none;
-    }
-
-    #question-container{
-      margin-top: 20px;
-    }
-
-    #question-total, #question-sequence{
-      display: inline-block;
-    }
-
-    .question-body{
-      display: none;
-    }
-
-    .question-body.show{
-      display: block;
-    }
-
-    .question-body .choice-table tbody.unprepared,
-    #question-pool:not(.choices-were-animated) .choice-table tbody{
-      visibility: hidden;
-    }
-
-    .explanation-container,.mnemonics-container{
-      margin-top: 20px;
-    }
-
-    .explanation-content{
-      overflow-x: auto;
-    }
-
-    .explanation-reference-header{
-      font-size: 1.2rem;
-    }
-
-    .brand-logo{
-      vertical-align: sub;
-    }
-    .brand-text{
-      display: inline;
-      padding-left: 10px;
-      color: #c8c8c8;
-      font-family: "Montserrat", Georgia, "Times New Roman", Times, serif;
-      letter-spacing: 1px;
-      font-size: 1.74rem;
-      font-weight: 500;
-    }
-
-    .question-body.show, #submit{
-      z-index: 2;
-      position: relative;
-    }
-
-    #top-info, #top-options, #footer{
-      z-index: 3;
-    }
-
-    #top-info, #top-options{
-      position: relative;
-    }
-
-    #normal-values{
-        align-items: center;
-    }
-
-    .answer-correction-header{
-      display: -ms-flexbox;
-      display: flex;
-      -ms-flex-align: center;
-      align-items: center;
-      -ms-flex-pack: justify;
-      justify-content: space-around;
-      padding: 5px;
-    }
-
-    .answer-correction-header .title{
-      margin-bottom: 0
-    }
-
-    .answer-correction-header .delete{
-      padding: 5px;
-      margin: -5px -5px -5px auto;
-      background: 0 0;
-      border: 0;
-    }
-
-    /*Any list within a tooltip should be left-aligned*/
-    .tooltip-inner ul{
-      text-align: left;
-    }
-
-    /*By default, Bootstrap has a maximum of 200px, but we look prettier at 250px*/
-    .tooltip-inner{
-      max-width: 250px
-    }
-    .circle {
-       width: 20px;
-       height: 20px;
-       background: lightblue;
-       -moz-border-radius: 10px;
-       -webkit-border-radius: 10px;
-       border-radius: 10px;
-       text-align: center;
-       line-height:15px;
-       color: white;
-       float: right;
-
-    }
-
-    #keyboard-instructions th{
-      text-align: center;
-    }
-
-    #keyboard-instructions td{
-      text-align: left;
-    }
-
-    #keyboard-instructions th, #keyboard-instructions td{
-      padding-bottom: 0.5rem;
-    }
-
-    @keyframes keyboard-hint {
-       0% {
-        color: black;
-       }
-       50% {
-        color: black;
-       }
-       100% {
-        color: yellow;
-       }
-    }
-    #keyboard-hint.animated{
-       animation:keyboard-hint 3s ease-in infinite alternate
-    }
-
-  </style>
     </head>
-    <body data-session-mode="{{ session.session_mode }}" data-has-finished="{% if session.has_finished %}true{% else %}false{% endif %}">
+    <body data-session-mode="{{ session.session_mode }}" data-has-finished="false">
     <div class="container-fluid" id="container">
         <div id="top-info" class="row align-items-center">
             <div class ="col-sm-3 text-sm-left text-center">
-              <a href="/" class="navbar-brand">
+              <a href="/" class="navbar-brand mt-2 mt-sm-0">
                 <img alt="Fudul logo" src="{% static 'img/logo-monkey.png' %}" class="img-fluid brand-logo">
                 <h2 class="brand-text">Fudul</h2></a>
             </div>
-            <div class="ml-auto col-sm-6 text-center"> <a target="_blank" href="{% url 'exams:create_session' category_slugs session.exam.pk %}">{{ session.exam.name }}</a> <span class="separator">•</span> Session id: <span id="session-pk">{{ session.pk }}</span> <span class="d-none d-sm-inline">({{ session.get_session_mode_display }})</span><br> Question id: <a target="_blank" href="{% url 'exams:list_revisions' category_slugs session.exam.pk current_question.pk %}" id="question-pk">{{ current_question.pk }}</a> </div>
-            <div class="col-sm-3 top-question-id font-weight-bold text-sm-right text-center my-2 mb-sm-0"><i class="fas fa-spinner fa-pulse fa-fw mr-1" id="question-loading" title="Loading session questions..."></i><div id="question-sequence">{{ current_question_sequence }}</div> of <div id="question-total">{{ session.get_questions.count }}</div></div>
+            <div class="col-sm-6 text-center"> <a target="_blank" href="{% url 'exams:create_session' category_slugs session.exam.pk %}">{{ session.exam.name }}</a> <span class="separator">•</span> Session id: <span id="session-pk">{{ session.pk }}</span> <span class="d-none d-sm-inline">({{ session.get_session_mode_display }})</span><br> Question id: <a target="_blank" href="{% url 'exams:list_revisions' category_slugs session.exam.pk current_question.pk %}" id="question-pk">{{ current_question.pk }}</a> </div>
+            <div class="col-sm-3 top-question-id font-weight-bold text-sm-right text-center my-2 mb-sm-0"><i class="fas fa-spinner fa-pulse fa-fw mr-1" id="question-loading" title="Loading session questions..."></i><div id="question-sequence"></div> of <div id="question-total"></div></div>
         </div><!--top-info-->
         <div id="top-options" class="row text-center">
           <div class="col-6 text-sm-left">
@@ -391,11 +65,9 @@
           <div id="question-col" class="col-8 col-sm-10 col-lg-12 px-0 px-lg-5 order-2">
             <div id="question-container">
               <div id="question-pool">
-                {% for question in initial_questions %}
-                {% with question_sequence=forloop.counter0|add:initial_question_sequence_start %}
+                {% with question=current_question %}
                  {% include 'exams/partials/session_question.html' %}
                 {% endwith %}
-                {% endfor %}
               </div>
               <button type="button" id="submit" class="btn">Submit <i class="fas fa-angle-right"></i></button>
               <div class="row">
@@ -419,7 +91,7 @@
                  <div data-action="previous" data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> You can also <span class='d-inline d-sm-none'>tap the left screen side</span><span class='d-none d-sm-inline'>press the left keyboard arrow (<kbd>←</kbd>)</span> to go back." id="previous" class="float-left float-sm-none option"><i class="fas fa-chevron-circle-left"></i> Previous</div>
               </div>
               <div class="col-sm-auto col-2">
-                 <div id="open-navigation" data-toggle="tooltip" data-html="true" data-title="Give us a second!  We are loading all questions for you. <img height='17' alt='🐣' src='https://cdnjs.cloudflare.com/ajax/libs/emojione/2.2.7/assets/png/1f423.png'>" class="option"><i class="fas fa-list" style="font-weight: 400;"></i> <span class="d-none d-sm-inline">Navigate</span></div>
+                 <div id="open-navigation" data-toggle="tooltip" data-html="true" data-title="Give us a second!  We are loading all questions for you. <img height='17' alt='🐣' src='https://cdnjs.cloudflare.com/ajax/libs/emojione/2.2.7/assets/png/1f423.png'>" class="option"><i class="fas fa-list"></i> <span class="d-none d-sm-inline">Navigate</span></div>
               </div>
               <div class="col-sm-auto col-5">
                  <div data-action="next" data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> You can also <span class='d-inline d-sm-none'>tap the right screen side</span><span class='d-none d-sm-inline'>press the right keyboard arrow (<kbd>→</kbd>)</span> to go next." id="next" class="float-right float-sm-none option">Next <i class="fas fa-chevron-circle-right"></i></div>
@@ -428,12 +100,41 @@
           </div>
       </div><!--footer-->
     </div><!--container-fluid-->
+        <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha384-xBuQ/xzmlsLoJpyjoggmTEz8OWUFM0/RC5BsqQBDX2v5cMvDHcMakNTNrHIW2I5f" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
         <script src="{% static 'js/toastr.js' %}"></script>
+        <script src="{% url 'js_reverse' %}"></script>
         <script>
-    MARKED_QUESTIONS = {{ marked_questions_list }};
-    INITIAL_QUESTIONS = [];
-    PREVIOUS_ANSWERS = null;
+    // Keys represent PKs.  Values represent global_sequences.
+    SESSION_QUESTIONS = {{ session_question_pks|safe }};
+    CATEGORY_SLUGS = '{{ category_slugs }}';
+    EXAM_PK = {{ session.exam.pk }};
+    SESSION_PK = {{ session.pk }};
+    SESSION_MODE = '{{ session.session_mode }}';
+    USER_FIRST_NAME = "{{ user.profile.first_name }}";
+
+    SESSION_QUESTION_PKS = Object.keys(SESSION_QUESTIONS).map(function(x){ return parseInt(x)})
+    SESSION_QUESTION_GLOBAL_SEQUENCES = SESSION_QUESTION_PKS.map(function(x){ return SESSION_QUESTIONS[x] }).sort(function(a, b){ return a - b});
+    // Sort SESSION_QUESTION_PKS per their global_sequences, if those
+    // do not include any null values.  Otherwise, sort per pks.
+    if (SESSION_QUESTION_GLOBAL_SEQUENCES.indexOf(null) != -1){
+      SESSION_QUESTION_PKS = SESSION_QUESTION_PKS.sort(function(a, b){return SESSION_QUESTIONS[a] - SESSION_QUESTIONS[b]});
+    } else {
+      SESSION_QUESTION_PKS = SESSION_QUESTION_PKS.sort(function(a, b){return a - b});
+    }
+    SESSION_QUESTION_TOTAL = SESSION_QUESTION_PKS.length;
     PREVIOUS_HIGHLIGHTS = null;
+    PREVIOUS_CORRECTIONS = null;
+    MARKS = null;
+    ANSWERS = null;
+    has_constructed_navigation = false;
+
+    // Common selectors
+    $markButton = $("#mark");
+    $submitButton = $("#submit");
+
+    fetched_indexes = [];
     toastr.options.positionClass = "toast-top-left";
     toastr.options.preventDuplicates = true;
     active_keys = {};
@@ -444,14 +145,7 @@
     isTablet = navigator.userAgent.match(/iPad/i) != null || (navigator.userAgent.match(/Android/i) != null && navigator.userAgent.match(/Mobile/i) == null);
     isMobile = navigator.userAgent.match(/iPhone/i) != null || (navigator.userAgent.match(/Android/i) != null && navigator.userAgent.match(/Mobile/i) != null);
 
-    function updateData(){
-        current_sequence =  parseInt($("#question-sequence").html());
-        data = {question_pk: $(".question-body.show").data('question-pk'),
-                session_pk: $("#session-pk").html()}
-    }
-
     function handleMarked(is_marked){
-        $markButton = $("#mark");
         if (is_marked){
             $markButton.addClass("marked");
         } else {
@@ -459,30 +153,90 @@
         }
     }
 
-    function showQuestion(targeted_sequence, targeted_url){
-      if (targeted_sequence){
-        $question = $("#question-pool [data-question-sequence=" + targeted_sequence + "]")
-        history.pushState({url: $question.data('url')}, '', $question.data('url'));
+    function showQuestion(target, is_initial){
+      // 'target' could either be a question-sequence or url.  First,
+      // let's check sequence, then URL.
+      $current_question = $("#question-pool [data-question-sequence=" + target + "]")
+      if ($current_question.length){
+        if (is_initial){
+          history.replaceState({url: $current_question.data('url')}, '', $current_question.data('url'));
+        } else {
+          history.pushState({url: $current_question.data('url')}, '', $current_question.data('url'));
+        }
         // Update Piwik URL
         _paq.push(['setCustomUrl', window.location.href]);
-      } else if (targeted_url){
-        $question = $("#question-pool [data-url=\"" + targeted_url + "\"]");
+      } else {
+        $current_question = $("#question-pool [data-url=\"" + target + "\"]");
       }
+
+      // If question is still unfound despite looking by URL,
+      // fetch it.
+      if (!$current_question.length) {
+        question_set_start_index = Math.floor(target / 50) * 50
+        fetchList(question_set_start_index, target);
+        return
+      }
+
       // Add 'show' class to the current question
-      $question.addClass("show");
+      $current_question.addClass("show");
       // Remove 'show' class from other questions
-      $(".question-body").not($question).removeClass('show');
-      $("#question-sequence").html($question.data('question-sequence'));
-      $("#question-pk").html($question.data('question-pk'));
-      list_revision_url = $question.data('list-revision-url')
-      $("#question-pk").attr('href', list_revision_url);
-      updateData();
+      $(".question-body").not($current_question).removeClass('show');
+      // The following is intentionally a global variable.
+      current_sequence = $current_question.data('question-sequence');
+      $("#question-sequence").html(current_sequence);
+      var list_revision_url = $current_question.data('list-revision-url')
+      $("#question-pk").html($current_question.data('question-pk'))
+                       .attr('href', list_revision_url);
+
       initializeInteractions();
+
+      // We will fetch questions in two cases:
+      //   1) If this is the initial question, fetch its question set.
+      //   2) If this is the initial question and 10 questions away or less from previous or next question set, fetch either.
+      //   3) If this is not the initial question, and we are 10 questions away from it, fetch the next question set.
+
+      var current_set_start_index = Math.floor(current_sequence / 50) * 50
+      var next_set_start_index = (Math.floor(current_sequence / 50) + 1) * 50
+      var previous_set_start_index = (Math.floor(current_sequence / 50) - 1) * 50
+      var previous_set_end_index = current_set_start_index - 1
+
+      if (next_set_start_index >= SESSION_QUESTION_TOTAL){
+        next_set_start_index = null;
+      }
+      if (0 > previous_set_start_index){
+        previous_set_start_index = null;
+      }
+
+      if (is_initial){
+        fetchList(current_set_start_index)
+      }
+
+      if (
+        (is_initial &&
+         next_set_start_index &&
+         current_sequence >= (next_set_start_index - 10)) ||
+         (!is_initial &&
+          next_set_start_index &&
+          current_sequence == (next_set_start_index - 10))
+        ){
+          fetchList(next_set_start_index)
+      }
+
+      if (
+        (is_initial &&
+         previous_set_start_index !== null &&
+         current_sequence <= (previous_set_end_index + 10)) ||
+         (!is_initial &&
+          previous_set_start_index !== null &&
+          current_sequence == (previous_set_end_index + 10))
+        ){
+          fetchList(previous_set_start_index)
+      }
     }
 
     window.onpopstate = function(event) {
       if (event.state){
-        showQuestion(null, event.state.url)
+        showQuestion(event.state.url)
       }
     };
 
@@ -496,7 +250,7 @@
             $(this).removeClass().css('color', '');
           });
           return
-        } else if (current_sequence == total && action == 'next'){
+        } else if (current_sequence == SESSION_QUESTION_TOTAL && action == 'next'){
           $("#question-total").addClass("animated flash").css('color', 'yellow');
           $("#question-total").one(animation_events, function(){
             $(this).removeClass().css('color', '');
@@ -512,10 +266,10 @@
 
         // If question sequence has not been loaded yet, prevent
         // and highlight the question-loading spinner
-        $question = $("#question-pool [data-question-sequence=" + targeted_sequence + "]")
-        if (!$question.length){
+        $current_question = $("#question-pool [data-question-sequence=" + targeted_sequence + "]")
+        if (!$current_question.length){
           _paq.push(['trackEvent', 'show_session', 'navigation', 'navigate-unloaded']);
-          toastr.warning("You're super fast, {{ user.profile.first_name }}!  Give us a second to bring question #" + targeted_sequence.toString() + ".");
+          toastr.warning("You're super fast, " + USER_FIRST_NAME  + "!  Give us a second to bring question #" + targeted_sequence.toString() + ".");
           $("#question-loading").addClass("animated flash").css('color', 'yellow');
           return
         }
@@ -533,20 +287,37 @@
         $.ajax({
             url: "{% url 'exams:toggle_marked' %}",
             type: 'POST',
-            data: data,
+            data: {session_pk: SESSION_PK,
+                   question_pk: $current_question.data('question-pk')},
             cache: false,
             success: function(data){
-               $question = $(".question-body.show");
-               $question_row = $('.navigate-row[data-question-sequence="' + current_sequence + '"]');
-               $question.data('is-marked', data.is_marked);
+               var question_pk = $current_question.data('question-pk');
+               var marked_index = MARKS.indexOf(question_pk);
+               $current_question.data('is-marked', data.is_marked);
                handleMarked(data.is_marked);
                if (data.is_marked){
-                 $question_row.find('td.is_marked').html(is_marked_markup);
+                 if (marked_index == -1){
+                   MARKS.push(question_pk)
+                 }
                  _paq.push(['trackEvent', 'show_session', 'mark-question', 'add-mark']);
                } else {
-                 $question_row.find('td.is_marked').html("");
+                 if (marked_index != -1){
+                   MARKED.slice(marked_index, 1);
+                 }
                  _paq.push(['trackEvent', 'show_session', 'mark-question', 'remove-mark']);
                }
+
+               // If we have a navigation table, let's update it.
+               // Otherwise, let's save the DOM queries.
+               if (has_constructed_navigation){
+                 var $question_row = $('.navigate-row[data-question-sequence="' + current_sequence + '"]');
+                 if (data.is_marked){
+                   $question_row.find('td.is_marked').html(is_marked_markup);
+                 } else {
+                   $question_row.find('td.is_marked').html("");
+                 }
+               }
+
                $("#mark-icon").show();
                $("#mark-loading").hide();
 
@@ -583,23 +354,23 @@
             var replacementHtml = replacement.prop('outerHTML');
             $(this).html($(this).html().replace(escapedSelection, replacementHtml));
             // Bind only once
-            $(".question-body.show .highlight").off('click').on('click', removeHighlight);
+            $current_question.find(".highlight").off('click').on('click', removeHighlight);
             submitHighlight();
         }
 
     }
 
     function updateCorrectionTooltip(html, choice_pk){
-      pk_selector = "[data-choice-pk=" + choice_pk + "]";
-      $choice_row = $(".question-body tr" + pk_selector);
-      $choice_row.find('.answer-correction-notification').tooltip('dispose');
-      $choice_row.find(".answer-correction-tooltip-container").remove();
-      $choice_row.find('.check').append(html);
+      var pk_selector = "[data-choice-pk=" + choice_pk + "]";
+      var $choice_row = $(".question-body tr" + pk_selector);
+      $choice_row.data('has-correction', true).attr('data-has-correction', 'true');
+      var notification = '<i class="fas fa-exclamation-triangle text-warning answer-correction-notification mx-1"></i>';
+      $choice_row.find('.check').html(notification + html);
     }
 
-    function initializeMnemonicInteractions($question){
-      question_pk = $question.data('question-pk');
-      $question.find(".like-mnemonic").off('click').on('click', function() {
+    function initializeMnemonicInteractions(){
+      var question_pk = $current_question.data('question-pk');
+      $current_question.find(".like-mnemonic").off('click').on('click', function() {
            action = $(this).data('action');
            mnemonic_pk = $(this).data('mnemonic-pk');
            url = "{% url 'exams:contribute_mnemonics' %}?" + $.param({question_pk: question_pk});
@@ -611,15 +382,14 @@
                success: function(data){
                  if (data.success == 1){
                    toastr.success("Your vote was submitted.");
-                   $(".question-body.show .mnemonics-content").html(data.mnemonic_html);
-
+                   $current_question.find(".mnemonics-content").html(data.mnemonic_html);
                  } else {
                    toastr.error(data.message)
                  }
                }
            });
       });
-      $question.find(".delete-mnemonic").off('click').on( 'click', function() {
+      $current_question.find(".delete-mnemonic").off('click').on( 'click', function() {
            action = $(this).data('action');
            mnemonic_pk = $(this).data('mnemonic-pk');
            url = "{% url 'exams:contribute_mnemonics' %}?" + $.param({question_pk: question_pk});
@@ -631,7 +401,7 @@
                success: function(data){
                  if (data.success == 1){
                    toastr.success("Your mnemonic is deleted.");
-                   $(".question-body.show .mnemonics-content").html(data.mnemonic_html);
+                   $current_question.find(".mnemonics-content").html(data.mnemonic_html);
 
 
                  } else {
@@ -642,99 +412,37 @@
       });
     }
 
-    function initializeCorrectionInteractions($question){
+    function initializeCorrectionInteractions(){
       // Here, we are selecting the SVG (i.e. '[data-fa-i2svg]')
       // within the '.correct' cell
-      $question.off('click', '.correct [data-fa-i2svg]')
-               .on('click', '.correct [data-fa-i2svg]', function () {
+      $current_question.off('click', '.correct [data-fa-i2svg]')
+                       .on('click', '.correct [data-fa-i2svg]', function () {
           _paq.push(['trackEvent', 'show_session', 'answer_correction', 'click-correct']);
           $("#correct-answer-modal").modal('show');
           choice_pk = $(this).closest('tr').data('choice-pk');
           url = "{% url 'exams:correct_answer' %}?" + $.param({choice_pk: choice_pk});
           $("#correct-answer-modal .modal-body").load(url);
       });
-
-      $question.find('.delete').off('click').on('click', function(){
-        choice_pk = $(this).data('choice-pk');
-        url = "{% url 'exams:delete_correction' %}?" + $.param({choice_pk: choice_pk})
-        pk_selector = "[data-choice-pk=" + choice_pk + "]";
-        $choice_row = $(".question-body tr" + pk_selector);
-        $(this).tooltip('hide');
-        $choice_row.find('.answer-correction-notification').tooltip('dispose');
-
-        $.ajax({
-            url: url,
-            type: 'POST',
-            success: function(data){
-              if (data.success == 1){
-                toastr.success("Your correction was removed.")
-                if (data.correction_html){ // if we have a new submitter
-                  updateCorrectionTooltip(data.correction_html, choice_pk);
-                } else {
-                  // Before there was a correction, it was marked as a wrong answer
-                  $choice_row.find('.check').html(wrong_answer_markup);
-                }
-              } else {
-                toastr.error(data.message)
-              }
-            }
-        });
-      });
-
-      $question.find(".support-correction, .oppose-correction").off('click').click(function(){
-        action = $(this).data('action');
-        choice_pk = $(this).data('choice-pk');
-        url = "{% url 'exams:correct_answer' %}?" + $.param({choice_pk: choice_pk})
-        _paq.push(['trackEvent', 'show_session', 'answer_correction', 'delete-notification']);
-
-        $.ajax({
-            url: url,
-            type: 'POST',
-            data: {'action': action},
-            success: function(data){
-              if (data.success == 1){
-                toastr.success("Your vote was submitted.")
-                updateCorrectionTooltip(data.correction_html, choice_pk);
-              } else {
-                toastr.error(data.message)
-              }
-            }
-        });
-      });
-
-      $question.off('click', '.answer-correction-notification[data-fa-i2svg]')
-               .on('click', '.answer-correction-notification[data-fa-i2svg]', function(){
-                 _paq.push(['trackEvent', 'show_session', 'answer_correction', 'click-notification']);
-                 $('.answer-correction-notification').not(this).tooltip('hide');
-
-                 // We clone the tooltip to allow re-initlizations.
-                 // We pass 'true' to copy events
-                 tooltip = $(this).closest("td").find('.answer-correction-tooltip-body').clone(true).get(0);
-                 $(this).tooltip('dispose')
-                        .tooltip({html: true,
-                                  trigger: 'click',
-                                  title: tooltip})
-                        .tooltip('show');
-      });
     }
 
     function controlExplanation(){
-      was_solved = $(".question-body.show").data('was-solved');
-      if (!was_solved || (session_mode == 'UNEXPLAINED' && !$('body').data('has-finished'))){
-        $(".question-body.show .explanation-container, #explain").hide()
+      was_solved = $current_question.data('was-solved');
+      if (!was_solved || (SESSION_MODE == 'UNEXPLAINED' && !$('body').data('has-finished'))){
+        $current_question.find(".explanation-container").hide()
+        $("#explain").hide()
       }
-      else if ($('.question-body.show .explanation-content').text().trim().length){
+      else if ($current_question.find(".explanation-content").text().trim().length){
         $("#explain").show().html('<i class="fas fa-cubes"></i> Improve this explanation!');
-        $(".question-body.show .explanation-container").show();
+        $current_question.find(".explanation-container").show();
       }
       else {
-        $(".question-body.show .explanation-container").hide();
+        $current_question.find(".explanation-container").hide();
         $("#explain").show().html("Add an explanation!");
       }
     }
     function controlMnemonic(){
-      was_solved = $(".question-body.show").data('was-solved');
-      if (!was_solved || (session_mode == 'UNEXPLAINED' && !$('body').data('has-finished'))){
+      was_solved = $current_question.data('was-solved');
+      if (!was_solved || (SESSION_MODE == 'UNEXPLAINED' && !$('body').data('has-finished'))){
         $(".mnemonics-container, #add-mnemonics").hide()
       } else if( $.trim( $('.mnemonics-content').text() ).length ) {
         $("#add-mnemonics").show().html('<i class="fas fa-book"></i> Add a mnemonic !');
@@ -742,6 +450,16 @@
       } else {
         $(".mnemonics-container").hide();
         $("#add-mnemonics").show().html('<i class="fas fa-book"></i> Add another mnemonic!');
+      }
+    }
+
+    function controlSessionFinished(){
+      // Check whether we have any unsolved questions. Changing
+      // data-has-finished to true will cause expalantions to show
+      // right away in UNEXPLAINED sessions.
+      // This also affects #results and #end buttons.
+      if (ANSWERS && Object.keys(ANSWERS).length >= SESSION_QUESTION_TOTAL){
+        $('body').data('has-finished', true).attr('data-has-finished', 'true');
       }
     }
 
@@ -755,7 +473,7 @@
       // to be applied.
       $("#next").tooltip('dispose');
 
-      if (current_sequence == total){
+      if (current_sequence == SESSION_QUESTION_TOTAL){
         $("#next").css('cursor', 'not-allowed');
         // select whatever button that's visible
         button_name = $("#end:visible, #results:visible").html();
@@ -776,28 +494,31 @@
 
     function highlightActiveRow(){
       // Mark row as active
-      question_row = $('.navigate-row[data-question-sequence="' + current_sequence + '"]');
-      question_row.addClass('table-active');
-      $('.navigate-row').not(question_row).removeClass('table-active');
+      var $question_row = $('.navigate-row[data-question-sequence="' + current_sequence + '"]');
+      $question_row.addClass('table-active');
+      $('.navigate-row').not($question_row).removeClass('table-active');
+    }
+
+    function disableHighlightInteractions(){
+      $current_question.off('click', '.highlight')
+      $current_question.find(".choice-text").off('click')
+      $current_question.find(".question-text").off('mouseup touchend')
     }
 
     function initializeInteractions() {
-        // Check whether we have any unsolved questions. Changing
-        // data-has-finished to true will cause expalantions to show
-        // right away in UNEXPLAINED sessions.
-        // This also affects #results and #end buttons.
-        if ($('#question-loading:hidden').length  && !$('.question-body[data-was-solved="false"]').length){
-          $('body').data('has-finished', true).attr('data-has-finished', true);
-        }
+        // $current_question is defined in showQuestion
+        $current_question.find('[data-toggle="tooltip"]').tooltip();
 
-        $question = $(".question-body.show");
-        $question.find('[data-toggle="tooltip"]').tooltip();
-
-        initializeCorrectionInteractions($question);
-        initializeMnemonicInteractions($question);
-        highlightActiveRow();
+        initializeCorrectionInteractions();
+        initializeMnemonicInteractions();
         controlNavigationButtons();
-        handleMarked($question.data('is-marked'));
+        handleMarked($current_question.data('is-marked'));
+
+        // If we have a navigation table, let's update it.
+        // Otherwise, let's save the DOM queries.
+        if (has_constructed_navigation){
+          highlightActiveRow();
+        }
 
         // Show contributors as a tooltip
         $("#contributors").tooltip('dispose');
@@ -806,31 +527,31 @@
       	});
         $("#contributors").tooltip({html: true,
                                     trigger: 'click',
-                                    title: $(".question-body.show .tooltip-body").get(0)})
+                                    title: $current_question.find(".tooltip-body").get(0)})
 
         // Disable interaction if question was solved.
 
         controlExplanation();
         controlMnemonic();
-        was_solved = $question.data('was-solved');
+        was_solved = $current_question.data('was-solved');
         if (was_solved){
           $("#contribute,#add-mnemonics").show();
-          $("#submit").hide();
-          $question.off('click', '.highlight')
-          $question.find(".question-choice").prop("disabled", "disabled");
+          $submitButton.hide();
+          disableHighlightInteractions();
+          $current_question.find(".question-choice").prop("disabled", "disabled");
         } else {
             $("#contribute,#add-mnemonics").hide();
-            $("#submit").show();
+            $submitButton.show();
             // We turn off handlers first to ensure they don't get
             // triggered more than once as the user navigates and
             // binds the handlers.
-            $question.find(".question-text").off('mouseup touchend').on('mouseup touchend', highlightText);
-            $question.find(".question-choice").off('change').on('change', toggleChoices);
+            $current_question.find(".question-text").off('mouseup touchend').on('mouseup touchend', highlightText);
+            $current_question.find(".question-choice").off('change').on('change', toggleChoices);
             // We use event delegation as highlights could be added
             // after firing initializeInteractions.
-            $question.off('click', '.highlight')
-                     .on('click', '.highlight', removeHighlight);
-            $(".question-body.show .choice-text").off('click').on('click', function() {
+            $current_question.off('click', '.highlight')
+                             .on('click', '.highlight', removeHighlight);
+            $current_question.find(".choice-text").off('click').on('click', function() {
                 if (!$(this).hasClass("strike")){
                    // If a choice is striked, it is no longer checked.
                     $(this).closest("tr").find(".question-choice").prop('checked', false).trigger('change');
@@ -842,10 +563,14 @@
     }
 
     function submitHighlight(){
-      data.best_latest_revision_pk = $(".question-body.show").data('best-latest-revision-pk');
-      data.highlighted_text = $(".question-body.show .question-text").html();
-      stricken_choice_pks = $('.question-body.show .choice-text.strike').map(function(){return $(this).closest('tr').data('choice-pk')}).get();
-      data.stricken_choice_pks = JSON.stringify(stricken_choice_pks);
+      var stricken_choice_pks = $current_question.find(".choice-text.strike").map(function(){return $(this).closest('tr').data('choice-pk')}).get();
+      stricken_choice_pks = JSON.stringify(stricken_choice_pks);
+
+      var data = {best_revision_pk: $current_question.data('best-latest-revision-pk'),
+                  highlighted_text: $current_question.find(".question-text").html(),
+                  stricken_choice_pks: stricken_choice_pks,
+                  session_pk: SESSION_PK,
+                  question_pk: $current_question.data('question-pk')}
 
       $.ajax({
           url: "{% url 'exams:submit_highlight' %}",
@@ -856,29 +581,34 @@
 
     function submitChoice() {
         $(this).hide();
-        $question = $(".question-body.show");
 
         // if question was previously solved, don't submit.
-        if ($question.data('was-solved')){
+        if ($current_question.data('was-solved')){
           return
         }
         // Mark question as solved
         // We also set was-solved using .attr() to change the DOM and
         // be able to apply CSS.
-        $question.data('was-solved', true).attr('data-was-solved', true);
-        question_row = $('.navigate-row[data-question-sequence="' + current_sequence + '"]');
-        question_row.find('td.was_solved').html(was_solved_markup);
+        $current_question.data('was-solved', true).attr('data-was-solved', 'true');
+
+
+        // If we have a navigation table, let's update it.
+        // Otherwise, let's save the DOM queries.
+        if (has_constructed_navigation){
+          var $question_row = $('.navigate-row[data-question-sequence="' + current_sequence + '"]');
+          $question_row.find('td.was_solved').html(was_solved_markup);
+        }
 
         // Disable choices upon submission
-        $question.find(".question-choice").prop("disabled", "disabled")
+        $current_question.find(".question-choice").prop("disabled", "disabled")
         // Disable interactions after submission.  As for highlights,
         // we use event delegation to handle potential addition of
         // highlights afterwards (i.e. as a result of delayed
         // network).
-        $question.off('click', '.highlight')
-        $question.find(".question-text, .question-choice, .choice-text").off();
+        $current_question.off('click', '.highlight')
+        $current_question.find(".question-text, .question-choice, .choice-text").off();
 
-        $checkedChoice = $question.find(".question-choice:checked");
+        $checkedChoice = $current_question.find(".question-choice:checked");
 
         // Do we have a choice, or was it skipped?
         if ($checkedChoice.length) {
@@ -903,7 +633,14 @@
         } else {
             choice_pk = null;
         }
-        data.choice_pk = choice_pk;
+
+        var question_pk = $current_question.data('question-pk')
+        ANSWERS[question_pk] = choice_pk;
+        controlSessionFinished();
+
+        var data = {session_pk: SESSION_PK,
+                    question_pk: question_pk,
+                    choice_pk: choice_pk}
 
         $.ajax({
             url: "{% url 'exams:submit_answer' %}",
@@ -918,6 +655,7 @@
 
                     controlExplanation();
                     controlMnemonic();
+                    disableHighlightInteractions();
                     $("#contribute,#add-mnemonics").show();
                 } else {
                   toastr.error(data.message);
@@ -952,13 +690,13 @@
         	_paq.push(['trackEvent', 'show_session', 'navigation', 'keyboard-next']);
         } else if (active_keys[18] && active_keys[77]) { // alt + m
           _paq.push(['trackEvent', 'show_session', 'mark-question', 'keyboard-mark']);
-          $('#mark').trigger('click');
+          $markButton.trigger('click');
         } else if (active_keys[18] && active_keys[85]) { // alt + u
           _paq.push(['trackEvent', 'show_session', 'find-pending', 'keyboard-pending']);
-          if (session_mode == 'SOLVED' || session_mode == 'INCOMPLETE'){
+          if (SESSION_MODE == 'SOLVED' || SESSION_MODE == 'INCOMPLETE'){
             return
           }
-          question_sequence = $('.question-body[data-was-solved=false]').data('question-sequence');
+          var question_sequence = $('.question-body[data-was-solved=false]').data('question-sequence');
           if (question_sequence){
             showQuestion(question_sequence);
           } else {
@@ -966,12 +704,13 @@
           }
         } else if (active_keys[17] && active_keys[13]) { // ctrl + enter
           _paq.push(['trackEvent', 'show_session', 'mark-question', 'keyboard-submit']);
-          $("#submit").trigger('click');
+          $submitButton.trigger('click');
         } else if (active_keys[17] && active_keys[38] || active_keys[17] && active_keys[40]){ // ctrl + up or ctrl + down
-          total_choices = $('.question-body.show .question-choice').length
-          $checked_choice = $('.question-body.show .question-choice:enabled:checked')
+          e.preventDefault() // prevent arrow scroll.
+          total_choices = $current_question.find(".question-choice").length
+          $checked_choice = $current_question.find(".question-choice:enabled:checked")
           if ($checked_choice.length){
-            choice_index = $('.question-body.show .question-choice').index($checked_choice);
+            choice_index = $current_question.find(".question-choice").index($checked_choice);
             if (active_keys[38] && choice_index == 0){ // Up while at top
               // We are at the topmost choice, we cannot go up.
               return
@@ -991,7 +730,7 @@
             // If no choice is already checked, arrows always select the first choice.
             target_index = 0;
           }
-          target_choice = $('.question-body.show .question-choice:enabled').get(target_index)
+          target_choice = $current_question.find('.question-choice:enabled').get(target_index)
           $(target_choice).prop('checked', true).trigger('change');
         } else {
           // If no matching keyboard shortcut, do not execuse
@@ -1014,7 +753,7 @@
       // the navigation modal is special in that it is closed by
       // keyboard and by clicking the backdrop
       $('#navigate-modal').modal({show: false});
-      $("#open-navigation").css('cursor', 'pointer').click(function(){
+      $("#open-navigation").off('click').click(function(){
         _paq.push(['trackEvent', 'show_session', 'navigation', 'open-navigation']);
         $('#navigate-modal').modal('show')
       });
@@ -1026,50 +765,101 @@
          }, 500);
       });
 
-      for (var i = 1; i <= {{ session.get_questions.count }}; i++) {
-         $('.question-body[data-question-sequence="' + i.toString() + '"]')
-         $question = $('.question-body[data-question-sequence="' + i.toString() + '"]')
-         question_pk = $question.data('question-pk');
-         was_solved = $question.data('was-solved') ? was_solved_markup : '<i class="far fa-square"></i>';
-         is_marked = $question.data('is-marked')  ? is_marked_markup : '';
-         row = $("<tr class='navigate-row text-center' data-question-sequence='" + i.toString() + "'><td>" + i.toString() + "</td><td class='d-sm-table-cell d-none'>" + question_pk.toString() + "</td><td class='d-sm-table-cell d-none is_marked'>" + is_marked + "</td><td class='was_solved'>" + was_solved +"</td></tr>");
-         row.click(function(){
-           _paq.push(['trackEvent', 'show_session', 'navigation', 'click-navigate-row']);
-           targeted_sequence = $(this).data('question-sequence');
-           showQuestion(targeted_sequence);
-         });
-         $("#navigation-table tbody").append(row)
+      // Let's not use jQuery.  It's too slow for constructing massive elements.
+      tbody = document.getElementById("navigation-tbody")
+      tbody_content = ""
+
+      for (var question_sequence = 1; question_sequence <= SESSION_QUESTION_PKS.length; question_sequence++) {
+         var question_index = question_sequence - 1;
+         var question_pk = SESSION_QUESTION_PKS[question_index];
+         var was_solved = ANSWERS[question_pk] !== undefined ? was_solved_markup : '<i class="far fa-square"></i>';
+         // In case MARKS was not populated yet, we can safely skip
+         // it.
+         if (MARKS){
+           var is_marked = MARKS.indexOf(question_pk) != -1 ? is_marked_markup : '';
+         }
+         var row = "<tr class='navigate-row text-center' data-question-sequence='" + question_sequence.toString() + "'><td>" + question_sequence.toString() + "</td><td class='d-sm-table-cell d-none'>" + question_pk.toString() + "</td><td class='d-sm-table-cell d-none is_marked'>" + is_marked + "</td><td class='was_solved'>" + was_solved +"</td></tr>";
+         tbody_content += row;
       }
+
+      tbody.innerHTML = tbody_content;
+
+      $("#navigation-table").find('.navigate-row').click(function(){
+        _paq.push(['trackEvent', 'show_session', 'navigation', 'click-navigate-row']);
+        targeted_sequence = $(this).data('question-sequence');
+        showQuestion(targeted_sequence);
+      });
+      highlightActiveRow();
+      has_constructed_navigation = true;
+    }
+
+    function fetchCorrections(){
+      $.ajax({method: 'get',
+              url: "{% url 'correction-list' %}",
+              data: {format: 'json',
+                     session_pk: SESSION_PK },
+              success: function(data){
+                  PREVIOUS_CORRECTIONS = data;
+                  $.each(PREVIOUS_CORRECTIONS, function(index, correction){
+                    updateCorrectionTooltip(correction.html, correction.choice_id)
+                  });
+                  initializeCorrectionInteractions();
+              }
+      });
     }
 
     function fetchAnswers(){
       $.ajax({method: 'get',
               url: "{% url 'answer-list' %}",
               data: {format: 'json',
-                     session_pk: {{ session.pk }} },
+                     session_pk: SESSION_PK },
               success: function(data){
-                  PREVIOUS_ANSWERS = {};
+                  ANSWERS = {};
                   data.map(function(item){
-                    PREVIOUS_ANSWERS[item.question_id] = item.choice_id;
+                    ANSWERS[item.question_id] = item.choice_id;
                   });
 
-                  // We cacn only prepare questions after we get
-                  // PREVIOUS_ANSWERS, so let's do it now!
+                  // We can only prepare questions after we get
+                  // ANSWERS, so let's do it now!
                   prepareQuestions($('.question-body'));
                   // Some interactions depend on whether the question
                   // was solved or not.  That's why we only
                   // initialize interactions after we have prepared
                   // the questions.
+                  controlSessionFinished();
                   initializeInteractions();
+                  $("#open-navigation").tooltip('dispose').css('cursor', 'pointer').click(function(){
+                    constructNavigationTable();
+
+                    $(this).trigger('click');
+                  });
               }
       });
     }
+
+    function fetchMarks(){
+      $.ajax({method: 'get',
+              url: "{% url 'marked-list' %}",
+              data: {format: 'json',
+                     exam_pk: EXAM_PK },
+              success: function(data){
+                  MARKS = data.map(function(item){ return item.id });
+
+                  $('.question-body').each(function(){
+                    var $question = $(this);
+                    var question_pk = $question.data('question-pk');
+                    applyMark($question, question_pk);
+                  });
+              }
+      });
+    }
+
 
     function fetchHighlights(){
       $.ajax({method: 'get',
               url: "{% url 'highlight-list' %}",
               data: {format: 'json',
-                     session_pk: {{ session.pk }} },
+                     session_pk: SESSION_PK },
               success: function(data){
                   PREVIOUS_HIGHLIGHTS = {};
                   data.map(function(item){
@@ -1086,40 +876,64 @@
       });
     }
 
-    function fetchList(since_pk){
+    function fetchList(fetch_list_index, question_sequence){
+      // If the given index was previously fetched, skip!
+      if (fetched_indexes.indexOf(fetch_list_index) != -1){
+        return
+      }
+
+      var current_targets = SESSION_QUESTION_PKS.slice(fetch_list_index, fetch_list_index + 50);
+      var current_target_str = current_targets.join(',');
+      $("#question-loading").show();
       $.ajax({method: 'get',
-              url: "{% url 'exams:list_partial_session_questions' category_slugs session.exam.pk session.pk %}",
-              data: {since_pk: since_pk},
+              url: "{% url 'exams:list_partial_session_questions' category_slugs session.exam.pk %}",
+              data: {pks: current_target_str},
               success: function(data){
+                fetched_indexes.push(fetch_list_index);
+
                 $questions = $(data.html);
 
-                // assign question sequence on front-end. make sure
-                // this does not conflict with initial questions.
-                sequence = data.start_sequence;
-                prepareQuestions($questions);
-                $questions.each(function(){
-                  $this = $(this);
-                  question_pk = $this.data('question-pk');
-
-                  if (INITIAL_QUESTIONS.indexOf(question_pk) != -1){
-                    $questions.find('[data-question-pk=' +  question_pk + ']').remove()
-                  } else {
-                    $this.attr('data-question-sequence', sequence)
-                  }
-                  sequence++;
-                });
-
-                $("#question-pool").append($questions);
-                last_pk = $questions.filter(":last").data('question-pk')
-                if (last_pk && !data.done){
-                  fetchList(last_pk);
-                } else if (data.done){
-                  // hide the loading image.
-                  $("#question-loading").hide();
-                  constructNavigationTable();
-                  highlightActiveRow();
-                  $("#open-navigation").tooltip('dispose');
+                // Do not bother with filtering except if we know
+                // that we need it.
+                if (current_targets.indexOf(initial_question_pk) != -1){
+                  $filtered_questions = $questions.filter(function(){
+                    var $question = $(this);
+                    var question_pk = $question.data('question-pk');
+                    return question_pk != initial_question_pk
+                  });
+                } else {
+                  $filtered_questions = $questions
                 }
+
+                prepareQuestions($filtered_questions);
+
+                $("#question-pool").append($filtered_questions);
+
+                // If we have corrections, add them to currently
+                // targetted questions
+                if (PREVIOUS_CORRECTIONS){
+                  for (index in PREVIOUS_CORRECTIONS){
+                    correction = PREVIOUS_CORRECTIONS[index]
+                    if (current_targets.indexOf(correction.question_id) == -1){
+                      continue
+                    }
+                    updateCorrectionTooltip(correction.html, correction.choice_id);
+                  }
+                }
+
+                // This is a workaround for iOS 9.x browsers that
+                // cannot render dynmically added FontAwesome icons.
+
+                if ((navigator.userAgent.indexOf('iPhone') != -1 ||
+                     navigator.userAgent.indexOf('iPad') != -1) &&
+                    navigator.userAgent.indexOf('OS 9_') != -1){
+                      FontAwesome.dom.i2svg({node: document.getElementById('question-pool')})
+                }
+
+                if (question_sequence){
+                  showQuestion(question_sequence);
+                }
+                $("#question-loading").hide();
               }
       });
     }
@@ -1131,11 +945,11 @@
         return
       }
 
-      question_pk = $question.data('question-pk')
-      highlight = PREVIOUS_HIGHLIGHTS[question_pk];
+      var question_pk = $question.data('question-pk')
+      var highlight = PREVIOUS_HIGHLIGHTS[question_pk];
       if (highlight !== undefined){
-        best_latest_revision_pk = $question.data('best-latest-revision-pk');
-        if (best_latest_revision_pk == highlight.revision_id){
+        best_revision_pk = $question.data('best-latest-revision-pk');
+        if (best_revision_pk == highlight.revision_id){
           // If the highlighted question text is not empty, include
           // it.
           if (highlight.highlighted_text){
@@ -1153,15 +967,15 @@
       // This shuffle choices and checked the previously selected
       // choice and randomizes choice rows.
 
-      // If we do not have the PREVIOUS_ANSWERS yet, we cannot
-      // prepare the choices.
-      if (PREVIOUS_ANSWERS === null){
+      // If we do not have the ANSWERS yet, we cannot prepare the
+      // choices.
+      if (ANSWERS === null){
         return
       }
 
       // First: Tag the previously selected choice:
-      question_pk = $question.data('question-pk')
-      choice_pk = PREVIOUS_ANSWERS[question_pk];
+      var question_pk = $question.data('question-pk')
+      var choice_pk = ANSWERS[question_pk];
       if (choice_pk !== undefined){
         $question.data('was-solved', true).attr('data-was-solved', 'true')
         $question.find('.question-choice').attr('disabled', true)
@@ -1202,32 +1016,52 @@
 
     }
 
+    function applyMark($question, question_pk){
+      if (MARKS.indexOf(question_pk) != -1){
+        $question.data('is-marked', true).attr('data-is-marked', 'true')
+        // If the marked question is currently being shown, highlight
+        // the mark button.
+        if ($question.hasClass('show')){
+          handleMarked(true)
+        }
+      } else {
+        $question.data('is-marked', false).attr('data-is-marked', 'false')
+      }
+    }
 
     // Client-side work-up
     function prepareQuestions($questions){
       $questions.each(function(){
-        $question = $(this);
-        question_pk = $question.data('question-pk')
+        var $question = $(this);
+        var question_pk = $question.data('question-pk')
 
         prepareChoices($question);
         prepareHighlights($question);
 
-        if (session_mode == 'SOLVED' || session_mode == 'INCOMPLETE'){
+        // Add sequence
+        var question_sequence = SESSION_QUESTION_PKS.indexOf(question_pk) + 1;
+        $question.data('question-sequence', question_sequence).attr('data-question-sequence', question_sequence);
+
+        // Add url data tags
+        var list_revision_url = Urls['exams:list_revisions'](CATEGORY_SLUGS, EXAM_PK, question_pk);
+        var question_url = Urls['exams:show_session'](CATEGORY_SLUGS, EXAM_PK, SESSION_PK, question_pk);
+        $question.data('list-revision-url', list_revision_url).attr('data-list-revision-url', list_revision_url);
+        $question.data('url', question_url).attr('data-url', question_url);
+
+        if (SESSION_MODE == 'SOLVED' || SESSION_MODE == 'INCOMPLETE'){
           $question.data('was-solved', true).attr('data-was-solved', 'true')
           $question.find('.question-choice').attr('disabled', true)
         }
 
-        if (MARKED_QUESTIONS.indexOf(question_pk) != -1){
-          $question.data('is-marked', true).attr('data-is-marked', 'true')
-        } else {
-          $question.data('is-marked', false).attr('data-is-marked', 'false')
+        if (MARKS){
+          applyMark($question, question_pk);
         }
       });
 
       $question_pool = $('#question-pool')
       if (!$question_pool.hasClass('choices-were-animated')){
         $question_pool.addClass('choices-were-animated')
-        $('.question-body.show tbody').addClass('animated fadeIn').one(animation_events, function(){$(this).removeClass()});
+        $current_question.find('tbody').addClass('animated fadeIn').one(animation_events, function(){$(this).removeClass()});
       }
     }
 
@@ -1244,14 +1078,19 @@
 
     $(function() {
         $initial_question = $('.question-body.show');
-        history.replaceState({url: $initial_question.data('url')}, '', $initial_question.data('url'));
 
-        // variables used by many functions
-        total = $("#question-total").html();
-        session_mode = $('body').data('session-mode');
+        // Set sequence for initial question
+        initial_question_pk = $initial_question.data('question-pk');
+        initial_question_sequence = SESSION_QUESTION_PKS.indexOf(initial_question_pk) + 1;
+        $initial_question.attr('data-question-sequence', initial_question_sequence).data('question-sequence', initial_question_sequence)
+
+        // Show initial question
+        showQuestion(initial_question_sequence, true);
+
+        $("#question-total").html(SESSION_QUESTION_TOTAL);
+        $("#question-sequence").html(initial_question_sequence);
 
         initializeKeyboard();
-        updateData();
 
         // Depending on user agent, we control tooltip initalization.
         // Note that this must NOT be overridden anywhere in the
@@ -1264,7 +1103,7 @@
         } else if (isMobile) {
           // In mobile phones, we don't want to show a tooltip on the
           // 'Mark' button
-          $('[data-toggle="tooltip"]').not("#mark").tooltip();
+          $('[data-toggle="tooltip"]').not($markButton).tooltip();
         } else {
           $('[data-toggle="tooltip"]').tooltip();
         }
@@ -1277,14 +1116,10 @@
            _paq.push(['trackEvent', 'show_session', 'click-get-help', 'click-get-help']);
          });
 
-         $('.question-body').each(function(){
-           pk = $(this).data('question-pk')
-           INITIAL_QUESTIONS.push(pk);
-         });
-
          fetchAnswers();
          fetchHighlights();
-         fetchList();
+         fetchCorrections();
+         fetchMarks();
          updateSizes();
          $(window).resize(updateSizes);
 
@@ -1302,9 +1137,74 @@
           $("#confirm-end-modal a.submit-button").prop("href", "{% url 'exams:show_session_results' category_slugs session.exam.pk session.pk %}");
           $("#confirm-end-modal").modal('show');
         });
-        $('#submit').click(submitChoice);
+        $submitButton.click(submitChoice);
         $('#previous, #next').click(navigate);
-        $('#mark').click(toggleMarked);
+        $markButton.click(toggleMarked);
+
+
+        // Actions are delegated are defined here.
+        $(document).tooltip({selector: '.answer-correction-notification',
+                             html: true,
+                             trigger: 'click',
+                             title: function(){
+                                 $tooltip = $(this).closest("td").find('.answer-correction-tooltip-body').clone(true);
+                                 $tooltip.find('[data-toggle="tooltip"]').tooltip();
+                                 return $tooltip.get(0)
+                             }
+        });
+        $(document).on('show.bs.tooltip', '.answer-correction-notification', function(){
+            $('.answer-correction-notification').not(this).tooltip('hide');
+            _paq.push(['trackEvent', 'show_session', 'answer_correction', 'click-notification']);
+        });
+        $(document).on('click', '.delete-correction', function(){
+          choice_pk = $(this).data('choice-pk');
+          url = "{% url 'exams:delete_correction' %}?" + $.param({choice_pk: choice_pk})
+          pk_selector = "[data-choice-pk=" + choice_pk + "]";
+          var $choice_row = $current_question.find("tr" + pk_selector);
+          $choice_row.data('has-correction', false).attr('data-has-correction', 'false');
+          $('.answer-correction-notification').tooltip('hide');
+          $(this).tooltip('hide');
+
+          $.ajax({
+              url: url,
+              type: 'POST',
+              success: function(data){
+                if (data.success == 1){
+                  toastr.success("Your correction was removed.")
+                  if (data.correction_html){ // if we have a new submitter
+                    updateCorrectionTooltip(data.correction_html, choice_pk);
+                  } else {
+                    // Before there was a correction, it was marked as a wrong answer
+                    $choice_row.find('.check').html(wrong_answer_markup);
+                  }
+                } else {
+                  toastr.error(data.message)
+                }
+              }
+          });
+        });
+
+        $(document).on('click', ".support-correction, .oppose-correction", function(){
+          action = $(this).data('action');
+          choice_pk = $(this).data('choice-pk');
+          url = "{% url 'exams:correct_answer' %}?" + $.param({choice_pk: choice_pk})
+          _paq.push(['trackEvent', 'show_session', 'answer_correction', 'delete-notification']);
+
+          $.ajax({
+              url: url,
+              type: 'POST',
+              data: {'action': action},
+              success: function(data){
+                if (data.success == 1){
+                  toastr.success("Your vote was submitted.")
+                  updateCorrectionTooltip(data.correction_html, choice_pk);
+                } else {
+                  toastr.error(data.message)
+                }
+              }
+          });
+        });
+
             // initialize project edit modal
         $('#modify-question-modal, #explain-question-modal,#add-mnemonics-modal').modal({
           keyboard: false,
@@ -1314,19 +1214,19 @@
 
         $("#contribute").click(function () {
             $("#modify-question-modal").modal('show');
-            url = "{% url 'exams:contribute_revision' %}?" + $.param({question_pk: data.question_pk})
+            url = "{% url 'exams:contribute_revision' %}?" + $.param({question_pk: $current_question.data('question-pk')})
             $("#modify-question-modal .modal-body").load(url);
         });
         // initialize project edit modal
         $("#explain, a.explain").click(function () {
             $("#explain-question-modal").modal('show');
-            url = "{% url 'exams:contribute_explanation' %}?" + $.param({question_pk: data.question_pk});
+            url = "{% url 'exams:contribute_explanation' %}?" + $.param({question_pk: $current_question.data('question-pk')});
             $("#explain-question-modal .modal-body").load(url);
         });
 
         $(".add-mnemonics").click(function () {
             $("#add-mnemonics-modal").modal('show');
-            url = "{% url 'exams:contribute_mnemonics' %}?" + $.param({question_pk: data.question_pk});
+            url = "{% url 'exams:contribute_mnemonics' %}?" + $.param({question_pk: $current_question.data('question-pk')});
             $("#add-mnemonics-modal .modal-body").load(url);
         });
 
@@ -1362,7 +1262,7 @@
             {% include "exams/modals/common_modal_v4.html" %}
         {% endwith %}
 
-        {% with modal_id='navigate-modal' no_footer=True modal_title="Navigate session" modal_content="<table id='navigation-table' class='table table-sm table-hover'><thead class='text-center thead-dark'><tr><th>Sequence</th><th class='d-sm-table-cell d-none'>ID</th><th class='d-sm-table-cell d-none'>Marked?</th><th>Answered?</th></tr></thead><tbody></tbody></table>" %}
+        {% with modal_id='navigate-modal' no_footer=True modal_title="Navigate session" modal_content="<table id='navigation-table' class='table table-sm table-hover'><thead class='text-center thead-dark'><tr><th>Sequence</th><th class='d-sm-table-cell d-none'>ID</th><th class='d-sm-table-cell d-none'>Marked?</th><th>Answered?</th></tr></thead><tbody id='navigation-tbody'></tbody></table>" %}
             {% include "exams/modals/common_modal_v4.html" %}
         {% endwith %}
 
@@ -1373,11 +1273,11 @@
 
         <div class="d-none">
           <div id="help-me-tooltip">
-            <a data-toggle="tooltip" data-html="true" title="<div style='direction: rtl;'> من حقك تعاتبني<br>من حقك تحاسبني<br>لكن مش من حقك<br>فى عواطفي تكدبني🎶</div>" target="_blank" href="https://soundcloud.com/yaya26/4sdgcoaj9r6p"><img src="{% static 'img/monerh/reach-out.png' %}" class="img-fluid"></a>
+            <a data-toggle="tooltip" data-html="true" title="<div style='direction: rtl;'> من حقك تعاتبني<br>من حقك تحاسبني<br>لكن مش من حقك<br>فى عواطفي تكدبني🎶</div>" target="_blank" rel="noopener" href="https://soundcloud.com/yaya26/4sdgcoaj9r6p"><img src="{% static 'img/monerh/reach-out.png' %}" class="img-fluid"></a>
             <p>Fudul is made better by your feedback and ideas!  Contact us right now:</p>
             <div class="row justify-content-center">
               <div class="col-12">
-                <a target="_blank" href="https://t.me/FudulBot"><i class="fab fa-2x fa-telegram"></i><br>Telegram Live Chat</a>
+                <a rel="noopener" target="_blank" href="https://t.me/FudulBot"><i class="fab fa-2x fa-telegram"></i><br>Telegram Live Chat</a>
               </div>
             </div>
             <div class="row justify-content-center mt-3 mb-2">

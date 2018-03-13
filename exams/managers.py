@@ -8,7 +8,7 @@ from itertools import chain
 class QuestionQuerySet(models.QuerySet):
     def unapproved(self):
         return self.undeleted()\
-                   .exclude(revision__is_approved=True)\
+                   .exclude(best_revision__is_approved=True)\
                    .distinct()
 
     def used_by_user(self, user, exclude_skipped=True):
@@ -73,12 +73,7 @@ class QuestionQuerySet(models.QuerySet):
                    .distinct()
 
     def approved(self):
-        incomplete = self.incomplete().values_list('pk')
-        return self.undeleted()\
-                   .filter(revision__is_approved=True,
-                           revision__is_deleted=False)\
-                   .exclude(pk__in=incomplete)\
-                   .distinct()
+        return self.undeleted().filter(is_approved=True)
 
     def unsolved(self):
         return self.undeleted()\
@@ -113,6 +108,11 @@ class QuestionQuerySet(models.QuerySet):
                    .filter(issues__is_blocker=True)\
                    .distinct()
 
+    def without_blocking_issues(self):
+        return self.undeleted()\
+                   .exclude(issues__is_blocker=True)\
+                   .distinct()
+
     def with_no_issues(self):
         return self.undeleted()\
                    .filter(issues__isnull=True)\
@@ -137,24 +137,20 @@ class QuestionQuerySet(models.QuerySet):
         return self.order_by('-pk')
 
     def undeleted(self):
-        return self.annotate(revision_count=Count('revision'))\
-                   .filter(is_deleted=False)\
-                   .exclude(revision_count=0)
+        return self.filter(is_deleted=False)
 
     def marked_by_user(self,user):
         return self.undeleted()\
                    .filter(marking_users=user)
 
     def available(self):
-        return self.with_blocking_issues() | \
-               self.unsolved() | \
-               self.lacking_choices() | \
+        return self.incomplete() | \
                self.approved()
 
     def incomplete(self):
-        return self.with_blocking_issues() | \
-               self.unsolved() | \
-               self.lacking_choices()
+        return self.lacking_choices() | \
+               self.with_blocking_issues() | \
+               self.unsolved()
 
     def under_categories(self, categories):
         deepest_category_level = utils.get_deepest_category_level()
@@ -183,20 +179,10 @@ class RevisionQuerySet(models.QuerySet):
 class ExamQuerySet(models.QuerySet):
     def with_approved_questions(self):
         return self.filter(question__is_deleted=False,
-                           question__revision__is_approved=True,
-                           question__revision__is_deleted=False)\
+                           question__best_revision__is_approved=True)\
                    .distinct()
 
 class SessionQuerySet(models.QuerySet):
-    def with_accessible_questions(self):
-        return (self.filter(~Q(session_mode="INCOMPLETE"),
-                            questions__is_deleted=False,
-                            questions__revision__is_deleted=False,
-                            questions__revision__is_approved=True) | \
-                self.filter(session_mode="INCOMPLETE",
-                            questions__revision__is_deleted=False)
-                ).distinct()
-
     def nonsolved(self):
         return self.exclude(session_mode='SOLVED')
 
@@ -206,6 +192,10 @@ class SessionQuerySet(models.QuerySet):
 class ChoiceQuerySet(models.QuerySet):
     def order_by_alphabet(self):
         return self.order_by('text')
+
+    def select_related_for_session(self):
+        return self.select_related('answer_correction',
+                                   'answer_correction__submitter')
 
     def order_randomly(self):
         return self.order_by('?')
@@ -223,8 +213,7 @@ class MetaInformationQuerySet(models.QuerySet):
 
     def with_approved_questions(self, exam=None):
         kwargs = {'question__is_deleted': False,
-                  'question__revision__is_deleted': False,
-                  'question__revision__is_approved': True}
+                  'question__best_revision__is_approved': True}
 
         if exam:
             kwargs['question__exam'] = exam
@@ -300,3 +289,16 @@ class AnswerQuerySet(models.QuerySet):
 class MnemonicQuerySet(models.QuerySet):
     def undeleted(self,question):
         self.filter(question=question,is_deleted=False)
+
+class DuplicateQuerySet(models.QuerySet):
+    def with_undeleted_question(self):
+        return self.filter(question__is_deleted=False,
+                           question__revision__is_deleted=False)\
+                   .distinct()
+
+    def order_by_question_pk(self):
+        return self.order_by('question__pk')
+
+    def select_for_list(self):
+        return self.select_related('question',
+                                   'question__best_revision')

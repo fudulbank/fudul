@@ -24,7 +24,7 @@
         <h3 style="font-weight: bold">Question Choices</h3><a data-placement="left" class="help-tooltip circle" data-toggle="tooltip" title="Make sure to check the box for the right answer."> ? </a>
         {% endif %}
 
-        <div style="margin-left: 10%">
+        <div class="mx-3">
                         {{ revisionchoiceformset.management_form }}
                         {{ revisionchoiceformset.non_form_errors.as_ul }}
                         <table id="choice_formset" class="form" style="width: 100%;">
@@ -32,13 +32,11 @@
                         {% for form in revisionchoiceformset.forms %}
                           {% if forloop.first %}
                             <colgroup>
-                                <col class="col-8">
-                                <col class="col-2">
-                                <col class="col-2">
+                                <col style="width: 66%">
+                                <col style="width: 34%">
                             </colgroup>
                             <thead><tr>
                               <th>Text</th>
-                              <th></th>
                               <th></th>
                             </tr></thead>
                           {% endif %}
@@ -127,7 +125,7 @@ display:inline-block;
     content: url("{% static 'images/success(1).png' %}");
     display:block;
 }
-.add-row , .delete-row{
+th:nth-child(3), td:nth-child(3){
     display: none;
 }
 

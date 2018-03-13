@@ -9,6 +9,6 @@ def is_editor(user):
     return utils.is_editor(user)
 
 @register.filter
-def get_user_privileged_categories(user):
-    return exam_models.Category.objects.filter(privileged_teams__members=user)\
-                                       .distinct()
+def get_user_privileged_exams(user):
+    return exam_models.Exam.objects.filter(privileged_teams__members=user)\
+                                   .distinct()

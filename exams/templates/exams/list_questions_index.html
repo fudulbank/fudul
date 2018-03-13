@@ -94,11 +94,39 @@
                 {% for issue in issues %}
                 {% with issue_count=exam|get_exam_question_count_per_meta:issue %}
                 <tr>
-                  <td><a href="{% url 'exams:list_questions_by_selector' category_slug exam.pk issue.pk %}">{{ issue.name }}</a></td>
+                  <td><a href="{% url 'exams:list_questions_by_selector' category_slug exam.pk issue.get_selector %}">{{ issue.name }}</a></td>
                   <td data-order="{{ issue_count }}">{{ issue_count }} ({% widthratio issue_count total_count 100 %}%)</td>
                 </tr>
                 {% endwith %}
                 {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+						<h4 class="card-title">Questions per subject</h4>
+      </div>
+      <div class="card-body">
+        <div class="card-block">
+          <table style="width: 100%" class="table table-striped table-bordered datatable dt-responsive">
+            <thead>
+              <tr>
+                <th>Subject</th>
+                <th># questions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for subject in exam.subject_set.all %}
+              {% with subject_count=subject.question_set.count %}
+              <tr>
+                <td><a href="{% url 'exams:list_questions_by_selector' category_slug exam.pk subject.get_selector %}">{{ subject.name }}</a></td>
+                <td data-order="{{ subject_count }}">{{ subject_count }} ({% widthratio subject_count total_count 100 %}%)</td>
+              </tr>
+              {% endwith %}
+              {% endfor %}
             </tbody>
           </table>
         </div>
@@ -112,7 +140,7 @@
       <div class="card-body">
         <div class="card-block">
           <table style="width: 100%" class="table table-striped table-bordered datatable dt-responsive">
-            {% with lacking_choices_count=exam.question_set.lacking_choices.count unsolved_count=exam.question_set.unsolved.count %}
+            {% with lacking_choices_count=exam.question_set.lacking_choices.count unsolved_count=exam.question_set.unsolved.count pending_duplicate_count=exam.get_pending_duplicates.count %}
             <thead>
               <tr>
                 <th>Characteristic</th>
@@ -132,6 +160,12 @@
                 <td><a href="{% url 'exams:list_questions_by_selector' category_slug exam.pk 'lacking_choices' %}">Lacking choices</a></td>
                 <td data-order="{{ lacking_choices_count }}">{{ lacking_choices_count }} ({% widthratio lacking_choices_count total_count 100 %}%)</td>
               </tr>
+              {% if exam|can_user_edit:user %}
+              <tr>
+                <td><a href="{% url 'exams:list_duplicates' category_slug exam.pk %}">Duplicates</a></td>
+                <td data-order="{{ pending_duplicate_count }}">{{ pending_duplicate_count }}</td>
+              </tr>
+              {% endif %}
             </tbody>
             {% endwith %}
           </table>

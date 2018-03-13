@@ -1,0 +1,8 @@
+/* This fixes a bug in Bootstrap Extra in which dropdowns do not hide. */
+.dropdown .dropdown-menu{
+  display: none;
+}
+
+.dropdown.show .dropdown-menu{
+  display: block;
+}

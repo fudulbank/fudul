@@ -6,8 +6,8 @@
 <div class="card-body">
     <div class="card-block text-center">
 			{% if userena_activation_required %}
-		  <p>You have been sent an e-mail with an activation link to the supplied email.</p>
-		  <p>We will store your signup information for {{ userena_activation_days }} days on our server. </p>
+		  <p>You have been sent an e-mail with an activation link to the supplied email.  We will store your signup information for {{ userena_activation_days }} days on our server. </p>
+      <p><strong>If you are unable to activate your account, please contact us via our <a target="_blank" rel="noopener" href="https://t.me/FudulBot">Telegram live support</a>, or <a href="mailto:support@fudulbank.com">email support</a>.</strong></p>
 		  {% else  %}
 		  <p>You can now use the supplied credentials to signin.</p>
 		  {% endif %}

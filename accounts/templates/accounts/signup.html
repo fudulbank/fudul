@@ -33,10 +33,19 @@
 		</fieldset>
 
 
+    <h6 class="line-on-side text-muted text-center font-small-2"><span>How can we help you?</span></h6>
+    <p><i class="icon-info"></i>Fudul hosts tens of thousands of questions in different exams.  Which exam do you wnat to focus on?</p>
+    <fieldset class="form-group position-relative has-icon-left mb-1">
+    {% bootstrap_field form.primary_interest show_label=False %}
+    <div class="form-control-position">
+        <i class="ft-heart"></i>
+    </div>
+  </fieldset>
+
     <h6 class="line-on-side text-muted text-center font-small-2"><span>Your nickname</span></h6>
     <p><i class="icon-info"></i>Fudul is cooperative, and you can contribute to it.  You have the choice of showing your real name or not whenever you add a contribution to give you credit.</p>
 
-        <fieldset id="fullname" class="form-group position-relative has-icon-left mb-1">
+      <fieldset id="fullname" class="form-group position-relative has-icon-left mb-1">
 			{% bootstrap_field form.display_full_name show_label=False %}
 			<div class="form-control-position">
 					<i class="ft-eye"></i>
@@ -51,7 +60,7 @@
 
 
     <h6 class="line-on-side text-muted text-center font-small-2"><span>Your contact</span></h6>
-		<p><i class="icon-info"></i>Parts of this question bank are solely available to a given university.  Make sure you use your correct <strong>university address</strong> to get an access to these parts.</p>
+		<p><i class="icon-info"></i>Parts of this question bank are solely available to a specific university.  If you have a university address, make sure you use it to get an access to these parts.  Please note that this dees <strong>not</strong> apply to SMLE and SNLE, which are publicly available to everyone, for free.</p>
 
 		<fieldset class="form-group position-relative has-icon-left mb-1">
 			{% bootstrap_field form.email show_label=False %}

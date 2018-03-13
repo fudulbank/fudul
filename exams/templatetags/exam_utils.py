@@ -1,7 +1,6 @@
 from django import template
 from django.db.models import Q
 from exams import utils, models
-from django.template.defaultfilters import linebreaksbr
 
 register = template.Library()
 
@@ -36,16 +35,8 @@ def get_question_sequence(question, session):
     return session.get_question_sequence(question)
 
 @register.filter
-def is_editor(category, user):
-    if user.is_superuser:
-        return True
-
-    while category:
-        if category.privileged_teams.filter(members__pk=user.pk).exists():
-            return True
-        category = category.parent_category
-
-    return False
+def can_user_edit(exam, user):
+    return exam.can_user_edit(user)
 
 @register.filter
 def get_meta_exam_question_count(exam, meta):
@@ -69,8 +60,8 @@ def get_used_question_count_per_user(exam, user):
                             .count()
 
 @register.simple_tag
-def get_user_question_stats(target, user, result, percent=False):
-    return utils.get_user_question_stats(target, user, result, percent)
+def get_user_question_stats(target, user, result, total=None, percent=False):
+    return utils.get_user_question_stats(target, user, result, total, percent)
 
 @register.filter
 def get_session_subjects(session):
@@ -91,6 +82,10 @@ def can_oppose_correction(user, correction):
 @register.filter
 def can_delete_correction(user, correction):
     return correction.can_user_delete(user)
+
+@register.filter
+def can_user_access(user, obj):
+    return obj.can_user_access(user)
 
 @register.filter
 def get_question_created_count(user, question_pool=None):
@@ -116,6 +111,14 @@ def get_question_edited_count(user, question_pool=None):
                                 revision__is_deleted=False,
                                 revision__submitter=user)\
                         .distinct().count()
+
+@register.filter
+def get_question_assigned_count(user, question_pool=None):
+    if not question_pool:
+        question_pool = models.Question.objects\
+                                       .undeleted()
+
+    return question_pool.filter(assigned_editor=user).count()
 
 @register.filter
 def is_mnemonic_submiiter(mnemonic,user):

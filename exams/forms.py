@@ -1,15 +1,14 @@
 from dal import autocomplete
 from django import forms
+from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
-
 from django.forms.models import inlineformset_factory
 import itertools
 import random
 
-from accounts.utils import get_user_college
 from . import models, utils
 import teams.utils
-
+import accounts.utils
 
 class MetaChoiceField(forms.ModelMultipleChoiceField):
     def __init__(self, *args, **kwargs):
@@ -35,6 +34,10 @@ class StatusChoiceField(forms.ModelMultipleChoiceField):
             css_class = "text-success"
         return "{} <strong class='{}'>({})</strong>".format(obj.name, css_class, blocker_str)
 
+class UserChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return accounts.utils.get_user_credit(obj, full=True)
+    
 # shared widgets for exam_types, sources and subjects in QuestionForm and SessionForm
 select2_widget = autocomplete.ModelSelect2Multiple(attrs={'data-width': '100%'})
 
@@ -104,6 +107,9 @@ class RevisionForm(forms.ModelForm):
 
         # Mark the last revision as such
         question.update_latest()
+        question.update_best_revision()
+        question.update_is_approved()
+        question.save()
 
         return new_revision
 
@@ -166,9 +172,7 @@ class SessionForm(forms.ModelForm):
                                'INCORRECT': common_pool.approved().incorrect_by_user(self.user),
                                'SKIPPED': common_pool.approved().skipped_by_user(self.user),
                                'MARKED': common_pool.approved().filter(marking_users=self.user),
-                               'INCOMPLETE': common_pool.with_blocking_issues() |\
-                                             common_pool.unsolved() |\
-                                             common_pool.lacking_choices()
+                               'INCOMPLETE': common_pool.incomplete()
                                }
 
         filter_choices = []
@@ -365,3 +369,11 @@ class ContributeMnemonic(forms.ModelForm):
         fields=['text','image']
 
 
+class AssignQuestionForm(forms.Form):
+    editor = UserChoiceField(widget=autocomplete.ModelSelect2(),
+                             queryset=User.objects.none())
+
+    def __init__(self, *args, **kwargs):
+        exam = kwargs.pop('exam', None)        
+        super(AssignQuestionForm, self).__init__(*args, **kwargs)
+        self.fields['editor'].queryset = exam.get_editors()
