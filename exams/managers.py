@@ -73,7 +73,7 @@ class QuestionQuerySet(models.QuerySet):
                    .distinct()
 
     def approved(self):
-        return self.undeleted().filter(is_approved=True)
+        return self.undeleted().filter(is_approved=True).distinct()
 
     def unsolved(self):
         return self.undeleted()\
