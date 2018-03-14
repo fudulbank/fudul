@@ -221,7 +221,7 @@ class SessionForm(forms.ModelForm):
         exam_types = self.exam.exam_types.with_approved_questions(self.exam)\
                                          .distinct()
         if exam_types.exists():
-            self.fields['exam_types'] = MetaChoiceField(required=True,
+            self.fields['exam_types'] = MetaChoiceField(required=not self.is_automatic,
                                                         form_type='session',
                                                         exam=self.exam,
                                                         queryset=exam_types,
@@ -231,7 +231,6 @@ class SessionForm(forms.ModelForm):
 
         if self.is_automatic:
             self.fields['number_of_questions'].required = False
-            self.fields['exam_types'].required = False
             
     def clean(self):
         cleaned_data = super(SessionForm, self).clean()
