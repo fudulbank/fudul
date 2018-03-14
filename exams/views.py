@@ -512,7 +512,7 @@ def list_partial_session_questions(request, slugs, exam_pk):
     return {'html': minified_html}
 
 @require_safe
-def show_question(request, slugs, exam_pk, question_pk):
+def show_single_question(request, slugs, exam_pk, question_pk):
     category = Category.objects.get_from_slugs_or_404(slugs)
     current_question = get_object_or_404(Question.objects.select_related('best_revision', 'exam')\
                                                          .undeleted(),
@@ -536,7 +536,7 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     # question.
     if not session.can_user_access(request.user):
         if question_pk:
-            url = reverse('exams:show_question', args=(slugs, exam_pk, question_pk))
+            url = reverse('exams:show_single_question', args=(slugs, exam_pk, question_pk))
             return HttpResponseRedirect(url)
         else:
             raise PermissionDenied

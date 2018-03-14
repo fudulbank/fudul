@@ -257,7 +257,7 @@ class Question(models.Model):
                                 placeholder='...')
 
     def get_absolute_url(self):
-        return reverse("exams:show_question",
+        return reverse("exams:show_single_question",
                        args=(self.exam.category.get_slugs(),
                              self.exam.pk, self.pk))
 
