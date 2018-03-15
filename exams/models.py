@@ -277,7 +277,7 @@ class Question(models.Model):
            not self.is_deleted and \
            not self.issues.filter(is_blocker=True).exists() and \
            approved_revision.choice_set.filter(is_right=True).exists() and \
-           approved_revision.choice_set.count() >= 1:
+           approved_revision.choice_set.count() > 1:
             self.is_approved = True
         else:
             self.is_approved = False
