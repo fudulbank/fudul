@@ -496,10 +496,8 @@ def create_session_automatically(request, slugs, exam_pk):
 @decorators.ajax_only
 def list_partial_session_questions(request, slugs, exam_pk):
     try:
-        pks = [int(pk) for pk in request.GET.get('pks').split(',')]
-        if not pks:
-            raise TypeError
-    except TypeError:
+        pks = [int(pk) for pk in request.GET.get('pks', '').split(',')]
+    except ValueError:
         return HttpResponseBadRequest('No valid "pks" parameter was provided')
 
     questions = Question.objects.select_related('best_revision', 'exam')\
