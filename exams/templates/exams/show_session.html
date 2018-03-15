@@ -313,6 +313,9 @@
                  var $question_row = $('.navigate-row[data-question-sequence="' + current_sequence + '"]');
                  if (data.is_marked){
                    $question_row.find('td.is_marked').html(is_marked_markup);
+                   if (isOS9()){
+                     FontAwesome.dom.i2svg({node: document.getElementById('navigation-table')});
+                   }
                  } else {
                    $question_row.find('td.is_marked').html("");
                  }
@@ -597,6 +600,9 @@
         if (has_constructed_navigation){
           var $question_row = $('.navigate-row[data-question-sequence="' + current_sequence + '"]');
           $question_row.find('td.was_solved').html(was_solved_markup);
+          if (isOS9()){
+            FontAwesome.dom.i2svg({node: document.getElementById('navigation-table')});
+          }
         }
 
         // Disable choices upon submission
@@ -784,6 +790,10 @@
 
       tbody.innerHTML = tbody_content;
 
+      if (isOS9()){
+        FontAwesome.dom.i2svg({node: document.getElementById('navigation-table')})
+      }
+
       $("#navigation-table").find('.navigate-row').click(function(){
         _paq.push(['trackEvent', 'show_session', 'navigation', 'click-navigate-row']);
         targeted_sequence = $(this).data('question-sequence');
@@ -876,6 +886,14 @@
       });
     }
 
+    function isOS9(){
+      // This is a workaround for iOS 9.x browsers that
+      // cannot render dynmically added FontAwesome icons.
+      return (navigator.userAgent.indexOf('iPhone') != -1 ||
+              navigator.userAgent.indexOf('iPad') != -1) &&
+              navigator.userAgent.indexOf('OS 9_') != -1
+    }
+
     function fetchList(fetch_list_index, question_sequence){
       // If the given index was previously fetched, skip!
       if (fetched_indexes.indexOf(fetch_list_index) != -1){
@@ -921,13 +939,8 @@
                   }
                 }
 
-                // This is a workaround for iOS 9.x browsers that
-                // cannot render dynmically added FontAwesome icons.
-
-                if ((navigator.userAgent.indexOf('iPhone') != -1 ||
-                     navigator.userAgent.indexOf('iPad') != -1) &&
-                    navigator.userAgent.indexOf('OS 9_') != -1){
-                      FontAwesome.dom.i2svg({node: document.getElementById('question-pool')})
+                if (isOS9()){
+                  FontAwesome.dom.i2svg({node: document.getElementById('question-pool')})
                 }
 
                 if (question_sequence){
