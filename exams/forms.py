@@ -165,33 +165,42 @@ class SessionForm(forms.ModelForm):
 
         # We can base the session on a previous session
         if original_session:
-            common_pool = common_pool.filter(session=original_session)
+            session_question_pks = original_session.answer_set.values('question').distinct()
+            incorrect_question_pks = session_question_pks.filter(choice__is_right=False)
+            skipped_question_pks = session_question_pks.filter(choice__isnull=True)
+            self.question_pools = {'ALL': models.Question.objects.filter(pk__in=session_question_pks),
+                                   'INCORRECT': models.Question.objects.filter(pk__in=incorrect_question_pks),
+                                   'SKIPPED': models.Question.objects.filter(pk__in=skipped_question_pks),
+            }
+        else:
+            self.question_pools = {'ALL': common_pool.approved(),
+                                   'UNUSED': common_pool.approved().unused_by_user(self.user, exclude_skipped=False),
+                                   'INCORRECT': common_pool.approved().incorrect_by_user(self.user),
+                                   'SKIPPED': common_pool.approved().skipped_by_user(self.user),
+                                   'MARKED': common_pool.approved().filter(marking_users=self.user),
+                                   'INCOMPLETE': common_pool.incomplete()
+            }
 
-        self.question_pools = {'ALL': common_pool.approved(),
-                               'UNUSED': common_pool.approved().unused_by_user(self.user, exclude_skipped=False),
-                               'INCORRECT': common_pool.approved().incorrect_by_user(self.user),
-                               'SKIPPED': common_pool.approved().skipped_by_user(self.user),
-                               'MARKED': common_pool.approved().filter(marking_users=self.user),
-                               'INCOMPLETE': common_pool.incomplete()
-                               }
+        # The following verbose calculations are only needed for
+        # manually-created sessions.
+        if not self.is_automatic:
+            filter_choices = []
+            for code_name, human_name in models.questions_choices:
+                question_pool = self.question_pools[code_name]
+                count = question_pool.count()
+                choice = (code_name, "{} ({})".format(human_name, count))
+                filter_choices.append(choice)
+            self.fields['question_filter'].widget = forms.RadioSelect(choices=filter_choices)
 
-        filter_choices = []
-        for code_name, human_name in models.questions_choices:
-            question_pool = self.question_pools[code_name]
-            count = question_pool.count()
-            choice = (code_name, "{} ({})".format(human_name, count))
-            filter_choices.append(choice)
-        self.fields['question_filter'].widget = forms.RadioSelect(choices=filter_choices)
+            # Limit number of questions
+            total_questions = self.exam.question_set.approved().count()
+            self.fields['number_of_questions'].widget.attrs['max'] = total_questions
 
-        # Limit number of questions
-        total_questions = self.exam.question_set.approved().count()
-        self.fields['number_of_questions'].widget.attrs['max'] = total_questions
-
-        self.fields['number_of_questions'].validators.append(MinValueValidator(1))
-        self.fields['number_of_questions'].widget.attrs['min'] = 1
-        # This widget should be big enough to contain 5 digits.
-        self.fields['number_of_questions'].widget.attrs['style'] = 'width: 5em;'
-        self.fields['number_of_questions'].widget.attrs['placeholder'] = ''
+            self.fields['number_of_questions'].validators.append(MinValueValidator(1))
+            self.fields['number_of_questions'].widget.attrs['min'] = 1
+            # This widget should be big enough to contain 5 digits.
+            self.fields['number_of_questions'].widget.attrs['style'] = 'width: 5em;'
+            self.fields['number_of_questions'].widget.attrs['placeholder'] = ''
 
         # Limit subjects and exams per exam
         subjects = models.Subject.objects.filter(exam=self.exam)\
