@@ -15,12 +15,8 @@
   font-weight: 700;
 }
 
-.choices li[data-is-right="true"]{
+.choices li[data-is-right="true"], .choices li[data-is-right="true"] input{
   font-weight: 700;
-}
-
-.text-replacement{
-  cursor: pointer;
 }
 
 .text-to-remove{
@@ -54,7 +50,7 @@
       <div class="card border">
         <div class="card-body">
           <div class="card-block">
-            <p>Welcome to the <strong>Suggested Changes</strong>.  This tool scans the question bank once everyday to suggest changes.  You can approve these changes, cancel some of them by clicking on the change to cancel, or ignore the whole suggested change.</p>
+            <p>Welcome to the <strong>Suggested Changes</strong>.  This tool scans the question bank once everyday to suggest changes.  You can approve these changes, manullay edit them, or completely ignore them.</p>
           </div>
           <div class="card-block row justify-content-center">
             <blockquote class="blockquote col-sm-10 col-md-8">
@@ -78,8 +74,86 @@
 
 <script src="{% static 'js/toastr.js' %}"></script>
 <script src="{% url 'js_reverse' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/3.5.0/diff.min.js" integrity="sha384-kFZay1kUVYthe5mwHuE5+fwtA9nn7agG8/7SX2zx1KlJChIy7D1mTEf33nKpDb+d" crossorigin="anonymous"></script>
+
 
 <script>
+    function getFormattedDiff(first_text, second_text){
+      var diff = JsDiff.diffChars(first_text, second_text),
+          part_text = "",
+          formatted_text = "";
+
+      diff.forEach(function(part){
+        // green for additions, red for deletions
+        // grey for common parts
+        var span_class = part.added ? 'text-to-add' :
+          part.removed ? 'text-to-remove' : '';
+        if (span_class){
+          part_text = '<span class="' + span_class + '">' + part.value + '</span>';
+        } else {
+          part_text = part.value;
+        }
+        formatted_text += part_text;
+      });
+      return formatted_text;
+    }
+
+    function constructSuggestions(suggestions){
+      var output = "";
+      for (suggestion_index in suggestions){
+        var suggestion = suggestions[suggestion_index];
+        var processed_revision_text = suggestion.revision.text;
+        for (rule_index in suggestion.rules){
+          var rule = suggestion.rules[rule_index];
+          if (rule.scope != 'ALL' && rule.scope != 'REVISIONS'){
+            continue
+          }
+          var regex_pattern = RegExp(rule.regex_pattern, 'g')
+          processed_revision_text = processed_revision_text.replace(regex_pattern, rule.regex_replacement);
+        }
+
+        var formatted_revision = getFormattedDiff(suggestion.revision.text, processed_revision_text);
+        output += "<div data-suggestion-pk='" + suggestion.id + "' class='suggestion-container'>"
+        output += "<h3 class='text-bold-600'><a target='_blank' href='" + Urls['exams:list_revisions']('{{ category_slugs }}', {{ exam.pk }}, suggestion.revision.question_id) + "'>Question #" + suggestion.revision.question_id + "</a></h3>";
+        output += "<div data-revision-pk='" + suggestion.revision.id + "' class='revision-text'>" + formatted_revision + "</div><ul class='mt-2 choices' type='A'>"
+        for (choice_index in suggestion.revision.choice_set){
+          var choice = suggestion.revision.choice_set[choice_index]
+          var processed_choice_text = choice.text;
+          for (rule_index in suggestion.rules){
+            var rule = suggestion.rules[rule_index];
+            if (rule.scope != 'ALL' && rule.scope != 'CHOICES'){
+              continue
+            }
+            var regex_pattern = RegExp(rule.regex_pattern, 'g')
+            processed_choice_text = processed_choice_text.replace(regex_pattern,  rule.regex_replacement);
+          }
+          var formatted_choice = getFormattedDiff(choice.text, processed_choice_text);
+          output += "<li data-is-right='" + choice.is_right.toString() +"' data-choice-pk='" + choice.id + "'>" + formatted_choice + "</li>"
+        }
+        output += "</ul><div class='btn-group action-btns' role='group' aria-label='Suggestion actions'><button data-action='keep' class='btn btn-success submit'>Approve</button><button data-action='edit' class='btn btn-warning edit'>Edit</button><button data-action='decline' class='btn btn-danger ignore'>Ignore</button></div><hr></div>"
+      }
+      var element = document.getElementById('suggestion-container')
+      element.innerHTML += output;
+    }
+
+    function fetchCorrections(cursor){
+      $.ajax({method: 'get',
+              url: "{% url 'suggestion-list' %}",
+              data: {format: 'json',
+                     cursor: cursor,
+                     exam_pk: {{ exam.pk }} },
+              success: function(data){
+                if (data.next){
+                  var next_cursor = new URL(data.next).searchParams.get("cursor");
+                  $("#show-more").data('cursor', next_cursor).show();
+                } else {
+                  $("#show-more").attr('disabled', 'disabled');
+                }
+                constructSuggestions(data.results);
+              }
+      });
+    }
+
     $(function () {
       $("#show-more").click(function(){
         var next_cursor = $(this).data('cursor');
@@ -88,34 +162,59 @@
 
       $('[data-toggle="tooltip"]').tooltip();
 
-      $(document).on('click', '.text-replacement', function(){
-        $(this).find('.text-to-add').remove();
-        $(this).find('.text-to-remove').contents().unwrap();
-        $(this).contents().unwrap();
+      $(document).on('click', '.edit', function(){
+        var $container = $(this).closest('.suggestion-container')
+        var $revision = $container.find('.revision-text');
+        var $choices = $container.find('.choices li');
+        $container.find('.text-to-add').each(function(){
+          $(this).contents().unwrap();
+        });
+        $container.find('.text-to-remove').remove();
+
+        var revision_pk = $revision.data('revision-pk');
+        var revision_text = $revision.html();
+
+        $revision.html('<textarea class="form-control">' + revision_text + '</textarea>');
+
+        $choices.each(function(){
+          var $choice = $(this);
+          var choice_text = $choice.html();
+          $choice.html('<input class="form-control" value="' + choice_text + '">');
+        });
+
+        $container.find('.action-btns').html('<button data-action="submit_edit" class="btn btn-success submit-edit">Submit</button>')
       });
 
-      $(document).on('click', '.submit, .ignore', function(){
+
+      $(document).on('click', '.submit, .ignore, .submit-edit', function(){
         var $btn = $(this);
         var action = $btn.data('action');
         var $container = $btn.closest('.suggestion-container')
+        var $choices = $container.find('.choices li');
         var suggestion_pk = $container.data('suggestion-pk');
 
-        if (action == 'keep'){
+        if (action == 'keep' || action == 'submit_edit'){
           var $revision = $container.find('.revision-text');
-          var $choices = $container.find('.choices li');
-          $container.find('.text-replacement').each(function(){
-            $replacement = $(this);
-            replacement_text = $replacement.find('.text-to-add').html();
-            $replacement.prop('outerHTML', replacement_text);
-          });
 
           var revision_pk = $revision.data('revision-pk');
-          var revision_text = $revision.html();
+
+          if (action == 'submit_edit'){
+            var change_summary = 'Applying automatic suggestion with manual changes';
+            revision_text = $revision.find('textarea').val();
+          } else if (action == 'keep'){
+            var change_summary = 'Applying automatic suggestion';
+            var $choices = $container.find('.choices li');
+            $container.find('.text-to-add').each(function(){
+              $(this).contents().unwrap();
+            });
+            $container.find('.text-to-remove').remove();
+            var revision_text = $revision.html();
+          }
 
           var data = {'suggestion_pk': suggestion_pk,
                       'action': action,
                       'text': revision_text,
-                      'change_summary': 'Applying automatic suggestion',
+                      'change_summary': change_summary,
                       'choice_set-TOTAL_FORMS': $choices.length,
                       'choice_set-INITIAL_FORMS': $choices.length,
                       'choice_set-MAX_NUM_FORMS': ''}
@@ -126,7 +225,15 @@
             var is_right = $choice.data('is-right')
             data['choice_set-' + index + '-id'] = choice_pk;
             data['choice_set-' + index + '-revision'] = revision_pk;
-            data['choice_set-' + index + '-text'] = $choice.html();
+
+            if (action == 'submit_edit'){
+              var choice_text = $choice.find('input').val();
+            } else if (action == 'keep'){
+              var choice_text = $choice.html();
+            }
+
+            data['choice_set-' + index + '-text'] = choice_text;
+
             if (is_right){
               is_right_switch = 'on';
             } else {
@@ -153,59 +260,6 @@
                 }
         });
       });
-
-      function constructSuggestions(suggestions){
-        var output = ""
-        for (suggestion_index in suggestions){
-          var suggestion = suggestions[suggestion_index];
-          var processed_revision_text = suggestion.revision.text;
-          for (rule_index in suggestion.rules){
-            var rule = suggestion.rules[rule_index];
-            if (rule.scope != 'ALL' && rule.scope != 'REVISIONS'){
-              continue
-            }
-            var regex_pattern = RegExp(rule.regex_pattern, 'g')
-            processed_revision_text = processed_revision_text.replace(regex_pattern, function(match){ return '<span class="text-replacement"><span class="text-to-remove">' + match + '</span><span class="text-to-add">' + match.replace(regex_pattern, rule.regex_replacement) + '</span></span>'})
-          }
-          output += "<div data-suggestion-pk='" + suggestion.id + "' class='suggestion-container'>"
-          output += "<h3 class='text-bold-600'><a target='_blank' href='" + Urls['exams:list_revisions']('{{ category_slugs }}', {{ exam.pk }}, suggestion.revision.question_id) + "'>Question #" + suggestion.revision.question_id + "</a></h3>";
-          output += "<div data-revision-pk='" + suggestion.revision.id + "' class='revision-text'>" + processed_revision_text + "</div><ul class='mt-2 choices' type='A'>"
-          for (choice_index in suggestion.revision.choice_set){
-            var choice = suggestion.revision.choice_set[choice_index]
-            var processed_choice_text = choice.text;
-            for (rule_index in suggestion.rules){
-              var rule = suggestion.rules[rule_index];
-              if (rule.scope != 'ALL' && rule.scope != 'CHOICES'){
-                continue
-              }
-              var regex_pattern = RegExp(rule.regex_pattern, 'g')
-              processed_choice_text = processed_choice_text.replace(regex_pattern, function(match){ return '<span class="text-replacement"><span class="text-to-remove">' + match + '</span><span class="text-to-add">' + match.replace(regex_pattern, rule.regex_replacement) + '</span></span>'})
-            }
-            output += "<li data-is-right='" + choice.is_right.toString() +"' data-choice-pk='" + choice.id + "'>" + processed_choice_text + "</li>"
-          }
-          output += "</ul><div class='btn-group' role='group' aria-label='Suggestion actions'><button data-action='keep' class='btn btn-success submit'>Approve</button><button data-action='decline' class='btn btn-warning ignore'>Ignore</button></div><hr></div>"
-        }
-        var element = document.getElementById('suggestion-container')
-        element.innerHTML += output;
-      }
-
-      function fetchCorrections(cursor){
-        $.ajax({method: 'get',
-                url: "{% url 'suggestion-list' %}",
-                data: {format: 'json',
-                       cursor: cursor,
-                       exam_pk: {{ exam.pk }} },
-                success: function(data){
-                  if (data.next){
-                    var next_cursor = new URL(data.next).searchParams.get("cursor");
-                    $("#show-more").data('cursor', next_cursor).show();
-                  } else {
-                    $("#show-more").attr('disabled', 'disabled');
-                  }
-                  constructSuggestions(data.results);
-                }
-        });
-      }
 
       fetchCorrections();
     });

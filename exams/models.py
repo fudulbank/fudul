@@ -790,6 +790,7 @@ class Mnemonic(models.Model):
 status_choices = (
     ('PENDING', 'Pending'),
     ('KEPT', 'Kept'),
+    ('EDITED', 'Edited'),
     ('DECLINED', 'Declined'),
 )
 

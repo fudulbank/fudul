@@ -1411,9 +1411,7 @@ def handle_suggestion(request):
                                                           .filter(status="PENDING"),
                                    pk=suggestion_pk)
 
-    if action == 'keep':
-
-
+    if action == 'keep' or action == 'submit_edit':
         # Reset approval meta data
         revision_instance = suggestion.revision
         revision_instance.approved_by = None
@@ -1434,7 +1432,10 @@ def handle_suggestion(request):
             print(revision_form.errors)
             print(revisionchoiceformset.errors)
             raise Exception("Could not save the edit!")
-        suggestion.status = 'KEPT'
+        if action == 'keep':
+            suggestion.status = 'KEPT'
+        if action == 'submit_edit':
+            suggestion.status = 'EDITED'
     elif action == 'decline':
         suggestion.status = 'DECLINED'
 
