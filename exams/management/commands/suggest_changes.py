@@ -24,13 +24,17 @@ class Command(BaseCommand):
             compiled_rules[rule.pk] = re.compile(rule.regex_pattern)
 
         # Clean up suggested edits that are no longer related to best revision
-        obsolete_suggestions =  SuggestedChange.objects.exclude(revision__is_last=True,
-                                                                revision__is_deleted=False)\
-                                                       .filter(status="PENDING")
+        without_rules = SuggestedChange.objects.annotate(rule_count=Count('rules'))\
+                                               .filter(status="PENDING", rule_count=0)
+        with_deleted_questions = SuggestedChange.objects.exclude(revision__is_last=True,
+                                                                 revision__is_deleted=False)\
+                                                        .filter(status="PENDING")
 
         if options['verbose']:
-            print("Found {} obsolute suggestions.  Deleting...".format(obsolete_suggestions.count()))
-        obsolete_suggestions.delete()
+            print("Found {} suggestions without rules and {} suggests with deleted questions.  Deleting...".format(without_rules.count(),
+                                                                                                                   with_deleted_questions.count()))
+        without_rules.delete()
+        with_deleted_questions.delete()
 
         if options['exam_pk']:
             exams = Exam.objects.filter(pk=options['exam_pk'])
