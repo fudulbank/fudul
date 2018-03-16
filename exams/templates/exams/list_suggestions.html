@@ -10,6 +10,10 @@
 {% block head %}
 <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
 <style>
+.manual-control + .automatic-control{
+  display: none;
+}
+
 .revision-text{
   white-space: pre-wrap;
   font-weight: 700;
@@ -115,7 +119,7 @@
         var formatted_revision = getFormattedDiff(suggestion.revision.text, processed_revision_text);
         output += "<div data-suggestion-pk='" + suggestion.id + "' class='suggestion-container'>"
         output += "<h3 class='text-bold-600'><a target='_blank' href='" + Urls['exams:list_revisions']('{{ category_slugs }}', {{ exam.pk }}, suggestion.revision.question_id) + "'>Question #" + suggestion.revision.question_id + "</a></h3>";
-        output += "<div data-revision-pk='" + suggestion.revision.id + "' class='revision-text'>" + formatted_revision + "</div><ul class='mt-2 choices' type='A'>"
+        output += "<div class='automatic-control'><div data-revision-pk='" + suggestion.revision.id + "' class='revision-text'>" + formatted_revision + "</div><ul class='mt-2 choices' type='A'>"
         for (choice_index in suggestion.revision.choice_set){
           var choice = suggestion.revision.choice_set[choice_index]
           var processed_choice_text = choice.text;
@@ -130,7 +134,7 @@
           var formatted_choice = getFormattedDiff(choice.text, processed_choice_text);
           output += "<li data-is-right='" + choice.is_right.toString() +"' data-choice-pk='" + choice.id + "'>" + formatted_choice + "</li>"
         }
-        output += "</ul><div class='btn-group action-btns' role='group' aria-label='Suggestion actions'><button data-action='keep' class='btn btn-success submit'>Approve</button><button data-action='edit' class='btn btn-warning edit'>Edit</button><button data-action='decline' class='btn btn-danger ignore'>Ignore</button></div><hr></div>"
+        output += "</ul><div class='btn-group action-btns' role='group' aria-label='Suggestion actions'><button data-action='keep' class='btn btn-success submit'>Approve</button><button data-action='edit' class='btn btn-warning edit'>Edit</button><button data-action='decline' class='btn btn-danger ignore'>Ignore</button></div></div><hr></div>"
       }
       var element = document.getElementById('suggestion-container')
       element.innerHTML += output;
@@ -161,15 +165,24 @@
       });
 
       $('[data-toggle="tooltip"]').tooltip();
+      $(document).on('click', '.cancel-edit', function(){
+        var $container = $(this).closest('.suggestion-container')
+        var manual_control = $container.find('.manual-control');
+        manual_control.remove();
+      });
 
       $(document).on('click', '.edit', function(){
         var $container = $(this).closest('.suggestion-container')
-        var $revision = $container.find('.revision-text');
-        var $choices = $container.find('.choices li');
-        $container.find('.text-to-add').each(function(){
+        var $automatic_control = $container.find('.automatic-control');
+        var $manual_control = $automatic_control.clone(true);
+        var $revision = $manual_control.find('.revision-text');
+        var $choices = $manual_control.find('.choices li');
+
+        $manual_control.removeClass('automatic-control').addClass('manual-control')
+        $manual_control.find('.text-to-add').each(function(){
           $(this).contents().unwrap();
         });
-        $container.find('.text-to-remove').remove();
+        $manual_control.find('.text-to-remove').remove();
 
         var revision_pk = $revision.data('revision-pk');
         var revision_text = $revision.html();
@@ -182,7 +195,8 @@
           $choice.html('<input class="form-control" value="' + choice_text + '">');
         });
 
-        $container.find('.action-btns').html('<button data-action="submit_edit" class="btn btn-success submit-edit">Submit</button>')
+        $manual_control.find('.action-btns').html('<button data-action="submit_edit" class="btn btn-success submit-edit">Submit</button><button class="btn btn-danger cancel-edit">Cancel</button>')
+        $automatic_control.before($manual_control);
       });
 
 
@@ -190,27 +204,27 @@
         var $btn = $(this);
         var action = $btn.data('action');
         var $container = $btn.closest('.suggestion-container')
-        var $choices = $container.find('.choices li');
         var suggestion_pk = $container.data('suggestion-pk');
 
         if (action == 'keep' || action == 'submit_edit'){
           var $revision = $container.find('.revision-text');
-
           var revision_pk = $revision.data('revision-pk');
 
           if (action == 'submit_edit'){
+            var $control = $container.find('.manual-control');
             var change_summary = 'Applying automatic suggestion with manual changes';
-            revision_text = $revision.find('textarea').val();
+            revision_text = $control.find('.revision-text').find('textarea').val();
           } else if (action == 'keep'){
+            var $control = $container.find('.automatic-control');
             var change_summary = 'Applying automatic suggestion';
-            var $choices = $container.find('.choices li');
-            $container.find('.text-to-add').each(function(){
+            $control.find('.text-to-add').each(function(){
               $(this).contents().unwrap();
             });
-            $container.find('.text-to-remove').remove();
-            var revision_text = $revision.html();
+            $control.find('.text-to-remove').remove();
+            var revision_text = $control.find('.revision-text').html();
           }
 
+          var $choices = $control.find('.choices li');
           var data = {'suggestion_pk': suggestion_pk,
                       'action': action,
                       'text': revision_text,
