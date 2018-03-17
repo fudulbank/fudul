@@ -46,22 +46,15 @@
 		<div class="card-block">
 			<p>Fudul is the comprehensive, collective, free-of-charge <strong>question bank</strong> built by and for examinees.</p>
 		</div>
-		<div class="row justify-content-center">
+		<div class="row align-items-center justify-content-center">
 			<div class="col-12 col-sm-6 col-md-4">
-				<div class="card height-100 text-center">
+				<div class="card text-center">
 					<div id="explore-exams" class="card-body">
-						{% if user.profile.primary_interest == 'SMLE' %}
-						<a href="{% url 'exams:create_session' 'LicensingExams' 100 %}">
+						{% if user.profile.primary_interest %}
+						<a href="{{ user.profile.primary_interest.content_object.get_absolute_url }}">
 							<i class="font-large-3 ft-list"></i>
 							<div class="card-block">
-								<h4 class="card-title">SMLE</h4>
-							</div>
-            </a>
-						{% elif user.profile.primary_interest == 'SNLE' %}
-						<a href="{% url 'exams:create_session' 'LicensingExams' 104 %}">
-							<i class="font-large-3 ft-list"></i>
-							<div class="card-block">
-								<h4 class="card-title">SNLE</h4>
+								<h4 class="card-title">{{ user.profile.primary_interest.name }}</h4>
 							</div>
             </a>
 						{% else %}
@@ -76,7 +69,7 @@
 				</div>
 			</div>
 			<div class="col-12 col-sm-6 col-md-4">
-				<div class="card height-100 text-center">
+				<div class="card text-center">
 					<div class="card-body">
 	          <a href="{% url 'exams:show_my_performance' %}">
 							<i class="font-large-3 ft-bar-chart-2"></i>

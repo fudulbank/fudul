@@ -6,6 +6,15 @@ from userena.utils import generate_sha1
 from django.utils.encoding import smart_text
 from django.utils.six import text_type
 
+class PrimaryInterestQuerySet(models.QuerySet):
+    def meta(self):
+        return self.filter(parent__isnull=True)
+
+    def with_children(self):
+        return self.filter(children__isnull=False)
+
+    def order_by_alphabet(self):
+        return self.order_by('name')
 
 class ProfileManger(UserManager):
 

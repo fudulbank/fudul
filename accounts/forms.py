@@ -22,9 +22,9 @@ class CustomSignupForm(SignupFormOnlyEmail):
     college = forms.ModelChoiceField(queryset=models.College.objects.all(),
                                      required=False)
     batch = forms.ModelChoiceField(queryset=models.Batch.objects.all(),
-                                   required=False)    
+                                   required=False)
     mobile_number = forms.CharField(max_length=14)
-    primary_interest = forms.ChoiceField(choices=models.primary_interest_choices)
+    primary_interest = forms.ModelChoiceField(queryset=models.PrimaryInterest.objects.filter(children__isnull=True))
     display_full_name = forms.ChoiceField(choices=models.display_full_name_choices)
 
     def clean(self, *args, **kwargs):

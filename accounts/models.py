@@ -1,15 +1,19 @@
+from django.contrib.auth.models import User
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.sites.models import Site
 from django.db import models
 from django.db.models import Count
-from django.contrib.auth.models import User
-import re
-from userena.models import UserenaBaseProfile
 from django.utils.translation import ugettext as _
-from userena.utils import generate_sha1,get_datetime_now,get_protocol
 from userena import settings as userena_settings
-from django.contrib.sites.models import Site
 from userena.mail import UserenaConfirmationMail
+from userena.models import UserenaBaseProfile
+from userena.utils import generate_sha1,get_datetime_now,get_protocol
 import datetime
-from accounts.managers import ProfileManger
+import re
+
+from . import managers
+
 
 display_full_name_choices = (
     ('Y', 'Display my full name'),
@@ -37,7 +41,7 @@ class Profile(UserenaBaseProfile):
     alternative_email = models.EmailField(blank=True)
     submission_date = models.DateTimeField(auto_now_add=True)
     modification_date = models.DateTimeField(auto_now=True, null=True)
-    primary_interest = models.CharField(max_length=20, choices=primary_interest_choices,default="COLLEGE")
+    primary_interest = models.ForeignKey('PrimaryInterest', null=True, blank=True, limit_choices_to={'children__isnull': True})
 
     display_full_name = models.CharField(max_length=1, choices=display_full_name_choices,default="N")
     personal_email_unconfirmed = models.EmailField(('unconfirmed email address'),
@@ -50,7 +54,8 @@ class Profile(UserenaBaseProfile):
     personal_email_confirmation_key_created = models.DateTimeField(_('creation date of alternative email confirmation key'),
                                                                    blank=True,
                                                                    null=True)
-    objects = ProfileManger()
+    
+    objects = managers.ProfileManger()
 
     def __str__(self):
         return self.user.username
@@ -120,8 +125,22 @@ class Profile(UserenaBaseProfile):
         mailer.send_mail(self.personal_email_unconfirmed)
 
 
+class PrimaryInterest(models.Model):
+    name = models.CharField(max_length=100)
+    parent = models.ForeignKey('self', null=True, blank=True,
+                               related_name="children")
 
-#     ------------------------------------
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+    exam = models.ForeignKey('exams.Exam', null=True, blank=True)
+    category = models.ForeignKey('exams.Category', null=True, blank=True)
+
+    objects = managers.PrimaryInterestQuerySet.as_manager()
+
+    def __str__(self):
+        return self.name
 
 class Batch(models.Model):
     name = models.CharField(max_length=50)

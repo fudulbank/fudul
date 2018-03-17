@@ -36,11 +36,32 @@
     <h6 class="line-on-side text-muted text-center font-small-2"><span>How can we help you?</span></h6>
     <p><i class="icon-info"></i>Fudul hosts tens of thousands of questions in different exams.  Which exam do you wnat to focus on?</p>
     <fieldset class="form-group position-relative has-icon-left mb-1">
-    {% bootstrap_field form.primary_interest show_label=False %}
-    <div class="form-control-position">
-        <i class="ft-heart"></i>
-    </div>
-  </fieldset>
+      <select id="parent-primary-interest" required {% if form.primary_interest.value and not form.primary_interest.errors %}value="{{ form.primary_interest.value }}" {% endif %} class="form-control">
+         <option value="" selected="">---------</option>
+         {% for primary_interest in primary_interests.meta.order_by_alphabet %}
+            <option value="{{ primary_interest.pk }}">{{ primary_interest.name }}</option>
+         {% endfor %}
+      </select>
+      <div class="form-control-position">
+          <i class="ft-heart"></i>
+      </div>
+    </fieldset>
+
+  {% for primary_interest in primary_interests.with_children %}
+  <div data-primary-interest-pk="{{ primary_interest.pk }}" style="display: none" class="primary-interest-children form-group has-feedback has-feedback-left">
+    <fieldset class="form-group position-relative has-icon-left mb-1">
+      <select class="form-control">
+         <option value="" selected="">---------</option>
+         {% for child_primary_interest in primary_interest.children.order_by_alphabet %}
+            <option value="{{ child_primary_interest.pk }}">{{ child_primary_interest.name }}</option>
+         {% endfor %}
+      </select>
+      <div class="form-control-position">
+        <i class="ft-flag"></i>
+      </div>
+    </fieldset>
+  </div>
+  {% endfor %}
 
     <h6 class="line-on-side text-muted text-center font-small-2"><span>Your nickname</span></h6>
     <p><i class="icon-info"></i>Fudul is cooperative, and you can contribute to it.  You have the choice of showing your real name or not whenever you add a contribution to give you credit.</p>
@@ -196,7 +217,7 @@ $(function() {
         college_batches = batches[value]
         if (value.length && college_batches.length) {
             $("#id_batch").prop('required', true).html(empty_option);
-            $("#id_batch").closest('.form-group.has-feedback').show();
+            $("#id_batch").closest('.form-group').show();
 
             $.each(college_batches, function(index, batch_data) {
                 pk = batch_data[0];
@@ -206,6 +227,7 @@ $(function() {
             });
         } else {
             $("#id_batch").prop('required', false);
+            $("#id_batch").closest('.form-group').hide();
         }
 
     });
@@ -219,6 +241,23 @@ $(function() {
             $('#nickname').hide();
 
         }
+    });
+
+    $('#parent-primary-interest').change(function(){
+      value = $(this).val();
+      $children_field = $('[data-primary-interest-pk="' + value + '"]');
+      if (value && $children_field.length){
+        $('#parent-primary-interest').attr('name', null);
+        $('#parent-primary-interest').find('select').attr('required', false);
+        $children_field.find('select').attr('required', true).attr('name', 'primary_interest')
+        $children_field.show();
+        $('.primary-interest-children').not($children_field).hide();
+      } else {
+        $('#parent-primary-interest').attr('name', 'primary_interest');
+        $('#parent-primary-interest').find('select').attr('required', true);
+        $('.primary-interest-children').hide();
+        $('.primary-interest-children').find('select').attr('required', false)
+      }
     });
 
     $("#agree").on('ready change', function() {

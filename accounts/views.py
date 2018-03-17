@@ -1,8 +1,6 @@
 from django.shortcuts import render
 from userena import views as userena_views
 from core import decorators
-from .forms import CustomSignupForm,CustomEditProfileForm,ChangePersonalEmailForm,CustomAuthenticationForm
-from .models import Institution,Profile
 from django.contrib.auth.models import User
 from userena.utils import get_user_profile
 from django.shortcuts import get_object_or_404,redirect
@@ -17,6 +15,9 @@ from django.contrib import messages
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from userena.utils import signin_redirect
 from django.utils.translation import ugettext_lazy as _
+
+from .forms import CustomSignupForm,CustomEditProfileForm,ChangePersonalEmailForm,CustomAuthenticationForm
+from .models import *
 
 
 @decorators.ajax_only
@@ -37,7 +38,9 @@ def get_institution_details(request):
 
 def signup(request):
     institutions = Institution.objects.all()
-    extra_context = {'institutions': institutions} 
+    primary_interests = PrimaryInterest.objects.all()
+    extra_context = {'institutions': institutions,
+                     'primary_interests': primary_interests} 
     return userena_views.signup(request, signup_form=CustomSignupForm,
                                 template_name='accounts/signup.html',
                                 extra_context=extra_context)
