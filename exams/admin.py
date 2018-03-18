@@ -113,7 +113,6 @@ class RuleAdmin(admin.ModelAdmin):
                                                  .count()
         if resolved:
             kept = models.SuggestedChange.objects.filter(rules=obj, status='KEPT')\
-                                                 .exclude(status='PENDING')\
                                                  .distinct()\
                                                  .count()
             percentage = kept / resolved * 100

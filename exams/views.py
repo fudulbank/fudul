@@ -1427,10 +1427,7 @@ def handle_suggestion(request):
            revisionchoiceformset.is_valid():
             new_revision = revision_form.clone(revision_instance.question, request.user)
             revisionchoiceformset.clone(new_revision)
-            return {}
         else:
-            print(revision_form.errors)
-            print(revisionchoiceformset.errors)
             raise Exception("Could not save the edit!")
         if action == 'keep':
             suggestion.status = 'KEPT'
@@ -1442,3 +1439,4 @@ def handle_suggestion(request):
     suggestion.reviser = request.user
     suggestion.revision_date = timezone.now()
     suggestion.save()
+    return {}
