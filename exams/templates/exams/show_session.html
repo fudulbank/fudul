@@ -1237,7 +1237,7 @@
             $("#explain-question-modal .modal-body").load(url);
         });
 
-        $(".add-mnemonics").click(function () {
+        $("#add-mnemonics").click(function () {
             $("#add-mnemonics-modal").modal('show');
             url = "{% url 'exams:contribute_mnemonics' %}?" + $.param({question_pk: $current_question.data('question-pk')});
             $("#add-mnemonics-modal .modal-body").load(url);
