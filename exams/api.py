@@ -207,15 +207,13 @@ class QuestionSummaryViewSet(viewsets.ReadOnlyModelViewSet):
         if exam_pk:
             exam = get_object_or_404(Exam, pk=exam_pk)
         selector = self.request.query_params.get('selector')
-        question_pool = exam.question_set.all()
+        question_pool = exam.question_set.undeleted()
         if selector.startswith('i-'):
             issue_pk = int(selector[2:])
-            questions = exam.question_set.undeleted()\
-                                         .filter(issues__pk=issue_pk)
+            questions = exam.question_set.filter(issues__pk=issue_pk)
         elif selector.startswith('s-'):
             subject_pk = int(selector[2:])
-            questions = exam.question_set.undeleted()\
-                                         .filter(subjects__pk=subject_pk)
+            questions = exam.question_set.filter(subjects__pk=subject_pk)
         elif selector == 'all':
             questions = question_pool
         elif selector == 'assigned':
@@ -241,7 +239,8 @@ class QuestionSummaryViewSet(viewsets.ReadOnlyModelViewSet):
                                                'question__assigned_editor',
                                                'question__assigned_editor__profile')\
                                .filter(question__in=questions,
-                                       is_last=True)\
+                                       is_last=True,
+                                       is_deleted=False)\
                                .distinct()
 
 class QuestionAssignmentViewSet(viewsets.ReadOnlyModelViewSet):
