@@ -909,6 +909,10 @@ class Duplicate(models.Model):
         return "Duplicate of Q#{} in container #{}".format(self.question.pk,
                                                            self.container.pk)
 
+    class Meta:
+        ordering = ('question',)
+        unique_together = ("container", "question")
+
 class Rule(models.Model):
     description = models.CharField(max_length=40, blank=True)
     scope_choices = (
