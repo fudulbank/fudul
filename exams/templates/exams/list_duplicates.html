@@ -9,6 +9,25 @@
 
 {% block head %}
 <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
+<style>
+.revision-text{
+  white-space: pre-wrap;
+  font-weight: 700;
+}
+
+.choices li[data-is-right="true"]{
+  font-weight: 700;
+}
+
+.text-to-remove{
+  text-decoration: line-through;
+}
+
+.text-to-add{
+  color: green;
+}
+</style>
+
 {% endblock %}
 
 {% block breadcrumb %}
@@ -33,44 +52,13 @@
       </div>
       <div class="card">
         <div class="card-body">
-          <div class="card-block">
-            {% for duplicate_container in duplicate_containers %}
-            <div class="card duplicate-container border-bottom">
-              <div class="card-body row">
-                <div class="col-sm-9">
-                  <h3 class="text-bold-600">Report #{{ duplicate_container.pk }}</h3>
-                  <h5 class="text-bold-600"><a href="{% url 'exams:list_revisions' category_slugs exam.pk duplicate_container.primary_question.pk %}">Question #{{ duplicate_container.primary_question.pk }}</a></h5>
-                  <p class="font-small-3">(<abbr class="primary-question">Primary question;</abbr> {{ duplicate_container.primary_question.get_answering_user_count }} users answered)</p>
-                  <p>{{ duplicate_container.primary_question.best_revision.text|linebreaksbr }}</p>
-                  <ul type="A">
-                  {% for choice in duplicate_container.primary_question.best_revision.choice_set.order_by_alphabet %}
-                    <li><span {% if choice.is_right %} data-toggle="tooltip" data-title="This choice is the right one" style="font-weight: 800;" class="success darken-4"{% endif %}>{{ choice.text }}</span></li>
-                  {% endfor %}
-                  </ul>
-                  {% for duplicate in duplicate_container.duplicate_set.with_undeleted_question.select_for_list.order_by_question_pk %}
-                  <h5 class="text-bold-600"><a href="{% url 'exams:list_revisions' category_slugs exam.pk duplicate.question.pk %}">Question #{{ duplicate.question.pk }}</a></h5>
-                  <p class="font-small-3">(<strong class="danger darken-4">{{ duplicate.get_percentage }}% similar to the primary question</strong>; {{ duplicate.question.get_answering_user_count }} users answered)</p>
-                  <p>{{ duplicate.question.best_revision.text|linebreaksbr }}</p>
-                  <ul type="A">
-                  {% for choice in duplicate.question.best_revision.choice_set.order_by_alphabet %}
-                    <li><span {% if choice.is_right %} data-toggle="tooltip" data-title="This choice is the right one" style="font-weight: 800;" class="success darken-4"{% endif %}>{{ choice.text }}</span></li>
-                  {% endfor %}
-                  </ul>
-                  {% endfor %}
-                </div>
-                <div class="col-sm-3 align-self-center border-left text-center">
-                  <div class="btn-group-vertical">
-                    {% for question in duplicate_container.get_questions %}
-                    <button class="btn btn-success duplicate-decision" data-duplicate-container-pk="{{ duplicate_container.pk }}" data-question-pk="{{ question.pk }}" data-action="keep"><i class="ft-check-square"></i> Keep question #{{ question.pk }}</button>
-                    {% endfor %}
-                    <button class="btn btn-warning duplicate-decision" data-duplicate-container-pk="{{ duplicate_container.pk }}" data-action="decline"><i class="ft-delete"></i> Ignore</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            {% empty %}
+          <div class="card-block" id="duplicates">
+            {% if not duplicate_containers.exists %}
             <p>No duplicates for {{ exam.name }}.  Get back to the <a href="{% url 'exams:list_questions' category_slugs exam.pk %}">list of questions</a>.</p>
-            {% endfor %}
+            {% endif %}
+          </div>
+          <div class="card-block">
+            <button id="show-more" style="display: none" class="btn btn-primary"><i class="ft-more-horizontal"></i>Show 50 more</button>
           </div>
         </div>
     </div>
@@ -78,30 +66,121 @@
 {% block customscript %}
 
 <script src="{% static 'js/toastr.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/3.5.0/diff.min.js" integrity="sha384-kFZay1kUVYthe5mwHuE5+fwtA9nn7agG8/7SX2zx1KlJChIy7D1mTEf33nKpDb+d" crossorigin="anonymous"></script>
 
 <script>
-    $(function () {
-      $('[data-toggle="tooltip"]').tooltip();
-      $('.primary-question').tooltip({title: "The primary question is the question against which other duplicate questions are compared.  This is notable when there were more than one duplicate question."})
-      $('button.duplicate-decision').click(function(){
-        $button = $(this)
-        var action = $button.data('action');
-        var question_pk = $button.data('question-pk');
-        var container_pk = $button.data('duplicate-container-pk');
-        $button.closest('.duplicate-container').remove();
-        $.ajax({url: '{% url "exams:handle_duplicate" %}',
-                data: {action: action, question_pk: question_pk, container_pk: container_pk},
-                method: 'POST',
-                success: function(data){
-                  if (data.success == 1){
-                    toastr.success("Report #" + container_pk + " was successfully handled.")
-                  } else {
-                    toastr.error(data.message)
-                  }
-                }
-        });
-      });
+function getFormattedDiff(first_text, second_text){
+  var diff = JsDiff.diffChars(first_text, second_text),
+      part_text = "",
+      formatted_text = "";
+
+  diff.forEach(function(part){
+    // green for additions, red for deletions
+    // grey for common parts
+    var span_class = part.added ? 'text-to-add' :
+      part.removed ? 'text-to-remove danger darken-4' : '';
+    if (span_class){
+      part_text = '<span class="' + span_class + '">' + part.value + '</span>';
+    } else {
+      part_text = part.value;
+    }
+    formatted_text += part_text;
+  });
+  return formatted_text;
+}
+
+function constructChoices(question){
+  var output = '<ul class="choices" type="A">';
+  for (choice_index in question.latest_revision.choice_set){
+    var choice = question.latest_revision.choice_set[choice_index];
+    output += "<li data-is-right='" + choice.is_right.toString() + "'>" + choice.text + "</li>"
+  }
+  output += '</ul>'
+  return output
+}
+
+function constructDuplicates(duplicate_containers){
+  var output = "";
+  for (dc_index in duplicate_containers){
+    var duplicate_container = duplicate_containers[dc_index];
+    var button_output = '<div class="col-sm-3 align-self-center border-left text-center"><div class="btn-group-vertical"><button class="btn btn-success duplicate-decision" data-duplicate-container-pk="' + duplicate_container.id + '" data-question-pk="' + duplicate_container.primary_question.id + '" data-action="keep"><i class="ft-check-square"></i> Keep question #' + duplicate_container.primary_question.id + '</button>';
+
+    output += '<div class="card duplicate-container border-bottom"><div class="card-body row"><div class="col-sm-9"><h3 class="text-bold-600">Report #' + duplicate_container.id + '</h3><h5 class="text-bold-600"><a href="' + duplicate_container.primary_question.get_list_revision_url + '">Question #' + duplicate_container.primary_question.id + '</a></h5><p class="font-small-3">(<abbr class="primary-question">Primary question;</abbr> ' + duplicate_container.primary_question.get_answering_user_count + ' users answered)</p><p class="revision-text">' + duplicate_container.primary_question.latest_revision.text + '</p>'
+
+    output += constructChoices(duplicate_container.primary_question)
+
+    for (d_index in duplicate_container.duplicate_set){
+      var duplicate = duplicate_container.duplicate_set[d_index];
+      var formatted_text = getFormattedDiff(duplicate_container.primary_question.latest_revision.text, duplicate.question.latest_revision.text);
+      output += '<h5 class="text-bold-600"><a href="' + duplicate.question.get_list_revision_url + '">Question #' + duplicate.question.id + '</a></h5>'
+      output += '<p class="font-small-3">(<strong class="danger darken-4">' + duplicate.get_percentage + '% similar to the primary question</strong>; ' +  duplicate.question.get_answering_user_count + ' users answered)</p><p class="revision-text">' + formatted_text + '</p>';
+      output += constructChoices(duplicate.question)
+      button_output += '<button class="btn btn-success duplicate-decision" data-duplicate-container-pk="' + duplicate_container.id + '" data-question-pk="' + duplicate.question.id + '" data-action="keep"><i class="ft-check-square"></i> Keep question #' + duplicate.question.id + '</button>'
+    }
+
+    // Close the question column
+    output += "</div>"
+
+    // Close the button outout
+    button_output +=  '<button class="btn btn-warning duplicate-decision" data-duplicate-container-pk="' + duplicate_container.id + '" data-action="decline"><i class="ft-delete"></i> Ignore</button></div></div>'
+
+    output += button_output;
+    output += "</div></div>"
+  }
+
+  var element = document.getElementById('duplicates')
+  element.innerHTML += output;
+}
+
+
+function fetchDuplicates(cursor){
+  $.ajax({method: 'get',
+          url: "{% url 'duplicate-list' %}",
+          data: {format: 'json',
+                 cursor: cursor,
+                 exam_pk: {{ exam.pk }} },
+          success: function(data){
+            if (data.next){
+              var next_cursor = new URL(data.next).searchParams.get("cursor");
+              $("#show-more").data('cursor', next_cursor).show();
+            } else {
+              $("#show-more").attr('disabled', 'disabled');
+            }
+            constructDuplicates(data.results);
+          }
+  });
+}
+
+$(function () {
+  $('[data-toggle="tooltip"]').tooltip();
+  $('#duplicates').tooltip({selector: '.primary-question', title: "The primary question is the question against which other duplicate questions are compared.  This is notable when there were more than one duplicate question."})
+
+  $("#show-more").click(function(){
+    var next_cursor = $(this).data('cursor');
+    fetchDuplicates(next_cursor)
+  });
+
+  fetchDuplicates();
+
+  $('#duplicates').on('click', 'button.duplicate-decision', function(){
+    $button = $(this)
+    var action = $button.data('action');
+    var question_pk = $button.data('question-pk');
+    var container_pk = $button.data('duplicate-container-pk');
+    $button.closest('.duplicate-container').remove();
+    $.ajax({url: '{% url "exams:handle_duplicate" %}',
+            data: {action: action, question_pk: question_pk, container_pk: container_pk},
+            method: 'POST',
+            success: function(data){
+              if (data.success == 1){
+                toastr.success("Report #" + container_pk + " was successfully handled.")
+              } else {
+                toastr.error(data.message)
+              }
+            }
     });
+  });
+});
 
 {% include 'exams/modals/adjust_modal_size.js' %}
 </script>

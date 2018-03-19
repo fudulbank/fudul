@@ -261,6 +261,11 @@ class Question(models.Model):
                        args=(self.exam.category.get_slugs(),
                              self.exam.pk, self.pk))
 
+    def get_list_revision_url(self):
+        return reverse("exams:list_revisions",
+                       args=(self.exam.category.get_slugs(),
+                             self.exam.pk, self.pk))
+
     def get_answering_user_count(self):
         user_pks = Answer.objects.filter(choice__revision__question=self)\
                                  .values('session__submitter')

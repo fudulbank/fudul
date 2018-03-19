@@ -25,7 +25,6 @@
 
 .text-to-remove{
   text-decoration: line-through;
-  color: red;
 }
 
 .text-to-add{
@@ -80,7 +79,6 @@
 <script src="{% url 'js_reverse' %}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/3.5.0/diff.min.js" integrity="sha384-kFZay1kUVYthe5mwHuE5+fwtA9nn7agG8/7SX2zx1KlJChIy7D1mTEf33nKpDb+d" crossorigin="anonymous"></script>
 
-
 <script>
     function getFormattedDiff(first_text, second_text){
       var diff = JsDiff.diffChars(first_text, second_text),
@@ -91,7 +89,7 @@
         // green for additions, red for deletions
         // grey for common parts
         var span_class = part.added ? 'text-to-add' :
-          part.removed ? 'text-to-remove' : '';
+          part.removed ? 'text-to-remove danger darken-4' : '';
         if (span_class){
           part_text = '<span class="' + span_class + '">' + part.value + '</span>';
         } else {

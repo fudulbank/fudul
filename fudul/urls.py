@@ -17,6 +17,7 @@ router.register(r'marked', MarkedQuestionViewSet, base_name="marked")
 router.register(r'question_summary', QuestionSummaryViewSet, base_name="summary")
 router.register(r'question_assignment', QuestionAssignmentViewSet, base_name="assigned")
 router.register(r'suggestions', SuggestedChangeViewSet, base_name="suggestion")
+router.register(r'duplicates', DuplicateContainerViewSet, base_name="duplicate")
 
 urlpatterns = [
     url(r'^api/corrections/$', CorrectionList.as_view(), name="correction-list"),

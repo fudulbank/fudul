@@ -30,6 +30,22 @@ class RevisionTextSerializer(serializers.ModelSerializer):
         model = Revision
         fields = ('id', 'question_id', 'text', 'choice_set')
 
+class QuestionTextSerializer(serializers.ModelSerializer):
+    latest_revision = RevisionTextSerializer(read_only=True,
+                                             source='get_latest_revision')
+
+    class Meta:
+        model = Question
+        fields = ('id', 'latest_revision', 'get_answering_user_count',
+                  'get_list_revision_url')
+
+class DuplicateSerializer(serializers.ModelSerializer):
+    question = QuestionTextSerializer(read_only=True)
+
+    class Meta:
+        model = Duplicate
+        fields = ('question', 'ratio', 'get_percentage')
+
 class QuestionIdSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
@@ -42,6 +58,14 @@ class SuggestedChangeSerializer(serializers.ModelSerializer):
     class Meta:
         model = SuggestedChange
         fields = ('id', 'revision', 'rules')
+
+class DuplicateContainerSerializer(serializers.ModelSerializer):
+    primary_question = QuestionTextSerializer(read_only=True)
+    duplicate_set = DuplicateSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = DuplicateContainer
+        fields = ('id', 'primary_question', 'duplicate_set')
 
 class RevisionSummarySerializer(serializers.ModelSerializer):
     question = QuestionIdSerializer(read_only=True)
@@ -118,7 +142,17 @@ class HasSessionOrQuestionAccess(permissions.BasePermission):
         else:
             return False
 
-class HasExamAccess(permissions.BasePermission):
+class CanEditExam(permissions.BasePermission):
+    def has_permission(self, request, view):
+        exam_pk = request.query_params.get('exam_pk')
+
+        if exam_pk:
+            exam = get_object_or_404(Exam, pk=exam_pk)
+            return exam.can_user_edit(request.user)
+        else:
+            return False
+
+class CanAccessExam(permissions.BasePermission):
     def has_permission(self, request, view):
         exam_pk = request.query_params.get('exam_pk')
         question_pk = request.query_params.get('question_pk')
@@ -151,7 +185,7 @@ class HighlightViewSet(viewsets.ReadOnlyModelViewSet):
 
 class MarkedQuestionViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = QuestionIdSerializer
-    permission_classes = (HasExamAccess,)
+    permission_classes = (CanAccessExam,)
 
     def get_queryset(self):
         exam_pk = self.request.query_params.get('exam_pk')
@@ -166,7 +200,7 @@ class MarkedQuestionViewSet(viewsets.ReadOnlyModelViewSet):
 
 class QuestionSummaryViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = RevisionSummarySerializer
-    permission_classes = (HasExamAccess,)
+    permission_classes = (CanAccessExam,)
 
     def get_queryset(self):
         exam_pk = self.request.query_params.get('exam_pk')
@@ -254,13 +288,14 @@ class CorrectionList(views.APIView):
 
         return Response(data)
 
-class SuggestedChangePagination(pagination.CursorPagination):
+class CustomPagination(pagination.CursorPagination):
     ordering = 'id'
     page_size = 50
 
 class SuggestedChangeViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = SuggestedChangeSerializer
-    pagination_class = SuggestedChangePagination
+    pagination_class = CustomPagination
+    permission_classes = (CanEditExam,)
 
     def get_queryset(self):
         exam_pk = self.request.query_params.get('exam_pk')
@@ -271,3 +306,18 @@ class SuggestedChangeViewSet(viewsets.ReadOnlyModelViewSet):
         exam = get_object_or_404(Exam, pk=exam_pk)
 
         return exam.get_pending_suggested_changes()
+
+class DuplicateContainerViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = DuplicateContainerSerializer
+    pagination_class = CustomPagination
+    permission_classes = (CanEditExam,)
+
+    def get_queryset(self):
+        exam_pk = self.request.query_params.get('exam_pk')
+
+        if not exam_pk:
+            raise Http404
+
+        exam = get_object_or_404(Exam, pk=exam_pk)
+
+        return exam.get_pending_duplicates()
