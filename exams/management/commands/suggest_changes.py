@@ -1,10 +1,10 @@
 from django.core.management.base import BaseCommand
 from django.db.models import Count
-from exams.models import Exam, Revision, Rule, SuggestedChange
 from exams.forms import RevisionForm 
+from exams.models import *
 import datetime
 import re
-
+import time
 
 class Command(BaseCommand):
     help = "Clean-up tasks for the exam app"
@@ -13,9 +13,16 @@ class Command(BaseCommand):
                             default=False)
         parser.add_argument('--dry', action='store_true',
                             default=False)
+        parser.add_argument('--fast', action='store_true',
+                            default=False)
         parser.add_argument('--exam-pk', default=None, type=int)
 
     def handle(self, *args, **options):
+        if not options['fast']:
+            question_count = Question.objects.undeleted().count()
+            # Run over 10 hours
+            total_seconds = 60 * 60 * 10
+            sleep_time = question_count / total_seconds
         rules = list(Rule.objects.filter(is_disabled=False))
 
         # Providing initial compiled regexes speeds things up.
@@ -46,8 +53,7 @@ class Command(BaseCommand):
                 print("Scanning {}...".format(exam.name))
             pool = list(Revision.objects.select_related('question')\
                                         .filter(question__exam=exam,
-                                                is_last=True,
-                                                is_deleted=False)\
+                                                is_last=True)\
                                         .undeleted()\
                                         .order_by('question__pk'))
 
@@ -80,3 +86,7 @@ class Command(BaseCommand):
                         suggestion.rules.add(*applied_rules)
                     if options['verbose']:
                         print("We found {} rules for Q#{} in {}".format(len(applied_rules), revision.question.pk, exam.name))
+                if not options['fast']:
+                    if options['verbose']:
+                        print("Sleeping for {}...".format(sleep_time))
+                    time.sleep(sleep_time)

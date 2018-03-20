@@ -1,9 +1,9 @@
 from difflib import SequenceMatcher
 from django.core.management.base import BaseCommand
 from django.db.models import Count
-from exams.models import Exam, Question, Duplicate, DuplicateContainer
+from exams.models import *
 import datetime
-
+import time
 
 class Command(BaseCommand):
     help = "Clean-up tasks for the exam app"
@@ -16,8 +16,16 @@ class Command(BaseCommand):
                             type=float)
         parser.add_argument('--short-limit', default=70,
                             type=int)
+        parser.add_argument('--fast', action='store_true',
+                            default=False)
 
     def handle(self, *args, **options):
+        if not options['fast']:
+            question_count = Question.objects.undeleted().count()
+            # Run over 20 hours
+            total_seconds = 60 * 60 * 20
+            sleep_time = question_count / total_seconds
+
         # Clean up duplicate containers with no undeleted questions
         obsolete_containers =  DuplicateContainer.objects.filter(status='PENDING')\
                                                          .exclude(duplicate__question__is_deleted=False,
@@ -99,6 +107,10 @@ class Command(BaseCommand):
                 if options['verbose']:
                     end_time = datetime.datetime.now()
                     print("Question #{}: It took: {}".format(first_question.pk, end_time - start_time))
+                if not options['fast']:
+                    if options['verbose']:
+                        print("Sleeping for {}...".format(sleep_time))
+                    time.sleep(sleep_time)
 
         # Some duplicates can be solved automatically: if the ratio is
         # 100% and the question pks are subsequent, this indicates
