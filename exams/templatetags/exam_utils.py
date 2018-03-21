@@ -124,3 +124,9 @@ def get_question_assigned_count(user, question_pool=None):
 def is_mnemonic_submiiter(mnemonic,user):
     if mnemonic.submitter == user :
         return True
+
+@register.filter
+def get_pending_action_count(user):
+    change_count = models.SuggestedChange.objects.filter(status="PENDING", revision__question__exam__privileged_teams__members=user)
+    duplicate_count = models.DuplicateContainer.objects.filter(status="PENDING", primary_question__exam__privileged_teams__members=user)
+    return change_count.count() + duplicate_count.count()
