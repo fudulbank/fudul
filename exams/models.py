@@ -1,12 +1,13 @@
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericRelation
-from django.core.exceptions import MultipleObjectsReturned
+from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 import datetime
 import textwrap
+import re
 
 from . import managers
 from accounts.models import College, Batch
@@ -913,6 +914,12 @@ class Duplicate(models.Model):
         ordering = ('question',)
         unique_together = ("container", "question")
 
+def validate_regex(value):
+    try:
+        re.compile(value)
+    except re.error:
+        raise ValidationError('Please enter a valid regular expression.')
+
 class Rule(models.Model):
     description = models.CharField(max_length=40, blank=True)
     scope_choices = (
@@ -922,7 +929,9 @@ class Rule(models.Model):
     )
     scope =  models.CharField(max_length=15, choices=scope_choices,
                               default="ALL")
-    regex_pattern = models.CharField(max_length=120)
+    # Let's validate the regular expression, but only for the pattern,
+    # and not the replacement, which is client-side/JavaScript.
+    regex_pattern = models.CharField(max_length=120, validators=[validate_regex])
     regex_replacement = models.CharField(max_length=120, blank=True)
     is_automatic = models.BooleanField(default=False)
     is_disabled = models.BooleanField(default=False)
