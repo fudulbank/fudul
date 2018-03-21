@@ -244,15 +244,17 @@
 
 
           {% if is_any_editor %}
+          {% with pending_count=user|get_pending_action_count assigned_count=user.assigned_questions.count %}
           <li class=" navigation-header"><span>Editors</span><i data-toggle="tooltip" data-placement="right" data-original-title="Editors" class=" ft-minus"></i>
-            <li class="nav-item"><a href="{% url 'exams:list_assigned_questions' %}"><i class="ft-package"></i><span data-i18n="" class="menu-title">Assigned questions</span> <span class="badge badge badge-danger badge-pill float-right">{{ user.assigned_questions.count }}</span></a></li>
-            <li class="nav-item"><a href="{% url 'exams:show_tool_index' %}"><i class="ft-loader"></i><span data-i18n="" class="menu-title">Editor tools</span> <span class="badge badge badge-danger badge-pill float-right">{{ user|get_pending_action_count }}</span></a></li>
+            <li class="nav-item"><a href="{% url 'exams:list_assigned_questions' %}"><i class="ft-package"></i><span data-i18n="" class="menu-title">Assigned questions</span> {% if assigned_count %}<span class="badge badge badge-danger badge-pill float-right">{{ assigned_count }}</span>{% endif %}</a></li>
+            <li class="nav-item"><a href="{% url 'exams:show_tool_index' %}"><i class="ft-loader"></i><span data-i18n="" class="menu-title">Editor tools</span> {% if pending_count %}<span class="badge badge badge-danger badge-pill float-right">{{ pending_count }}</span>{% endif %}</a></li>
 {#          <li class="{% if is_contributions_active %}active {% endif %}nav-item"><a href="{% url 'list_latest_changes' %}"><i class="ft-watch"></i><span data-i18n="" class="menu-title">Latest changes</span><span class="tag tag tag-warning tag-pill float-xs-right mr-2">{{ pending_revision_count }}</span></a></li>#}
 {% if user.is_superuser %}
           <li><a href="{% url 'mailer:list_messages' %}"><i class="ft-mic"></i> <span>Mailer</span></a></li>
           <li class="{% if is_indicators_active %}active {% endif %}nav-item"><a href="{% url 'show_indicator_index' %}"><i class="ft-pie-chart"></i><span data-i18n="" class="menu-title">Indicators</span></a></li>
 {% endif %}
           <li class="nav-item"><a href="{% if user.is_superuser %}{% url 'admin:index' %}{% else %}{% url 'editor_admin:index' %}{% endif %}"><i class="ft-zap"></i><span data-i18n="" class="menu-title">Admin</span></a></li>
+          {% endwith %}
           {% endif %}
 
 
