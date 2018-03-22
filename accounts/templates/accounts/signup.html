@@ -217,7 +217,7 @@ $(function() {
         college_batches = batches[value]
         if (value.length && college_batches.length) {
             $("#id_batch").prop('required', true).html(empty_option);
-            $("#id_batch").closest('.form-group').show();
+            $("#id_batch").closest('.form-group.has-feedback').show();
 
             $.each(college_batches, function(index, batch_data) {
                 pk = batch_data[0];
@@ -227,7 +227,7 @@ $(function() {
             });
         } else {
             $("#id_batch").prop('required', false);
-            $("#id_batch").closest('.form-group').hide();
+            $("#id_batch").closest('.form-group.has-feedback').hide();
         }
 
     });
