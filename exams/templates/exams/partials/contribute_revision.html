@@ -42,7 +42,7 @@
                           {% endif %}
                           <tr class="form-container">
                           {% for field in form.visible_fields %}
-                            <td>
+                            <td data-field-name="{{ field.name }}">
                             {% if forloop.first %}
                               {% for hidden in form.hidden_fields %}
                               {{ hidden }}
@@ -125,7 +125,8 @@ display:inline-block;
     content: url("{% static 'images/success(1).png' %}");
     display:block;
 }
-th:nth-child(3), td:nth-child(3){
+
+[data-field-name="DELETE"]{
     display: none;
 }
 
