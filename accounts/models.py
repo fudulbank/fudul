@@ -54,7 +54,8 @@ class Profile(UserenaBaseProfile):
     personal_email_confirmation_key_created = models.DateTimeField(_('creation date of alternative email confirmation key'),
                                                                    blank=True,
                                                                    null=True)
-    
+    session_theme = models.ForeignKey('exams.SessionTheme', null=True, blank=True)
+
     objects = managers.ProfileManger()
 
     def __str__(self):

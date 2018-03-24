@@ -3,7 +3,8 @@ body, html, #container{
 }
 
 body{
-    background: #fff;
+    background: var(--primary-background-color);
+    color: var(--primary-font-color);
     font-size: 17px;
     line-height: 1.8em;
     font-family: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -11,7 +12,8 @@ body{
 }
 
 #top-info, .tooltip-inner, #footer{
-  background-color: #404E67;
+  background-color: var(--secondary-background-color);
+  color: var(--secondary-font-color);
 }
 
 .question-body .check svg,
@@ -50,28 +52,28 @@ body:not([data-session-mode=INCOMPLETE]):not([data-session-mode=SOLVED])[data-ha
 }
 
 .tooltip.bs-tooltip-top .arrow::before{
-  border-top-color: #404E67;
+  border-top-color: var(--secondary-background-color);
 }
 
 .tooltip.bs-tooltip-bottom .arrow::before{
-  border-bottom-color: #404E67;
+  border-bottom-color: var(--secondary-background-color);
 }
 
 .tooltip.hint.bs-tooltip-right .arrow::before{
-  border-right-color: #FFC107;
+  border-right-color: var(--secondary-background-color);
 }
 
 .tooltip.hint .tooltip-inner{
-  background: #FFC107;
+  background: var(--secondary-background-color);
 }
 
 .tooltip.hint .tooltip-inner{
-  color: black;
+  color: var(--primary-font-color);
 }
 
 #top-info{
     font-size: 12pt;
-    color: #FFF;
+    border-bottom: 1px solid var(--secondary-background-color);
 }
 
 .top-question-id {
@@ -90,6 +92,14 @@ body:not([data-session-mode=INCOMPLETE]):not([data-session-mode=SOLVED])[data-ha
   cursor: not-allowed;
 }
 
+.table-active, .table-hover .table-active:hover{
+  background-color: var(--table-active);
+}
+
+.table-hover tbody tr:hover{
+  background-color: var(--table-hover);
+}
+
 @media (min-width: 576px) {
   #footer .option{
     height: 38px;
@@ -104,35 +114,38 @@ body:not([data-session-mode=INCOMPLETE]):not([data-session-mode=SOLVED])[data-ha
 }
 
 #top-options  {
-    background-color: #929EB4;
-    border-top: 1px solid #fff;
+    background-color: var(--tertiary-background-color);
+    color: var(--tertiary-font-color);
     line-height: 32px;
 }
 
 #mark.marked{
     font-weight: 700;
     padding: 0 9px;
-    color: yellow;
+    color: var(--highlight-background);
 }
 
 #footer {
-    color: #fff;
     line-height: 36px;
     font-size: 12pt;
     bottom: 0;
     position: fixed;
-    border-top: solid 2px #fff;
-    border-bottom: solid 2px #404E67;
+    border-top: 1px solid var(--secondary-background-color);
     width: 100%;
 }
 
 /* Styling the exam name and "results" (which is a direct link) */
 #top-info a, a.option, #help-me-tooltip a{
-    color: white;
+    color: var(--secondary-font-color);
 }
 
 #top-info a:hover, a.option:hover, #help-me-tooltip a:hover{
     text-decoration: none;
+}
+
+.form-control, .modal-content, .modal-content .close{
+    color: var(--primary-font-color);
+    background-color: var(--primary-background-color);
 }
 
 #contributors{
@@ -148,7 +161,8 @@ td.check, td.correct{
 }
 
 .highlight {
-    background: yellow;
+    background: var(--highlight-background);
+    color: var(--highlight-color);
 }
 
 .question-body[data-was-solved="false"] .highlight{
@@ -177,7 +191,7 @@ td.check, td.correct{
 #submit{
     margin-left: 9px;
     background: #0067A9;
-    color: #fff;
+    color: var(--secondary-font-color);
     font-size: 12pt;
     font-family: Arial, Verdana, Helvetica;
 }
@@ -225,7 +239,6 @@ td.check, td.correct{
 .brand-text{
   display: inline;
   padding-left: 10px;
-  color: #c8c8c8;
   font-family: "Montserrat", Georgia, "Times New Roman", Times, serif;
   letter-spacing: 1px;
   font-size: 1.74rem;
@@ -288,7 +301,7 @@ td.check, td.correct{
    border-radius: 10px;
    text-align: center;
    line-height:15px;
-   color: white;
+   color: var(--primary-font-color);
    float: right;
 
 }
@@ -307,13 +320,13 @@ td.check, td.correct{
 
 @keyframes keyboard-hint {
    0% {
-    color: black;
+    color: var(--tertiary-font-color);
    }
    50% {
-    color: black;
+    color: var(--tertiary-font-color);
    }
    100% {
-    color: yellow;
+    color: var(--highlight-background);
    }
 }
 #keyboard-hint.animated{

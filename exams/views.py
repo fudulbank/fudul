@@ -516,6 +516,7 @@ def show_single_question(request, slugs, exam_pk, question_pk):
                                                          .undeleted(),
                                          pk=question_pk)
     context = {'category_slugs': slugs,
+              'default_session_theme': SessionTheme.objects.get(name="Ocean"),
                'current_question': current_question}
     return render(request, "exams/show_question.html", context)
 
@@ -546,6 +547,8 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     session_question_pks = json.dumps(dict(session_questions))
 
     context = {'session': session,
+               'default_session_theme': SessionTheme.objects.get(name="Ocean"),
+               'session_themes': SessionTheme.objects.all(),
                'category_slugs': slugs,
                'current_question': current_question,
                'session_question_pks': session_question_pks}
@@ -1439,4 +1442,18 @@ def handle_suggestion(request):
     suggestion.reviser = request.user
     suggestion.revision_date = timezone.now()
     suggestion.save()
+    return {}
+
+@login_required
+@require_POST
+@decorators.ajax_only
+@csrf.csrf_exempt
+def update_session_theme(request):
+    session_theme_pk = request.POST.get('session_theme_pk')
+    session_theme = get_object_or_404(SessionTheme, pk=session_theme_pk)
+
+    profile = request.user.profile
+    profile.session_theme = session_theme
+    profile.save()
+
     return {}

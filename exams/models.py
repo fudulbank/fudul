@@ -968,3 +968,23 @@ class SuggestedChange(models.Model):
 
     def __str__(self):
         return "Suggested change for Q#%s" % self.revision.question.pk
+
+class SessionTheme(models.Model):
+    name = models.CharField(max_length=50)
+
+    primary_background_color = models.CharField(max_length=50, blank=True)
+    secondary_background_color = models.CharField(max_length=50, blank=True)
+    tertiary_background_color = models.CharField(max_length=50, blank=True)
+
+    primary_font_color = models.CharField(max_length=50, blank=True)
+    secondary_font_color = models.CharField(max_length=50, blank=True)
+    tertiary_font_color = models.CharField(max_length=50, blank=True)
+
+    highlight_background = models.CharField(max_length=50, blank=True)
+    highlight_color = models.CharField(max_length=50, blank=True)
+
+    table_active = models.CharField(max_length=50, blank=True)
+    table_hover = models.CharField(max_length=50, blank=True)
+
+    def __str__(self):
+        return self.name

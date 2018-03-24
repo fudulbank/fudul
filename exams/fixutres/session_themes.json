@@ -1,0 +1,121 @@
+[
+{
+  "model": "exams.sessiontheme",
+  "pk": 1,
+  "fields": {
+    "name": "Ocean",
+    "primary_background_color": "#FFF",
+    "secondary_background_color": "#404E67",
+    "tertiary_background_color": "#929EB4",
+    "primary_font_color": "#212529",
+    "secondary_font_color": "#FFF",
+    "tertiary_font_color": "#212529",
+    "highlight_background": "yellow",
+    "highlight_color": "#FFF",
+    "table_active": "#aaa",
+    "table_hover": "#d1d1d1"
+  }
+},
+{
+  "model": "exams.sessiontheme",
+  "pk": 2,
+  "fields": {
+    "name": "Ocean - Dark",
+    "primary_background_color": "#212529",
+    "secondary_background_color": "#404E67",
+    "tertiary_background_color": "#929EB4",
+    "primary_font_color": "#FFF",
+    "secondary_font_color": "#FFF",
+    "tertiary_font_color": "#212529",
+    "highlight_background": "",
+    "highlight_color": "",
+    "table_active": "",
+    "table_hover": ""
+  }
+},
+{
+  "model": "exams.sessiontheme",
+  "pk": 3,
+  "fields": {
+    "name": "Rose",
+    "primary_background_color": "",
+    "secondary_background_color": "#AC0000",
+    "tertiary_background_color": "#DA3611",
+    "primary_font_color": "",
+    "secondary_font_color": "",
+    "tertiary_font_color": "",
+    "highlight_background": "",
+    "highlight_color": "",
+    "table_active": "",
+    "table_hover": ""
+  }
+},
+{
+  "model": "exams.sessiontheme",
+  "pk": 4,
+  "fields": {
+    "name": "Purple",
+    "primary_background_color": "",
+    "secondary_background_color": "#613849",
+    "tertiary_background_color": "#925555",
+    "primary_font_color": "",
+    "secondary_font_color": "",
+    "tertiary_font_color": "",
+    "highlight_background": "",
+    "highlight_color": "",
+    "table_active": "",
+    "table_hover": ""
+  }
+},
+{
+  "model": "exams.sessiontheme",
+  "pk": 5,
+  "fields": {
+    "name": "Grass",
+    "primary_background_color": "",
+    "secondary_background_color": "#076200",
+    "tertiary_background_color": "#2EA25B",
+    "primary_font_color": "",
+    "secondary_font_color": "",
+    "tertiary_font_color": "",
+    "highlight_background": "",
+    "highlight_color": "",
+    "table_active": "",
+    "table_hover": ""
+  }
+},
+{
+  "model": "exams.sessiontheme",
+  "pk": 6,
+  "fields": {
+    "name": "Banana",
+    "primary_background_color": "",
+    "secondary_background_color": "#FEEB2D",
+    "tertiary_background_color": "#CAB75B",
+    "primary_font_color": "",
+    "secondary_font_color": "#212529",
+    "tertiary_font_color": "",
+    "highlight_background": "",
+    "highlight_color": "",
+    "table_active": "",
+    "table_hover": ""
+  }
+},
+{
+  "model": "exams.sessiontheme",
+  "pk": 7,
+  "fields": {
+    "name": "Grapefruit",
+    "primary_background_color": "",
+    "secondary_background_color": "#F28C33",
+    "tertiary_background_color": "#E7BC3F",
+    "primary_font_color": "",
+    "secondary_font_color": "",
+    "tertiary_font_color": "",
+    "highlight_background": "",
+    "highlight_color": "",
+    "table_active": "",
+    "table_hover": ""
+  }
+}
+]
