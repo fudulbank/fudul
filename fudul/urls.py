@@ -20,6 +20,7 @@ router.register(r'suggestions', SuggestedChangeViewSet, base_name="suggestion")
 router.register(r'duplicates', DuplicateContainerViewSet, base_name="duplicate")
 
 urlpatterns = [
+    url(r'^api/activities/$', ActivityList.as_view(), name="activity-list"),
     url(r'^api/corrections/$', CorrectionList.as_view(), name="correction-list"),
     url(r'^api/', include(router.urls)),
     url(r'^admin/', include('loginas.urls')),

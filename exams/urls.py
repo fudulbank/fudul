@@ -41,6 +41,7 @@ urlpatterns =[
     url(r'^search/$', views.search, name='search'),
     url(r'^assigned/$', views.list_assigned_questions, name='list_assigned_questions'),
     url(r'^tools/$', views.show_tool_index, name='show_tool_index'),
+    url(r'^recent/$', TemplateView.as_view(template_name='exams/list_activities.html'), name='list_activities'),
 
     # Indicators were moved to the core app
     url(r'^indicators/$', RedirectView.as_view(pattern_name='show_indicator_index')),

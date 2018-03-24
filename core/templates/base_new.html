@@ -247,6 +247,7 @@
           {% with pending_count=user|get_pending_action_count assigned_count=user.assigned_questions.count %}
           <li class=" navigation-header"><span>Editors</span><i data-toggle="tooltip" data-placement="right" data-original-title="Editors" class=" ft-minus"></i>
             <li class="nav-item"><a href="{% url 'exams:list_assigned_questions' %}"><i class="ft-package"></i><span data-i18n="" class="menu-title">Assigned questions</span> {% if assigned_count %}<span class="badge badge badge-danger badge-pill float-right">{{ assigned_count }}</span>{% endif %}</a></li>
+            <li class="nav-item"><a href="{% url 'exams:list_activities' %}"><i class="ft-clock"></i><span data-i18n="" class="menu-title">Recent activities</span> <span class="badge badge badge-danger badge-pill float-right">New</span></a></li>
             <li class="nav-item"><a href="{% url 'exams:show_tool_index' %}"><i class="ft-loader"></i><span data-i18n="" class="menu-title">Editor tools</span> {% if pending_count %}<span class="badge badge badge-danger badge-pill float-right">{{ pending_count }}</span>{% endif %}</a></li>
 {#          <li class="{% if is_contributions_active %}active {% endif %}nav-item"><a href="{% url 'list_latest_changes' %}"><i class="ft-watch"></i><span data-i18n="" class="menu-title">Latest changes</span><span class="tag tag tag-warning tag-pill float-xs-right mr-2">{{ pending_revision_count }}</span></a></li>#}
 {% if user.is_superuser %}

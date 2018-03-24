@@ -1,0 +1,179 @@
+{% extends 'base_new.html' %}{% load static exam_utils %}
+{% block title %}Fudul | Recent activities{% endblock %}
+{% block header_title %}
+<h1>Recent activities</h1>
+{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
+<style>
+#new-notification{
+  cursor: pointer;
+  display: none;
+}
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+      <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
+      <li class="breadcrumb-item active">Recent activities</li>
+{% endblock %}
+
+{% block content %}
+      <div class="card border">
+        <div class="card-body">
+          <div class="card-block">
+            <p>Welcome to the <strong>Recent Activities</strong>.  This tool lists the recently added revisions, explanations, corrections and mnemonics.</p>
+          </div>
+          <div class="card-block row justify-content-center">
+            <blockquote class="blockquote col-sm-10 col-md-8">
+               <p class="mb-0 font-small-3">“It’s not tools, culture or communication that make humans unique but our knack for offloading dirty work onto machines. [...] Humans are unique because we are complex, and we are complex because we are the beast that automates.”</p>
+               <footer class="font-small-2 text-right blockquote-footer"><cite title=" To automate is human "><a target="_blank" href="https://aeon.co/essays/the-offloading-ape-the-human-is-the-beast-that-automates"> To automate is human </a></cite></footer>
+            </blockquote>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="card-block">
+            <p id="new-notification" class="alert alert-warning"><span id="new-count">0</span> new activities...</p>
+            <ul id="activity-container">
+            </ul>
+          </div>
+          <div class="card-block">
+            <button id="show-more" style="display: none" class="btn btn-primary"><i class="ft-more-horizontal"></i>Show 50 more</button>
+          </div>
+        </div>
+    </div>
+{% endblock %}
+{% block customscript %}
+
+<script src="{% static 'js/toastr.js' %}"></script>
+<script src="{% url 'js_reverse' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js" integrity="sha384-kOzY9L5wBXCCeXrHKAMsNCiXCP+c9gu/TfMTC+vTjH542f0KEPZdw69IG2d4khx/" crossorigin="anonymous"></script>
+
+<script>
+    var most_recent_timestamp = null;
+    var updater = null;
+    function getNewCount(){
+      if (!most_recent_timestamp){
+        return
+      }
+      $.ajax({method: 'get',
+              url: "{% url 'activity-list' %}",
+              data: {format: 'json',
+                     target: 'count_since',
+                     cursor: most_recent_timestamp},
+              success: function(data){
+                if (data.count){
+                  $("#new-notification").show();
+                  $("#new-count").html(data.count);
+                } else {
+                  $("#new-notification").hide();
+                }
+              }
+      });
+    }
+    function constructActivities(activities, insert_first){
+      var output = "";
+      for (activity_index in activities){
+        var activity = activities[activity_index];
+        if (!most_recent_timestamp ||  activity.timestamp > most_recent_timestamp){
+          most_recent_timestamp = activity.timestamp;
+        }
+        output += "<li>";
+        output += "<strong>Question #" + activity.question_pk + " in <a href='" + activity.exam_url + "'>" + activity.exam_name + "</a></strong>; "
+        output += moment(activity.timestamp * 1000).format("MMM. D, H:mm; ")
+        output += "<a href='" + activity.submitter_url + "'>" + activity.submitter + "</a><em>"
+
+        if (activity.type == 'revision'){
+          if (activity.is_first){
+            var action = 'added';
+          } else {
+            var action = 'edited';
+          }
+          output += " (<a href='" + activity.url + "'>" + action + " a question</a>"
+          if (activity.change_summary && activity.change_summary.length){
+             output += ": " + activity.change_summary
+          }
+          output += ")"
+        } else if (activity.type == 'explanationrevision'){
+          if (activity.is_first){
+            var action = 'added';
+          } else {
+            var action = 'edited';
+          }
+          output += " (<a href='" + activity.url + "'>" + action + " an explanation</a>)"
+        } else if (activity.type == 'answercorrection'){
+          output += " (<a href='" + activity.url + "'>added a correction</a>)"
+        } else if (activity.type == 'mnemonic'){
+          output += " (<a href='" + activity.url + "'>edited the question</a>)"
+        }
+        output += "</em></li>";
+      }
+      var element = document.getElementById('activity-container')
+      if (insert_first){
+        element.innerHTML = output + element.innerHTML;
+      } else {
+        element.innerHTML += output;
+      }
+    }
+
+    function fetchActivities(cursor, get_new){
+      if (get_new){
+        var target = 'results_since';
+      } else {
+        var target = 'results_until';
+      }
+      $.ajax({method: 'get',
+              url: "{% url 'activity-list' %}",
+              data: {format: 'json',
+                     target: target,
+                     cursor: cursor},
+              success: function(data){
+                if (data.next){
+                  $("#show-more").data('cursor', data.next).show();
+                } else {
+                  $("#show-more").attr('disabled', 'disabled');
+                }
+                constructActivities(data.results, get_new);
+                if (get_new){
+                  $("#new-notification").hide();
+                }
+              }
+      });
+    }
+
+    function setUpdater(){
+      if (!updater){
+        updater = setInterval(getNewCount, 3000);
+      }
+    }
+
+    function clearUpdater(){
+      if (updater){
+        clearInterval(updater);
+        updater = null;
+      }
+    }
+
+    $(window).on('focus', setUpdater);
+    $(window).on('blur', clearUpdater);
+
+    $(function () {
+      $("#show-more").click(function(){
+        var next_cursor = $(this).data('cursor');
+        fetchActivities(next_cursor)
+      });
+
+      $("#new-notification").click(function(){
+        fetchActivities(most_recent_timestamp, true)
+      });
+
+      $('[data-toggle="tooltip"]').tooltip();
+      fetchActivities();
+      setUpdater();
+    });
+</script>
+{% endblock %}

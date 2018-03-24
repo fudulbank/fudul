@@ -1,11 +1,14 @@
-from exams.models import *
-from accounts.utils import get_user_credit
-from rest_framework import serializers, views, viewsets, permissions, pagination
-from rest_framework.response import Response
-from django.template.loader import get_template
 from django.http import HttpResponseBadRequest, Http404
 from django.shortcuts import get_object_or_404
 from django.template.defaultfilters import truncatewords, linebreaksbr
+from django.template.loader import get_template
+from rest_framework import exceptions, serializers, views, viewsets, permissions, pagination
+from rest_framework.response import Response
+import textwrap
+
+from exams.models import *
+import accounts.utils
+import teams.utils
 
 
 class AnswerSerializer(serializers.ModelSerializer):
@@ -73,7 +76,7 @@ class RevisionSummarySerializer(serializers.ModelSerializer):
     assigned_editor = serializers.SerializerMethodField()
 
     def get_assigned_editor(self, obj):
-        return get_user_credit(obj.question.assigned_editor)
+        return accounts.utils.get_user_credit(obj.question.assigned_editor)
 
     def get_summary(self, obj):
         return linebreaksbr(truncatewords(obj.text, 70))
@@ -141,6 +144,10 @@ class HasSessionOrQuestionAccess(permissions.BasePermission):
             return session.can_user_access(request.user)
         else:
             return False
+
+class IsEdtior(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return teams.utils.is_editor(request.user)
 
 class CanEditExam(permissions.BasePermission):
     def has_permission(self, request, view):
@@ -254,6 +261,146 @@ class QuestionAssignmentViewSet(viewsets.ReadOnlyModelViewSet):
                                                'question__assigned_editor__profile')\
                                .filter(question__assigned_editor=self.request.user,
                                        is_last=True)
+
+class ActivityList(views.APIView):
+    permission_classes = (IsEdtior,)
+
+    def get(self, request, format=None):
+        if request.user.is_superuser:
+            exams = Exam.objects.all()
+        else:
+            exams = Exam.objects.filter(privileged_teams__members=request.user)
+
+        try:
+            count = int(request.query_params.get('count'))
+        except (ValueError, TypeError):
+            count = 50
+        # Only superusers are allowed to exceed the limit.
+        if count > 100 and not request.user.is_superuser:
+            count = 50
+        count_with_cursor = count + 1
+
+        try:
+            cursor = float(request.query_params.get('cursor'))
+        except ValueError:
+            raise exceptions.ParseError()
+        except TypeError: # If no cursor is provided
+            cursor = None
+
+        target = request.query_params.get('target')
+        if not target or \
+           target not in ['count_since', 'results_since', 'results_until'] or \
+           target in ['count_since', 'results_since'] and not cursor:
+            raise exceptions.ParseError()
+
+        recent_revisions = Revision.objects.select_related('question',
+                                                           'question__exam',
+                                                           'submitter',
+                                                           'submitter__profile')\
+                                           .filter(question__exam__in=exams,
+                                                   is_deleted=False)\
+                                           .order_by('-submission_date')
+        recent_explanations = ExplanationRevision.objects.select_related('question',
+                                                                         'question__exam', 
+                                                                         'question__exam__category',
+                                                                         'submitter',
+                                                                         'submitter__profile')\
+                                                         .filter(question__exam__in=exams,
+                                                                 is_deleted=False)\
+                                                         .order_by('-submission_date')
+        recent_corrections = AnswerCorrection.objects.select_related('choice',
+                                                                     'choice__revision',
+                                                                     'choice__revision__question',
+                                                                     'choice__revision__question__exam',
+                                                                     'choice__revision__question__exam__category',
+                                                                     'submitter',
+                                                                     'submitter__profile')\
+                                                     .filter(choice__revision__question__exam__in=exams)\
+                                                     .order_by('-submission_date')
+        recent_mnemonics = Mnemonic.objects.select_related('submitter',
+                                                           'question',
+                                                           'question__exam',
+                                                           'question__exam__category',
+                                                           'submitter__profile')\
+                                           .filter(question__exam__in=exams,
+                                                   is_deleted=False)\
+                                           .order_by('-submission_date')
+
+        if cursor:
+            cursor_datetime = datetime.datetime.fromtimestamp(cursor)
+            cursor_datetime = timezone.make_aware(cursor_datetime, timezone.get_current_timezone())
+
+        if target in ['results_since', 'count_since']:
+            recent_revisions = recent_revisions.filter(submission_date__gt=cursor_datetime)
+            recent_corrections = recent_corrections.filter(submission_date__gt=cursor_datetime)
+            recent_explanations = recent_explanations.filter(submission_date__gt=cursor_datetime)
+            recent_mnemonics = recent_mnemonics.filter(submission_date__gt=cursor_datetime)
+        elif target == 'results_until' and cursor:
+            recent_revisions = recent_revisions.filter(submission_date__lte=cursor_datetime)
+            recent_corrections = recent_corrections.filter(submission_date__lte=cursor_datetime)
+            recent_explanations = recent_explanations.filter(submission_date__lte=cursor_datetime)
+            recent_mnemonics = recent_mnemonics.filter(submission_date__lte=cursor_datetime)
+
+        if target == 'count_since':
+            count = recent_revisions.count() + \
+                    recent_corrections.count() + \
+                    recent_explanations.count() + \
+                    recent_mnemonics.count()
+            data = {'count': count}
+        elif target in ['results_until', 'results_since']:
+            activities = list(recent_revisions[:count_with_cursor]) + \
+                         list(recent_explanations[:count_with_cursor]) + \
+                         list(recent_corrections[:count_with_cursor]) + \
+                         list(recent_mnemonics[:count_with_cursor])
+
+            data = {'next': None,
+                    'results': []}
+
+            sorted_activities = sorted(activities, key=lambda activity: activity.submission_date, reverse=True)[:count_with_cursor]
+            if len(sorted_activities) >= count_with_cursor:
+                if target == 'results_until':
+                    last_activity = sorted_activities[-1]
+                elif target == 'results_since':
+                    last_activity = sorted_activities[0]
+                data['next'] = last_activity.submission_date.timestamp()
+                sorted_activities.remove(last_activity)
+            for activity in sorted_activities:
+                summary = {'timestamp': activity.submission_date.timestamp(),
+                           'pk': activity.pk,
+                           'type': activity.__class__.__name__.lower(),
+                           'submitter': accounts.utils.get_user_credit(activity.submitter),
+                           'submitter_url': reverse('exams:list_contributions', args=(activity.submitter.pk,))}
+
+                if type(activity) is Revision:
+                    question = activity.question
+                    summary['change_summary'] = activity.change_summary
+                    summary['is_approved'] = activity.is_approved
+                    summary['is_first'] = activity.is_first
+                    summary['text'] = textwrap.shorten(activity.text, 70,
+                                                       placeholder='...')
+                    summary['url'] = activity.get_absolute_url()
+                if type(activity) is ExplanationRevision:
+                    question = activity.question
+                    summary['is_first'] = activity.is_first
+                    summary['url'] = activity.get_absolute_url()
+                elif type(activity) is AnswerCorrection:
+                    question = activity.choice.revision.question
+                    summary['text'] = textwrap.shorten(activity.justification, 70,
+                                                       placeholder='...')
+                    summary['url'] = activity.choice.revision.question.get_absolute_url()
+                elif type(activity) is Mnemonic:
+                    question = activity.question
+                    summary['text'] = textwrap.shorten(activity.text, 70,
+                                                       placeholder='...')
+                    summary['url'] = activity.question.get_absolute_url()
+
+                summary['question_pk'] = question.pk
+                summary['exam_name'] = question.exam.name
+                summary['exam_url'] = question.exam.get_absolute_url()
+
+                data['results'].append(summary)
+
+        return Response(data)
 
 class CorrectionList(views.APIView):
     permission_classes = (HasSessionOrQuestionAccess,)
