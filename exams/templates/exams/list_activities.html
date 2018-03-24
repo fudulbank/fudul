@@ -85,7 +85,7 @@
         if (!most_recent_timestamp ||  activity.timestamp > most_recent_timestamp){
           most_recent_timestamp = activity.timestamp;
         }
-        if (activity.is_approved){
+        if (activity.is_approved || activity.type == 'explanationrevision' && activity.submitter_is_editor){
           output += "<li class='approved'>";
         } else {
           output += "<li>";
