@@ -313,7 +313,7 @@
                  var $question_row = $('.navigate-row[data-question-sequence="' + current_sequence + '"]');
                  if (data.is_marked){
                    $question_row.find('td.is_marked').html(is_marked_markup);
-                   if (isOS9()){
+                   if (isSafari9()){
                      FontAwesome.dom.i2svg({node: document.getElementById('navigation-table')});
                    }
                  } else {
@@ -600,7 +600,7 @@
         if (has_constructed_navigation){
           var $question_row = $('.navigate-row[data-question-sequence="' + current_sequence + '"]');
           $question_row.find('td.was_solved').html(was_solved_markup);
-          if (isOS9()){
+          if (isSafari9()){
             FontAwesome.dom.i2svg({node: document.getElementById('navigation-table')});
           }
         }
@@ -790,7 +790,7 @@
 
       tbody.innerHTML = tbody_content;
 
-      if (isOS9()){
+      if (isSafari9()){
         FontAwesome.dom.i2svg({node: document.getElementById('navigation-table')})
       }
 
@@ -886,12 +886,15 @@
       });
     }
 
-    function isOS9(){
+    function isSafari9(){
       // This is a workaround for iOS 9.x browsers that
       // cannot render dynmically added FontAwesome icons.
-      return (navigator.userAgent.indexOf('iPhone') != -1 ||
-              navigator.userAgent.indexOf('iPad') != -1) &&
-              navigator.userAgent.indexOf('OS 9_') != -1
+      return ((navigator.userAgent.indexOf('iPhone') != -1 ||
+               navigator.userAgent.indexOf('iPad') != -1) &&
+              navigator.userAgent.indexOf('OS 9_') != -1) ||
+             (navigator.userAgent.indexOf('Mac OS') != -1 &&
+              navigator.userAgent.indexOf('Version/9') != -1 &&
+              navigator.userAgent.indexOf('Safari/') != -1)
     }
 
     function fetchList(fetch_list_index, question_sequence){
@@ -939,7 +942,7 @@
                   }
                 }
 
-                if (isOS9()){
+                if (isSafari9()){
                   FontAwesome.dom.i2svg({node: document.getElementById('question-pool')})
                 }
 
