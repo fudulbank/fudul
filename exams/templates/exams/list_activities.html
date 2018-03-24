@@ -11,6 +11,15 @@
   cursor: pointer;
   display: none;
 }
+
+.approved{
+  background-color: #cfffcf
+}
+
+.editor{
+  color: #008000;
+  font-weight: 700;
+}
 </style>
 {% endblock %}
 
@@ -76,10 +85,20 @@
         if (!most_recent_timestamp ||  activity.timestamp > most_recent_timestamp){
           most_recent_timestamp = activity.timestamp;
         }
-        output += "<li>";
+        if (activity.is_approved){
+          output += "<li class='approved'>";
+        } else {
+          output += "<li>";
+        }
+
         output += "<strong>Question #" + activity.question_pk + " in <a href='" + activity.exam_url + "'>" + activity.exam_name + "</a></strong>; "
         output += moment(activity.timestamp * 1000).format("MMM. D, H:mm; ")
-        output += "<a href='" + activity.submitter_url + "'>" + activity.submitter + "</a><em>"
+        if (activity.submitter_is_editor){
+          output += "<a class='editor'"
+        } else {
+          output += "<a"
+        }
+        output += " href='" + activity.submitter_url + "'>" + activity.submitter + "</a><em>"
 
         if (activity.type == 'revision'){
           if (activity.is_first){

@@ -369,6 +369,7 @@ class ActivityList(views.APIView):
                            'pk': activity.pk,
                            'type': activity.__class__.__name__.lower(),
                            'submitter': accounts.utils.get_user_credit(activity.submitter),
+                           'submitter_is_editor': teams.utils.is_editor(activity.submitter),
                            'submitter_url': reverse('exams:list_contributions', args=(activity.submitter.pk,))}
 
                 if type(activity) is Revision:
