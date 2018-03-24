@@ -136,6 +136,12 @@ class RuleAdmin(admin.ModelAdmin):
 class SuggestedChangeAdmin(admin.ModelAdmin):
     readonly_fields = ['revision', 'reviser', 'revision_date']
 
+class SessionThemeAdmin(admin.ModelAdmin):
+    list_display = ['name', 'get_count'] 
+    def get_count(self, obj):
+        return obj.profile_set.count()
+    get_count.short_description = "# users"
+
 editor_site = EditorAdmin("editor_admin")
 
 admin.site.register(models.Category, CategoryAdmin)
@@ -144,7 +150,7 @@ admin.site.register(models.ExamType)
 admin.site.register(models.Issue)
 admin.site.register(models.Rule, RuleAdmin)
 admin.site.register(models.Session)
-admin.site.register(models.SessionTheme)
+admin.site.register(models.SessionTheme, SessionThemeAdmin)
 admin.site.register(models.SuggestedChange, SuggestedChangeAdmin)
 editor_site.register(models.Category, CategoryAdmin)
 editor_site.register(models.Exam, ExamAdmin)
