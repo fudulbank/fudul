@@ -325,6 +325,12 @@ class ActivityList(views.APIView):
                                            .filter(question__exam__in=exams,
                                                    is_deleted=False)\
                                            .order_by('-submission_date')
+        recent_duplicates = DuplicateContainer.objects.select_related('reviser',
+                                                                      'reviser__profile')\
+                                              .filter(primary_question__exam__in=exams,
+                                                      revision_date__isnull=False)\
+                                              .exclude(status="PENDING")\
+                                              .order_by('-revision_date')
 
         if cursor:
             cursor_datetime = datetime.datetime.fromtimestamp(cursor)
@@ -335,42 +341,59 @@ class ActivityList(views.APIView):
             recent_corrections = recent_corrections.filter(submission_date__gt=cursor_datetime)
             recent_explanations = recent_explanations.filter(submission_date__gt=cursor_datetime)
             recent_mnemonics = recent_mnemonics.filter(submission_date__gt=cursor_datetime)
+            recent_duplicates = recent_duplicates.filter(revision_date__gt=cursor_datetime)
         elif target == 'results_until' and cursor:
             recent_revisions = recent_revisions.filter(submission_date__lte=cursor_datetime)
             recent_corrections = recent_corrections.filter(submission_date__lte=cursor_datetime)
             recent_explanations = recent_explanations.filter(submission_date__lte=cursor_datetime)
             recent_mnemonics = recent_mnemonics.filter(submission_date__lte=cursor_datetime)
+            recent_duplicates = recent_duplicates.filter(revision_date__lte=cursor_datetime)
 
         if target == 'count_since':
             count = recent_revisions.count() + \
                     recent_corrections.count() + \
                     recent_explanations.count() + \
-                    recent_mnemonics.count()
+                    recent_mnemonics.count() + \
+                    recent_duplicates.count()
             data = {'count': count}
         elif target in ['results_until', 'results_since']:
             activities = list(recent_revisions[:count_with_cursor]) + \
                          list(recent_explanations[:count_with_cursor]) + \
                          list(recent_corrections[:count_with_cursor]) + \
-                         list(recent_mnemonics[:count_with_cursor])
+                         list(recent_mnemonics[:count_with_cursor]) + \
+                         list(recent_duplicates[:count_with_cursor])
 
             data = {'next': None,
                     'results': []}
 
-            sorted_activities = sorted(activities, key=lambda activity: activity.submission_date, reverse=True)[:count_with_cursor]
+            def get_date(activity):
+                if type(activity) is DuplicateContainer:
+                    return activity.revision_date
+                else:
+                    return activity.submission_date
+
+            def get_actor(activity):
+                if type(activity) is DuplicateContainer:
+                    return activity.reviser
+                else:
+                    return activity.submitter
+
+            sorted_activities = sorted(activities, key=get_date, reverse=True)[:count_with_cursor]
             if len(sorted_activities) >= count_with_cursor:
                 if target == 'results_until':
                     last_activity = sorted_activities[-1]
                 elif target == 'results_since':
                     last_activity = sorted_activities[0]
-                data['next'] = last_activity.submission_date.timestamp()
+                data['next'] = get_date(last_activity).timestamp()
                 sorted_activities.remove(last_activity)
             for activity in sorted_activities:
-                summary = {'timestamp': activity.submission_date.timestamp(),
+                actor = get_actor(activity)
+                summary = {'timestamp': get_date(activity).timestamp(),
                            'pk': activity.pk,
                            'type': activity.__class__.__name__.lower(),
-                           'submitter': accounts.utils.get_user_credit(activity.submitter),
-                           'submitter_is_editor': teams.utils.is_editor(activity.submitter),
-                           'submitter_url': reverse('exams:list_contributions', args=(activity.submitter.pk,))}
+                           'submitter': accounts.utils.get_user_credit(actor),
+                           'submitter_is_editor': teams.utils.is_editor(actor),
+                           'submitter_url': reverse('exams:list_contributions', args=(actor.pk,))}
 
                 if type(activity) is Revision:
                     question = activity.question
@@ -394,6 +417,15 @@ class ActivityList(views.APIView):
                     summary['text'] = textwrap.shorten(activity.text, 70,
                                                        placeholder='...')
                     summary['url'] = activity.question.get_absolute_url()
+                elif type(activity) is DuplicateContainer:
+                    if activity.status == 'KEPT':
+                        kept_question = activity.get_kept_question()
+                        if kept_question:
+                            summary['kept_question'] = kept_question.pk
+                    question = activity.primary_question
+                    summary['container_pk'] = activity.pk
+                    summary['involved_questions'] = activity.get_questions().values_list('pk', flat=True)
+                    summary['status'] = activity.status
 
                 summary['question_pk'] = question.pk
                 summary['exam_name'] = question.exam.name

@@ -85,20 +85,26 @@
         if (!most_recent_timestamp ||  activity.timestamp > most_recent_timestamp){
           most_recent_timestamp = activity.timestamp;
         }
-        if (activity.is_approved || activity.type == 'explanationrevision' && activity.submitter_is_editor){
+        if (activity.is_approved || activity.type == 'explanationrevision' && activity.submitter_is_editor || activity.type == 'duplicatecontainer' && activity.submitter_is_editor){
           output += "<li class='approved'>";
         } else {
           output += "<li>";
         }
 
-        output += "<strong>Question #" + activity.question_pk + " in <a href='" + activity.exam_url + "'>" + activity.exam_name + "</a></strong>; "
+        if (activity.type == 'duplicatecontainer'){
+          output += "<strong>Duplicate report #" + activity.container_pk
+        } else {
+          output += "<strong>Question #" + activity.question_pk
+        }
+
+        output += " in <a href='" + activity.exam_url + "'>" + activity.exam_name + "</a></strong>; "
         output += moment(activity.timestamp * 1000).format("MMM. D, H:mm; ")
         if (activity.submitter_is_editor){
           output += "<a class='editor'"
         } else {
           output += "<a"
         }
-        output += " href='" + activity.submitter_url + "'>" + activity.submitter + "</a><em>"
+        output += " href='" + activity.submitter_url + "'>" + activity.submitter + "</a> <em>"
 
         if (activity.type == 'revision'){
           if (activity.is_first){
@@ -106,7 +112,7 @@
           } else {
             var action = 'edited';
           }
-          output += " (<a href='" + activity.url + "'>" + action + " a question</a>"
+          output += "(<a href='" + activity.url + "'>" + action + " a question</a>"
           if (activity.change_summary && activity.change_summary.length){
              output += ": " + activity.change_summary
           }
@@ -117,11 +123,19 @@
           } else {
             var action = 'edited';
           }
-          output += " (<a href='" + activity.url + "'>" + action + " an explanation</a>)"
+          output += "(<a href='" + activity.url + "'>" + action + " an explanation</a>)"
         } else if (activity.type == 'answercorrection'){
-          output += " (<a href='" + activity.url + "'>added a correction</a>)"
+          output += "(<a href='" + activity.url + "'>added a correction</a>)"
         } else if (activity.type == 'mnemonic'){
-          output += " (<a href='" + activity.url + "'>edited the question</a>)"
+          output += "(<a href='" + activity.url + "'>edited the question</a>)"
+        } else if (activity.type == 'duplicatecontainer'){
+          output += '(resolved duplicate involving questions ' + activity.involved_questions.map(function(element){return "#" + element}).join(", ")
+          if (activity.status == 'KEPT'){
+            output += "; keeping #" + activity.kept_question
+          } else if (activity.status == 'DECLINED'){
+            output += "; ignoring it" + activity.kept_question
+          }
+          output += ')';
         }
         output += "</em></li>";
       }

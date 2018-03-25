@@ -815,6 +815,9 @@ class DuplicateContainer(models.Model):
         return (Question.objects.undeleted().filter(pk=self.primary_question.pk) | \
                 Question.objects.undeleted().filter(pk__in=self.duplicate_set.values('question'))).order_by('pk')
 
+    def get_kept_question(self):
+        return self.get_questions().filter(is_deleted=False).first()
+
     def keep(self, question_to_keep):
         questions_to_delete = self.get_questions().exclude(pk=question_to_keep.pk)
         best_revision = question_to_keep.best_revision
