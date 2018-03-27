@@ -172,7 +172,6 @@ def get_privileged_file(request, path):
 
 @login_required
 @require_safe
-@cache_page(settings.CACHE_PERIODS['STABLE'])
 def show_about(request):
     team = CoreMember.objects.order_by('?')
 
