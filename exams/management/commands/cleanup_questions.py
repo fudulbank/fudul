@@ -26,6 +26,12 @@ class Command(BaseCommand):
                        .filter(question_count=0)\
                        .update(is_deleted=True)
 
+        Question.objects.filter(is_deleted=False,
+                                revision__is_deleted=False)\
+                        .annotate(revision_count=Count('revision'))\
+                        .filter(revision_count=0)\
+                        .update(is_deleted=True)
+
         sorted_questions = []
         count = 1
         # To give global sequence more stability, we won't exclude
@@ -33,13 +39,7 @@ class Command(BaseCommand):
         for question in Question.objects.select_related('parent_question',
                                                         'child_question')\
                                         .order_by('pk'):
-            # 2) Update the global sequence of questions.
-            if not question.is_deleted and \
-               not question.revision_set.filter(is_deleted=False).exists():
-                question.is_deleted = True
-                question.save()
-
-            # 3) Update the global sequence of questions.
+            # Update the global sequence of questions.
             if question.pk in sorted_questions:
                 continue
 
