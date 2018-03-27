@@ -98,6 +98,9 @@ function constructDuplicates(duplicate_containers){
   var output = "";
   for (dc_index in duplicate_containers){
     var duplicate_container = duplicate_containers[dc_index];
+    if (duplicate_container.primary_question.latest_revision === null){
+      continue
+    }
     var button_output = '<div class="col-sm-3 align-self-center border-left text-center"><div class="btn-group-vertical"><button class="btn btn-success duplicate-decision" data-duplicate-container-pk="' + duplicate_container.id + '" data-question-pk="' + duplicate_container.primary_question.id + '" data-action="keep"><i class="ft-check-square"></i> Keep question #' + duplicate_container.primary_question.id + '</button>';
 
     output += '<div class="card duplicate-container border-bottom"><div class="card-body row"><div class="col-sm-9"><h3 class="text-bold-600">Report #' + duplicate_container.id + '</h3><h5 class="text-bold-600"><a href="' + duplicate_container.primary_question.get_list_revision_url + '">Question #' + duplicate_container.primary_question.id + '</a></h5><p class="font-small-3">(<abbr class="primary-question">Primary question;</abbr> ' + duplicate_container.primary_question.get_answering_user_count + ' users answered)</p><p class="revision-text">' + duplicate_container.primary_question.latest_revision.text + '</p>'
@@ -106,6 +109,9 @@ function constructDuplicates(duplicate_containers){
 
     for (d_index in duplicate_container.duplicate_set){
       var duplicate = duplicate_container.duplicate_set[d_index];
+      if (duplicate.question.latest_revision === null){
+        continue
+      }
       var formatted_text = getFormattedDiff(duplicate_container.primary_question.latest_revision.text, duplicate.question.latest_revision.text);
       output += '<h5 class="text-bold-600"><a href="' + duplicate.question.get_list_revision_url + '">Question #' + duplicate.question.id + '</a></h5>'
       output += '<p class="font-small-3">(<strong class="danger darken-4">' + duplicate.get_percentage + '% similar to the primary question</strong>; ' +  duplicate.question.get_answering_user_count + ' users answered)</p><p class="revision-text">' + formatted_text + '</p>';
