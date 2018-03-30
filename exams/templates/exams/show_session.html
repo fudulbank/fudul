@@ -1178,7 +1178,10 @@
 
     $(function() {
         var copy_share = new ClipboardJS('#share-session-copy');
-        copy_share.on('success', function(e){$(e.trigger).tooltip('show'); setTimeout(function(){$(e.trigger).tooltip('hide')}, 1000)});
+        copy_share.on('success', function(e){
+          _paq.push(['trackEvent', 'show_session', 'share', 'click-copy']);
+          $(e.trigger).tooltip('show'); setTimeout(function(){$(e.trigger).tooltip('hide')}, 1000)
+        });
 
         $initial_question = $('.question-body.show');
 
@@ -1234,7 +1237,7 @@
                                title: share_tooltip})
            $("#share").click(function(){
              $(this).removeClass('emphasized')
-             _paq.push(['trackEvent', 'show_session', 'click-share', 'click-share']);
+             _paq.push(['trackEvent', 'show_session', 'share', 'click-share']);
            });
 
           $("#theme-select").change(function(){
