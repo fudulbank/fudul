@@ -938,9 +938,12 @@
                     var stat = data.stats[index];
                     var $progress_container = $('.progress[data-pk="' + stat.pk +'"]')
                     $progress_container.attr('data-has-finished', stat.has_finished.toString());
-                    $progress_container.find('.progress-bar.bg-success').css('width', stat.correct_count).attr('aria-valuenow', stat.correct_count);
-                    $progress_container.find('.progress-bar.bg-danger').css('width', stat.incorrect_count).attr('aria-valuenow', stat.incorrect_count);
-                    $progress_container.find('.progress-bar.bg-warning').css('width', stat.skipped_count).attr('aria-valuenow', stat.skipped_count);
+                    var correct_width = stat.correct_count / SESSION_QUESTION_TOTAL * 100 + '%';
+                    var incorrect_width = stat.incorrect_count / SESSION_QUESTION_TOTAL * 100 + '%';
+                    var skipped_width = stat.skipped_count / SESSION_QUESTION_TOTAL * 100 + '%';
+                    $progress_container.find('.progress-bar.bg-success').css('width', correct_width).attr('aria-valuenow', stat.correct_count);
+                    $progress_container.find('.progress-bar.bg-danger').css('width', incorrect_width).attr('aria-valuenow', stat.incorrect_count);
+                    $progress_container.find('.progress-bar.bg-warning').css('width', skipped_width).attr('aria-valuenow', stat.skipped_count);
                   }
                   if (!$('.progress[data-has-finished="false"]').length){
                     clearSharedStatTimer();
