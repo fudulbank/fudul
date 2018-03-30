@@ -1,5 +1,5 @@
 {% extends 'base_new.html' %}{% load static account_utils exam_utils %}
-{% block title %}Fudul | Invitation to join #{{ session.pk }}{% endblock %}
+{% block title %}Fudul | Invitation to join session #{{ session.pk }}{% endblock %}
 
 {% block header_title %}
 <h1>Invitation to join session #{{ session.pk }}</h1>
@@ -13,8 +13,8 @@
 			{% endfor %}
 			<li class="breadcrumb-item"><a href="{% url 'exams:show_category' category_slugs %}">{{ session.exam.category.name }}</a></li>
       <li class="breadcrumb-item"><a href="{% url 'exams:create_session' category_slugs session.exam.pk %}">{{ session.exam.name }}</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'exams:list_questions' category_slugs session.exam.pk %}">Session #{{ session.pk }}</a></li>
-      <li class="breadcrumb-item active">Question #{{ question.pk }} revisions</li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:show_session' category_slugs session.exam.pk session.pk %}">Session #{{ session.pk }}</a></li>
+      <li class="breadcrumb-item active">Invitation to join</li>
 {% endblock %}
 
 {% block content %}
