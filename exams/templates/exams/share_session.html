@@ -1,0 +1,75 @@
+{% extends 'base_new.html' %}{% load static account_utils exam_utils %}
+{% block title %}Fudul | Invitation to join #{{ session.pk }}{% endblock %}
+
+{% block header_title %}
+<h1>Invitation to join session #{{ session.pk }}</h1>
+{% endblock %}
+
+{% block breadcrumb %}
+      <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
+			{% for parent_category in session.exam.category.get_parent_categories %}
+			<li class="breadcrumb-item"><a href="{% url 'exams:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
+			{% endfor %}
+			<li class="breadcrumb-item"><a href="{% url 'exams:show_category' category_slugs %}">{{ session.exam.category.name }}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:create_session' category_slugs session.exam.pk %}">{{ session.exam.name }}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:list_questions' category_slugs session.exam.pk %}">Session #{{ session.pk }}</a></li>
+      <li class="breadcrumb-item active">Question #{{ question.pk }} revisions</li>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-body">
+    <div class="card-block">
+      {% if session.submitter == user %}
+      <p>Share the following URL with friends so they can join your session:</p>
+      <input id="share-session-url" value="{{ request.build_absolute_uri }}">
+      <button data-trigger="manual" data-title="Copied!" data-toggle="tooltip" class="btn" id="share-session-copy" data-clipboard-target="#share-session-url">
+          <i class="ft-copy"></i>
+      </button>
+      {% else %}
+      <p>{{ session.submitter|get_user_credit:user }} invites you to join <strong>session #{{ session.pk }}</strong> in <a target="_blank" href="{% url 'exams:create_session' category_slugs session.exam.pk %}">{{ session.exam.name }}</a>, which contains {{ session.get_questions.count }} questions.</p>
+      <button class="btn btn-success" id="accept"><i class="ft-check mr-1"></i>Accept invitation</button>
+      {% endif %}
+    </div><!--card-block-->
+  </div><!--card-card-->
+</div><!--card-->
+{% endblock %}
+{% block customscript %}
+{% include 'partials/import_datatables.html' %}
+<script src="{% static 'js/toastr.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js" integrity="sha384-5tfO0soa+FisnuBhaHP2VmPXQG/JZ8dLcRL43IkJFzbsXTXT6zIX8q8sIT0VSe2G" crossorigin="anonymous"></script>
+
+<script type="text/javascript">
+    $(function () {
+        var copy_share = new ClipboardJS('#share-session-copy');
+        copy_share.on('success', function(e){$(e.trigger).tooltip('show'); setTimeout(function(){$(e.trigger).tooltip('hide')}, 1000)});
+
+        $('#accept').click(function () {
+           _paq.push(['trackEvent', 'share-session', 'accept-invitation', 'accept-invitation']);
+
+            // Disable all automatic creation buttons upon firing one.
+            $(this).addClass('disabled').attr('disabled', true);
+
+            var url = "{% url 'exams:create_session_automatically' category_slugs session.exam.pk %}";
+            toastr.success("A new session is being created.  Give us a second!");
+            $.ajax({url: url,
+                    data: {selector: 'ALL', is_shared: 'on', session_pk: {{ session.pk }}},
+                    method: 'POST',
+                    success: function(data){
+                        if (data.success == 1) {
+                            window.location.href = data.url;
+                        } else {
+                          toastr.error(data.message);
+                        }
+                    }
+            });
+        });
+    });
+</script>
+
+{% include 'exams/partials/initialize_revision_review.html' %}
+{% with category_pk=session.exam.category.pk  parent_category_pk=session.exam.category.parent_category.pk %}
+  {% include 'exams/partials/dynamic_sidebar.html' %}
+{% endwith %}
+{% endblock %}

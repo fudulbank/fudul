@@ -5,6 +5,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.forms.models import inlineformset_factory
 import itertools
 import random
+import string
 
 from . import models, utils
 import teams.utils
@@ -312,10 +313,17 @@ class SessionForm(forms.ModelForm):
     def save(self, *args, **kwargs):
         session = super(SessionForm, self).save(*args, **kwargs)
         session.questions.add(*self.final_questions)
+
+        if not session.parent_session:
+            chars = string.ascii_lowercase + string.digits
+            secret_key = "".join([random.choice(chars) for i in range(10)])
+            session.secret_key = secret_key
+
         if self.is_automatic:
             session.is_automatic = True
             session.number_of_questions = len(self.final_questions)
-            session.save()
+
+        session.save()
         return session
 
     class Meta:

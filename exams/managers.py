@@ -183,6 +183,14 @@ class ExamQuerySet(models.QuerySet):
                    .distinct()
 
 class SessionQuerySet(models.QuerySet):
+    def get_shared(self, session):
+        if session.parent_session:
+            shared_sessions = self.filter(pk=session.parent_session.pk) | \
+                              session.parent_session.children.all()
+        else:
+            shared_sessions = session.children.all()
+        return shared_sessions.filter(is_deleted=False)
+
     def nonsolved(self):
         return self.exclude(session_mode='SOLVED')
 

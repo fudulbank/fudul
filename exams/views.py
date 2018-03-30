@@ -446,22 +446,24 @@ def create_session_automatically(request, slugs, exam_pk):
     category = Category.objects.get_from_slugs_or_404(slugs)
     exam = get_object_or_404(Exam, pk=exam_pk, category=category)
 
+    is_shared = request.POST.get('is_shared', False)
     selector = request.POST.get('selector')
+    session_pk = request.POST.get('session_pk')
+    subject_pk = request.POST.get('subject_pk')
+
     if not selector or selector not in ['ALL', 'SKIPPED', 'INCORRECT']:
         return HttpResponseBadRequest()
 
-    subject_pk = request.POST.get('subject_pk')
     if subject_pk:
         subject = get_object_or_404(Subject, pk=subject_pk, exam=exam)
     else:
         subject = None
 
-    session_pk = request.POST.get('session_pk')
     if session_pk:
         original_session = get_object_or_404(Session, pk=session_pk,
                                              exam=exam)
     else:
-        original_session = None
+        original_session = None    
 
     # PERMISSION CHECK
     if not category.can_user_access(request.user) or \
@@ -475,6 +477,9 @@ def create_session_automatically(request, slugs, exam_pk):
 
     instance = Session(exam=exam,
                        submitter=request.user)
+
+    if is_shared:
+        instance.parent_session = original_session
 
     data = {'session_mode': 'EXPLAINED',
             'question_filter': selector}
@@ -525,7 +530,9 @@ def show_single_question(request, slugs, exam_pk, question_pk):
 #@cache_page(settings.CACHE_PERIODS['STABLE'])
 def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     category = Category.objects.get_from_slugs_or_404(slugs)
-    session = get_object_or_404(Session.objects.select_related('exam',
+    session = get_object_or_404(Session.objects.select_related('parent_session',
+                                                               'parent_session__submitter',
+                                                               'exam',
                                                                'exam__category')\
                                                .undeleted(),
                                 pk=session_pk)
@@ -546,7 +553,10 @@ def show_session(request, slugs, exam_pk, session_pk, question_pk=None):
     # being global_sequences
     session_question_pks = json.dumps(dict(session_questions))
 
+    shared_sessions = Session.objects.get_shared(session)
     context = {'session': session,
+               'is_shared': shared_sessions.exists(),
+               'shared_sessions': shared_sessions,
                'default_session_theme': SessionTheme.objects.get(name="Ocean"),
                'session_themes': SessionTheme.objects.all(),
                'category_slugs': slugs,
@@ -575,23 +585,13 @@ def show_session_results(request, slugs, exam_pk, session_pk):
         Answer.objects.bulk_create(answers)
         session.set_has_finished()
 
-    question_pool = session.get_questions()
-
     # We don't use the standard QuerySets as they don't filter per a
     # specific session.
-    correct_count = question_pool.filter(answer__choice__is_right=True,
-                                             answer__session=session)\
-                                     .count()
-    incorrect_count = question_pool.filter(answer__choice__is_right=False,
-                                               answer__session=session)\
-                                       .count()
-    skipped_count = question_pool.filter(answer__choice__isnull=True,
-                                             answer__session=session)\
-                                     .count()
     context = {'session': session, 'exam': session.exam,
-               'correct_count': correct_count,
-               'incorrect_count': incorrect_count,
-               'skipped_count': skipped_count
+               'category_slugs': slugs,
+               'skipped_count': session.get_skipped_count(),
+               'correct_count': session.get_correct_count(),
+               'incorrect_count': session.get_incorrect_count()
     }
 
     return render(request, 'exams/show_session_results.html', context)
@@ -1457,3 +1457,52 @@ def update_session_theme(request):
     profile.save()
 
     return {}
+
+@login_required
+@require_safe
+def share_session(request, slugs, exam_pk, session_pk, secret_key=None):
+    category = Category.objects.get_from_slugs_or_404(slugs)
+    session = get_object_or_404(Session.objects.select_related('exam',
+                                                               'exam__category')\
+                                               .undeleted(),
+                                pk=session_pk,
+                                secret_key=secret_key)
+
+    # PERMISSION CHECK
+    if not session.can_user_access(request.user):
+        raise PermissionDenied
+
+    previous_session = Session.objects.filter(submitter=request.user,
+                                              parent_session=session)\
+                                      .first()
+
+    if previous_session:
+        return HttpResponseRedirect(reverse("exams:show_session",
+                                            args=(slugs, exam_pk, previous_session.pk)))
+
+    context = {'session': session, 'category_slugs': slugs}
+    return render(request, "exams/share_session.html", context)
+
+@login_required
+@require_safe
+@decorators.ajax_only
+def get_shared_session_stats(request):
+    session_pk = request.GET.get('session_pk')
+    session = get_object_or_404(Session, pk=session_pk,
+                                is_deleted=False)
+
+    # PERMISSION CHECK
+    if not session.can_user_access(request.user):
+        raise PermissionDenied
+
+    stats = []
+    for shared_session in Session.objects.get_shared(session):
+        stat = {'pk': shared_session.pk,
+                'has_finished': shared_session.has_finished,
+                'correct_count': shared_session.get_correct_count(),
+                'incorrect_count': shared_session.get_incorrect_count(),
+                'skipped_count': shared_session.get_skipped_count()}
+        stats.append(stat)
+
+    return {'stats': stats}
+

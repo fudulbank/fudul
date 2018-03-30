@@ -1,4 +1,4 @@
-<!DOCTYPE html>{% load static exam_utils %}
+<!DOCTYPE html>{% load static account_utils exam_utils %}
 {% include 'partials/call_out.html' %}
 <html lang="en">
     <head>
@@ -16,7 +16,7 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw" crossorigin="anonymous">
         <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
-        <link rel="stylesheet" href="{% static 'css/show_session.css' %}?v=2.1">
+        <link rel="stylesheet" href="{% static 'css/show_session.css' %}?v=2.2">
         <style>
         :root{
           --primary-background-color: {{ user.profile.session_theme.primary_background_color|default:default_session_theme.primary_background_color }};
@@ -41,7 +41,7 @@
                 <img alt="Fudul logo" src="{% static 'img/logo-monkey.png' %}" class="img-fluid brand-logo">
                 <h2 class="brand-text">Fudul</h2></a>
             </div>
-            <div class="col-sm-6 text-center"> <a target="_blank" href="{% url 'exams:create_session' category_slugs session.exam.pk %}">{{ session.exam.name }}</a> <span class="separator">•</span> Session id: <span id="session-pk">{{ session.pk }}</span> <span class="d-none d-sm-inline">({{ session.get_session_mode_display }})</span><br> Question id: <a target="_blank" href="{% url 'exams:list_revisions' category_slugs session.exam.pk current_question.pk %}" id="question-pk">{{ current_question.pk }}</a> </div>
+            <div class="col-sm-6 text-center"> <a target="_blank" href="{% url 'exams:create_session' category_slugs session.exam.pk %}">{{ session.exam.name }}</a> <span class="separator">•</span> Session id: <span id="session-pk">{{ session.pk }}</span> <span class="d-none d-sm-inline">({{ session.get_session_mode_display }})</span><br>{% if session.parent_session %}Shared session <span class="separator">•</span> {% endif %}Question id: <a target="_blank" href="{% url 'exams:list_revisions' category_slugs session.exam.pk current_question.pk %}" id="question-pk">{{ current_question.pk }}</a> </div>
             <div class="col-sm-3 top-question-id font-weight-bold text-sm-right text-center my-2 mb-sm-0"><i class="fas fa-spinner fa-pulse fa-fw mr-1" id="question-loading" title="Loading session questions..."></i><div id="question-sequence"></div> of <div id="question-total"></div></div>
         </div><!--top-info-->
         <div id="top-options" class="row text-center">
@@ -68,6 +68,11 @@
                   <i class="fas fa-sliders-h"></i>  <span class="d-sm-inline d-none">Settings</span>
                </div>
            </div>
+           <div class="col-auto p-0">
+               <div id="share" class="option">
+                  <i class="fas fa-share-alt"></i> <span class="d-sm-inline d-none">Share</span>
+               </div>
+           </div>
            <div class="col-auto pl-2">
              <div id="keyboard-hint" data-toggle="tooltip" data-html="true" data-title="<h5>Keyboard shortcuts</h5><p><strong>Hint: </strong>  In Fudul, you can go through a whole exam without touching the mouse!  Here is how:</p><table id='keyboard-instructions'><tr><th><kbd>→</kbd></th><td>Go to next question.</td></tr><tr><th><kbd>←</kbd></th><td>Go to previous question.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>↑</kbd></th><td>Select previous choice.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>↓</kbd></th><td>Select next choice.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>Enter</kbd></th><td>Submit answer to current question.</td></tr><tr><th><kbd>Alt</kbd>+<kbd>M</kbd></th><td>Toggle mark on current question.</td></tr>{% if session.is_examinable %}<tr><th><kbd>Alt</kbd>+<kbd>U</kbd></th><td>Find an unsolved question in this session.</td></tr>{% endif %}</table>" class="animated">
                  <i data-toggle class="fas fa-keyboard ml-2"></i>
@@ -76,21 +81,41 @@
         </div><!--top-options-->
 
         <div id="question-row" class="row">
-          <div class="col-2 col-sm-1 d-lg-none mobile-slide previous order-1"></div>
-          <div class="col-2 col-sm-1 d-lg-none mobile-slide next order-3"></div>
-          <div id="question-col" class="col-8 col-sm-10 col-lg-12 px-0 px-lg-5 order-2">
-            <div id="question-container">
-              <div id="question-pool">
-                {% with question=current_question %}
-                 {% include 'exams/partials/session_question.html' %}
-                {% endwith %}
-              </div>
-              <button type="button" id="submit" class="btn">Submit <i class="fas fa-angle-right"></i></button>
-              <div class="row">
-                  <button class="btn btn-outline-primary" id="explain">Improve this explanation!</button>
+          <div id="question-col" class="col-12 {% if is_shared %}col-md-8 col-lg-9{% else %}col-md-12{% endif %}">
+            <div class="row">
+              <div class="col-2 col-sm-1 d-lg-none mobile-slide next order-3"></div>
+              <div class="col-2 col-sm-1 d-lg-none mobile-slide previous order-1"></div>
+              <div id="question-container" class="col-8 col-sm-10 order-2 px-0 px-lg-5 py-4">
+                <div id="question-pool">
+                  {% with question=current_question %}
+                   {% include 'exams/partials/session_question.html' %}
+                  {% endwith %}
+                </div>
+                <button type="button" id="submit" class="btn">Submit <i class="fas fa-angle-right"></i></button>
+                <div class="row">
+                    <button class="btn btn-outline-primary" id="explain">Improve this explanation!</button>
+                </div>
               </div>
             </div>
           </div>
+          {% if is_shared %}
+          <div id="sharing-sidebar" class="col-12 col-md-4 col-lg-3 text-center py-4">
+            <p class="mb-0">You are sharing this session with:</p>
+            {% for shared_session in shared_sessions %}
+              <p class="sharer-name mb-0">{{ shared_session.submitter|get_user_credit:user }}</p>
+              <div class="row justify-content-center">
+                <div class="col-6 col-md-10">
+                  <div data-pk="{{ shared_session.pk }}" data-session-has-finished="{% if shared_session.has_finished %}true{% else %}false{% endif %}" class="progress" style="height: 5px;">
+                    <div class="progress-bar bg-success" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
+                    <div class="progress-bar bg-danger" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
+                    <div class="progress-bar bg-warning" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+
+          </div>
+          {% endif %}
         </div>
 
         <div id="footer" class="row text-center font-weight-bold">
@@ -118,6 +143,7 @@
     </div><!--container-fluid-->
         <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha384-xBuQ/xzmlsLoJpyjoggmTEz8OWUFM0/RC5BsqQBDX2v5cMvDHcMakNTNrHIW2I5f" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js" integrity="sha384-5tfO0soa+FisnuBhaHP2VmPXQG/JZ8dLcRL43IkJFzbsXTXT6zIX8q8sIT0VSe2G" crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
         <script src="{% static 'js/toastr.js' %}"></script>
         <script src="{% url 'js_reverse' %}"></script>
@@ -129,6 +155,7 @@
     SESSION_PK = {{ session.pk }};
     SESSION_MODE = '{{ session.session_mode }}';
     USER_FIRST_NAME = "{{ user.profile.first_name }}";
+    IS_SHARED = {%if is_shared %}true{% else %}false{% endif %};
 
     SESSION_QUESTION_PKS = Object.keys(SESSION_QUESTIONS).map(function(x){ return parseInt(x)})
     SESSION_QUESTION_GLOBAL_SEQUENCES = SESSION_QUESTION_PKS.map(function(x){ return SESSION_QUESTIONS[x] }).sort(function(a, b){ return a - b});
@@ -145,6 +172,7 @@
     MARKS = null;
     ANSWERS = null;
     has_constructed_navigation = false;
+    shared_stat_timer = null;
 
     // Common selectors
     $markButton = $("#mark");
@@ -688,13 +716,13 @@
     }
 
     function updateSizes() {
-      $("#question-container").css({
-        'padding-bottom': $('#footer').height() + 20
+      $("#question-row").css({
+        'padding-bottom': $('#footer').height()
       })
 
       // The question row should take all the space not taken by other elements
       row_height = $("#container").height() - $('#top-info').height() - $('#top-options').height() - $('#footer').height();
-      $("#question-row").css({'height': row_height});
+      $("#question-col, #sharing-sidebar").css({'min-height': row_height});
     }
 
     function initializeKeyboard(){
@@ -902,6 +930,31 @@
       });
     }
 
+    function fetchSharedStats(){
+      $.ajax({method: 'get',
+              url: "{% url 'exams:get_shared_session_stats' %}",
+              data: {format: 'json',
+                     session_pk: SESSION_PK },
+              success: function(data){
+                if (data.success){
+                  for (var index in data.stats){
+                    var stat = data.stats[index];
+                    var $progress_container = $('.progress[data-pk="' + stat.pk +'"]')
+                    $progress_container.attr('data-has-finished', stat.has_finished.toString());
+                    $progress_container.find('.progress-bar.bg-success').css('width', stat.correct_count).attr('aria-valuenow', stat.correct_count);
+                    $progress_container.find('.progress-bar.bg-danger').css('width', stat.incorrect_count).attr('aria-valuenow', stat.incorrect_count);
+                    $progress_container.find('.progress-bar.bg-warning').css('width', stat.skipped_count).attr('aria-valuenow', stat.skipped_count);
+                  }
+                  if (!$('.progress[data-has-finished="false"]').length){
+                    clearSharedStatTimer();
+                  }
+                } else {
+                  toastr.error(data.message)
+                }
+              }
+      });
+    }
+
     function isSafari9(){
       // This is a workaround for iOS 9.x browsers that
       // cannot render dynmically added FontAwesome icons.
@@ -1097,6 +1150,19 @@
       }
     }
 
+    function setSharedStatTimer(){
+      if (!shared_stat_timer && document.hasFocus() && $('.progress[data-has-finished="false"]').length){
+        shared_stat_timer = setInterval(fetchSharedStats, 5000);
+      }
+    }
+
+    function clearSharedStatTimer(){
+        if (shared_stat_timer){
+          clearInterval(shared_stat_timer);
+          shared_stat_timer = null;
+        }
+    }
+
     // Show mobile sliders in tablets
     if (isTablet){
       $('.mobile-slide').removeClass('d-lg-none');
@@ -1108,7 +1174,15 @@
       $('#keyboard-hint').addClass('d-none');
     }
 
+    if (IS_SHARED){
+      $(window).on('focus', setSharedStatTimer);
+      $(window).on('blur', clearSharedStatTimer);
+    }
+
     $(function() {
+        var copy_share = new ClipboardJS('#share-session-copy');
+        copy_share.on('success', function(e){$(e.trigger).tooltip('show'); setTimeout(function(){$(e.trigger).tooltip('hide')}, 1000)});
+
         $initial_question = $('.question-body.show');
 
         // Set sequence for initial question
@@ -1157,6 +1231,14 @@
             _paq.push(['trackEvent', 'show_session', 'click-settings', 'click-settings']);
           });
 
+          share_tooltip = $("#share-tooltip").get(0);
+          $("#share").tooltip({html: true,
+                               trigger: 'click',
+                               title: share_tooltip})
+           $("#share").click(function(){
+             _paq.push(['trackEvent', 'show_session', 'click-share', 'click-share']);
+           });
+
           $("#theme-select").change(function(){
             $option = $(this).find('option:selected');
             $(":root").css({'--primary-background-color': $option.data('primary-background-color'),
@@ -1191,6 +1273,11 @@
          fetchMarks();
          updateSizes();
          $(window).resize(updateSizes);
+
+         if (IS_SHARED){
+           fetchSharedStats();
+           setSharedStatTimer();
+         }
 
          $(".mobile-slide").click(function(){
           if ($(this).hasClass('previous')){
@@ -1340,6 +1427,17 @@
         {% endwith %}
 
         <div class="d-none">
+          <div id="share-tooltip">
+            <p>Share your session with a friend.  By sharing, you will be answering the same questions, and tracking each other's progress:</p>
+            {% if session.parent_session %}
+              <input id="share-session-url" value="{{ request.scheme }}://{{ request.get_host }}{% url 'exams:share_session' category_slugs session.exam.pk session.parent_session.pk session.parent_session.secret_key %}" readonly>
+            {% else %}
+              <input id="share-session-url" value="{{ request.scheme }}://{{ request.get_host }}{% url 'exams:share_session' category_slugs session.exam.pk session.pk session.secret_key %}" readonly>
+            {% endif %}
+            <button data-trigger="manual" data-title="Copied!" data-toggle="tooltip" class="btn" id="share-session-copy" data-clipboard-target="#share-session-url">
+                <i class="fas fa-clipboard"></i>
+            </button>
+          </div>
           <div id="setting-tooltip">
             <p>You spend a lot of time in Fudul, so make it feel home!</p>
             <select id="theme-select" class="form-control">

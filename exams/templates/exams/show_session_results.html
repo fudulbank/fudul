@@ -17,13 +17,13 @@ th, td{
         {% for parent_category in session.exam.category.get_parent_categories %}
             <li class="breadcrumb-item"><a href="{% url 'exams:show_category' parent_category.get_slugs %}">{{ parent_category.name }}</a></li>
         {% endfor %}
-      <li class="breadcrumb-item"><a href="{% url 'exams:show_category' session.exam.category.get_slugs %}">{{ session.exam.category.name }}</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'exams:create_session' session.exam.category.get_slugs session.exam.pk %}">{{ session.exam.name }}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:show_category' category_slugs %}">{{ session.exam.category.name }}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:create_session' category_slugs session.exam.pk %}">{{ session.exam.name }}</a></li>
       <li class="breadcrumb-item active">Session #{{ session.pk }} results</li>
 {% endblock %}
 {% block content %}
 {% cache CACHE_PERIODS.STABLE show_session_results session.pk %}
-<h1>Session #<a href="{% url 'exams:show_session' session.exam.category.get_slugs session.exam.pk session.pk %}">{{ session.pk }}</a> results</h1>
+<h1>Session #<a href="{% url 'exams:show_session' category_slugs session.exam.pk session.pk %}">{{ session.pk }}</a> results</h1>
 
 
     <div class="card">
@@ -87,7 +87,7 @@ th, td{
                 {% for answer in session.answer_set.all %}
                   <tr>
                     {% if not answer.choice %}<td data-order="skipped"><i data-toggle="tooltip" title="Skipped" class="fa fa-question-circle text-warning"></i>{% elif answer.choice.is_right %}<td data-order="correct"><i data-toggle="tooltip" title="Correct" class="fa fa-check text-success"></i>{% elif not answer.choice.is_right %}<td data-toggle="tooltip" title="Incorrect" data-order="incorrect"><i class="fa fa-times text-danger"></i>{% endif %}</td>
-                    <td><a href="{% url 'exams:show_session' session.exam.category.get_slugs session.exam.pk session.pk answer.question.pk %}">{{ answer.question.pk }}</a></td>
+                    <td><a href="{% url 'exams:show_session' category_slugs session.exam.pk session.pk answer.question.pk %}">{{ answer.question.pk }}</a></td>
                     <td>{{ answer.question.get_latest_approved_revision.text|linebreaks|truncatewords:20 }}</td>
                     <td>
                        <ul>{% for subject in answer.question.subjects.all %}<li>{{ subject.name }}</li>{% endfor %}</ul>
@@ -133,7 +133,7 @@ th, td{
             // Disable all automatic creation buttons upon firing one.
             $('.automatic-creation').addClass('disabled').attr('disabled', true);
 
-            var url = "{% url 'exams:create_session_automatically' exam.category.get_slugs exam.pk %}";
+            var url = "{% url 'exams:create_session_automatically' category_slugs exam.pk %}";
             toastr.success("A new session is being created.  Give us a second!");
             $.ajax({url: url,
                     data: {selector: selector, session_pk: {{ session.pk }}},

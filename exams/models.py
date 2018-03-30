@@ -507,6 +507,11 @@ session_mode_choices = (
 
 class Session(models.Model):
     session_mode = models.CharField(max_length=20, choices=session_mode_choices, default=None)
+    parent_session = models.ForeignKey('self',
+                                       related_name="children",
+                                       null=True,
+                                       blank=True)
+    secret_key = models.CharField(max_length=10)
     number_of_questions = models.PositiveIntegerField(null=True)
     sources = models.ManyToManyField(Source, blank=True)
     subjects = models.ManyToManyField(Subject, blank=True)
@@ -531,6 +536,28 @@ class Session(models.Model):
     has_finished = models.NullBooleanField(default=None)
 
     objects = managers.SessionQuerySet.as_manager()
+
+    def get_skipped_count(self):
+        question_pool = self.get_questions()
+        skipped_count = question_pool.filter(answer__choice__isnull=True,
+                                             answer__session=self)\
+                                     .count()
+        return skipped_count
+
+    def get_correct_count(self):
+        question_pool = self.get_questions()
+        correct_count = question_pool.filter(answer__choice__is_right=True,
+                                             answer__session=self)\
+                                     .count()
+
+        return correct_count
+
+    def get_incorrect_count(self):
+        question_pool = self.get_questions()
+        incorrect_count = question_pool.filter(answer__choice__is_right=False,
+                                               answer__session=self)\
+                                       .count()
+        return incorrect_count
 
     def get_score(self):
         try:
