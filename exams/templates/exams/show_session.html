@@ -146,7 +146,7 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js" integrity="sha384-5tfO0soa+FisnuBhaHP2VmPXQG/JZ8dLcRL43IkJFzbsXTXT6zIX8q8sIT0VSe2G" crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
         <script src="{% static 'js/toastr.js' %}"></script>
-        <script src="{% url 'js_reverse' %}"></script>
+        <script src="{% url 'js_reverse' %}?v=1.1"></script>
         <script>
     // Keys represent PKs.  Values represent global_sequences.
     SESSION_QUESTIONS = {{ session_question_pks|safe }};
@@ -329,7 +329,7 @@
         $("#mark-icon").hide();
         $("#mark-loading").css('display', 'inline-block');
         $.ajax({
-            url: "{% url 'exams:toggle_marked' %}",
+            url: Urls['exams:toggle_marked'](),
             type: 'POST',
             data: {session_pk: SESSION_PK,
                    question_pk: $current_question.data('question-pk')},
@@ -420,7 +420,7 @@
       $current_question.find(".like-mnemonic").off('click').on('click', function() {
            action = $(this).data('action');
            mnemonic_pk = $(this).data('mnemonic-pk');
-           url = "{% url 'exams:contribute_mnemonics' %}?" + $.param({question_pk: question_pk});
+           url =  Urls['exams:contribute_mnemonics']() + "?" + $.param({question_pk: question_pk});
 
            $.ajax({
                url: url,
@@ -439,7 +439,7 @@
       $current_question.find(".delete-mnemonic").off('click').on( 'click', function() {
            action = $(this).data('action');
            mnemonic_pk = $(this).data('mnemonic-pk');
-           url = "{% url 'exams:contribute_mnemonics' %}?" + $.param({question_pk: question_pk});
+           url = Urls['exams:contribute_mnemonics']() + "?" + $.param({question_pk: question_pk});
 
            $.ajax({
                url: url,
@@ -467,7 +467,7 @@
           _paq.push(['trackEvent', 'show_session', 'answer_correction', 'click-correct']);
           $("#correct-answer-modal").modal('show');
           choice_pk = $(this).closest('tr').data('choice-pk');
-          url = "{% url 'exams:correct_answer' %}?" + $.param({choice_pk: choice_pk});
+          url = Urls['exams:correct_answer']() + "?" + $.param({choice_pk: choice_pk});
           $("#correct-answer-modal .modal-body").load(url);
       });
     }
@@ -620,7 +620,7 @@
                   question_pk: $current_question.data('question-pk')}
 
       $.ajax({
-          url: "{% url 'exams:submit_highlight' %}",
+          url: Urls['exams:submit_highlight'](),
           type: 'POST',
           data: data
       });
@@ -693,7 +693,7 @@
                     choice_pk: choice_pk}
 
         $.ajax({
-            url: "{% url 'exams:submit_answer' %}",
+            url: Urls['exams:submit_answer'](),
             type: 'POST',
             data: data,
             cache: false,
@@ -844,7 +844,7 @@
 
     function fetchCorrections(){
       $.ajax({method: 'get',
-              url: "{% url 'correction-list' %}",
+              url: Urls['correction-list'](),
               data: {format: 'json',
                      session_pk: SESSION_PK },
               success: function(data){
@@ -859,7 +859,7 @@
 
     function fetchAnswers(){
       $.ajax({method: 'get',
-              url: "{% url 'answer-list' %}",
+              url: Urls['answer-list'](),
               data: {format: 'json',
                      session_pk: SESSION_PK },
               success: function(data){
@@ -888,7 +888,7 @@
 
     function fetchMarks(){
       $.ajax({method: 'get',
-              url: "{% url 'marked-list' %}",
+              url: Urls['marked-list'](),
               data: {format: 'json',
                      exam_pk: EXAM_PK },
               success: function(data){
@@ -906,7 +906,7 @@
 
     function fetchHighlights(){
       $.ajax({method: 'get',
-              url: "{% url 'highlight-list' %}",
+              url: Urls['highlight-list'](),
               data: {format: 'json',
                      session_pk: SESSION_PK },
               success: function(data){
@@ -927,7 +927,7 @@
 
     function fetchSharedStats(){
       $.ajax({method: 'get',
-              url: "{% url 'exams:get_shared_session_stats' %}",
+              url: Urls['exams:get_shared_session_stats'](),
               data: {format: 'json',
                      session_pk: SESSION_PK },
               success: function(data){
@@ -971,7 +971,7 @@
       var current_target_str = current_targets.join(',');
       $("#question-loading").show();
       $.ajax({method: 'get',
-              url: "{% url 'exams:list_partial_session_questions' category_slugs session.exam.pk %}",
+              url: Urls['exams:list_partial_session_questions'](CATEGORY_SLUGS, EXAM_PK),
               data: {pks: current_target_str},
               success: function(data){
                 fetched_indexes.push(fetch_list_index);
@@ -1249,7 +1249,7 @@
                             '--table-hover': $option.data('table-hover')})
           });
           $("#save-theme").click(function(){
-            $.ajax({url: "{% url 'exams:update_session_theme' %}",
+            $.ajax({url: Urls['exams:update_session_theme'](),
                     type: 'POST',
                     data: {session_theme_pk: $("#theme-select").val()},
                     success: function(data){
@@ -1286,7 +1286,7 @@
         });
 
         $("#end").click(function(){
-          $("#confirm-end-modal a.submit-button").prop("href", "{% url 'exams:show_session_results' category_slugs session.exam.pk session.pk %}");
+          $("#confirm-end-modal a.submit-button").prop("href", Urls['exams:show_session_results'](CATEGORY_SLUGS, EXAM_PK, SESSION_PK));
           $("#confirm-end-modal").modal('show');
         });
         $submitButton.click(submitChoice);
@@ -1310,7 +1310,7 @@
         });
         $(document).on('click', '.delete-correction', function(){
           choice_pk = $(this).data('choice-pk');
-          url = "{% url 'exams:delete_correction' %}?" + $.param({choice_pk: choice_pk})
+          url = Urls['exams:delete_correction']() + "?" + $.param({choice_pk: choice_pk})
           pk_selector = "[data-choice-pk=" + choice_pk + "]";
           var $choice_row = $current_question.find("tr" + pk_selector);
           $choice_row.data('has-correction', false).attr('data-has-correction', 'false');
@@ -1339,7 +1339,7 @@
         $(document).on('click', ".support-correction, .oppose-correction", function(){
           action = $(this).data('action');
           choice_pk = $(this).data('choice-pk');
-          url = "{% url 'exams:correct_answer' %}?" + $.param({choice_pk: choice_pk})
+          url = Urls['exams:correct_answer']() + '?' + $.param({choice_pk: choice_pk})
           _paq.push(['trackEvent', 'show_session', 'answer_correction', 'delete-notification']);
 
           $.ajax({
@@ -1366,19 +1366,19 @@
 
         $("#contribute").click(function () {
             $("#modify-question-modal").modal('show');
-            url = "{% url 'exams:contribute_revision' %}?" + $.param({question_pk: $current_question.data('question-pk')})
+            url = Urls['exams:contribute_revision']() + "?" + $.param({question_pk: $current_question.data('question-pk')})
             $("#modify-question-modal .modal-body").load(url);
         });
         // initialize project edit modal
         $("#explain, a.explain").click(function () {
             $("#explain-question-modal").modal('show');
-            url = "{% url 'exams:contribute_explanation' %}?" + $.param({question_pk: $current_question.data('question-pk')});
+            url = Urls['exams:contribute_explanation']() + "?" + $.param({question_pk: $current_question.data('question-pk')});
             $("#explain-question-modal .modal-body").load(url);
         });
 
         $("#add-mnemonics").click(function () {
             $("#add-mnemonics-modal").modal('show');
-            url = "{% url 'exams:contribute_mnemonics' %}?" + $.param({question_pk: $current_question.data('question-pk')});
+            url =  Urls['exams:contribute_mnemonics']() + "?" + $.param({question_pk: $current_question.data('question-pk')});
             $("#add-mnemonics-modal .modal-body").load(url);
         });
 
