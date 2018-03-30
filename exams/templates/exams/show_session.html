@@ -16,7 +16,7 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw" crossorigin="anonymous">
         <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
-        <link rel="stylesheet" href="{% static 'css/show_session.css' %}?v=2.2">
+        <link rel="stylesheet" href="{% static 'css/show_session.css' %}?v=2.3">
         <style>
         :root{
           --primary-background-color: {{ user.profile.session_theme.primary_background_color|default:default_session_theme.primary_background_color }};
@@ -69,12 +69,12 @@
                </div>
            </div>
            <div class="col-auto p-0">
-               <div id="share" class="option">
+               <div id="share" class="emphasized option">
                   <i class="fas fa-share-alt"></i> <span class="d-sm-inline d-none">Share</span>
                </div>
            </div>
            <div class="col-auto pl-2">
-             <div id="keyboard-hint" data-toggle="tooltip" data-html="true" data-title="<h5>Keyboard shortcuts</h5><p><strong>Hint: </strong>  In Fudul, you can go through a whole exam without touching the mouse!  Here is how:</p><table id='keyboard-instructions'><tr><th><kbd>→</kbd></th><td>Go to next question.</td></tr><tr><th><kbd>←</kbd></th><td>Go to previous question.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>↑</kbd></th><td>Select previous choice.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>↓</kbd></th><td>Select next choice.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>Enter</kbd></th><td>Submit answer to current question.</td></tr><tr><th><kbd>Alt</kbd>+<kbd>M</kbd></th><td>Toggle mark on current question.</td></tr>{% if session.is_examinable %}<tr><th><kbd>Alt</kbd>+<kbd>U</kbd></th><td>Find an unsolved question in this session.</td></tr>{% endif %}</table>" class="animated">
+             <div id="keyboard-hint" data-toggle="tooltip" data-html="true" data-title="<h5>Keyboard shortcuts</h5><p><strong>Hint: </strong>  In Fudul, you can go through a whole exam without touching the mouse!  Here is how:</p><table id='keyboard-instructions'><tr><th><kbd>→</kbd></th><td>Go to next question.</td></tr><tr><th><kbd>←</kbd></th><td>Go to previous question.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>↑</kbd></th><td>Select previous choice.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>↓</kbd></th><td>Select next choice.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>Enter</kbd></th><td>Submit answer to current question.</td></tr><tr><th><kbd>Alt</kbd>+<kbd>M</kbd></th><td>Toggle mark on current question.</td></tr>{% if session.is_examinable %}<tr><th><kbd>Alt</kbd>+<kbd>U</kbd></th><td>Find an unsolved question in this session.</td></tr>{% endif %}</table>">
                  <i data-toggle class="fas fa-keyboard ml-2"></i>
              </div>
            </div>
@@ -787,11 +787,6 @@
           // upcoming code snippet
           return
         }
-
-        // Remove keyboard hint animation if user has used the
-        // shortcuts.  Now, the user is aware, so let's reduce screen
-        // noise.
-        $('#keyboard-hint').removeClass('animated')
       });
       $(document).keyup(function (e) {
           // remove keys that are no longer active;
@@ -1236,6 +1231,7 @@
                                trigger: 'click',
                                title: share_tooltip})
            $("#share").click(function(){
+             $(this).removeClass('emphasized')
              _paq.push(['trackEvent', 'show_session', 'click-share', 'click-share']);
            });
 

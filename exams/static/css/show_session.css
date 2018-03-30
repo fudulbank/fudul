@@ -322,7 +322,7 @@ td.check, td.correct{
   padding-bottom: 0.5rem;
 }
 
-@keyframes keyboard-hint {
+@keyframes emphasized-hint {
    0% {
     color: var(--tertiary-font-color);
    }
@@ -333,6 +333,6 @@ td.check, td.correct{
     color: var(--highlight-background);
    }
 }
-#keyboard-hint.animated{
-   animation:keyboard-hint 3s ease-in infinite alternate
+.emphasized{
+   animation: emphasized-hint 3s ease-in infinite alternate
 }

@@ -11,7 +11,7 @@ def fill_secret_key(apps, schema_editor):
 
     chars = string.ascii_lowercase + string.digits
     
-    for session in Session.objects.all():
+    for session in Session.objects.order_by('pk'):
         print("Filling #{}...".format(session.pk))
         secret_key = "".join([random.choice(chars) for i in range(10)])
         session.secret_key = secret_key
