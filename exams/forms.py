@@ -169,7 +169,7 @@ class SessionForm(forms.ModelForm):
             session_question_pks = original_session.answer_set.values('question').distinct()
             incorrect_question_pks = session_question_pks.filter(choice__is_right=False)
             skipped_question_pks = session_question_pks.filter(choice__isnull=True)
-            self.question_pools = {'ALL': models.Question.objects.filter(pk__in=session_question_pks),
+            self.question_pools = {'ALL': original_session.get_questions(),
                                    'INCORRECT': models.Question.objects.filter(pk__in=incorrect_question_pks),
                                    'SKIPPED': models.Question.objects.filter(pk__in=skipped_question_pks),
             }

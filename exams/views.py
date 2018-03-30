@@ -467,7 +467,7 @@ def create_session_automatically(request, slugs, exam_pk):
 
     # PERMISSION CHECK
     if not category.can_user_access(request.user) or \
-       original_session and not request.user.has_perm('exams.access_session', original_session):
+       original_session and not is_shared and not request.user.has_perm('exams.access_session', original_session):
         raise Exception("You are not allowed to create such a session.")
 
     # DO NOT FUCK WITH US
@@ -480,8 +480,11 @@ def create_session_automatically(request, slugs, exam_pk):
 
     if is_shared:
         instance.parent_session = original_session
+        session_mode = original_session.session_mode
+    else:
+        session_mode = 'EXPLAINED'
 
-    data = {'session_mode': 'EXPLAINED',
+    data = {'session_mode': session_mode,
             'question_filter': selector}
     if subject:
         data['subjects'] = [subject_pk]
@@ -1469,7 +1472,7 @@ def share_session(request, slugs, exam_pk, session_pk, secret_key=None):
                                 secret_key=secret_key)
 
     # PERMISSION CHECK
-    if not session.can_user_access(request.user):
+    if not category.can_user_access(request.user):
         raise PermissionDenied
 
     previous_session = Session.objects.filter(submitter=request.user,
@@ -1498,7 +1501,7 @@ def get_shared_session_stats(request):
     stats = []
     for shared_session in Session.objects.get_shared(session):
         stat = {'pk': shared_session.pk,
-                'has_finished': shared_session.has_finished,
+                'has_finished': shared_session.has_finished or False,
                 'correct_count': shared_session.get_correct_count(),
                 'incorrect_count': shared_session.get_incorrect_count(),
                 'skipped_count': shared_session.get_skipped_count()}

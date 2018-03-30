@@ -68,11 +68,13 @@
                   <i class="fas fa-sliders-h"></i>  <span class="d-sm-inline d-none">Settings</span>
                </div>
            </div>
+           {% if session.is_examinable %}
            <div class="col-auto p-0">
                <div id="share" class="emphasized option">
                   <i class="fas fa-share-alt"></i> <span class="d-sm-inline d-none">Share</span>
                </div>
            </div>
+           {% endif %}
            <div class="col-auto pl-2">
              <div id="keyboard-hint" data-toggle="tooltip" data-html="true" data-title="<h5>Keyboard shortcuts</h5><p><strong>Hint: </strong>  In Fudul, you can go through a whole exam without touching the mouse!  Here is how:</p><table id='keyboard-instructions'><tr><th><kbd>→</kbd></th><td>Go to next question.</td></tr><tr><th><kbd>←</kbd></th><td>Go to previous question.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>↑</kbd></th><td>Select previous choice.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>↓</kbd></th><td>Select next choice.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>Enter</kbd></th><td>Submit answer to current question.</td></tr><tr><th><kbd>Alt</kbd>+<kbd>M</kbd></th><td>Toggle mark on current question.</td></tr>{% if session.is_examinable %}<tr><th><kbd>Alt</kbd>+<kbd>U</kbd></th><td>Find an unsolved question in this session.</td></tr>{% endif %}</table>">
                  <i data-toggle class="fas fa-keyboard ml-2"></i>

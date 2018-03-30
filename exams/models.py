@@ -539,30 +539,26 @@ class Session(models.Model):
 
     def get_skipped_count(self):
         question_pool = self.get_questions()
-        skipped_count = question_pool.filter(answer__choice__isnull=True,
-                                             answer__session=self)\
-                                     .count()
-        return skipped_count
+        return question_pool.filter(answer__choice__isnull=True,
+                                    answer__session=self)\
+                            .count() or 0
 
     def get_correct_count(self):
         question_pool = self.get_questions()
-        correct_count = question_pool.filter(answer__choice__is_right=True,
-                                             answer__session=self)\
-                                     .count()
-
-        return correct_count
+        return question_pool.filter(answer__choice__is_right=True,
+                                    answer__session=self)\
+                            .count() or 0
 
     def get_incorrect_count(self):
         question_pool = self.get_questions()
-        incorrect_count = question_pool.filter(answer__choice__is_right=False,
-                                               answer__session=self)\
-                                       .count()
-        return incorrect_count
+        return question_pool.filter(answer__choice__is_right=False,
+                                    answer__session=self)\
+                            .count() or 0
 
     def get_score(self):
         try:
             total = self.get_questions().count()
-            correct = self.get_correct_answer_count()
+            correct = self.get_correct_count()
             return round(correct / total * 100, 2)
         except ZeroDivisionError:
             correct = 0
@@ -577,24 +573,6 @@ class Session(models.Model):
 
     def get_used_questions_count(self):
         return self.answer_set.of_undeleted_questions()\
-                              .distinct()\
-                              .count()
-
-    def get_correct_answer_count(self):
-        return self.answer_set.of_undeleted_questions()\
-                              .filter(choice__is_right=True)\
-                              .distinct()\
-                              .count()
-
-    def get_incorrect_answer_count(self):
-        return self.answer_set.of_undeleted_questions()\
-                              .filter(choice__is_right=False)\
-                              .distinct()\
-                              .count()
-
-    def get_skipped_answer_count(self):
-        return self.answer_set.of_undeleted_questions()\
-                              .filter(choice__isnull=True)\
                               .distinct()\
                               .count()
 
