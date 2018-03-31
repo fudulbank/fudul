@@ -185,7 +185,7 @@
               <li class="dropdown dropdown-user nav-item"><a href="#" data-toggle="dropdown" class="dropdown-toggle nav-link dropdown-user-link"><span class="avatar avatar-online"><img src="{% static 'img/logo-monkey.png' %}" alt="avatar"><i></i></span><span class="user-name">{{ user.profile.first_name|default:user.username }}</span></a>
                 <div class="dropdown-menu dropdown-menu-right">
                    <a href="{% url 'userena_profile_edit' user.username %}" class="dropdown-item"><i class="ft-user"></i> Edit Profile</a>
-                   <a href="{% url 'exams:list_previous_sessions' %}" class="dropdown-item"><i class="ft-edit"></i> Previous sessions</a>
+                   <a href="{% url 'exams:list_contributions' user.pk %}" class="dropdown-item"><i class="ft-edit"></i> My contributions</a>
                    <div class="dropdown-divider"></div>
                    <a href="{% url 'loginas-logout' %}" class="dropdown-item"><i class="ft-power"></i> Logout</a>
                 </div>
