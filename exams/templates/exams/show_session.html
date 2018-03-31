@@ -173,6 +173,7 @@
     PREVIOUS_CORRECTIONS = null;
     MARKS = null;
     ANSWERS = null;
+    STATS = null;
     has_constructed_navigation = false;
     shared_stat_timer = null;
 
@@ -668,12 +669,17 @@
             choice_pk = $checkedChoice.closest('tr').data("choice-pk");
 
             // If there is a correction, we invite the user to vote:
-            $choice_row = $checkedChoice.closest('tr');
-            $correction_notification = $choice_row.find('.answer-correction-notification')
+            var $choice_row = $checkedChoice.closest('tr');
+            if ($choice_row.data('is_right')){
+              STATS.correct_count += 1
+            } else {
+              STATS.incorrect_count += 1
+            }
+            var $correction_notification = $choice_row.find('.answer-correction-notification')
             // Let's ensure that the support voting button is enabled
             // (i.e. the user is not the submitter of the correction
             // or a previous voter)
-            $support_button = $choice_row.find('button.support-correction:enabled')
+            var $support_button = $choice_row.find('button.support-correction:enabled')
             if ($correction_notification.length && $support_button.length){
               $choice_row.find('.check').tooltip({template: '<div class="tooltip hint" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>',
                                                   html: true,
@@ -683,8 +689,11 @@
               setTimeout(function(){$choice_row.find('.check').tooltip('hide')}, 5000);
             }
         } else {
+            STATS.skipped_count += 1
             choice_pk = null;
         }
+
+        updateSharedProgressBar(SESSION_PK, STATS);
 
         var question_pk = $current_question.data('question-pk')
         ANSWERS[question_pk] = choice_pk;
@@ -865,8 +874,20 @@
                      session_pk: SESSION_PK },
               success: function(data){
                   ANSWERS = {};
+                  STATS = {correct_count: 0,
+                           incorrect_count: 0,
+                           skipped_count: 0,};
                   data.map(function(item){
-                    ANSWERS[item.question_id] = item.choice_id;
+                    if (item.choice === null){
+                      STATS.skipped_count += 1
+                      ANSWERS[item.question_id] = null;
+                    } else if (item.choice.is_right === true){
+                      STATS.correct_count += 1
+                      ANSWERS[item.question_id] = item.choice.id;
+                    } else if (item.choice.is_right === false){
+                      STATS.incorrect_count += 1
+                      ANSWERS[item.question_id] = item.choice.id;
+                    }
                   });
 
                   // We can only prepare questions after we get
@@ -877,6 +898,7 @@
                   // initialize interactions after we have prepared
                   // the questions.
                   controlSessionFinished();
+                  updateSharedProgressBar(SESSION_PK, STATS);
                   initializeInteractions();
                   $("#open-navigation").tooltip('dispose').css('cursor', 'pointer').click(function(){
                     constructNavigationTable();
@@ -935,14 +957,7 @@
                 if (data.success){
                   for (var index in data.stats){
                     var stat = data.stats[index];
-                    var $progress_container = $('.progress[data-pk="' + stat.pk +'"]')
-                    $progress_container.attr('data-has-finished', stat.has_finished.toString());
-                    var correct_width = stat.correct_count / SESSION_QUESTION_TOTAL * 100 + '%';
-                    var incorrect_width = stat.incorrect_count / SESSION_QUESTION_TOTAL * 100 + '%';
-                    var skipped_width = stat.skipped_count / SESSION_QUESTION_TOTAL * 100 + '%';
-                    $progress_container.find('.progress-bar.bg-success').css('width', correct_width).attr('aria-valuenow', stat.correct_count);
-                    $progress_container.find('.progress-bar.bg-danger').css('width', incorrect_width).attr('aria-valuenow', stat.incorrect_count);
-                    $progress_container.find('.progress-bar.bg-warning').css('width', skipped_width).attr('aria-valuenow', stat.skipped_count);
+                    updateSharedProgressBar(stat.pk, stat)
                   }
                   if (!$('.progress[data-has-finished="false"]').length){
                     clearSharedStatTimer();
@@ -952,6 +967,35 @@
                 }
               }
       });
+    }
+
+    function updateSharedProgressBar(session_pk, stat){
+      if (!IS_SHARED){
+        return
+      }
+
+      var $progress_container = $('.progress[data-pk="' + session_pk +'"]')
+
+      if (session_pk != SESSION_PK){
+        $progress_container.attr('data-has-finished', stat.has_finished.toString());
+      } else if (session_pk == SESSION_PK && SESSION_MODE != 'EXPLAINED'){
+        stat.count = stat.correct_count + stat.incorrect_count + stat.skipped_count
+      }
+
+      // Only detail the breakdown if the session mode is EXPLAINED.
+      // Otherwise, only show a generic count.
+      if (SESSION_MODE == 'EXPLAINED'){
+        var correct_width = stat.correct_count / SESSION_QUESTION_TOTAL * 100 + '%';
+        var incorrect_width = stat.incorrect_count / SESSION_QUESTION_TOTAL * 100 + '%';
+        var skipped_width = stat.skipped_count / SESSION_QUESTION_TOTAL * 100 + '%';
+        $progress_container.find('.progress-bar.bg-success').css('width', correct_width).attr('aria-valuenow', stat.correct_count);
+        $progress_container.find('.progress-bar.bg-danger').css('width', incorrect_width).attr('aria-valuenow', stat.incorrect_count);
+        $progress_container.find('.progress-bar.bg-warning').css('width', skipped_width).attr('aria-valuenow', stat.skipped_count);
+      } else {
+        var width = stat.count / SESSION_QUESTION_TOTAL * 100 + '%';
+        $progress_container.find('.progress-bar.bg-success').css('width', width).attr('aria-valuenow', stat.count);
+      }
+
     }
 
     function isSafari9(){

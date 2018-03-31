@@ -1499,12 +1499,18 @@ def get_shared_session_stats(request):
         raise PermissionDenied
 
     stats = []
-    for shared_session in Session.objects.get_shared(session):
+    for shared_session in Session.objects.get_shared(session).exclude(pk=session_pk):
         stat = {'pk': shared_session.pk,
-                'has_finished': shared_session.has_finished or False,
-                'correct_count': shared_session.get_correct_count(),
-                'incorrect_count': shared_session.get_incorrect_count(),
-                'skipped_count': shared_session.get_skipped_count()}
+                'has_finished': shared_session.has_finished or False}
+
+        # Only detail the breakdown if the session mode is EXPLAINED.
+        # Otherwise, only show a generic count.
+        if session.session_mode == 'EXPLAINED':
+            stat.update({'correct_count': shared_session.get_correct_count(),
+                         'incorrect_count': shared_session.get_incorrect_count(),
+                         'skipped_count': shared_session.get_skipped_count()})
+        else:
+            stat['count'] = shared_session.get_used_questions_count()
         stats.append(stat)
 
     return {'stats': stats}

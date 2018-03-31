@@ -10,16 +10,22 @@ from exams.models import *
 import accounts.utils
 import teams.utils
 
-
-class AnswerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Answer
-        fields = ('question_id', 'choice_id')
-
 class RulesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rule
         fields = ('regex_pattern', 'regex_replacement', 'scope')
+
+class ChoiceIdSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Choice
+        fields = ('id', 'is_right')
+
+class AnswerSerializer(serializers.ModelSerializer):
+    choice = ChoiceIdSerializer(read_only=True)
+
+    class Meta:
+        model = Answer
+        fields = ('question_id', 'choice')
 
 class ChoiceTextSerializer(serializers.ModelSerializer):
     class Meta:
@@ -178,7 +184,8 @@ class AnswerViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         session_pk = self.request.query_params.get('session_pk')
-        return Answer.objects.filter(session_id=session_pk,
+        return Answer.objects.select_related('choice')\
+                             .filter(session_id=session_pk,
                                      session__is_deleted=False)
 
 class HighlightViewSet(viewsets.ReadOnlyModelViewSet):
