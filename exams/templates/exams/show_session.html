@@ -1150,6 +1150,7 @@
     }
 
     function setSharedStatTimer(){
+      fetchSharedStats();
       if (!shared_stat_timer && document.hasFocus() && $('.progress[data-has-finished="false"]').length){
         shared_stat_timer = setInterval(fetchSharedStats, 5000);
       }
@@ -1278,7 +1279,6 @@
          $(window).resize(updateSizes);
 
          if (IS_SHARED){
-           fetchSharedStats();
            setSharedStatTimer();
          }
 
