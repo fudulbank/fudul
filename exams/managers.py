@@ -184,10 +184,11 @@ class ExamQuerySet(models.QuerySet):
 
 class SessionQuerySet(models.QuerySet):
     def get_shared(self, session):
+        shared_sessions = self.none()
         if session.parent_session:
             shared_sessions = self.filter(pk=session.parent_session.pk) | \
                               session.parent_session.children.all()
-        else:
+        elif session.children.exists():
             shared_sessions = self.filter(pk=session.pk) | \
                               session.children.all()
         return shared_sessions.filter(is_deleted=False).order_by('submission_date')
