@@ -188,8 +188,9 @@ class SessionQuerySet(models.QuerySet):
             shared_sessions = self.filter(pk=session.parent_session.pk) | \
                               session.parent_session.children.all()
         else:
-            shared_sessions = session.children.all()
-        return shared_sessions.filter(is_deleted=False)
+            shared_sessions = self.filter(pk=session.pk) | \
+                              session.children.all()
+        return shared_sessions.filter(is_deleted=False).order_by('submission_date')
 
     def nonsolved(self):
         return self.exclude(session_mode='SOLVED')

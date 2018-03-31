@@ -41,7 +41,7 @@
                 <img alt="Fudul logo" src="{% static 'img/logo-monkey.png' %}" class="img-fluid brand-logo">
                 <h2 class="brand-text">Fudul</h2></a>
             </div>
-            <div class="col-sm-6 text-center"> <a target="_blank" href="{% url 'exams:create_session' category_slugs session.exam.pk %}">{{ session.exam.name }}</a> <span class="separator">•</span> Session id: <span id="session-pk">{{ session.pk }}</span> <span class="d-none d-sm-inline">({{ session.get_session_mode_display }})</span><br>{% if session.parent_session %}Shared session <span class="separator">•</span> {% endif %}Question id: <a target="_blank" href="{% url 'exams:list_revisions' category_slugs session.exam.pk current_question.pk %}" id="question-pk">{{ current_question.pk }}</a> </div>
+            <div class="col-sm-6 text-center"> <a target="_blank" href="{% url 'exams:create_session' category_slugs session.exam.pk %}">{{ session.exam.name }}</a> <span class="separator">•</span> Session id: <span id="session-pk">{{ session.pk }}</span> <span class="d-none d-sm-inline">({{ session.get_session_mode_display }})</span><br>Question id: <a target="_blank" href="{% url 'exams:list_revisions' category_slugs session.exam.pk current_question.pk %}" id="question-pk">{{ current_question.pk }}</a> </div>
             <div class="col-sm-3 top-question-id font-weight-bold text-sm-right text-center my-2 mb-sm-0"><i class="fas fa-spinner fa-pulse fa-fw mr-1" id="question-loading" title="Loading session questions..."></i><div id="question-sequence"></div> of <div id="question-total"></div></div>
         </div><!--top-info-->
         <div id="top-options" class="row text-center">
