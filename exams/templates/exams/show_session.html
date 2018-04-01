@@ -114,7 +114,7 @@
               <p class="sharer-name mb-0">{{ shared_session.submitter|get_user_credit:user }}</p>
               <div class="row justify-content-center">
                 <div class="col-6 col-md-10">
-                  <div data-pk="{{ shared_session.pk }}" data-session-has-finished="{% if shared_session.has_finished %}true{% else %}false{% endif %}" class="progress" style="height: 5px;">
+                  <div data-pk="{{ shared_session.pk }}" data-has-finished="{% if shared_session.has_finished %}true{% else %}false{% endif %}" class="progress" style="height: 5px;">
                     <div class="progress-bar bg-success" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
                     <div class="progress-bar bg-danger" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
                     <div class="progress-bar bg-warning" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
@@ -1225,9 +1225,11 @@
     }
 
     function setSharedStatTimer(){
-      fetchSharedStats();
-      if (!shared_stat_timer && document.hasFocus() && $('.progress[data-has-finished="false"]').length){
-        shared_stat_timer = setInterval(fetchSharedStats, 5000);
+      if ($('.progress[data-has-finished="false"]').length){
+        fetchSharedStats();
+        if (!shared_stat_timer && document.hasFocus()){
+          shared_stat_timer = setInterval(fetchSharedStats, 5000);
+        }
       }
     }
 
