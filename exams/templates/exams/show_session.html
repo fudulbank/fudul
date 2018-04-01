@@ -87,7 +87,7 @@
             <div class="row">
               <div class="col-2 col-sm-1 d-lg-none mobile-slide next order-3"></div>
               <div class="col-2 col-sm-1 d-lg-none mobile-slide previous order-1"></div>
-              <div id="question-container" class="col-8 col-sm-10 order-2 px-0 px-lg-5 py-4">
+              <div id="question-container" class="col-8 col-sm-10 col-lg-12 order-2 px-0 px-lg-5 py-4">
                 <div id="question-pool">
                   {% with question=current_question %}
                    {% include 'exams/partials/session_question.html' %}
@@ -95,7 +95,12 @@
                 </div>
                 <button type="button" id="submit" class="btn">Submit <i class="fas fa-angle-right"></i></button>
                 <div class="row">
+                  <div class="col-sm-8">
                     <button class="btn btn-outline-primary" id="explain">Improve this explanation!</button>
+                  </div>
+                  <div class="col-sm-4">
+                    <button class="btn btn-outline-primary" id="add-mnemonics"><i class="fas fa-book"></i> Add a mnemonic!</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -146,6 +151,7 @@
         <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha384-xBuQ/xzmlsLoJpyjoggmTEz8OWUFM0/RC5BsqQBDX2v5cMvDHcMakNTNrHIW2I5f" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js" integrity="sha384-5tfO0soa+FisnuBhaHP2VmPXQG/JZ8dLcRL43IkJFzbsXTXT6zIX8q8sIT0VSe2G" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.8.6/showdown.min.js" integrity="sha384-TXBgD2Ei2XcYWHMF62BvcQr1yg9mxQXVHUDXgEzdtPH1Ez1ru8YV23tF/8mrHj5n" crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
         <script src="{% static 'js/toastr.js' %}"></script>
         <script src="{% url 'js_reverse' %}?v=1.1"></script>
@@ -176,6 +182,11 @@
     STATS = null;
     has_constructed_navigation = false;
     shared_stat_timer = null;
+
+    showdown.setOption('headerLevelStart', 3);
+    showdown.setOption('simpleLineBreaks', true);
+    var converter = new showdown.Converter();
+
 
     // Common selectors
     $markButton = $("#mark");
@@ -439,10 +450,10 @@
                }
            });
       });
-      $current_question.find(".delete-mnemonic").off('click').on( 'click', function() {
-           action = $(this).data('action');
-           mnemonic_pk = $(this).data('mnemonic-pk');
-           url = Urls['exams:contribute_mnemonics']() + "?" + $.param({question_pk: question_pk});
+      $current_question.off('click', ".delete-mnemonic").on( 'click', ".delete-mnemonic", function() {
+           var action = $(this).data('action'),
+               mnemonic_pk = $(this).data('mnemonic-pk'),
+               url = Urls['exams:contribute_mnemonics']() + "?" + $.param({question_pk: question_pk});
 
            $.ajax({
                url: url,
@@ -476,30 +487,36 @@
     }
 
     function controlExplanation(){
-      was_solved = $current_question.data('was-solved');
+      var has_explanation = $current_question.find('.explanation-text').length ||
+                            $current_question.find('.explanation-figure').length ||
+                            $current_question.find('.explanation-reference-header').length,
+          was_solved = $current_question.data('was-solved'),
+          $explanation_container = $current_question.find(".explanation-container");
+
       if (!was_solved || (SESSION_MODE == 'UNEXPLAINED' && !$('body').data('has-finished'))){
-        $current_question.find(".explanation-container").hide()
+        $explanation_container.hide()
         $("#explain").hide()
-      }
-      else if ($current_question.find(".explanation-content").text().trim().length){
+      } else if (has_explanation){
+        $explanation_container.show();
         $("#explain").show().html('<i class="fas fa-cubes"></i> Improve this explanation!');
-        $current_question.find(".explanation-container").show();
-      }
-      else {
-        $current_question.find(".explanation-container").hide();
+      } else {
+        $explanation_container.hide();
         $("#explain").show().html("Add an explanation!");
       }
     }
+
     function controlMnemonic(){
-      was_solved = $current_question.data('was-solved');
+      var was_solved = $current_question.data('was-solved'),
+          has_mnemonics = $current_question.find('.mnemonic').length;
+
       if (!was_solved || (SESSION_MODE == 'UNEXPLAINED' && !$('body').data('has-finished'))){
         $(".mnemonics-container, #add-mnemonics").hide()
-      } else if( $.trim( $('.mnemonics-content').text() ).length ) {
-        $("#add-mnemonics").show().html('<i class="fas fa-book"></i> Add a mnemonic !');
+      } else if( has_mnemonics ) {
+        $('#add-mnemonics').show().html('<i class="fas fa-book"></i> Add another mnemonic!');
         $(".mnemonics-container").show();
       } else {
         $(".mnemonics-container").hide();
-        $("#add-mnemonics").show().html('<i class="fas fa-book"></i> Add another mnemonic!');
+        $('#add-mnemonics').show().html('<i class="fas fa-book"></i> Add the first mnemonic!');
       }
     }
 
@@ -1160,8 +1177,19 @@
     // Client-side work-up
     function prepareQuestions($questions){
       $questions.each(function(){
-        var $question = $(this);
-        var question_pk = $question.data('question-pk')
+        var $question = $(this),
+            question_pk = $question.data('question-pk'),
+            question_text = $question.find('.question-text').html(),
+            explanation_text = $question.find('.explanation-text').html();
+
+        // Parse markdown
+        var question_html = converter.makeHtml(question_text);
+        $question.find('.question-text').html(question_html);
+
+        if (explanation_text !== undefined){
+          var explanation_html = converter.makeHtml(explanation_text);
+          $question.find('.explanation-text').html(explanation_html);
+        }
 
         prepareChoices($question);
         prepareHighlights($question);

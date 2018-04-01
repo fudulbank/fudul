@@ -1251,7 +1251,8 @@ def get_correct_percentage(request):
 def contribute_mnemonics(request):
     action = request.POST.get('action')
     question_pk = request.GET.get('question_pk')
-    question = get_object_or_404(Question, pk=question_pk,
+    question = get_object_or_404(Question.objects.select_related('exam'),
+                                 pk=question_pk,
                                  is_deleted=False)
     exam = question.exam
     mnemonics = question.mnemonic_set.filter(is_deleted=False)
@@ -1296,7 +1297,7 @@ def contribute_mnemonics(request):
                 mnemonic.save()
                 Notification.objects.filter(verb='mnemonic').delete()
                 template = get_template('exams/partials/show_mnemonics.html')
-                context = {'question': question,'user':request.user}
+                context = {'question': question,'user':request.user, 'exam':exam}
                 mnemonic_html = template.render(context)
                 return {'mnemonic_html':mnemonic_html}
 
@@ -1305,7 +1306,7 @@ def contribute_mnemonics(request):
         else:
             return HttpResponseBadRequest()
 
-    context = {'question': question, 'form': form, 'mnemonics':mnemonics,'exam':exam}
+    context = {'question': question, 'form': form, 'mnemonics':mnemonics, 'exam':exam}
     return render(request, 'exams/partials/contribute_mnemonics.html', context)
 
 @login_required

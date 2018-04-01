@@ -12,10 +12,12 @@
         <form method="post" data-action="add" enctype="multipart/form-data" id="add-mnemonics-form" action="post">
 	    {% csrf_token %}
 
+      <p><em>Mnemonics</em> are memory aids that help students memorize the answer.  Tell us!  How did you manage to memorize the answer of this question?</p>
+
         {% bootstrap_form_errors form %}
 
              <div class="form-group has-feedback has-feedback-left">
-            <label class="control-label">Text: </label> <a data-placement="left" style="float: right" class="help-tooltip circle" data-toggle="tooltip" title="If any thing can make memorising the answer easier you can add it here your contribution will be shown immediately and you can edit it.">?</a>
+            <label class="control-label">Text: </label>
 
 			{% bootstrap_field form.text show_label=False %}
 			<div class="form-control-feedback">
@@ -72,8 +74,8 @@
                            toastr.success("Thank you!  Your contribution is highly appreciated!");
                            $("#add-mnemonics-modal .modal-body").html(data);
                            $("#add-mnemonics-modal").modal('hide');
-                           $(".question-body.show .mnemonics-container").show();
-                           $(".question-body.show .mnemonics-content").html(data.mnemonic_html);
+                           $current_question.find(".mnemonics-container").show();
+                           $current_question.find(".mnemonics-content").html(data.mnemonic_html);
                            $("#add-mnemonics-modal .modal-body").html(data);
                        } else {
                            $("#add-mnemonics-modal .modal-body").html(data);
