@@ -117,9 +117,14 @@ body:not([data-session-mode=INCOMPLETE]):not([data-session-mode=SOLVED])[data-ha
   font-size: 0.8rem;
 }
 
-#top-options, .tooltip-inner {
+#top-options {
     background-color: var(--tertiary-background-color);
     color: var(--tertiary-font-color);
+}
+
+.tooltip-inner {
+    background-color: var(--tooltip-background-color);
+    color: var(--tooltip-font-color);
 }
 
 #top-options{

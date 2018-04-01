@@ -16,15 +16,17 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw" crossorigin="anonymous">
         <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
-        <link rel="stylesheet" href="{% static 'css/show_session.css' %}?v=2.3">
+        <link rel="stylesheet" href="{% static 'css/show_session.css' %}?v=2.4">
         <style>
         :root{
           --primary-background-color: {{ user.profile.session_theme.primary_background_color|default:default_session_theme.primary_background_color }};
           --secondary-background-color: {{ user.profile.session_theme.secondary_background_color|default:default_session_theme.secondary_background_color }};
           --tertiary-background-color: {{ user.profile.session_theme.tertiary_background_color|default:default_session_theme.tertiary_background_color }};
+          --tooltip-background-color: {{ user.profile.session_theme.tooltip_background_color|default:default_session_theme.tooltip_background_color }};
           --primary-font-color: {{ user.profile.session_theme.primary_font_color|default:default_session_theme.primary_font_color }};
           --secondary-font-color: {{ user.profile.session_theme.secondary_font_color|default:default_session_theme.secondary_font_color }};
           --tertiary-font-color: {{ user.profile.session_theme.tertiary_font_color|default:default_session_theme.tertiary_font_color }};
+          --tooltip-font-color: {{ user.profile.session_theme.tooltip_font_color|default:default_session_theme.tooltip_font_color }};
           --highlight-background: {{ user.profile.session_theme.highlight_background|default:default_session_theme.highlight_background }};
           --highlight-color: {{ user.profile.session_theme.highlight_color|default:default_session_theme.highlight_color }};
           --table-active: {{ user.profile.session_theme.table_active|default:default_session_theme.table_active }};

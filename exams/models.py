@@ -986,10 +986,12 @@ class SessionTheme(models.Model):
     primary_background_color = models.CharField(max_length=50, blank=True)
     secondary_background_color = models.CharField(max_length=50, blank=True)
     tertiary_background_color = models.CharField(max_length=50, blank=True)
+    tooltip_background_color = models.CharField(max_length=50, blank=True)
 
     primary_font_color = models.CharField(max_length=50, blank=True)
     secondary_font_color = models.CharField(max_length=50, blank=True)
     tertiary_font_color = models.CharField(max_length=50, blank=True)
+    tooltip_font_color = models.CharField(max_length=50, blank=True)
 
     highlight_background = models.CharField(max_length=50, blank=True)
     highlight_color = models.CharField(max_length=50, blank=True)
