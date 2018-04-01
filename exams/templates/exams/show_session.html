@@ -1004,12 +1004,13 @@
       // Only detail the breakdown if the session mode is EXPLAINED.
       // Otherwise, only show a generic count.
       if (SESSION_MODE == 'EXPLAINED'){
-        var correct_width = stat.correct_count / SESSION_QUESTION_TOTAL * 100 + '%';
-        var incorrect_width = stat.incorrect_count / SESSION_QUESTION_TOTAL * 100 + '%';
-        var skipped_width = stat.skipped_count / SESSION_QUESTION_TOTAL * 100 + '%';
-        $progress_container.find('.progress-bar.bg-success').css('width', correct_width).attr('aria-valuenow', stat.correct_count);
-        $progress_container.find('.progress-bar.bg-danger').css('width', incorrect_width).attr('aria-valuenow', stat.incorrect_count);
-        $progress_container.find('.progress-bar.bg-warning').css('width', skipped_width).attr('aria-valuenow', stat.skipped_count);
+        var correct_percentage = Math.round(stat.correct_count / SESSION_QUESTION_TOTAL * 100) + '%';
+        var incorrect_percentage = Math.round(stat.incorrect_count / SESSION_QUESTION_TOTAL * 100) + '%';
+        var skipped_percentage = Math.round(stat.skipped_count / SESSION_QUESTION_TOTAL * 100) + '%';
+        $progress_container.find('.progress-bar.bg-success').css('width', correct_percentage).attr('aria-valuenow', stat.correct_count);
+        $progress_container.find('.progress-bar.bg-danger').css('width', incorrect_percentage).attr('aria-valuenow', stat.incorrect_count);
+        $progress_container.find('.progress-bar.bg-warning').css('width', skipped_percentage).attr('aria-valuenow', stat.skipped_count);
+        $progress_container.tooltip({html: true, title: '<ul class="mb-0 sharer-name"><li>Correct: ' + stat.correct_count + ' (' + correct_percentage +')</li><li>Incorrect: ' + stat.incorrect_count + ' (' + incorrect_percentage + ')</li><li>Skipped: ' + stat.skipped_count + ' (' + skipped_percentage +')</li></ul>'})
       } else {
         var width = stat.count / SESSION_QUESTION_TOTAL * 100 + '%';
         $progress_container.find('.progress-bar.bg-success').css('width', width).attr('aria-valuenow', stat.count);
