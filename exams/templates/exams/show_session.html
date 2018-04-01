@@ -1012,7 +1012,7 @@
         $progress_container.find('.progress-bar.bg-success').css('width', correct_percentage).attr('aria-valuenow', stat.correct_count);
         $progress_container.find('.progress-bar.bg-danger').css('width', incorrect_percentage).attr('aria-valuenow', stat.incorrect_count);
         $progress_container.find('.progress-bar.bg-warning').css('width', skipped_percentage).attr('aria-valuenow', stat.skipped_count);
-        $("#shared-session-" + session_pk).tooltip({html: true, title: '<ul class="mb-0 sharer-name"><li>Correct: ' + stat.correct_count + ' (' + correct_percentage +')</li><li>Incorrect: ' + stat.incorrect_count + ' (' + incorrect_percentage + ')</li><li>Skipped: ' + stat.skipped_count + ' (' + skipped_percentage +')</li></ul>'})
+        $("#shared-session-" + session_pk).tooltip({html: true, title: '<ul class="mb-0 pl-3 sharer-name"><li>Correct: ' + stat.correct_count + ' (' + correct_percentage +')</li><li>Incorrect: ' + stat.incorrect_count + ' (' + incorrect_percentage + ')</li><li>Skipped: ' + stat.skipped_count + ' (' + skipped_percentage +')</li></ul>'})
       } else {
         var width = stat.count / SESSION_QUESTION_TOTAL * 100 + '%';
         $progress_container.find('.progress-bar.bg-success').css('width', width).attr('aria-valuenow', stat.count);
