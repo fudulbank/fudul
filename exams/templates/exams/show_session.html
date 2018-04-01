@@ -111,7 +111,8 @@
           <div id="sharing-sidebar" class="col-12 col-md-4 col-lg-3 text-center py-4">
             <p class="mb-0">You are sharing this session with:</p>
             {% for shared_session in shared_sessions %}
-              <p class="sharer-name mb-0">{{ shared_session.submitter|get_user_credit:user }}</p>
+            <div id="shared-session-{{ shared_session.pk }}">
+              <p class="sharer-name mt-2 mb-1">{{ shared_session.submitter|get_user_credit:user }}</p>
               <div class="row justify-content-center">
                 <div class="col-6 col-md-10">
                   <div data-pk="{{ shared_session.pk }}" data-has-finished="{% if shared_session.has_finished %}true{% else %}false{% endif %}" class="progress" style="height: 5px;">
@@ -121,6 +122,7 @@
                   </div>
                 </div>
               </div>
+            </div>
             {% endfor %}
 
           </div>
@@ -1010,7 +1012,7 @@
         $progress_container.find('.progress-bar.bg-success').css('width', correct_percentage).attr('aria-valuenow', stat.correct_count);
         $progress_container.find('.progress-bar.bg-danger').css('width', incorrect_percentage).attr('aria-valuenow', stat.incorrect_count);
         $progress_container.find('.progress-bar.bg-warning').css('width', skipped_percentage).attr('aria-valuenow', stat.skipped_count);
-        $progress_container.tooltip({html: true, title: '<ul class="mb-0 sharer-name"><li>Correct: ' + stat.correct_count + ' (' + correct_percentage +')</li><li>Incorrect: ' + stat.incorrect_count + ' (' + incorrect_percentage + ')</li><li>Skipped: ' + stat.skipped_count + ' (' + skipped_percentage +')</li></ul>'})
+        $("#shared-session-" + session_pk).tooltip({html: true, title: '<ul class="mb-0 sharer-name"><li>Correct: ' + stat.correct_count + ' (' + correct_percentage +')</li><li>Incorrect: ' + stat.incorrect_count + ' (' + incorrect_percentage + ')</li><li>Skipped: ' + stat.skipped_count + ' (' + skipped_percentage +')</li></ul>'})
       } else {
         var width = stat.count / SESSION_QUESTION_TOTAL * 100 + '%';
         $progress_container.find('.progress-bar.bg-success').css('width', width).attr('aria-valuenow', stat.count);

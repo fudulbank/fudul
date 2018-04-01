@@ -6,7 +6,7 @@ body{
     background: var(--primary-background-color);
     color: var(--primary-font-color);
     font-size: 17px;
-    line-height: 1.8em;
+    line-height: 1.8;
     font-family: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     font-weight: 400;
 }
@@ -52,11 +52,11 @@ body:not([data-session-mode=INCOMPLETE]):not([data-session-mode=SOLVED])[data-ha
 }
 
 .tooltip.bs-tooltip-top .arrow::before{
-  border-top-color: var(--secondary-background-color);
+  border-top-color: var(--tooltip-background-color);
 }
 
 .tooltip.bs-tooltip-bottom .arrow::before{
-  border-bottom-color: var(--secondary-background-color);
+  border-bottom-color: var(--tooltip-background-color);
 }
 
 .tooltip.hint.bs-tooltip-right .arrow::before{
@@ -115,6 +115,7 @@ body:not([data-session-mode=INCOMPLETE]):not([data-session-mode=SOLVED])[data-ha
 
 .sharer-name{
   font-size: 0.8rem;
+  line-height: 1.5;
 }
 
 #top-options {
