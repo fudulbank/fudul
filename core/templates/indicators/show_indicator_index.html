@@ -130,6 +130,38 @@
 
 <div class="card">
   <div class="card-header">
+    <h2 id="features">Feature indicators</h2>
+  </div>
+	<div class="card-body">
+		<div class="card-block">
+				<table id="feature-table" class="table table-striped table-bordered datatable">
+				    <thead>
+				        <tr>
+				            <th data-priority="1">Feature</th>
+                    <th data-toggle="tooltip" title="Number of users using this feature and their precentage of the active users, defined as users have have ever created a session."># users (%)</th>
+				        </tr>
+				    </thead>
+				    <tbody>
+		          <tr>
+                <td>Sharing sessions</td>
+                <td data-order="{{ users_sharing_sessions }}">{{ users_sharing_sessions }} ({% widthratio users_sharing_sessions users_active 100 %}%)</td>
+	            </tr>
+              <tr>
+                <td>Customizing session theme</td>
+                <td data-order="{{ users_customizing_theme }}">{{ users_customizing_theme }} ({% widthratio users_customizing_theme users_active 100 %}%)</td>
+	            </tr>
+              <tr>
+                <td>Users voting on corrections</td>
+                <td data-order="{{ users_voting}} ">{{ users_voting }} ({% widthratio users_voting users_active 100 %}%)</td>
+	            </tr>
+				    </tbody>
+				</table>
+		</div><!--card-block-->
+	</div><!--card-body-->
+</div><!--card-->
+
+<div class="card">
+  <div class="card-header">
     <h2 id="sources">Source indicators</h2>
   </div>
 	<div class="card-body">
@@ -165,7 +197,7 @@
   <script>
     $(function(){
        $('[data-toggle="tooltip"]').tooltip()
-       $('#exam-table, #team-table').dataTable({order: [[1, 'desc']]});
+       $('#exam-table, #team-table, #feature-table').dataTable({order: [[1, 'desc']]});
        $('#college-table').dataTable({order: [[2, 'desc']]});
        $('#source-table').dataTable({order: [[3, 'desc']]});
     });

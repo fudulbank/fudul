@@ -96,12 +96,24 @@ def show_indicator_index(request):
     sources = Source.objects.all()
     exam_date_json = utils.get_exam_date_json()
 
+    # Feature statistics
+    users_active = User.objects.filter(session__isnull=False).distinct().count()
+    users_sharing_sessions = (User.objects.filter(session__parent_session__isnull=False) | \
+                              User.objects.filter(session__children__isnull=False)).distinct().count()
+    users_customizing_theme = User.objects.filter(profile__session_theme__isnull=False).distinct().count()
+    users_voting = (User.objects.filter(supported_corrections__isnull=False) | \
+                    User.objects.filter(opposed_corrections__isnull=False)).distinct().count()
+
     context = {'is_indicators_active': True,
                'sources': sources,
                'teams': teams,
                'exams': exams,
                'exam_date_json': exam_date_json,
-               'colleges': colleges}
+               'colleges': colleges,
+               'users_active': users_active,
+               'users_sharing_sessions': users_sharing_sessions,
+               'users_customizing_theme': users_customizing_theme,
+               'users_voting': users_voting}
 
     return render(request, "indicators/show_indicator_index.html", context)
 
