@@ -1252,7 +1252,9 @@
 
     if (IS_SHARED){
       $(window).on('focus', function(){
-        fetchSharedStats();
+        if ($('.progress[data-has-finished="false"]').length){
+          fetchSharedStats();
+        }
         setSharedStatTimer();
       });
       $(window).on('blur', clearSharedStatTimer);
