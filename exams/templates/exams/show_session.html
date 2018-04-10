@@ -35,7 +35,7 @@
         </style>
         {% include 'partials/piwik.html' %}
     </head>
-    <body data-session-mode="{{ session.session_mode }}" data-has-finished="false">
+    <body data-has-finished="false">
     <div class="container-fluid" id="container">
         <div id="top-info" class="row align-items-center">
             <div class ="col-sm-3 text-sm-left text-center">
@@ -166,6 +166,7 @@
     EXAM_PK = {{ session.exam.pk }};
     SESSION_PK = {{ session.pk }};
     SESSION_MODE = '{{ session.session_mode }}';
+    SESSION_IS_EXAMINABLE = {% if session.is_examinable %}true{% else %}false{% endif %};
     USER_FIRST_NAME = "{{ user.profile.first_name }}";
     IS_SHARED = {%if is_shared %}true{% else %}false{% endif %};
 
@@ -419,7 +420,8 @@
             var replacementHtml = replacement.prop('outerHTML');
             $(this).html($(this).html().replace(escapedSelection, replacementHtml));
             // Bind only once
-            $current_question.find(".highlight").off('click').on('click', removeHighlight);
+            $current_question.off('click', '.highlight')
+                             .on('click', '.highlight', removeHighlight);
             submitHighlight();
         }
 
@@ -605,31 +607,39 @@
         controlExplanation();
         controlMnemonic();
         was_solved = $current_question.data('was-solved');
+
         if (was_solved){
           $("#contribute,#add-mnemonics").show();
           $submitButton.hide();
-          disableHighlightInteractions();
           $current_question.find(".question-choice").prop("disabled", "disabled");
         } else {
             $("#contribute,#add-mnemonics").hide();
             $submitButton.show();
-            // We turn off handlers first to ensure they don't get
-            // triggered more than once as the user navigates and
-            // binds the handlers.
-            $current_question.find(".question-text").off('mouseup touchend').on('mouseup touchend', highlightText);
             $current_question.find(".question-choice").off('change').on('change', toggleChoices);
-            // We use event delegation as highlights could be added
-            // after firing initializeInteractions.
-            $current_question.off('click', '.highlight')
-                             .on('click', '.highlight', removeHighlight);
-            $current_question.find(".choice-text").off('click').on('click', function() {
-                if (!$(this).hasClass("strike")){
-                   // If a choice is striked, it is no longer checked.
-                    $(this).closest("tr").find(".question-choice").prop('checked', false).trigger('change');
-                }
-                $(this).toggleClass("strike");
-                submitHighlight();
-            });
+        }
+
+        // We want to enable highlight in two cases:
+        // 1) If the session is examinable, and the current question was NOT solved.
+        // 2) If the session is not examinable.
+        if (SESSION_IS_EXAMINABLE && !was_solved || !SESSION_IS_EXAMINABLE){
+          // We turn off handlers first to ensure they don't get
+          // triggered more than once as the user navigates and
+          // binds the handlers.
+          $current_question.find(".question-text").off('mouseup touchend').on('mouseup touchend', highlightText);
+          // We use event delegation as highlights could be added
+          // after firing initializeInteractions.
+          $current_question.off('click', '.highlight')
+                           .on('click', '.highlight', removeHighlight);
+          $current_question.find(".choice-text").off('click').on('click', function() {
+              if (!$(this).hasClass("strike")){
+                 // If a choice is striked, it is no longer checked.
+                  $(this).closest("tr").find(".question-choice").prop('checked', false).trigger('change');
+              }
+              $(this).toggleClass("strike");
+              submitHighlight();
+          });
+        } else {
+          disableHighlightInteractions();
         }
     }
 
@@ -675,11 +685,11 @@
 
         // Disable choices upon submission
         $current_question.find(".question-choice").prop("disabled", "disabled")
-        // Disable interactions after submission.  As for highlights,
-        // we use event delegation to handle potential addition of
-        // highlights afterwards (i.e. as a result of delayed
-        // network).
-        $current_question.off('click', '.highlight')
+        // Disable interactions after submission.
+        controlExplanation();
+        controlMnemonic();
+        disableHighlightInteractions();
+        $("#contribute,#add-mnemonics").show();
         $current_question.find(".question-text, .question-choice, .choice-text").off();
 
         $checkedChoice = $current_question.find(".question-choice:checked");
@@ -734,11 +744,6 @@
                     if (!choice_pk){
                         toastr.warning('You skipped this question');
                     }
-
-                    controlExplanation();
-                    controlMnemonic();
-                    disableHighlightInteractions();
-                    $("#contribute,#add-mnemonics").show();
                 } else {
                   toastr.error(data.message);
                 }

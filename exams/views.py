@@ -659,9 +659,7 @@ def submit_highlight(request):
     if not '<span ' in highlighted_text:
         highlighted_text = ""
 
-    if highlight.highlighted_text != highlighted_text:
-        highlight.highlighted_text = highlighted_text
-
+    highlight.highlighted_text = highlighted_text
     highlight.save()
 
     highlight.stricken_choices = stricken_choices
