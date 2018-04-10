@@ -21,14 +21,12 @@ body{
   visibility: hidden;
 }
 
-body[data-session-mode="SOLVED"] .check svg,
-body[data-session-mode="SOLVED"]:not(.unauthenticated) [data-has-correction="false"]:not([data-is-right="true"]) .correct svg,
-body[data-session-mode="INCOMPLETE"] .check svg,
-body[data-session-mode="INCOMPLETE"]:not(.unauthenticated) [data-has-correction="false"]:not([data-is-right="true"]) .correct svg,
+body[data-session-is-examinable="false"] .check svg,
+body[data-session-is-examinable="false"] [data-has-correction="false"]:not([data-is-right="true"]) .correct svg,
 body:not([data-session-mode="UNEXPLAINED"]) .question-body[data-was-solved="true"] .check svg,
 body:not([data-session-mode="UNEXPLAINED"]):not(.unauthenticated) .question-body[data-was-solved="true"] [data-has-correction="false"]:not([data-is-right="true"]) .correct svg,
 body[data-session-mode="UNEXPLAINED"][data-has-finished="true"] .question-body[data-was-solved="true"] .check svg,
-body[data-session-mode="UNEXPLAINED"][data-has-finished="true"]:not(.unauthenticated) .question-body[data-was-solved="true"] [data-has-correction="false"]:not([data-is-right="true"]) .correct svg{
+body[data-session-mode="UNEXPLAINED"][data-has-finished="true"] .question-body[data-was-solved="true"] [data-has-correction="false"]:not([data-is-right="true"]) .correct svg{
   visibility: visible !important;
 }
 
@@ -36,13 +34,9 @@ body[data-session-mode="UNEXPLAINED"][data-has-finished="true"]:not(.unauthentic
   display: none;
 }
 
-body[data-session-mode=INCOMPLETE] #back,
-body[data-session-mode=SOLVED] #back{
-  display: inline-block;
-}
-
-body:not([data-session-mode=INCOMPLETE]):not([data-session-mode=SOLVED])[data-has-finished=true] #results,
-body:not([data-session-mode=INCOMPLETE]):not([data-session-mode=SOLVED])[data-has-finished=false] #end{
+body[data-session-is-examinable="false"] #back,
+body[data-session-is-examinable="true"][data-has-finished=true] #results,
+body[data-session-is-examinable="true"][data-has-finished=true] #end{
   display: inline-block;
 }
 
