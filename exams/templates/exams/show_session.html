@@ -35,7 +35,7 @@
         </style>
         {% include 'partials/piwik.html' %}
     </head>
-    <body data-has-finished="false">
+    <body data-session-is-examinable="{% if session.is_examinable %}true{% else %}false{% endif %}" data-session-mode="{{ session.session_mode }}" data-has-finished="false">
     <div class="container-fluid" id="container">
         <div id="top-info" class="row align-items-center">
             <div class ="col-sm-3 text-sm-left text-center">
