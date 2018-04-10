@@ -173,7 +173,8 @@ td.check, td.correct{
     color: var(--highlight-color);
 }
 
-.question-body[data-was-solved="false"] .highlight{
+body[data-session-is-examinable="false"] .highlight,
+body[data-session-is-examinable="true"] .question-body[data-was-solved="false"] .highlight{
     cursor: pointer;
 }
 
