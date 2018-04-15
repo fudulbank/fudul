@@ -1419,6 +1419,7 @@ def handle_suggestion(request):
     if action == 'keep' or action == 'submit_edit':
         # Reset approval meta data
         revision_instance = suggestion.revision
+        question = revision_instance.question
         revision_instance.approved_by = None
         revision_instance.approval_date = None
 
@@ -1432,6 +1433,13 @@ def handle_suggestion(request):
            revisionchoiceformset.is_valid():
             new_revision = revision_form.clone(revision_instance.question, request.user)
             revisionchoiceformset.clone(new_revision)
+            # This test relies on choices, so the choices have to be saved
+            # before.
+            new_revision.is_approved = utils.test_revision_approval(new_revision)
+            new_revision.save()
+            question.update_is_approved()
+            question.save()
+
         else:
             raise Exception("Could not save the edit!")
         if action == 'keep':
