@@ -1047,7 +1047,7 @@ def search(request):
     categories= utils.get_user_allowed_categories(request.user)
     #TODO:try to add choices to search
     if q:
-        search_fields =['pk','revision__text','revision__choice__text']
+        search_fields =['pk','best_revision__text','best_revision__choice__text']
         if teams.utils.is_editor(request.user):
             qs = Question.objects.filter(exam__category__in=categories,
                                          best_revision__is_last=True)\
