@@ -40,17 +40,17 @@ class Command(BaseCommand):
         COL_SEQUENCE = 0
         COL_TEXT = 1
         COL_CHOICE_START = 2
-        COL_CHOICE_END = 6
-        COL_ANSWER = 7
-        COL_SUBJECT_START = 8
-        COL_SUBJECT_END = 11
-        COL_SOURCE = 12
-        COL_EXAM_TYPE = 13
-        COL_ISSUE_START = 14
-        COL_ISSUE_END = 15
-        COL_PARENT_QUESTION = 16
-        COL_EXPLANATION = 17
-        COL_REFERENCE = 18
+        COL_CHOICE_END = 7
+        COL_ANSWER = 8
+        COL_SUBJECT_START = 9
+        COL_SUBJECT_END = 12
+        COL_SOURCE = 13
+        COL_EXAM_TYPE = 14
+        COL_ISSUE_START = 15
+        COL_ISSUE_END = 16
+        COL_PARENT_QUESTION = 17
+        COL_EXPLANATION = 18
+        COL_REFERENCE = 19
 
         # The latest question imported is initially None.
         question = None
@@ -73,7 +73,7 @@ class Command(BaseCommand):
             choices = [Choice(text=choice.strip()) for choice in row[COL_CHOICE_START:COL_CHOICE_END + 1] if choice.strip()]
 
             # Check if the right answer column is filled
-            if row[7]:
+            if COL_ANSWER:
                 try:
                     answer_index = ascii_uppercase.index(row[COL_ANSWER])
                     print("Right answer is %s (%s)"  % (row[COL_ANSWER], choices[answer_index].text))
