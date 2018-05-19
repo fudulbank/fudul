@@ -4,9 +4,12 @@ import csv
 import sys
 import re
 
-regex_patterns = {'PEDIATRIC': {'full_question': ' +\d+\)\s+(?P<question_text>.+\n+(?:.+\n+)*?)(?P<choices>(?: *\(?[a-f][\)\.] .+\n)+)\s*(?:The answer is|Answer|Answer is|The answer|The Correct answer is)\s+\(?(?P<correct_choice>[A-F])\)?\s+\(?\s*(?P<subject>[^\)]+?)\s*\)?\s+(?:Explanation\s*:\s+(?P<explanation>.+\n+(?:.+\n+)*?)?(?= +|END))',
+regex_patterns = {'PEDIATRIC_PART_I': {'full_question': ' +\d+\)\s+(?P<question_text>.+\n+(?:.+\n+)*?)(?P<choices>(?: *\(?[a-f][\)\.] .+\n)+)\s*(?:The answer is|Answer|Answer is|The answer|The Correct answer is)\s+\(?(?P<answer>[A-F])\)?\s+\(?\s*(?P<subject>[^\)]+?)\s*\)?\s+(?:Explanation\s*:\s+(?P<explanation>.+\n+(?:.+\n+)*?)?(?= +|END))',
                                 'choice': ' *\(?[a-f][\)\.] (.+)\n',
-                                'explanation': ''}}
+                                'explanation': ''},
+                  'PEDIATRIC_PROMOTION': {'full_question': '^(?P<question_sequence>\d+)\.\s*(?P<question_text>.+(\n.+)*?)\n(?P<choices>(?: *\(?[a-f][\)\.] .+\n)+)\s*',
+                                          'choice': ' *\(?[a-f][\)\.] (.+)\n'}
+}
 
 class Command(BaseCommand):
     def add_arguments(self, parser):
@@ -16,6 +19,8 @@ class Command(BaseCommand):
                             type=str)
         parser.add_argument('--source',
                             type=str)
+        parser.add_argument('--remove-line-breaks',
+                            action='store_true')
         parser.add_argument('--exam-type',
                             type=str)
         parser.add_argument('--answer-csv-file',
@@ -26,8 +31,16 @@ class Command(BaseCommand):
             raw_text = f.read()
 
         if options['answer_csv_file']:
-            csv_file = open(options['answer_csv_file'])
-            csv_reader = csv.reader(csv_file)
+            answers = {}
+            with open(options['answer_csv_file']) as f:
+                csv_reader = csv.reader(f)
+                for row in csv_reader:
+                    # Escape empty rows
+                    if not len(row):
+                        continue
+                    sequence = row[0]
+                    answer = row[1]
+                    answers[sequence] = answer
 
         rule = options['rule']
         source = options['source']
@@ -36,7 +49,7 @@ class Command(BaseCommand):
         csv_writer = csv.writer(sys.stdout)
         csv_writer.writerow(['Sequence', 'Text', 'Choice 1',
                              'Choice 2', 'Choice 3', 'Choice 4',
-                             'Choice 5', 'Choice 6', 'Correct choice',
+                             'Choice 5', 'Choice 6', 'Answer',
                              'Subject 1', 'Subject 2', 'Subject 3',
                              'Subject 4', 'Source', 'Exam type',
                              'Issue 1', 'Issue 2', 'Parent question',
@@ -52,11 +65,13 @@ class Command(BaseCommand):
                reference = matched_question.group('reference')
             except IndexError:
                reference = ''
-
-            try:
-                correct_choice = matched_question.group('correct_choice')
-            except IndexError:
-                correct_choice = ''
+            if options['answer_csv_file']:
+                answer = answers.get(sequence, '')
+            else:
+                try:
+                    answer = matched_question.group('answer')
+                except IndexError:
+                    answer = ''
             subjects = ['', '', '']
             try:
                 subjects = [matched_question.group('subject')] + subjects
@@ -65,8 +80,14 @@ class Command(BaseCommand):
             # We do not support issues
             issues = ['', '']
             question_text = matched_question.group('question_text')
+            if options['remove_line_breaks']:
+                question_text = question_text.replace('\n', ' ')
+                question_text = question_text.replace('  ', ' ')
             choices_str = matched_question.group('choices')
-            explanation = matched_question.group('explanation')
+            try:
+                explanation = matched_question.group('explanation')
+            except IndexError:
+                explanation = ''
             choice_list = []
             for choice in re.finditer(regex_patterns[rule]['choice'], choices_str, re.M | re.I):
                 choice_text = choice.group(1)
@@ -76,8 +97,5 @@ class Command(BaseCommand):
                empty_choices = [''] * (6 - choice_number)
                choice_list += empty_choices
                 
-            csv_writer.writerow([sequence, question_text] + choice_list + [correct_choice] + subjects + [source, exam_type] + issues + [''] + [explanation, reference])
+            csv_writer.writerow([sequence, question_text] + choice_list + [answer] + subjects + [source, exam_type] + issues + [''] + [explanation, reference])
             automatic_sequence += 1
-
-        if options['answer_csv_file']:
-            csv_file.close()

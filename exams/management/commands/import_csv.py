@@ -100,18 +100,19 @@ class Command(BaseCommand):
             print("Source:", source_entry)
             if source_entry:
                 source = [source for source in source_pool if source.name.lower() == source_entry][0]
-            else:
+            elif default_source:
                 source = default_source
+            else:
+                source = None
 
             exam_type_entry = row[COL_EXAM_TYPE].strip().lower()
             print("Exam type:", exam_type_entry)
             if exam_type_entry:
                 exam_type = [exam_type for exam_type in exam_type_pool if exam_type.name.lower() == exam_type_entry][0]
+            elif default_exam_type:
+                exam_type = default_exam_type
             else:
-                # The collectors were instructed to mark questions
-                # with unknown type as 'Final'.  We are doing the same
-                # here.
-                exam_type = final_exam_type
+                exam_type = None
 
             issue_entries = [entry.strip() for entry in row[COL_ISSUE_START:COL_ISSUE_END + 1] if entry.strip()]
             print("Issues:", ",".join(issue_entries))
@@ -143,9 +144,11 @@ class Command(BaseCommand):
                                                    is_approved=is_approved,
                                                    parent_question=parent_question)
                 question.subjects.add(*subjects)
-                question.exam_types.add(exam_type)
-                question.sources.add(source)
                 question.issues.add(*issues)
+                if source:
+                    question.sources.add(source)
+                if exam_type:
+                    question.exam_types.add(exam_type)
 
                 revision = Revision.objects.create(question=question,
                                                    text=text,
@@ -164,3 +167,5 @@ class Command(BaseCommand):
                     choice.revision = revision
 
                 Choice.objects.bulk_create(choices)
+                question.best_revision = revision
+                question.save()
