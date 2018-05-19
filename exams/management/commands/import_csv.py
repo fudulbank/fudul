@@ -33,8 +33,13 @@ class Command(BaseCommand):
 
         if options['default_exam_type_name']:
             default_exam_type = exam_type_pool.get(name=options['default_exam_type_name'])
+        else:
+            default_exam_type = None
+
         if options['default_source_name']:
             default_source = source_pool.get(name=options['default_source_name'])
+        else:
+            default_source = None
 
         # ROW DISTRIBUTION
         COL_SEQUENCE = 0
