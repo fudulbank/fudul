@@ -140,7 +140,8 @@ class Command(BaseCommand):
 
             if not options['dry']:
                 question = Question.objects.create(exam=exam,
-                                                          parent_question=parent_question)
+                                                   is_approved=is_approved,
+                                                   parent_question=parent_question)
                 question.subjects.add(*subjects)
                 question.exam_types.add(exam_type)
                 question.sources.add(source)
