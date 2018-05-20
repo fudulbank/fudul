@@ -85,38 +85,27 @@ class Command(BaseCommand):
         revision_kwargs['is_contribution'] = True
 
         # Answer does not have 'is_deleted' and 'question' fields
-        answer_kwargs = basic_kwargs.copy()
-        del answer_kwargs['is_deleted']
-        if 'question__exam' in answer_kwargs:
-            del answer_kwargs['question__exam']
+        correction_kwargs = basic_kwargs.copy()
+        del correction_kwargs['is_deleted']
+        if 'question__exam' in correction_kwargs:
+            del correction_kwargs['question__exam']
 
-        for kwarg in revision_kwargs:
-            editor_kwargs['revision__' + kwarg] = revision_kwargs[kwarg]
+        revision_qs = Revision.objects.filter(**revision_kwargs)
+        explanation_qs = ExplanationRevision.objects.filter(**explanation_kwargs)
+        correction_qs = AnswerCorrection.objects.filter(**correction_kwargs)
+        mnemonic_qs = Mnemonic.objects.filter(**mnemonic_kwargs)
 
-        for kwarg in explanation_kwargs:
-            explainer_kwargs['submitted_explanations__' + kwarg] = explanation_kwargs[kwarg]
+        # Using .union() with .values() is a vary efficient way to
+        # calculate contributor number.
+        contributor_count = revision_qs.values('submitter').union(correction_qs.values('submitter'),
+                                                                  explanation_qs.values('submitter'),
+                                                                  mnemonic_qs.values('submitter'))\
+                                                           .count()
 
-        for kwarg in mnemonic_kwargs:
-            mnemonicer_kwargs['mnemonic__' + kwarg] = mnemonic_kwargs[kwarg]
-
-        condition = Q(**editor_kwargs) |\
-                    Q(**explainer_kwargs) |\
-                    Q(**mnemonicer_kwargs)
-
-        contributor_count = target_users.filter(condition)\
-                                        .distinct().count()
-
-        revision_count = Revision.objects.filter(**revision_kwargs)\
-                                         .distinct().count()
-        explanation_count = ExplanationRevision.objects.filter(**explanation_kwargs)\
-                                                       .distinct()\
-                                                       .count()
-        correction_count = AnswerCorrection.objects.filter(**answer_kwargs)\
-                                                   .distinct()\
-                                                   .count()
-        mnemonic_count = Mnemonic.objects.filter(**mnemonic_kwargs)\
-                                         .distinct()\
-                                         .count()
+        revision_count = revision_qs.distinct().count()
+        explanation_count = explanation_qs.distinct().count()
+        correction_count = correction_qs.distinct().count()
+        mnemonic_count = mnemonic_qs.distinct().count()
 
         return [contributor_count, revision_count, explanation_count,
                 correction_count, mnemonic_count]
