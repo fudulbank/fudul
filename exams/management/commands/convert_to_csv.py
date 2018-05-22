@@ -4,10 +4,10 @@ import csv
 import sys
 import re
 
-regex_patterns = {'PEDIATRIC_PART_I': {'full_question': ' +\d+\)\s+(?P<question_text>.+\n+(?:.+\n+)*?)(?P<choices>(?: *\(?[a-f][\)\.] .+\n)+)\s*(?:The answer is|Answer|Answer is|The answer|The Correct answer is)\s+\(?(?P<answer>[A-F])\)?\s+\(?\s*(?P<subject>[^\)]+?)\s*\)?\s+(?:Explanation\s*:\s+(?P<explanation>.+\n+(?:.+\n+)*?)?(?= +|END))',
+regex_patterns = {'PEDIATRIC_PART_I': {'full_question': ' +\d+[-\)]\s+(?P<question_text>.+\n+(?:.+\n+)*?)(?P<choices>(?: *\(?[a-f][\-\)\.] .+\n)+)\s*(?:The answer is|Answer|Answer is|The answer|The Correct answer is)\s+\(?(?P<answer>[A-F])\)?\s+\(?\s*(?P<subject>[^\)]+?)\s*\)?\s+(?:Explanation\s*:\s+(?P<explanation>.+\n+(?:.+\n+)*?)?(?= +|END))',
                                 'choice': ' *\(?[a-f][\)\.] (.+)\n',
                                 'explanation': ''},
-                  'PEDIATRIC_PROMOTION': {'full_question': '^(?P<question_sequence>\d+)\.\s*(?P<question_text>.+(\n.+)*?)\n(?P<choices>(?: *\(?[a-f][\)\.] .+\n)+)\s*',
+                  'PEDIATRIC_PROMOTION': {'full_question': '^(?P<question_sequence>\d+)\.\s*(?P<question_text>.+(\n.+)*?)\n(?P<choices>(?: *\(?[a-f][\-\)\.] .+\n)+)\s*',
                                           'choice': ' *\(?[a-f][\)\.] (.+)\n'}
 }
 
@@ -79,13 +79,13 @@ class Command(BaseCommand):
                 subjects.append('')
             # We do not support issues
             issues = ['', '']
-            question_text = matched_question.group('question_text')
+            question_text = matched_question.group('question_text').strip()
             if options['remove_line_breaks']:
                 question_text = question_text.replace('\n', ' ')
                 question_text = question_text.replace('  ', ' ')
             choices_str = matched_question.group('choices')
             try:
-                explanation = matched_question.group('explanation')
+                explanation = matched_question.group('explanation').strip()
             except IndexError:
                 explanation = ''
             choice_list = []
