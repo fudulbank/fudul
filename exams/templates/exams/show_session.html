@@ -219,7 +219,7 @@
     function showQuestion(target, is_initial){
       // 'target' could either be a question-sequence or url.  First,
       // let's check sequence, then URL.
-      $current_question = $("#question-pool [data-question-sequence=" + target + "]")
+      $current_question = $("#question-pool [data-question-sequence=\"" + target + "\"]")
       if ($current_question.length){
         if (is_initial){
           history.replaceState({url: $current_question.data('url')}, '', $current_question.data('url'));
