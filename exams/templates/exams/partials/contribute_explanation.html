@@ -64,7 +64,7 @@
                 success: function (data) {
                     if (data.success == 1) {
                         // show success message (using toastr)
-                        toastr.success("Thank you!  Your explanation will be reviewed very soon!");
+                        toastr.success("Thank you!  Your explanation will now be viewed by all examinees!");
                         $("#explain-question-modal").modal('hide');
                         $current_question.find(".explanation-container").show();
                         var $explanation_content = $current_question.find(".explanation-content");
