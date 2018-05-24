@@ -64,7 +64,7 @@ class EditorModelAdmin(admin.ModelAdmin):
 class ExamAdmin(EditorModelAdmin):
     search_fields = ['name', 'category__name']
     list_display = ['__str__', 'get_user_count', 'get_question_count']
-    list_filter = ['is_public']
+    list_filter = ['was_announced']
     inlines = [SubjectInline, ExamDateInline]
     readonly_fields = ['is_deleted']
 

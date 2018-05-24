@@ -72,6 +72,8 @@ class Category(models.Model):
                                         related_name="children",
                                         on_delete=models.SET_NULL,
                                         default=None)
+    is_listed = models.BooleanField("This category is listed upon showing categories and on the sidebar",
+                                    default=True, blank=True)
     objects = managers.CategoryQuerySet.as_manager()
 
     def get_parent_categories(self):
@@ -129,8 +131,9 @@ class Exam(models.Model):
     batches_allowed_to_take = models.ForeignKey(Batch, null=True, blank=True)
     exam_types = models.ManyToManyField('ExamType', blank=True)
     credits = RichTextUploadingField(default='', blank=True)
-    is_public = models.BooleanField("This exam is publicly available for users who are not editors",
-                                    default=True, blank=True)
+    was_announced = models.BooleanField("This exam was announced and is readily available for users who are not editors",
+                                        default=True, blank=True)
+
     objects = managers.ExamQuerySet.as_manager()
 
     def get_pending_duplicates(self):

@@ -238,7 +238,8 @@ class SourceQuerySet(MetaInformationQuerySet):
 
 class CategoryQuerySet(models.QuerySet):
     def meta(self):
-        return self.filter(Q(exams__isnull=False) | Q(children__isnull=False),
+        return self.filter(Q(exams__isnull=False) | Q(children__is_listed=True),
+                           is_listed=True,
                            parent_category__isnull=True)\
                    .distinct()
 
@@ -275,7 +276,7 @@ class CategoryQuerySet(models.QuerySet):
             return self.none()
 
         pks = []
-        for category in self.filter(college_limit__isnull=False):
+        for category in self.filter(is_listed=True, college_limit__isnull=False):
             if category.college_limit.filter(pk=user_college.pk).exists():
                 pks.append(category.pk)
 
