@@ -395,13 +395,13 @@ def submit_revision(request, slugs, exam_pk, pk):
 def create_session(request, slugs, exam_pk):
     category = Category.objects.get_from_slugs_or_404(slugs)
 
-    exam = get_object_or_404(Exam.objects.select_related('category'), pk=exam_pk, category=category)
+    exam = get_object_or_404(Exam, pk=exam_pk, category=category)
 
     # PERMISSION CHECK
     if not category.can_user_access(request.user):
         raise PermissionDenied
 
-    if not exam.category.is_listed and \
+    if not exam.was_announced and \
        not exam.can_user_edit(request.user):
         return render(request, "exams/coming_soon.html", {'exam': exam})
 
@@ -444,7 +444,7 @@ def create_session(request, slugs, exam_pk):
 @decorators.ajax_only
 def create_session_automatically(request, slugs, exam_pk):
     category = Category.objects.get_from_slugs_or_404(slugs)
-    exam = get_object_or_404(Exam.objects.select_related('category'), pk=exam_pk, category=category)
+    exam = get_object_or_404(Exam, pk=exam_pk, category=category)
 
     is_shared = request.POST.get('is_shared', False)
     selector = request.POST.get('selector')
@@ -471,7 +471,7 @@ def create_session_automatically(request, slugs, exam_pk):
         raise Exception("You are not allowed to create such a session.")
 
     # DO NOT FUCK WITH US
-    if not exam.category.is_listed and \
+    if not exam.was_announced and \
        not exam.can_user_edit(request.user):
         return render(request, "exams/coming_soon.html", {'exam': exam})
 
