@@ -6,10 +6,6 @@
 	    {% csrf_token %}
 
         {% bootstrap_form_errors revision_form %}
-        <div style="display: none">
-		{% bootstrap_field revision_form.figure show_label=False %}
-        </div>
-
         <strong class="help-block"> </strong>
         <div class="form-group has-feedback has-feedback-left">
             <label class="control-label">Question Text</label>
@@ -158,7 +154,7 @@ display:inline-block;
 
     $(function() {
         $("form#modify-revision-form").submit(function (event) {
-        /* stop form from submitting normally */
+            /* stop form from submitting normally */
             event.preventDefault();
             url = "{% url 'exams:contribute_revision' %}?" + $.param({question_pk: {{ question.pk }}});
             /* get some values from elements on the page: */

@@ -46,7 +46,12 @@
         $("textarea").autoGrow();
 
         $("form#modify-explanation-form").submit(function (event) {
-        /* stop form from submitting normally */
+            // iOS 11.3 fails to submit AJAX with empty file input fields.
+            var $figure = $("#id_explanation_figure");
+            if(!$figure.val()){
+                $figure.attr('disabled', true);
+            }
+            /* stop form from submitting normally */
             event.preventDefault();
             /* get some values from elements on the page: */
             var formData = new FormData($(this)[0]);

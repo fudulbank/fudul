@@ -50,7 +50,12 @@
 {#           $("input:file").addClass("custom-file-input");#}
 
            $("form#add-mnemonics-form").submit(function (event) {
-           /* stop form from submitting normally */
+               // iOS 11.3 fails to submit AJAX with empty file input fields.
+               var $figure = $("#id_image");
+               if(!$figure.val()){
+                   $figure.attr('disabled', true);
+               }
+               /* stop form from submitting normally */
                event.preventDefault();
                /* get some values from elements on the page: */
                var formData = new FormData($(this)[0]);
