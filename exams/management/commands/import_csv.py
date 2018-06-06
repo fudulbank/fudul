@@ -80,7 +80,8 @@ class Command(BaseCommand):
             # Check if the right answer column is filled
             if COL_ANSWER:
                 try:
-                    answer_index = ascii_uppercase.index(row[COL_ANSWER])
+                    answer = row[COL_ANSWER].upper()
+                    answer_index = ascii_uppercase.index(answer)
                     print("Right answer is %s (%s)"  % (row[COL_ANSWER], choices[answer_index].text))
                     choices[answer_index].is_right = True
                     if not options['is_disapproved']:
