@@ -35,8 +35,8 @@ body[data-session-mode="UNEXPLAINED"][data-has-finished="true"] .question-body[d
 }
 
 body[data-session-is-examinable="false"] #back,
-body[data-session-is-examinable="true"][data-has-finished=true] #results,
-body[data-session-is-examinable="true"][data-has-finished=true] #end{
+body[data-session-is-examinable="true"][data-has-finished="true"] #results,
+body[data-session-is-examinable="true"][data-has-finished="false"] #end{
   display: inline-block;
 }
 
