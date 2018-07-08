@@ -50,10 +50,7 @@ def show_category(request, slugs):
     # To make sidebar 'active'
     context['is_browse_active'] = True
 
-    if request.user.team_memberships.exists():
-        exams = category.exams.filter(privileged_teams__members=request.user) | category.exams.with_approved_questions()
-    else:
-        exams = category.exams.with_approved_questions()
+    exams = category.exams.with_approved_questions()
 
     context['exams'] = exams
 
