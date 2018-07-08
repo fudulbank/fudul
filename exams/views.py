@@ -51,7 +51,7 @@ def show_category(request, slugs):
     context['is_browse_active'] = True
 
     if request.user.team_memberships.exists():
-        exams = Exam.objects.filter(privileged_teams__members=request.user,category=category)
+        exams = category.exams.filter(privileged_teams__members=request.user) | category.exams.with_approved_questions()
     else:
         exams = category.exams.with_approved_questions()
 
