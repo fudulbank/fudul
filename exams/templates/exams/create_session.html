@@ -154,32 +154,31 @@
  </div><!--card-body-->
 </div> <!--card-->
 </div><!--col-->
-    <div class="col-md-4">
-			<div id='session-list-div' class="card" style="display: none; height: 80px">
-				<div class="card-body">
-					<div class="card-block">
-						<h4 class="card-title">uncompleted sessions</h4>
-{#						<p class="card-text"></p>#}
-					</div>
-					<ul class="list-group list-group-flush">
-                        {% for session in latest_sessions %}
-                            <div id="session-list">
-                            {% if not session.has_finished %}
-						<li class="list-group-item">
-							<a  href="{% url 'exams:show_session' exam.category.get_slugs exam.pk session.pk %}" ><span class="tag tag-default tag-pill bg-primary float-right">{{ session.pk }}</span></a>
-							{% if not session.session_mode == 'SOLVED'%}({{ session.get_unused_questions.count }}/{{ session.get_questions.count }}) {% endif %}<strong>Subjects:</strong>{% if session.subjects.count == 1 %}{{ session.subjects.first.name }}{% elif not session.exam.subject_set.exists %} {{ session.exam.name }}{% else %} Multiple {% endif %}
-						</li>
-                            {% endif %}
-                            </div>
-                        {% endfor %}
-					</ul>
-					<div class="card-block">
 
-					</div>
-				</div>
-			</div>
-    </div> <!--col-->
+    <div class="col-md-4">
+        <div id='session-list-div' class="card-content" style="display: none; height: 80px">
+            <div class="card-body">
+                    <h4 class="card-title">Pending Sessions</h4>
+            </div>
+
+            <ul class="list-group list-group-flush">
+                            {% for session in latest_sessions %}
+                                <div id="session-list">
+                                {% if not session.has_finished %}
+                             <a  href="{% url 'exams:show_session' exam.category.get_slugs exam.pk session.pk %}" >
+                             <li class="list-group-item">
+                               <span class="badge badge-default badge-pill bg-info float-right">{{ session.pk }}</span>
+                                {% if not session.session_mode == 'SOLVED'%} <strong>{{ session.get_unused_questions.count }}</strong> Q left {% endif %}<strong>Subjects:</strong>{% if session.subjects.count == 1 %}{{ session.subjects.first.name }}{% elif not session.exam.subject_set.exists %} {{ session.exam.name }}{% else %} Multiple {% endif %}
+                             </a>
+                             </li>
+                                {% endif %}
+                                </div>
+                            {% endfor %}
+            </ul>
+        </div>
+    </div><!--col-->
 </div> <!--row-->
+
 
 {% endblock %}
 {% block customscript %}
