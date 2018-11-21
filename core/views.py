@@ -209,12 +209,10 @@ def show_about(request):
     return render(request, 'about.html', context)
 
 @require_safe
+@cache_page(settings.CACHE_PERIODS['EXPENSIVE_UNCHANGEABLE'])
 def show_contribute(request):
-    question_count = utils.round_to(Question.objects.undeleted().count(), 100)
     answer_count = utils.round_to(Answer.objects.filter(choice__isnull=False).count(), 100)
     session_count = utils.round_to(Session.objects.count(), 10)
-    exam_count = utils.round_to(Exam.objects.count(), 5)
-
     # An editor is someone who has ever submitted a revision without
     # it being considered a guest contribution.
     editor_count = User.objects.filter(revision__is_contribution=False)\
@@ -222,9 +220,7 @@ def show_contribute(request):
                                .count()
     editor_count = utils.round_to(editor_count, 5)
 
-    context = {'question_count': question_count,
-               'session_count': session_count,
-               'exam_count': exam_count,
+    context = {'session_count': session_count,
                'answer_count': answer_count,
                'editor_count': editor_count}
 
