@@ -211,7 +211,7 @@ def show_about(request):
 @require_safe
 def show_contribute(request):
     question_count = utils.round_to(Question.objects.undeleted().count(), 100)
-    answer_count = utils.round_to(Answer.objects.count(), 100)
+    answer_count = utils.round_to(Answer.objects.filter(choice__isnull=False).count(), 100)
     session_count = utils.round_to(Session.objects.count(), 10)
     exam_count = utils.round_to(Exam.objects.count(), 5)
 
@@ -227,7 +227,6 @@ def show_contribute(request):
                'exam_count': exam_count,
                'answer_count': answer_count,
                'editor_count': editor_count}
-    print(context)
 
     return render(request, 'contribute.html', context)
 
