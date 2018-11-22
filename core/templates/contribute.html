@@ -41,27 +41,29 @@
     <title>Fudul | We need your help</title>
   </head>
   <body>
-		<div class="container">
-			<div class="row justify-content-center">
-				<div class="col-md-9 col-11">
-					<div id="contribution-header" class="d-flex py-5 px-2 px-md-0 mb-2 rounded">
-			      <h2 class="align-self-end mx-sm-4 mb-0 mx-auto">We need Fudul to continue.<br>It's time to help.</h2>
-					</div>
+		<div class="container-fluid">
+			<header id="contribution-header" class="row justify-content-center mb-5">
+				<div class="col-10 align-self-end">
+		      <h2 class="mb-5 mt-5 mt-md-0">We need Fudul to continue.<br>It's time to help.</h2>
+				</div>
+			</header>
 
+			<div class="row justify-content-center">
+				<div class="col-md-8 col-11">
 					<div class="px-md-5">
 					  <div class="float-right d-none d-md-block">
 							<img class="" src="{% static 'img/logo-avatar.svg' %}">
 						</div>
-						<p>We built Fudul with three principles:</p>
+						<h3>We built Fudul with three principles...</h3>
 						<ol>
 							<li>everyone must have a <span class="highlight">full and equal access to all learning resources</span>.</li>
 							<li>review questions are an <span class="highlight">essential component</span> of learning resources.</li>
 							<li>knowledge is better when <span class="highlight">built cooperatively</span>.</li>
 						</ol>
 
-			      <p>We could have choosen to charge learners for access.  We could have choosen to charge learners for some "premium" features, but that would be simply <strong>wrong</strong>.</p>
-			      <p>With a team of more than <span class="highlight">{{ editor_count|intcomma }} editors</span>, we helped people submit more than <span class="highlight">{{ answer_count|intcomma }} answers</span> accross more than <span class="highlight">{{ session_count|intcomma }} sessions</span>.</p>
-			      <p><strong>This huge!</strong></p>
+			      <p>We believe that charging learners for access to learning resources or some "premium" features is <strong>simply wrong</strong>.</p>
+			      <p>Fudul is a community of more than <span class="highlight">{{ editor_count|intcomma }} editors</span> who have helped people answer review questions more than <span class="highlight">{{ answer_count|intcomma }} times</span> in more than <span class="highlight">{{ session_count|intcomma }} sessions</span>.</p>
+			      <p><strong>This huge!</strong>  And we want you to be part of it.</p>
 			      <p>But running Fudul now demands an increasing cost for servers to ensure that they won't fall during high-demand times.  We cannot fail our community when they need Fudul the most.</p>
 
 			      <hr>
