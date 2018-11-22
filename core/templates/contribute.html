@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <!-- Bootstrap CSS -->
+      <link href="https://fonts.googleapis.com/css?family=Cabin+Sketch" rel="stylesheet">
+
+
 		<link rel="shortcut icon" href="{% static 'img/logo-monkey.png' %}">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/css/bootstrap.min.css" integrity="sha384-Smlep5jCw/wG7hdkwQ/Z5nLIefveQRIY9nfy6xoR1uRYBtpZgI6339F5dgvm/e9B" crossorigin="anonymous">
 		<link href="https://fonts.googleapis.com/css?family=Karla:400|700" rel="stylesheet">
@@ -16,11 +19,12 @@
 				background: #F5F7FA;
 			}
 			h2{
-				font-size: 3.5rem;
+                font-size: 3.5rem;
 				font-weight: 700;
 				color: white;
 			}
 			h3{
+                font-family: 'Cabin Sketch', cursive;
 				font-weight: 700;
 			}
 			.highlight{
@@ -37,6 +41,15 @@
 			.footnote{
 				font-size: 0.8rem;
 			}
+
+            .try{
+                margin-top:2%
+            }
+            .try body { margin:140px;}
+
+            .try p { font-size: 1.4rem; line-height: 2rem; }
+
+            .try p:first-child::first-letter { font-family: Didot; font-size: 4.5rem; float: left; text-transform: uppercase; color:#C9A584; margin-left:–0.15em; margin-top:–0.1em}
 			</style>
     <title>Fudul | We need your help</title>
   </head>
@@ -44,43 +57,73 @@
 		<div class="container-fluid">
 			<header id="contribution-header" class="row justify-content-center mb-5">
 				<div class="col-10 align-self-end">
-		      <h2 class="mb-5 mt-5 mt-md-0">We need Fudul to continue.<br>It's time to help.</h2>
+
+                    <h2 class="mb-5 mt-5 mt-md-0">Fudul needs you for it to continue.</h2>
 				</div>
 			</header>
 
 			<div class="row justify-content-center">
 				<div class="col-md-8 col-11">
 					<div class="px-md-5">
-					  <div class="float-right d-none d-md-block">
-							<img class="" src="{% static 'img/logo-avatar.svg' %}">
-						</div>
+
+
 						<h3>We built Fudul with three principles...</h3>
-						<ol>
-							<li>everyone must have a <span class="highlight">full and equal access to all learning resources</span>.</li>
-							<li>review questions are an <span class="highlight">essential component</span> of learning resources.</li>
-							<li>knowledge is better when <span class="highlight">built cooperatively</span>.</li>
-						</ol>
+                        <br>
 
-			      <p>We believe that charging learners for access to learning resources or some "premium" features is <strong>simply wrong</strong>.</p>
-			      <p>Fudul is a community of more than <span class="highlight">{{ editor_count|intcomma }} editors</span> who have helped people solve questions more than <span class="highlight">{{ answer_count|intcomma }} times</span> in more than <span class="highlight">{{ session_count|intcomma }} sessions</span>.</p>
-			      <p><strong>This huge!</strong>  And we want you to be part of it.</p>
-			      <p>But running Fudul now demands an increasing cost for servers to ensure that they won't fall during high-demand times.  We cannot fail our community when they need Fudul the most.</p>
+                        <div class="row">
+{#                            <div class="col">#}
+                            <div class="try">
 
-			      <hr>
+                                <p>1 everyone must have a <span class="highlight">full and equal access to all learning resources</span>. </p></div>
+{#                            </div>#}
+{#                            <div class="col">#}
+                            <div class="try">
 
-						<h3 class="mt-4">And here we need your help...</h3>
-						<p>You can now help us by adding funds to our hosting.  These funds will directly go to the <abbr title="WebFaction is the company that hosts Fudul">hosting company</abbr>, and will be used solely for that purpose.</p>
+                                <p>2 review questions are an <span class="highlight">essential component</span> of learning resources. </p></div>
+{#                            </div>#}
+{#                            <div class="col">#}
+                            <div class="try">
 
+                                <p>3 knowledge is better when <span class="highlight">built cooperatively</span>. </p></div>
+                         </div>
+
+                        <strong> So help us to a keep a world where Fudul is free.</strong>
 						<hr>
 
-						<h3 class="mt-4">I want to contribute...</h3>
+						<h3 class="text-center mt-4">I Accept to contribute</h3>
 
-			      <p>I want to help run Fudul for <input class="d-inline-block" type="number" id="duration" min="1" value="3" max="52"> weeks.</p>
-			      <p>This will ensure that Fudul will run for <span class="highlight"><span id="weeks"></span> more weeks</span> during which people are likely to submit (at least) <span class="highlight"><span id="answers"></span> answers</span>.  This will cost <span class="highlight">$<span id="cost"></span> (or <span id="riyal"></span> riyals)</span>.</p>
+			      <p>I want to help run Fudul for <input class="d-inline-block" type="number" id="duration" min="1" value="2" max="52"> weeks.</p>
+			      <p>This will ensure that Fudul will run for <span class="highlight"><span id="weeks"></span> more weeks</span> during which people are likely to submit (at least) <span class="highlight"><span id="answers"></span> answers</span>.  This will cost <span class="highlight">$<span id="cost"></span> (or <span id="riyal"></span> riyals)</span>. you can contrubute for only one week if you wnat.</p>
 						<div class="text-center mb-2">
 							<a id="contribute-link" class="btn btn-success btn-lg">Contribute*</a>
 						</div>
 						<p class="footnote text-right">* You will be paying to our hosting company directly.</p>
+
+                  <hr>
+
+                  <h3>Why do we need it ?</h3>
+                        <p style="color: red">We need fudul to countine.</p>
+                        <p>But running Fudul now demands an increasing cost for servers to ensure that they won't fall during high-demand times.  We cannot fail our community when they need Fudul the most.</p>
+
+                        <p> We also believe that charging learners for access to learning resources or some "premium" features is <strong>simply wrong</strong>.</p>
+			      <p>Fudul is a community of more than <span class="highlight">{{ editor_count|intcomma }} editors</span> who have helped people solve questions more than <span class="highlight">{{ answer_count|intcomma }} times</span> in more than <span class="highlight">{{ session_count|intcomma }} sessions</span>.</p>
+			      <p><strong>This is huge!</strong> it has to countine.</p>
+			      <hr>
+
+                  <h3>Where does the money go ?</h3>
+                    						<p>When help us by adding funds to our hosting.  These <strong>funds will directly go to the <abbr title="WebFaction is the company that hosts Fudul">hosting company</abbr>, and will be used solely for that purpose.</strong> </p>
+
+{##}
+{#						<hr>#}
+{##}
+{#						<h3 class="mt-4">I want to contribute...</h3>#}
+{##}
+{#			      <p>I want to help run Fudul for <input class="d-inline-block" type="number" id="duration" min="1" value="3" max="52"> weeks.</p>#}
+{#			      <p>This will ensure that Fudul will run for <span class="highlight"><span id="weeks"></span> more weeks</span> during which people are likely to submit (at least) <span class="highlight"><span id="answers"></span> answers</span>.  This will cost <span class="highlight">$<span id="cost"></span> (or <span id="riyal"></span> riyals)</span>.</p>#}
+{#						<div class="text-center mb-2">#}
+{#							<a id="contribute-link" class="btn btn-success btn-lg">Contribute*</a>#}
+{#						</div>#}
+{#						<p class="footnote text-right">* You will be paying to our hosting company directly.</p>#}
 					</div>
 				</div>
 			</div>
