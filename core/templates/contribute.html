@@ -129,6 +129,11 @@
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
 		<script>
 "use strict";
+function randomIntFromInterval(min,max)
+{
+    return Math.floor(Math.random()*(max-min+1)+min);
+}
+
 const numberWithCommas = (x) => {
   return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
@@ -162,6 +167,8 @@ function updateResults(){
 }
 
 $(function(){
+  var suggestedDonation = randomIntFromInterval(2, 3);
+  $("#duration").val(suggestedDonation);
 	updateResults();
 	$("#duration").change(updateResults);
 })
