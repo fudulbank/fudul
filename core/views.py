@@ -211,7 +211,7 @@ def show_about(request):
 #@cache_page(settings.CACHE_PERIODS['EXPENSIVE_UNCHANGEABLE'])
 @require_safe
 def show_contribute(request):
-    answer_count = utils.round_to(Answer.objects.filter(choice__isnull=False).count(), 100)
+    answer_count = utils.round_to(Answer.objects.filter(choice__isnull=False).count(), 10000)
     session_count = utils.round_to(Session.objects.count(), 10)
     # An editor is someone who has ever submitted a revision without
     # it being considered a guest contribution.
