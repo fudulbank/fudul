@@ -28,6 +28,7 @@
     body{
       font-size: 16px;
     }
+
     /* Since we are increasing the size, we need to reduce the minimal size of the select2 container.*/
     .select2-container {
         min-width: 15em !important;
@@ -268,6 +269,23 @@
 
     <div class="app-content content">
       <div class="content-wrapper">
+        {% if config.DONATION_ACTIVATED %}
+        <div class="card">
+          <div class="card-body">
+            <div class="row justify-content-around">
+              <div class="col-auto">
+                <img style="height: 120px;" src="{% static 'img/logo-avatar.svg' %}">
+              </div>
+              <div class="col-auto text-center align-self-center">
+                <p style="font-size: 1.3rem; font-weight: 700;">{{ config.DONATION_MESSAGE|linebreaksbr }}</p>
+                <div class="text-center">
+                  <a class="btn btn-success bold" href="{% url 'contribute' %}"><strong>Donate</strong></a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
         <div class="content-header row">
            <div class="content-header-left col-md-6 col-12 mb-1">
 {% block header_title %}{% endblock %}
