@@ -10,3 +10,10 @@ class CoreMember(models.Model):
 
     def __str__(self):
         return self.name
+
+class DonationMessage(models.Model):
+    text = models.TextField()
+    is_enabled = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.pk

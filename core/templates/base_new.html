@@ -1,4 +1,4 @@
-<!DOCTYPE html>{% load static cache account_utils exam_utils %}
+<!DOCTYPE html>{% load static cache account_utils core_utils exam_utils %}
 <html lang="en" data-textdirection="ltr" class="loading">
 {% include 'partials/call_out.html' %}
 <head>
@@ -270,6 +270,7 @@
     <div class="app-content content">
       <div class="content-wrapper">
         {% if config.DONATION_ACTIVATED %}
+        {% get_donation_message as donation_message %}
         <div class="card">
           <div class="card-body">
             <div class="row justify-content-around">
@@ -277,9 +278,9 @@
                 <img style="height: 120px;" src="{% static 'img/logo-avatar.svg' %}">
               </div>
               <div class="col-auto text-center align-self-center">
-                <p style="font-size: 1.3rem; font-weight: 700;">{{ config.DONATION_MESSAGE|linebreaksbr }}</p>
+                <p style="font-size: 1.3rem; font-weight: 700;">{{ donation_message.text|safe }}</p>
                 <div class="text-center">
-                  <a class="btn btn-success bold" href="{% url 'contribute' %}"><strong>Donate</strong></a>
+                  <a class="btn btn-success bold" href="{% url 'contribute' %}?pk_campaign=donation&pk_content={{ donation_message.pk }}"><strong>Donate</strong></a>
                 </div>
               </div>
             </div>
