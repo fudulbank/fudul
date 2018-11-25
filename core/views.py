@@ -210,7 +210,7 @@ def show_about(request):
 
 #@cache_page(settings.CACHE_PERIODS['EXPENSIVE_UNCHANGEABLE'])
 @require_safe
-def show_contribute(request):
+def show_contribute(request, language='en'):
     answer_count = utils.round_to(Answer.objects.filter(choice__isnull=False).count(), 10000)
     session_count = utils.round_to(Session.objects.count(), 10)
     # An editor is someone who has ever submitted a revision without
@@ -224,7 +224,10 @@ def show_contribute(request):
                'answer_count': answer_count,
                'editor_count': editor_count}
 
-    return render(request, 'contribute.html', context)
+    if not language:
+        language = 'en'
+
+    return render(request, f'contribute_{language}.html', context)
 
 @login_required
 @require_POST

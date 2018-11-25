@@ -14,7 +14,7 @@ urlpatterns = [
     url(r'^indicators/colleges/(?P<pk>\d+)/$', views.show_college_indicators, name='show_college_indicators'),
 
     url(r'^about/$', views.show_about, name="about"),
-    url(r'^contribute/$', views.show_contribute, name="contribute"),
+    url(r'^contribute/(?:(?P<language>ar)/)?$', views.show_contribute, name="contribute"),
     url(r'^help/$', TemplateView.as_view(template_name="help.html"), name="help"),
     url(r'^$', views.show_index, name="index"),
 ]

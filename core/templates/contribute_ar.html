@@ -1,0 +1,175 @@
+<!doctype html>{% load static static humanize %}
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+		<link rel="shortcut icon" href="{% static 'img/logo-monkey.png' %}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/css/bootstrap.min.css" integrity="sha384-Smlep5jCw/wG7hdkwQ/Z5nLIefveQRIY9nfy6xoR1uRYBtpZgI6339F5dgvm/e9B" crossorigin="anonymous">
+		<link href="https://fonts.googleapis.com/css?family=Karla:400,700|Dancing+Script" rel="stylesheet">
+		<style>
+			body{
+        text-align: right;
+				font-family: 'Karla', sans-serif !important;
+				font-size: 1.4rem;
+				background: #F5F7FA;
+			}
+			h2{
+				font-size: 3.5rem;
+				font-weight: 700;
+				color: white;
+			}
+			h3{
+				font-weight: 700;
+			}
+			.highlight{
+				background: #ffff69;
+			}
+			#contribution-header{
+				min-height: 350px;
+				background: linear-gradient(rgba(94,55,17,0.9), rgba(94,55,17,0.9)), url(https://images.unsplash.com/photo-1532928448850-d740ccdd9f9c?ixlib=rb-0.3.5&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1000&fit=max&ixid=eyJhcHBfaWQiOjQzMDIzfQ&s=fa8850e5e0b6819c2d37de038643e974) center center;
+				background-size: cover;
+			}
+			#duration{
+				width: 3em;
+			}
+			.footnote{
+				font-size: 0.8rem;
+			}
+
+			ol {
+		    list-style-type: none;
+		    list-style-type: decimal !ie; /*IE 7- hack*/
+
+		    margin: 0;
+		    margin-left: 3em;
+		    padding: 0;
+
+		    counter-reset: li-counter;
+			}
+			ol > li{
+			    position: relative;
+					position: relative;
+					margin: 1rem 0;
+					padding-right: 1em;
+			}
+
+			ol > li:last-child{
+				margin-bottom: 3rem;
+			}
+			ol > li:before {
+			    position: absolute;
+			    top: 0;
+			    right: -1em;
+			    width: 3.4rem;
+			    height: 3.4rem;
+
+          font-family: 'Dancing Script', cursive;
+			    font-size: 3.5rem;
+			    line-height: 0.94;
+			    text-align: center;
+			    color: #f5f5f5;
+
+			    background-color: #464646;
+					counter-increment: li-counter;
+			    content: counter(li-counter);
+			}
+			</style>
+    <title>Fudul | نحتاج مساعدتك</title>
+    {% include 'partials/piwik.html' %}
+  </head>
+  <body>
+		<div class="container-fluid">
+			<header id="contribution-header" class="row justify-content-center">
+				<div class="col-10 align-self-end">
+		      <h2 class="my-5 mt-md-0">فضول تحتاجك لتستمرّ!</h2>
+				</div>
+			</header>
+
+			<div class="row justify-content-center">
+				<div class="col-md-8 col-11 bg-white px-md-5 py-5 my-3 rounded">
+					  <div class="float-left d-none d-md-block">
+							<img class="" src="{% static 'img/logo-avatar.svg' %}">
+						</div>
+            <h3>بنينا منصة فضول على ثلاثة مبادئ:</h3>
+            <ol>
+              <li>للجميع حقّ <span class="highlight">الوصول الكامل إلى مصادر المعرفة المختلفة والاستفادة منها دون قيود.</span></li>
+              <li>لمراجعة الأسئلة ومحاكاة الاختبارات <span class="highlight">أهميّة قصوى</span> في اكتساب المعرفة وفي تجاوز الاختبارات الأكاديمية والمهنيّة. </li>
+              <li>تزدهر المعرفة أكثر حين تُبنى <span class="highlight">بشكلٍ جماعيّ تعاونيّ</span>. </li>
+            </ol>
+            <p>نحنُ في فضول نؤمن أن التكسّب من حاجة الناس للمعرفة <strong>لا يجوز</strong>، سواءً كان ذلك بإلزام المستخدمين والمستخدمات بدفع مقابل مالي للوصول للأسئلة، أو بتخصيص مزايا استثنائية للاشتراكات المدفوعة، أو بغير ذلك.
+            <p>فضول مجتمعٌ نشيط يتألف من أكثر من <span class="highlight">{{ editor_count|intcomma }} محرر ومحررة</span> ساهموا في تطوير المحتوى، وساعدوا المستخدمين والمستخدمات في حل الأسئلة أكثر من <span class="highlight">{{ answer_count|intcomma }} مرّة</span>، في أكثر من <span class="highlight">{{ session_count|intcomma }} جلسة</span>.
+
+            <p><strong>هذا عظيم!</strong> ويجب أن يستمرّ.</p>
+
+            <p>لقد أصبح تشغيل فضول الآن يتطلب تكاليفًا متزايدة لتأمين خوادم (servers) عالية الكفاءة تضمن صمود الموقع وتماسكه حين يزداد الطلب عليه، ولا نريد أن نخذل مجتمع فضول حين يكون في أمسّ الحاجة لنا.</p>
+            <hr>
+            <h3 class="mt-4">وهُنا نحنُ نحتاجكم...</h3>
+            <p>يمكن لك مساعدتنا بتمويل استضافة فضول. هذا التمويل سيذهب مباشرةً إلى <abbr title="شركة WebFaction هي التي تستضيف خوادم فضول">شركة الاستضافة</abbr>، وسيُستخدم لهذا الغرض فقط. </p>
+            <hr>
+            <h3 class="mt-4">أريد أن أساهم...</h3>
+            <p>أريد المساعدة في تشغيل فضول لمدة <input class="d-inline-block" type="number" id="duration" min="1" value="3" max="52"> أسابيع.</p>
+
+            <p>هذا سيضمن تشغيل فضول لـ<span class="highlight"><span id="weeks"></span> أسابيع إضافية</span>، وخلال هذه المدة سيُجيب مستخدمو فضول ومستخدماته على أسئلته أكثر من <span class="highlight"><span id="answers"></span> مرّة</span> على الأقلّ. هذا سيُكلف <span class="highlight"><span id="cost"></span> دولار ( <span id="riyal"></span>  ريال)</span>.
+					<div class="text-center mb-2">
+							<a id="contribute-link" class="btn btn-success btn-lg">تبرُّع*</a>
+						</div>
+						<p class="footnote text-left">* يكون الدفع لشركة الاستضافة مباشرة.</p>
+          <div class="row justify-content-center">
+            <div class="col-10 col-md-8 text-center">
+              <a data-toggle="tooltip" data-title='This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.' data-html="true" rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png" /></a>
+            </div>
+          </div>
+				</div>
+			</div>
+
+		</div>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+		<script>
+"use strict";
+function randomIntFromInterval(min,max)
+{
+    return Math.floor(Math.random()*(max-min+1)+min);
+}
+
+const numberWithCommas = (x) => {
+  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function isInt(value) {
+  return !isNaN(value) &&
+         parseInt(Number(value)) == value &&
+         !isNaN(parseInt(value, 10));
+}
+
+var url = "https://www.2checkout.com/2co/buyer/purchase?sid=66208&c_prod=1&id_type=1&cart_order_id=fudul_75846&tco_currency=USD&total=";
+
+function updateResults(){
+		var duration = $("#duration").val();
+		if (isInt(duration))
+		{
+			$("#results, #contribute-link").show()
+			var cost = duration * 7; // duration is in weeks
+			var riyal = cost * 3.75;
+			var contrinute_url = url + cost;
+      var total_answers = duration * 190000
+      var formatted_answers = numberWithCommas(total_answers);
+			$("#weeks").html(duration);
+			$("#cost").html(cost);
+			$("#riyal").html(riyal);
+			$("#answers").html(formatted_answers);
+			$("#contribute-link").attr("href", contrinute_url);
+		} else {
+			$("#results, #contribute-link").hide()
+		}
+}
+
+$(function(){
+  var suggestedDonation = randomIntFromInterval(2, 3);
+  $("#duration").val(suggestedDonation);
+	updateResults();
+	$("#duration").change(updateResults);
+})
+		</script>
+	</body>
+</html>
