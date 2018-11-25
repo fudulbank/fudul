@@ -6,11 +6,11 @@
 
 		<link rel="shortcut icon" href="{% static 'img/logo-monkey.png' %}">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/css/bootstrap.min.css" integrity="sha384-Smlep5jCw/wG7hdkwQ/Z5nLIefveQRIY9nfy6xoR1uRYBtpZgI6339F5dgvm/e9B" crossorigin="anonymous">
-		<link href="https://fonts.googleapis.com/css?family=Karla:400,700|Dancing+Script" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css?family=Tajawal:400,700|Dancing+Script|Karla" rel="stylesheet">
 		<style>
 			body{
         text-align: right;
-				font-family: 'Karla', sans-serif !important;
+				font-family: 'Tajawal', sans-serif !important;
 				font-size: 1.4rem;
 				background: #F5F7FA;
 			}
@@ -24,6 +24,7 @@
 			}
 			.highlight{
 				background: #ffff69;
+        font-weight: 700;
 			}
 			#contribution-header{
 				min-height: 350px;
@@ -64,16 +65,20 @@
 			    width: 3.4rem;
 			    height: 3.4rem;
 
-          font-family: 'Dancing Script', cursive;
+          /*font-family: 'Dancing Script', cursive;*/
+          font-family: 'Tajawal', sans-serif;
 			    font-size: 3.5rem;
-			    line-height: 0.94;
+			    line-height: 1.3;
 			    text-align: center;
 			    color: #f5f5f5;
 
 			    background-color: #464646;
 					counter-increment: li-counter;
-			    content: counter(li-counter);
+			    content: counter(li-counter, arabic-indic);
 			}
+      #lang-switcher{
+        font-family: 'Karla', sans-serif;
+      }
 			</style>
     <title>Fudul | نحتاج مساعدتك</title>
     {% include 'partials/piwik.html' %}
@@ -81,20 +86,23 @@
   <body>
 		<div class="container-fluid">
 			<header id="contribution-header" class="row justify-content-center">
-				<div class="col-10 align-self-end">
+        <div class="col-sm-2 align-self-start text-left order-md-2">
+          <a id="lang-switcher" class="btn btn-warning m-3" href="{% url 'contribute' %}">English</a>
+        </div>
+				<div class="col-10 align-self-end order-md-1">
 		      <h2 class="my-5 mt-md-0">فضول تحتاجك لتستمرّ!</h2>
 				</div>
 			</header>
 
 			<div class="row justify-content-center">
-				<div class="col-md-8 col-11 bg-white px-md-5 py-5 my-3 rounded">
+				<div class="col-11 col-md-10 col-lg-9 col-xl-8 bg-white px-md-4 px-xl-5 py-5 my-3 rounded">
 					  <div class="float-left d-none d-md-block">
 							<img class="" src="{% static 'img/logo-avatar.svg' %}">
 						</div>
             <h3>بنينا منصة فضول على ثلاثة مبادئ:</h3>
             <ol>
-              <li>للجميع حقّ <span class="highlight">الوصول الكامل إلى مصادر المعرفة المختلفة والاستفادة منها دون قيود.</span></li>
-              <li>لمراجعة الأسئلة ومحاكاة الاختبارات <span class="highlight">أهميّة قصوى</span> في اكتساب المعرفة وفي تجاوز الاختبارات الأكاديمية والمهنيّة. </li>
+              <li>للجميع حقّ <span class="highlight">الوصول الكامل إلى مصادر المعرفة المختلفة والاستفادة منها دون قيود</span>.</li>
+              <li>لمراجعة الأسئلة ومحاكاة الاختبارات <span class="highlight">أهميّة قصوى</span> في اكتساب المعرفة وفي تجاوز الاختبارات الأكاديمية والمهنيّة.</li>
               <li>تزدهر المعرفة أكثر حين تُبنى <span class="highlight">بشكلٍ جماعيّ تعاونيّ</span>. </li>
             </ol>
             <p>نحنُ في فضول نؤمن أن التكسّب من حاجة الناس للمعرفة <strong>لا يجوز</strong>، سواءً كان ذلك بإلزام المستخدمين والمستخدمات بدفع مقابل مالي للوصول للأسئلة، أو بتخصيص مزايا استثنائية للاشتراكات المدفوعة، أو بغير ذلك.
@@ -110,7 +118,7 @@
             <h3 class="mt-4">أريد أن أساهم...</h3>
             <p>أريد المساعدة في تشغيل فضول لمدة <input class="d-inline-block" type="number" id="duration" min="1" value="3" max="52"> أسابيع.</p>
 
-            <p>هذا سيضمن تشغيل فضول لـ<span class="highlight"><span id="weeks"></span> أسابيع إضافية</span>، وخلال هذه المدة سيُجيب مستخدمو فضول ومستخدماته على أسئلته أكثر من <span class="highlight"><span id="answers"></span> مرّة</span> على الأقلّ. هذا سيُكلف <span class="highlight"><span id="cost"></span> دولار ( <span id="riyal"></span>  ريال)</span>.
+            <p>هذا سيضمن تشغيل فضول لـ<span class="highlight"><span id="weeks"></span> أسابيع إضافية</span>، وخلال هذه المدة سيُجيب مستخدمو فضول ومستخدماته على أسئلته أكثر من <span class="highlight"><span id="answers"></span> مرّة</span> (على أقلّ تقدير). هذا سيُكلف <span class="highlight"><span id="cost"></span> دولار ( <span id="riyal"></span>  ريال)</span>.
 					<div class="text-center mb-2">
 							<a id="contribute-link" class="btn btn-success btn-lg">تبرُّع*</a>
 						</div>

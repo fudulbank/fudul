@@ -13,7 +13,14 @@ class CoreMember(models.Model):
 
 class DonationMessage(models.Model):
     text = models.TextField()
+    language_choices = (
+        ('ar', 'العربية'),
+        ('en', 'الإنجليزية')
+    )
+    language = models.CharField(max_length=2,
+                                choices=language_choices,
+                                default='en')
     is_enabled = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.pk
+        return str(self.pk)

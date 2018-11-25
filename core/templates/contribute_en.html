@@ -6,7 +6,7 @@
 
 		<link rel="shortcut icon" href="{% static 'img/logo-monkey.png' %}">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/css/bootstrap.min.css" integrity="sha384-Smlep5jCw/wG7hdkwQ/Z5nLIefveQRIY9nfy6xoR1uRYBtpZgI6339F5dgvm/e9B" crossorigin="anonymous">
-		<link href="https://fonts.googleapis.com/css?family=Karla:400,700|Dancing+Script" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css?family=Karla:400,700|Dancing+Script|Tajawal" rel="stylesheet">
 		<style>
 			body{
 				font-family: 'Karla', sans-serif !important;
@@ -73,6 +73,9 @@
 					counter-increment: li-counter;
 			    content: counter(li-counter);
 			}
+      #lang-switcher{
+        font-family: 'Tajawal', sans-serif;
+      }
 			</style>
     <title>Fudul | We need your help</title>
     {% include 'partials/piwik.html' %}
@@ -80,13 +83,16 @@
   <body>
 		<div class="container-fluid">
 			<header id="contribution-header" class="row justify-content-center">
-				<div class="col-10 align-self-end">
+        <div class="col-sm-2 align-self-start text-right order-md-2">
+          <a id="lang-switcher" class="btn btn-warning m-3" href="{% url 'contribute' 'ar' %}">العربية</a>
+        </div>
+				<div class="col-10 align-self-end order-md-1">
 		      <h2 class="my-5 mt-md-0">Fudul needs you to continue.</h2>
 				</div>
 			</header>
 
 			<div class="row justify-content-center">
-				<div class="col-md-8 col-11 bg-white px-md-5 py-5 my-3 rounded">
+				<div class="col-11 col-md-10 col-lg-9 col-xl-8 bg-white px-md-4 px-xl-5 py-5 my-3 rounded">
 					  <div class="float-right d-none d-md-block">
 							<img class="" src="{% static 'img/logo-avatar.svg' %}">
 						</div>

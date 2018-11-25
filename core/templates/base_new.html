@@ -280,7 +280,7 @@
               <div class="col-auto text-center align-self-center">
                 <p style="font-size: 1.3rem; font-weight: 700;">{{ donation_message.text|safe }}</p>
                 <div class="text-center">
-                  <a class="btn btn-success bold" href="{% url 'contribute' %}?pk_campaign=donation&pk_content={{ donation_message.pk }}"><strong>Donate</strong></a>
+                  <a class="btn btn-success bold" href="{% if donation_message.language == 'ar' %}{% url 'contribute' 'ar' %}{% else %}{% url 'contribute' %}{% endif %}?pk_campaign=donation&pk_content={{ donation_message.pk }}"><strong>Donate</strong></a>
                 </div>
               </div>
             </div>
