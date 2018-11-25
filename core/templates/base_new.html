@@ -269,7 +269,7 @@
 
     <div class="app-content content">
       <div class="content-wrapper">
-        {% if config.DONATION_ACTIVATED or 'donation_message_pk' in request.GET %}
+        {% if config.DONATION_ACTIVATED or user.is_superuser and 'donation_message_pk' in request.GET %}
         {% get_donation_message pk=request.GET.donation_message_pk as donation_message %}
         {% if donation_message %}
         <div class="card">
