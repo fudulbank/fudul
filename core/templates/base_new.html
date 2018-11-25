@@ -24,6 +24,23 @@
   <!-- BEGIN Custom CSS-->
   <link rel="stylesheet" type="text/css" href="{% static 'stack/css/style.css' %}">
   <!-- END Custom CSS-->
+
+  {% if config.DONATION_ACTIVATED or user.is_superuser and 'donation_message_pk' in request.GET %}
+  {% get_donation_message pk=request.GET.donation_message_pk as donation_message %}
+  {% if donation_message.language == 'ar' %}
+  <link href="https://fonts.googleapis.com/css?family=Tajawal:400,700" rel="stylesheet">
+  {% endif %}
+  <style>
+  #donation-card{
+    font-size: 1.3rem;
+    font-weight: 700;
+    {% if donation_message.language == 'ar' %}
+    font-family: 'Tajawal';
+    direction: rtl;
+    {% endif %}
+  }
+  </style>
+  {% endif %}
     <style>
     body{
       font-size: 16px;
@@ -31,10 +48,6 @@
     /* Since we are increasing the size, we need to reduce the minimal size of the select2 container.*/
     .select2-container {
         min-width: 15em !important;
-    }
-    #donation-message{
-      font-size: 1.3rem;
-      font-weight: 700;
     }
     </style>
 {% include 'partials/piwik.html' %}
@@ -272,17 +285,15 @@
 
     <div class="app-content content">
       <div class="content-wrapper">
-        {% if config.DONATION_ACTIVATED or user.is_superuser and 'donation_message_pk' in request.GET %}
-        {% get_donation_message pk=request.GET.donation_message_pk as donation_message %}
         {% if donation_message %}
-        <div class="card">
+        <div id="donation-card" class="card">
           <div class="card-body">
-            <div class="row justify-content-around">
-              <div class="col-auto">
+            <div class="row justify-content-center">
+              <div class="col-md-auto d-none d-md-flex">
                 <img style="height: 120px;" src="{% static 'img/logo-avatar.svg' %}">
               </div>
-              <div class="col-auto text-center align-self-center">
-                <p id="donation-message"{% if donation_message.language == 'ar' %} class='text-right' dir='rtl'{% endif %}>{{ donation_message.text|safe }}</p>
+              <div class="col-10 col-md-8 text-center align-self-center">
+                {{ donation_message.get_markup }}
                 <div class="text-center">
                   <a class="btn btn-success bold" href="{% if donation_message.language == 'ar' %}{% url 'contribute' 'ar' %}{% else %}{% url 'contribute' %}{% endif %}?pk_campaign=donation&pk_content={{ donation_message.pk }}"><strong>{% if donation_message.language == 'ar' %}تبرُّع{% else %}Donate{% endif %}</strong></a>
                 </div>
@@ -290,7 +301,6 @@
             </div>
           </div>
         </div>
-        {% endif %}
         {% endif %}
         <div class="content-header row">
            <div class="content-header-left col-md-6 col-12 mb-1">

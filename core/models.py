@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.safestring import mark_safe
 
 class CoreMember(models.Model):
     name = models.CharField(max_length=100)
@@ -21,6 +22,12 @@ class DonationMessage(models.Model):
                                 choices=language_choices,
                                 default='en')
     is_enabled = models.BooleanField(default=True)
+
+    def get_markup(self):
+        text = self.text.strip()
+        if not (self.text.startswith('<') and self.text.endswith('>')):
+            text = f"<p class=\"text-center\">{text}</p>"
+        return mark_safe(text)
 
     def __str__(self):
         return str(self.pk)
