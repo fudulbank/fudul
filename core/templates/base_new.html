@@ -28,10 +28,13 @@
     body{
       font-size: 16px;
     }
-
     /* Since we are increasing the size, we need to reduce the minimal size of the select2 container.*/
     .select2-container {
         min-width: 15em !important;
+    }
+    #donation-message{
+      font-size: 1.3rem;
+      font-weight: 700;
     }
     </style>
 {% include 'partials/piwik.html' %}
@@ -279,9 +282,9 @@
                 <img style="height: 120px;" src="{% static 'img/logo-avatar.svg' %}">
               </div>
               <div class="col-auto text-center align-self-center">
-                <p style="font-size: 1.3rem; font-weight: 700;">{{ donation_message.text|safe }}</p>
+                <p id="donation-message"{% if donation_message.language == 'ar' %} class='text-right' dir='rtl'{% endif %}>{{ donation_message.text|safe }}</p>
                 <div class="text-center">
-                  <a class="btn btn-success bold" href="{% if donation_message.language == 'ar' %}{% url 'contribute' 'ar' %}{% else %}{% url 'contribute' %}{% endif %}?pk_campaign=donation&pk_content={{ donation_message.pk }}"><strong>Donate</strong></a>
+                  <a class="btn btn-success bold" href="{% if donation_message.language == 'ar' %}{% url 'contribute' 'ar' %}{% else %}{% url 'contribute' %}{% endif %}?pk_campaign=donation&pk_content={{ donation_message.pk }}"><strong>{% if donation_message.language == 'ar' %}تبرُّع{% else %}Donate{% endif %}</strong></a>
                 </div>
               </div>
             </div>
