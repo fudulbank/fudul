@@ -269,8 +269,9 @@
 
     <div class="app-content content">
       <div class="content-wrapper">
-        {% if config.DONATION_ACTIVATED %}
-        {% get_donation_message as donation_message %}
+        {% if config.DONATION_ACTIVATED or 'donation_message_pk' in request.GET %}
+        {% get_donation_message pk=request.GET.donation_message_pk as donation_message %}
+        {% if donation_message %}
         <div class="card">
           <div class="card-body">
             <div class="row justify-content-around">
@@ -286,6 +287,7 @@
             </div>
           </div>
         </div>
+        {% endif %}
         {% endif %}
         <div class="content-header row">
            <div class="content-header-left col-md-6 col-12 mb-1">
