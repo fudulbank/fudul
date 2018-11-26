@@ -296,7 +296,7 @@
               <div class="col-10 col-md-8 text-center align-self-center">
                 {{ donation_message.get_markup }}
                 <div class="text-center">
-                  <a class="btn btn-success bold" href="{% if donation_message.language == 'ar' %}{% url 'contribute' 'ar' %}{% else %}{% url 'contribute' %}{% endif %}?pk_campaign=donation&pk_content={{ donation_message.pk }}"><strong>{% if donation_message.language == 'ar' %}تبرُّع{% else %}Donate{% endif %}</strong></a>
+                  <a class="btn btn-success bold" href="{% if donation_message.language == 'ar' %}{% url 'contribute' 'ar' %}{% else %}{% url 'contribute' %}{% endif %}#pk_campaign=donation&pk_content={{ donation_message.pk }}"><strong>{% if donation_message.language == 'ar' %}تبرُّع{% else %}Donate{% endif %}</strong></a>
                 </div>
               </div>
             </div>
