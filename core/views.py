@@ -208,7 +208,7 @@ def show_about(request):
 
     return render(request, 'about.html', context)
 
-#@cache_page(settings.CACHE_PERIODS['EXPENSIVE_UNCHANGEABLE'])
+@cache_page(settings.CACHE_PERIODS['EXPENSIVE_UNCHANGEABLE'])
 @require_safe
 def show_contribute(request, language='en'):
     answer_count = utils.round_to(Answer.objects.filter(choice__isnull=False).count(), 10000)
