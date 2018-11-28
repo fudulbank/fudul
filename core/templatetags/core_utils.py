@@ -27,4 +27,4 @@ def get_donation_message(pk=None):
 
 @register.simple_tag
 def get_donation_target_percentage():
-    return config.WF_CURRENT_BALANCE / config.DONATION_TARGET * 100
+    return int(config.WF_CURRENT_BALANCE / config.DONATION_TARGET * 100)
