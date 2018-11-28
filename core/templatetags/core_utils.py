@@ -2,6 +2,7 @@ from django import template
 from django.template.defaultfilters import stringfilter
 from django.utils.safestring import mark_safe
 from django.utils.html import urlize as urlize_impl
+from constance import config
 from core.models import DonationMessage
 
 
@@ -23,3 +24,7 @@ def get_donation_message(pk=None):
         donation_message = DonationMessage.objects.filter(is_enabled=True)\
                                                   .order_by('?').first()
     return donation_message
+
+@register.simple_tag
+def get_donation_target_percentage():
+    return config.WF_CURRENT_BALANCE / config.DONATION_TARGET * 100
