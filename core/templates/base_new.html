@@ -300,7 +300,7 @@
                   <div class="progress-bar bg-success" role="progressbar" style="width: {{ donation_target_percentage }}%;" aria-valuenow="{{ donation_target_percentage }}" aria-valuemin="0" aria-valuemax="100">{{ donation_target_percentage }}%</div>
                 </div>
                 <div class="text-center">
-                  <a class="btn btn-success bold" href="{% if donation_message.language == 'ar' %}{% url 'contribute' 'ar' %}{% else %}{% url 'contribute' %}{% endif %}#pk_campaign=donation&pk_kwd=message-{{ donation_message.pk }}"><strong>{% if donation_message.language == 'ar' %}تبرُّع{% else %}Donate{% endif %}</strong></a>
+                  <a class="btn btn-success bold" href="{% if donation_message.language == 'ar' %}{% url 'contribute' 'ar' %}{% else %}{% url 'contribute' %}{% endif %}#pk_campaign=donation&pk_kwd=message-with-progress-{{ donation_message.pk }}"><strong>{% if donation_message.language == 'ar' %}تبرُّع{% else %}Donate{% endif %}</strong></a>
                 </div>
               </div>
             </div>
