@@ -39,6 +39,7 @@ class Profile(UserenaBaseProfile):
     institution = models.CharField(max_length=100, default="")
     mobile_number = models.CharField(max_length=14)
     alternative_email = models.EmailField(blank=True)
+    is_editor = models.BooleanField(default=False)
     submission_date = models.DateTimeField(auto_now_add=True)
     modification_date = models.DateTimeField(auto_now=True, null=True)
     primary_interest = models.ForeignKey('PrimaryInterest', null=True, blank=True, limit_choices_to={'children__isnull': True})
