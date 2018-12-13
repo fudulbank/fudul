@@ -453,6 +453,8 @@ class CorrectionList(views.APIView):
             raise Http404
 
         choices_with_corrections = Choice.objects.select_related('answer_correction',
+                                                                 'answer_correction__submitter',
+                                                                 'answer_correction__submitter__profile',
                                                                  'revision',
                                                                  'revision__question')\
                                                  .filter(revision__best_of__isnull=False,
