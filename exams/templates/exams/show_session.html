@@ -235,7 +235,7 @@
       $current_question.find('img.lazy').each(function(){
         var $lazy_img = $(this),
             src = $lazy_img.data('src');
-        $lazy_img.attr('src', src);
+        $lazy_img.attr('src', src).removeClass('lazy');
       });
 
       // If question is still unfound despite looking by URL,
