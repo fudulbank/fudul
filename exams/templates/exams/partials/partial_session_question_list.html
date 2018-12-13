@@ -1,3 +1,5 @@
 {% for question in questions %}
+{% with session=True %}
   {% include 'exams/partials/session_question.html' %}
+{% endwith  %}
 {% endfor %}
