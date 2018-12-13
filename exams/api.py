@@ -1,7 +1,10 @@
+from django.conf import settings
 from django.http import HttpResponseBadRequest, Http404
 from django.shortcuts import get_object_or_404
 from django.template.defaultfilters import truncatewords, linebreaksbr
 from django.template.loader import get_template
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework import exceptions, serializers, views, viewsets, permissions, pagination
 from rest_framework.response import Response
 import textwrap
@@ -445,6 +448,7 @@ class ActivityList(views.APIView):
 class CorrectionList(views.APIView):
     permission_classes = (HasSessionOrQuestionAccess,)
 
+    @method_decorator(cache_page(settings.CACHE_PERIODS['DYNAMIC']))
     def get(self, request, format=None):
         session_pk = request.query_params.get('session_pk')
         question_pk = request.query_params.get('question_pk')
