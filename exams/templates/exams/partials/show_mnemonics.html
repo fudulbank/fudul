@@ -3,7 +3,7 @@
    {% for mnemonic in question.get_available_mnemonics %}
     <div class="mnemonic card-content">
       {% if mnemonic.image %}
-      <img class="img-fluid" src="{{ mnemonic.image.url }}">
+      <img class="img-fluid{% if session %} lazy"  src="{% static 'img/logo-avatar.svg' %}" data-{% else %}" {% endif %}src="{{ mnemonic.image.url }}">
       {% endif %}
         <div class="card-body"  style="margin-bottom: 5%">
            {% if mnemonic.text %}<h6 class="card-text">{{ mnemonic.text }} </h6>{% endif %}

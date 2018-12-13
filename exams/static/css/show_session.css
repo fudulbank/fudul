@@ -337,3 +337,7 @@ body[data-session-is-examinable="true"] .question-body[data-was-solved="false"] 
 .emphasized{
    animation: emphasized-hint 3s ease-in infinite alternate
 }
+
+img.lazy{
+  filter: blur(4px);
+}

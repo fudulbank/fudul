@@ -19,7 +19,7 @@ p.question-text{
 <div class="panel panel-flat">
    <div class="panel-body">
     {% if revision.figure %}
-       <img class="img-responsive center-block"  src="{{ revision.figure.url }}">
+       <img class="img-responsive center-block{% if session %} lazy"  src="{% static 'img/logo-avatar.svg' %}" data-{% else %}" {% endif %}src="{{ revision.figure.url }}">
     {% endif %}
     <p class="question-text">{{ revision.text|linebreaksbr }}</p>
     <ol type="A">

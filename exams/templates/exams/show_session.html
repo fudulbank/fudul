@@ -232,6 +232,12 @@
         $current_question = $("#question-pool [data-url=\"" + target + "\"]");
       }
 
+      $current_question.find('img.lazy').each(function(){
+        var $lazy_img = $(this),
+            src = $lazy_img.data('src');
+        $lazy_img.attr('src', src);
+      });
+
       // If question is still unfound despite looking by URL,
       // fetch it.
       if (!$current_question.length) {
