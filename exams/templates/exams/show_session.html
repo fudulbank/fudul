@@ -582,7 +582,6 @@
         // $current_question is defined in showQuestion
         $current_question.find('[data-toggle="tooltip"]').tooltip();
 
-        initializeCorrectionInteractions();
         initializeMnemonicInteractions();
         controlNavigationButtons();
         handleMarked($current_question.data('is-marked'));
@@ -878,21 +877,6 @@
       has_constructed_navigation = true;
     }
 
-    function fetchCorrections(){
-      $.ajax({method: 'get',
-              url: Urls['correction-list'](),
-              data: {format: 'json',
-                     session_pk: SESSION_PK },
-              success: function(data){
-                  PREVIOUS_CORRECTIONS = data;
-                  $.each(PREVIOUS_CORRECTIONS, function(index, correction){
-                    updateCorrectionTooltip(correction.html, correction.choice_id)
-                  });
-                  initializeCorrectionInteractions();
-              }
-      });
-    }
-
     function fetchAnswers(){
       $.ajax({method: 'get',
               url: Urls['answer-list'](),
@@ -1045,6 +1029,7 @@
       var current_targets = SESSION_QUESTION_PKS.slice(fetch_list_index, fetch_list_index + 50);
       var current_target_str = current_targets.join(',');
       $("#question-loading").show();
+
       $.ajax({method: 'get',
               url: Urls['exams:list_partial_session_questions'](CATEGORY_SLUGS, EXAM_PK),
               data: {pks: current_target_str},
@@ -1069,17 +1054,18 @@
 
                 $("#question-pool").append($filtered_questions);
 
-                // If we have corrections, add them to currently
-                // targetted questions
-                if (PREVIOUS_CORRECTIONS){
-                  for (index in PREVIOUS_CORRECTIONS){
-                    correction = PREVIOUS_CORRECTIONS[index]
-                    if (current_targets.indexOf(correction.question_id) == -1){
-                      continue
-                    }
-                    updateCorrectionTooltip(correction.html, correction.choice_id);
-                  }
-                }
+                $.ajax({method: 'get',
+                        url: Urls['correction-list'](),
+                        data: {format: 'json',
+                               exam_pk: EXAM_PK,
+                               question_pks: current_target_str},
+                        success: function(data){
+                            $.each(data, function(index, correction){
+                              updateCorrectionTooltip(correction.html, correction.choice_id)
+                            });
+                            initializeCorrectionInteractions();
+                        }
+                });
 
                 if (isSafari9()){
                   FontAwesome.dom.i2svg({node: document.getElementById('question-pool')})
@@ -1359,7 +1345,6 @@
 
          fetchAnswers();
          fetchHighlights();
-         fetchCorrections();
          fetchMarks();
          updateSizes();
          $(window).resize(updateSizes);

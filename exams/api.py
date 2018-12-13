@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.http import HttpResponseBadRequest, Http404
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.template.defaultfilters import truncatewords, linebreaksbr
 from django.template.loader import get_template
@@ -94,7 +94,7 @@ class RevisionSummarySerializer(serializers.ModelSerializer):
         model = Revision
         fields = ('question', 'summary', 'submission_date',
                   'assigned_editor')
-        
+
 class RevisionAssignmentSerializer(serializers.ModelSerializer):
     question = QuestionIdSerializer(read_only=True)
     summary = serializers.SerializerMethodField()
@@ -140,19 +140,6 @@ class HasSessionAccess(permissions.BasePermission):
 
         session = get_object_or_404(Session.objects.select_related('submitter'), pk=session_pk)
         return session.can_user_access(request.user)
-
-class HasSessionOrQuestionAccess(permissions.BasePermission):
-    def has_permission(self, request, view):
-        session_pk = request.query_params.get('session_pk')
-        question_pk = request.query_params.get('question_pk')
-
-        if question_pk:
-            return has_access_question(question_pk, request.user)
-        elif session_pk:
-            session = get_object_or_404(Session.objects.select_related('submitter'), pk=session_pk)
-            return session.can_user_access(request.user)
-        else:
-            return False
 
 class IsEdtior(permissions.BasePermission):
     def has_permission(self, request, view):
@@ -311,7 +298,7 @@ class ActivityList(views.APIView):
                                                    is_deleted=False)\
                                            .order_by('-submission_date')
         recent_explanations = ExplanationRevision.objects.select_related('question',
-                                                                         'question__exam', 
+                                                                         'question__exam',
                                                                          'question__exam__category',
                                                                          'submitter',
                                                                          'submitter__profile')\
@@ -446,15 +433,16 @@ class ActivityList(views.APIView):
         return Response(data)
 
 class CorrectionList(views.APIView):
-    permission_classes = (HasSessionOrQuestionAccess,)
+    permission_classes = (CanAccessExam,)
 
     @method_decorator(cache_page(settings.CACHE_PERIODS['DYNAMIC']))
     def get(self, request, format=None):
         session_pk = request.query_params.get('session_pk')
         question_pk = request.query_params.get('question_pk')
+        question_pks = request.query_params.get('question_pks')
 
-        if not session_pk and not question_pk:
-            raise Http404
+        if not session_pk and not question_pk and not question_pks:
+            raise exceptions.ParseError('Not enough prarameters were provided.')
 
         choices_with_corrections = Choice.objects.select_related('answer_correction',
                                                                  'answer_correction__submitter',
@@ -468,10 +456,16 @@ class CorrectionList(views.APIView):
             choices_with_corrections = choices_with_corrections.filter(revision__question__session__pk=session_pk)
         elif question_pk:
             choices_with_corrections = choices_with_corrections.filter(revision__question__pk=question_pk)
+        elif question_pks:
+            try:
+                question_pks = [int(pk) for pk in request.GET.get('question_pks', '').split(',')]
+            except TypeError:
+                raise exceptions.ParseError('No valid "question_pks" parameter was provided')
+            choices_with_corrections = choices_with_corrections.filter(revision__question__pk__in=question_pks)
 
         data = []
         template = get_template("exams/partials/show_answer_correction.html")
-        for choice in choices_with_corrections:            
+        for choice in choices_with_corrections:
             context = {'choice': choice, 'user': request.user}
             html = template.render(context)
             data.append({'question_id': choice.revision.question.pk,
