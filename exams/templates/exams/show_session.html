@@ -588,6 +588,7 @@
         // $current_question is defined in showQuestion
         $current_question.find('[data-toggle="tooltip"]').tooltip();
 
+        initializeCorrectionInteractions();
         initializeMnemonicInteractions();
         controlNavigationButtons();
         handleMarked($current_question.data('is-marked'));
@@ -1069,7 +1070,6 @@
                             $.each(data, function(index, correction){
                               updateCorrectionTooltip(correction.html, correction.choice_id)
                             });
-                            initializeCorrectionInteractions();
                         }
                 });
 
