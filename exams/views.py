@@ -2,6 +2,7 @@ from dal import autocomplete
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.db.models import Q
@@ -1234,10 +1235,10 @@ def delete_session(request):
 @require_safe
 @decorators.ajax_only
 def count_answers(request):
-    return {'answer_count': Answer.objects\
-                                  .filter(choice__isnull=False)\
-                                  .count()
-            }
+    answer_count = cache.get('answer_count', Answer.objects\
+                                                   .filter(choice__isnull=False)\
+                                                   .count())
+    return {'answer_count': answer_count}
 
 @csrf.csrf_exempt
 @require_safe
