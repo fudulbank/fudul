@@ -54,8 +54,10 @@ def show_index_unauthenticated(request):
     sample_question = cached_values.get('sample_question',
                                         Question.objects.first())
     question_count = cached_values.get('question_count', 0)
-    answer_count = cached_values.get('answer_count',
-                                     Answer.objects.filter(choice__isnull=False).count())
+    answer_count = cached_values.get('answer_count')
+    if not answer_count:
+        answer_count = Answer.objects.filter(choice__isnull=False)\
+                                     .count()
     correct_percentage = cached_values.get('correct_percentage', 0)
 
     context = {'question_count': question_count,
