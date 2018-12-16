@@ -338,6 +338,11 @@ body[data-session-is-examinable="true"] .question-body[data-was-solved="false"] 
    animation: emphasized-hint 3s ease-in infinite alternate
 }
 
+.lazy{
+  font-size: 3rem;
+}
+
+/*Obsolute, can be removed. Kept to allow caching to clear up. */
 img.lazy{
   filter: blur(4px);
 }
