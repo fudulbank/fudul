@@ -1,4 +1,4 @@
 {% load static core_utils %}
 {% if explanation_revision.explanation_text %}<p class="explanation-text">{{ explanation_revision.explanation_text|urlize_target_blank }}</p>{% endif %}
-{% if explanation_revision.explanation_figure %}<img class="img-fluid explanation-figure{% if session %} lazy"  src="{% static 'img/logo-avatar.svg' %}" data-{% else %}" {% endif %}src="{{ explanation_revision.explanation_figure.url }}">{% endif %}
+{% with img=explanation_revision.explanation_figure img_class='explanation-figure' %}{% include 'partials/lazy_img.html' %}{% endwith %}
 {% if explanation_revision.reference %}<h4 class="explanation-reference-header">Reference</h4>{{ explanation_revision.reference|urlize_target_blank|linebreaks }}{% endif %}

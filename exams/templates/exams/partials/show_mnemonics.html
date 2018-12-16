@@ -2,9 +2,7 @@
 {% if question.get_available_mnemonics.exists %}
    {% for mnemonic in question.get_available_mnemonics %}
     <div class="mnemonic card-content">
-      {% if mnemonic.image %}
-      <img class="img-fluid{% if session %} lazy"  src="{% static 'img/logo-avatar.svg' %}" data-{% else %}" {% endif %}src="{{ mnemonic.image.url }}">
-      {% endif %}
+        {% with img=mnemonic.image %}{% include 'partials/lazy_img.html' %}{% endwith %}
         <div class="card-body"  style="margin-bottom: 5%">
            {% if mnemonic.text %}<h6 class="card-text">{{ mnemonic.text }} </h6>{% endif %}
           <h6 class="card-subtitle text-muted">Submitted by <strong>{{ mnemonic.submitter|get_user_credit:user }}</strong></h6>

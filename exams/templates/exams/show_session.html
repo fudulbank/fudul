@@ -232,13 +232,16 @@
         $current_question = $("#question-pool [data-url=\"" + target + "\"]");
       }
 
-      $current_question.find('img.lazy').each(function(){
-        var $lazy_img = $(this),
-            src = $lazy_img.data('src');
-        $lazy_img.attr('src', src);
+      $current_question.find('.lazy[data-fa-i2svg]').each(function(){
+        var $lazy_loader = $(this),
+            src = $lazy_loader.data('src'),
+            img_class = $lazy_loader.data('img-class'),
+            $lazy_img = $('<img class="d-none ' + img_class + '" src="' + src + '">');
         $lazy_img.on('load', function(){
-          $(this).removeClass('lazy');
+          $lazy_loader.remove();
+          $(this).removeClass('d-none');
         });
+        $lazy_loader.after($lazy_img);
       });
 
       // If question is still unfound despite looking by URL,
