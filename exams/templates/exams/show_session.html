@@ -232,7 +232,7 @@
         $current_question = $("#question-pool [data-url=\"" + target + "\"]");
       }
 
-      $current_question.find('.lazy[data-fa-i2svg]').each(function(){
+      $current_question.find('.lazy').each(function(){
         var $lazy_loader = $(this),
             src = $lazy_loader.data('src'),
             img_class = $lazy_loader.data('img-class'),
