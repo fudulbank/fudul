@@ -51,8 +51,9 @@ def show_index_unauthenticated(request):
                                     'question_count', 'answer_count',
                                     'correct_percentage'])
 
-    sample_question = cached_values.get('sample_question',
-                                        Question.objects.first())
+    sample_question = cached_values.get('sample_question')
+    if not sample_question:
+        sample_question = Question.objects.first()
     question_count = cached_values.get('question_count', 0)
     answer_count = cached_values.get('answer_count')
     if not answer_count:
