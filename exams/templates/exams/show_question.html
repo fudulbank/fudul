@@ -3,8 +3,7 @@
 {% include 'partials/call_out.html' %}
 <html lang="en">
     <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        {% include 'partials/common_meta_tags.html' %}
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
         <meta name="twitter:card" content="summary">
@@ -17,9 +16,6 @@
         <title>Fudul | Question #{{ current_question.pk }}</title>
 
         <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js" integrity="sha384-0AJY8UERsBUKdWcyF3o2kisLKeIo6G4Tbd8Y6fbyw6qYmn4WBuqcvxokp8m2UzSD" crossorigin="anonymous"></script>
-
-        <link rel="shortcut icon" href="{% static 'img/logo-monkey.png' %}">
-        <link rel="manifest" href="{% static 'manifest.json' %}">
 
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:300,300i,400,400i,500,500i%7COpen+Sans:300,300i,400,400i,600,600i,700,700i">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">

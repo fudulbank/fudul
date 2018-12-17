@@ -2,7 +2,8 @@
 <html lang="ar" dir="rtl">
 {% include 'partials/call_out.html' %}
 <head>
-  <meta charset="utf-8">
+  {% include 'partials/common_meta_tags.html' %}
+
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta name="description" content="A comprehensive, collective, free-of-charge question bank built by and for examinees.">
 
@@ -13,11 +14,9 @@
   <meta property="og:site_name" content="Fudul">
   <meta property="og:description" content="A comprehensive, collective, free-of-charge question bank built by and for examinees.">
 
-  <link rel="manifest" href="{% static 'manifest.json' %}">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
   <link href="https://fonts.googleapis.com/css?family=Aref+Ruqaa|Open+Sans:400,700" rel="stylesheet">
 
-  <link href="{% static 'img/logo-avatar.svg' %}" rel="icon">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw" crossorigin="anonymous">
   <script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js" integrity="sha384-0AJY8UERsBUKdWcyF3o2kisLKeIo6G4Tbd8Y6fbyw6qYmn4WBuqcvxokp8m2UzSD" crossorigin="anonymous"></script>
   <title>فضول | بنك أسئلة للناس، لا للربح</title>
