@@ -23,6 +23,7 @@ th, td{
 {% endblock %}
 {% block content %}
 {% cache CACHE_PERIODS.STABLE show_session_results session.pk %}
+{% with question_count=session.get_questions.count %}
 <h1>Session #<a href="{% url 'exams:show_session' category_slugs session.exam.pk session.pk %}">{{ session.pk }}</a> results</h1>
 
 
@@ -45,7 +46,7 @@ th, td{
                                       <i class="fa fa-check success font-large-2 float-left"></i>
                                   </div>
                                   <div class="media-body text-right">
-                                      <h3>{% widthratio correct_count session.get_questions.count 100 %}%</h3>
+                                      <h3>{% widthratio correct_count question_count 100 %}%</h3>
                                       <span>of questions answered correctly</span>
                                   </div>
                               </div>
@@ -57,7 +58,7 @@ th, td{
                     <div class="card-body">
                       <h3 class="card-title text-left">Actions</h3>
                       <div class="btn-group-vertical">
-                        <button data-selector="ALL" class="btn btn-sm btn-primary automatic-creation"><i class="ft-play"></i> Re-examine on <strong>all</strong> questions <span class="font-small-2">({{ session.get_questions.count }})</span></button>
+                        <button data-selector="ALL" class="btn btn-sm btn-primary automatic-creation"><i class="ft-play"></i> Re-examine on <strong>all</strong> questions <span class="font-small-2">({{ question_count }})</span></button>
                         {% if skipped_count %}
                           <button data-selector="SKIPPED" class="btn btn-sm btn-primary automatic-creation"><i class="ft-rotate-ccw"></i> Re-examine on <strong>skipped</strong> questions <span class="font-small-2">({{ skipped_count }})</span></button>
                         {% endif %}
@@ -84,11 +85,11 @@ th, td{
                     </tr>
                 </thead>
                 <tbody>
-                {% for answer in session.answer_set.all %}
+                {% for answer in session.answer_set.select_for_session_result %}
                   <tr>
                     {% if not answer.choice %}<td data-order="skipped"><i data-toggle="tooltip" title="Skipped" class="fa fa-question-circle text-warning"></i>{% elif answer.choice.is_right %}<td data-order="correct"><i data-toggle="tooltip" title="Correct" class="fa fa-check text-success"></i>{% elif not answer.choice.is_right %}<td data-toggle="tooltip" title="Incorrect" data-order="incorrect"><i class="fa fa-times text-danger"></i>{% endif %}</td>
                     <td><a href="{% url 'exams:show_session' category_slugs session.exam.pk session.pk answer.question.pk %}">{{ answer.question.pk }}</a></td>
-                    <td>{{ answer.question.get_latest_approved_revision.text|linebreaks|truncatewords:20 }}</td>
+                    <td>{{ answer.question.best_revision.text|linebreaks|truncatewords:20 }}</td>
                     <td>
                        <ul>{% for subject in answer.question.subjects.all %}<li>{{ subject.name }}</li>{% endfor %}</ul>
                     </td>
@@ -100,6 +101,7 @@ th, td{
           </div>
         </div>
     </div>
+{% endwith %}
 {% endcache %}
 {% endblock %}
 {% block customscript %}

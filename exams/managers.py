@@ -297,6 +297,11 @@ class AnswerQuerySet(models.QuerySet):
     def of_undeleted_questions(self):
         return self.filter(question__is_deleted=False)
 
+    def select_for_session_result(self):
+        return self.select_related('choice',
+                                   'question',
+                                   'question__best_revision')
+
 class MnemonicQuerySet(models.QuerySet):
     def undeleted(self,question):
         self.filter(question=question,is_deleted=False)
