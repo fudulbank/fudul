@@ -719,14 +719,6 @@ class AnswerCorrection(models.Model):
         return self.submitter == user or \
                self.choice.revision.question.exam.can_user_edit(user)
 
-    def get_supporting_user_list(self):
-        "A database-efficient way of getting supporting  users"
-        return list(self.supporting_users.select_related('profile'))
-
-    def get_opposing_user_list(self):
-        "A database-efficient way of getting opposing  users"
-        return list(self.opposing_users.select_related('profile'))
-
     def __str__(self):
         return "Correction of Q#{}".format(self.choice.revision.question.pk)
 

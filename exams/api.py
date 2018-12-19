@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.db.models import Prefetch
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.template.defaultfilters import truncatewords, linebreaksbr
@@ -435,7 +436,7 @@ class ActivityList(views.APIView):
 class CorrectionList(views.APIView):
     permission_classes = (CanAccessExam,)
 
-    @method_decorator(cache_page(settings.CACHE_PERIODS['DYNAMIC']))
+    # We won't cache this as it has user-specific interactions.
     def get(self, request, format=None):
         session_pk = request.query_params.get('session_pk')
         question_pk = request.query_params.get('question_pk')
@@ -444,11 +445,19 @@ class CorrectionList(views.APIView):
         if not session_pk and not question_pk and not question_pks:
             raise exceptions.ParseError('Not enough prarameters were provided.')
 
+        user_qs = User.objects.select_related('profile')
         choices_with_corrections = Choice.objects.select_related('answer_correction',
+                                                                 'answer_correction__choice__revision__question__exam',
                                                                  'answer_correction__submitter',
                                                                  'answer_correction__submitter__profile',
                                                                  'revision',
                                                                  'revision__question')\
+                                                 .prefetch_related(Prefetch('answer_correction__supporting_users',
+                                                                            user_qs,
+                                                                            to_attr="supporting_user_list"),
+                                                                   Prefetch('answer_correction__opposing_users',
+                                                                            user_qs,
+                                                                            to_attr="opposing_user_list"))\
                                                  .filter(revision__best_of__isnull=False,
                                                          answer_correction__isnull=False)
 

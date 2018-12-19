@@ -1,17 +1,17 @@
-{% with correction=choice.answer_correction supporting_users=choice.answer_correction.get_supporting_user_list opposing_users=choice.answer_correction.get_opposing_user_list %}{% load account_utils core_utils exam_utils %}
+{% with correction=choice.answer_correction %}{% load account_utils core_utils exam_utils %}
 <div class="answer-correction-tooltip-container">
   <div class="answer-correction-tooltip-body">
     <div class="answer-correction-header">
       <h5 class="title">Answer correction</h5>
       {% if user|can_delete_correction:correction %}
-      <button data-choice-pk="{{ choice.pk }}" data-toggle="tooltip" data-html="true" title="{% if supporting_users %}<strong>Delete this correction.</strong><br>Please note that other Fudul members have supported this correction.  By deleting this correction, your name will be removed from being the primary submitter and will be replaced by the name of another fellow Fudul member{% else %}Delete this correction{% endif %}." class="delete-correction"><i class="fas fa-trash-alt text-danger"></i></button>
+      <button data-choice-pk="{{ choice.pk }}" data-toggle="tooltip" data-html="true" title="{% if correction.supporting_user_list %}<strong>Delete this correction.</strong><br>Please note that other Fudul members have supported this correction.  By deleting this correction, your name will be removed from being the primary submitter and will be replaced by the name of another fellow Fudul member{% else %}Delete this correction{% endif %}." class="delete-correction"><i class="fas fa-trash-alt text-danger"></i></button>
       {% endif %}
     </div>
 
     <div class="text-left">
       <p>{{ correction.submitter|get_user_credit:user }} suggests that <strong>"{{ choice }}"</strong> is the correct answer, giving the following justification:</p>
       <p class="ml-4 font-italic">{{ correction.justification|urlize_target_blank|linebreaksbr }}</p>
-      <p>{% if supporting_users %}<span class="supporting-users" data-toggle="tooltip" data-html="true" title="<ul>{% for voting_user in supporting_users %}<li>{{ voting_user|get_user_credit:user }}</li>{% endfor %}</ul>">{{ supporting_users|length }} users supported this correction</span>.{% endif %}{% if opposing_users %} <span class="opposing-users" data-toggle="tooltip" data-html="true" title="<ul>{% for voting_user in opposing_users %}<li>{{ voting_user|get_user_credit:user }}</li>{% endfor %}</ul>">{{ opposing_users|length }} users opposed this correction</span>.{% endif %}</p>
+      <p>{% if correction.supporting_user_list %}<span class="supporting-users" data-toggle="tooltip" data-html="true" title="<ul>{% for voting_user in correction.supporting_user_list %}<li>{{ voting_user|get_user_credit:user }}</li>{% endfor %}</ul>">{{ correction.supporting_user_list|length }} users supported this correction</span>.{% endif %}{% if correction.opposing_user_list %} <span class="opposing-users" data-toggle="tooltip" data-html="true" title="<ul>{% for voting_user in correction.opposing_user_list %}<li>{{ voting_user|get_user_credit:user }}</li>{% endfor %}</ul>">{{ correction.opposing_user_list|length }} users opposed this correction</span>.{% endif %}</p>
     </div>
 
     <div class="row justify-content-center">

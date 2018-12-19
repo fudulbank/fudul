@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
-from django.db.models import Q
+from django.db.models import Prefetch, Q
 from django.http import HttpResponseRedirect, Http404, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
 from django.template.loader import get_template
@@ -513,6 +513,8 @@ def list_partial_session_questions(request, slugs, exam_pk):
         return HttpResponseBadRequest('No valid "pks" parameter was provided')
 
     questions = Question.objects.select_related('best_revision', 'exam')\
+                                .prefetch_related(Prefetch('sources', to_attr='source_list'),
+                                                  'best_revision__choice_set')\
                                 .filter(exam__pk=exam_pk, pk__in=pks)
     template = get_template("exams/partials/partial_session_question_list.html")
     context = {'questions': questions, 'user': request.user}
