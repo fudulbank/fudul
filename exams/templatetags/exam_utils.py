@@ -73,15 +73,15 @@ def get_exam_question_count_per_meta(exam, meta, approved_only=False):
 
 @register.filter
 def can_support_correction(user, correction):
-    return correction.submitter != user and not correction.supporting_users.filter(pk=user.pk).exists()
+    return correction.submitter != user and not user in correction.supporting_user_list
 
 @register.filter
 def can_oppose_correction(user, correction):
-    return correction.submitter != user and not correction.opposing_users.filter(pk=user.pk).exists()
+    return correction.submitter != user and not user in correction.opposing_user_list
 
-@register.filter
-def can_delete_correction(user, correction):
-    return correction.can_user_delete(user)
+@register.simple_tag
+def can_delete_correction(user, exam, correction):
+    return correction.can_user_delete(user, exam)
 
 @register.filter
 def can_user_access(user, obj):

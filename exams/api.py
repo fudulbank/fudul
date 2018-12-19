@@ -447,11 +447,11 @@ class CorrectionList(views.APIView):
 
         user_qs = User.objects.select_related('profile')
         choices_with_corrections = Choice.objects.select_related('answer_correction',
-                                                                 'answer_correction__choice__revision__question__exam',
                                                                  'answer_correction__submitter',
                                                                  'answer_correction__submitter__profile',
                                                                  'revision',
-                                                                 'revision__question')\
+                                                                 'revision__question',
+                                                                 'revision__question__exam')\
                                                  .prefetch_related(Prefetch('answer_correction__supporting_users',
                                                                             user_qs,
                                                                             to_attr="supporting_user_list"),
