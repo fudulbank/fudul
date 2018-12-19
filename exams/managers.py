@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import Q, Count
+from django.db.models import Count, Prefetch, Q
 from django.http import Http404
 import accounts.utils
 from . import utils
@@ -165,6 +165,11 @@ class QuestionQuerySet(models.QuerySet):
                 count += 1
         return self.filter(queries)
 
+    def select_for_show_session(self):
+        return self.select_related('best_revision', 'exam')\
+                   .prefetch_related(Prefetch('sources', to_attr='source_list'),
+                                     Prefetch('best_revision__choice_set', to_attr='choice_list'))
+
 class RevisionQuerySet(models.QuerySet):
     def order_by_submission(self):
         return self.order_by('-pk')
@@ -202,13 +207,6 @@ class SessionQuerySet(models.QuerySet):
 class ChoiceQuerySet(models.QuerySet):
     def order_by_alphabet(self):
         return self.order_by('text')
-
-    def select_related_for_session(self):
-        return self.select_related('answer_correction',
-                                   'answer_correction__submitter')
-
-    def order_randomly(self):
-        return self.order_by('?')
 
 class MetaInformationQuerySet(models.QuerySet):
     def order_by_exam_questions(self, exam):

@@ -623,11 +623,12 @@ class Session(models.Model):
         # session unused question.  Otherwise, show the first session
         # question.
         if question_pk:
-            current_question = get_object_or_404(self.get_questions(), pk=question_pk)
+            current_question = get_object_or_404(self.get_questions().select_for_show_session(), pk=question_pk)
         elif not self.has_finished:
-            current_question = self.get_unused_questions().first()
+            current_question = self.get_unused_questions().select_for_show_session().first()
         else:
             current_question = self.get_questions()\
+                                   .select_for_show_session()\
                                    .order_by('global_sequence')\
                                    .first()
 

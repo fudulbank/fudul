@@ -11,7 +11,7 @@
     <p class="question-text">{{ best_revision.text }}</p>
     <table class="choice-table">
       <tbody class="unprepared">
-        {% for choice in best_revision.choice_set.select_related_for_session %}
+        {% for choice in best_revision.choice_list %}
             <tr data-choice-pk="{{ choice.pk }}" data-is-right="{% if choice.is_right %}true{% else %}false{% endif %}" data-has-correction="false">
                <td class="correct"><i title="Suggest an alternative right answer" class="far fa-hand-paper"></i></td>
                <td class="check">{% if choice.is_right %}<i title="Correct answer" class="fas fa-check text-success mx-1"></i>{% elif not choice.is_right %}<i title="Incorrect answer" class="fas fa-times text-danger mx-1"></i>{% endif %}</td>
