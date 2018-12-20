@@ -629,12 +629,7 @@ class Session(models.Model):
         else:
             qs = self.get_questions().order_by('global_sequence')
 
-        # If the following query is changed, consider changing the one
-        # in views.list_partial_session_questions.
-        qs = qs.select_for_show_session().prefetch_related(models.Prefetch('revision_set',
-                        Revision.objects.select_related('submitter',
-                                                        'submitter__profile').undeleted(),
-                        to_attr='revision_list'))
+        qs = qs.select_for_show_session()
 
         if question_pk:
             current_question = get_object_or_404(qs, pk=question_pk)

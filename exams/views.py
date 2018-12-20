@@ -5,7 +5,6 @@ from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
-from django.db.models import Prefetch, Q
 from django.http import HttpResponseRedirect, Http404, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
 from django.template.loader import get_template
@@ -512,14 +511,8 @@ def list_partial_session_questions(request, slugs, exam_pk):
     except ValueError:
         return HttpResponseBadRequest('No valid "pks" parameter was provided')
 
-    # If the following query is changed, consider changing the one in
-    # models.Question.get_current_question()
     questions = Question.objects.select_for_show_session()\
-                                .filter(exam__pk=exam_pk, pk__in=pks)\
-                                .prefetch_related(Prefetch('revision_set',
-                                                           Revision.objects.select_related('submitter',
-                                                                                           'submitter__profile').undeleted(),
-                                                           to_attr='revision_list'))
+                                .filter(exam__pk=exam_pk, pk__in=pks)
     template = get_template("exams/partials/partial_session_question_list.html")
     context = {'questions': questions, 'user': request.user}
     html = template.render(context)
@@ -1260,7 +1253,7 @@ def get_correct_percentage(request):
 def contribute_mnemonics(request):
     action = request.POST.get('action')
     question_pk = request.GET.get('question_pk')
-    question = get_object_or_404(Question.objects.select_related('exam'),
+    question = get_object_or_404(Question.objects.select_for_show_session(),
                                  pk=question_pk,
                                  is_deleted=False)
     exam = question.exam

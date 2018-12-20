@@ -166,9 +166,19 @@ class QuestionQuerySet(models.QuerySet):
         return self.filter(queries)
 
     def select_for_show_session(self):
+        from .models import Revision, Mnemonic 
         return self.select_related('best_revision', 'exam')\
                    .prefetch_related(Prefetch('sources', to_attr='source_list'),
-                                     Prefetch('best_revision__choice_set', to_attr='choice_list'))
+                                     Prefetch('best_revision__choice_set', to_attr='choice_list'),
+                                     Prefetch('revision_set',
+                                              Revision.objects.select_related('submitter',
+                                                                              'submitter__profile').undeleted(),
+                                              to_attr='revision_list'),
+                                     Prefetch('mnemonic_set',
+                                              Mnemonic.objects.annotate(like_count=Count('likes'))\
+                                                              .select_related('submitter',
+                                                                              'submitter__profile'),
+                                              to_attr='mnemonic_list'))
 
 class RevisionQuerySet(models.QuerySet):
     def order_by_submission(self):
