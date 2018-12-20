@@ -45,16 +45,18 @@
 {% endwith %}{# with others #}
 <div class="tooltip-container">
   <div class="tooltip-body">
-    {% for contributor in question.get_contributors %}
+    {% with contributors=question.get_contributors %}
+    {% for contributor in contributors %}
       {% if forloop.first %}
           This question was originally added by {% if contributor %}<a href="{% url 'exams:list_contributions' contributor.pk %}">{{ contributor|get_user_credit }}</a>. {% else %} automatic importing.{% endif %}
-        {% if question.get_contributors|length > 1 %}
+        {% if contributors|length > 1 %}
         Futher contributions were done by
         {% endif %}
       {% else %}
         {{ contributor|get_user_credit }}{% if forloop.last %}.{% else %}, {% endif %}
     {% endif %}
       {% endfor %}
+      {% endwith %}
   </div>
 </div>
 
