@@ -512,8 +512,14 @@ def list_partial_session_questions(request, slugs, exam_pk):
     except ValueError:
         return HttpResponseBadRequest('No valid "pks" parameter was provided')
 
+    # If the following query is changed, consider changing the one in
+    # models.Question.get_current_question()
     questions = Question.objects.select_for_show_session()\
-                                .filter(exam__pk=exam_pk, pk__in=pks)
+                                .filter(exam__pk=exam_pk, pk__in=pks)\
+                                .prefetch_related(Prefetch('revision_set',
+                                                           Revision.objects.select_related('submitter',
+                                                                                           'submitter__profile').undeleted(),
+                                                           to_attr='revision_list'))
     template = get_template("exams/partials/partial_session_question_list.html")
     context = {'questions': questions, 'user': request.user}
     html = template.render(context)

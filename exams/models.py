@@ -366,12 +366,12 @@ class Question(models.Model):
 
     def get_contributors(self):
         contributors = []
-        for revision in self.revision_set.select_related('submitter',
-                                                         'submitter__profile')\
-                                         .undeleted()\
-                                         .order_by('pk'):
+        for revision in self.revision_list:
             if not revision.submitter in contributors:
                 contributors.append(revision.submitter)
+
+        contributors.sort(key=lambda user: user.pk, reverse=True)
+
         return contributors
 
     def get_tree(self):
@@ -619,18 +619,27 @@ class Session(models.Model):
                    .exists()
 
     def get_current_question(self, question_pk=None):
-        # If a question PK is given, show it.  Otheriwse show the first
-        # session unused question.  Otherwise, show the first session
-        # question.
+        # If a question PK is given, show it.  Otheriwse show the
+        # first session unused question.  If all questions were
+        # answered, show the first session question.
         if question_pk:
-            current_question = get_object_or_404(self.get_questions().select_for_show_session(), pk=question_pk)
+            qs = self.get_questions()
         elif not self.has_finished:
-            current_question = self.get_unused_questions().select_for_show_session().first()
+            qs = self.get_unused_questions()
         else:
-            current_question = self.get_questions()\
-                                   .select_for_show_session()\
-                                   .order_by('global_sequence')\
-                                   .first()
+            qs = self.get_questions().order_by('global_sequence')
+
+        # If the following query is changed, consider changing the one
+        # in views.list_partial_session_questions.
+        qs = qs.select_for_show_session().prefetch_related(models.Prefetch('revision_set',
+                        Revision.objects.select_related('submitter',
+                                                        'submitter__profile').undeleted(),
+                        to_attr='revision_list'))
+
+        if question_pk:
+            current_question = get_object_or_404(qs, pk=question_pk)
+        else:
+            current_question = qs.first()
 
         return current_question
 
