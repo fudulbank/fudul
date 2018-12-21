@@ -186,7 +186,9 @@ class HighlightViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         session_pk = self.request.query_params.get('session_pk')
         return Highlight.objects.filter(session_id=session_pk,
-                                        session__is_deleted=False)
+                                        session__is_deleted=False)\
+                                .select_related('revision')\
+                                .prefetch_related('stricken_choices')
 
 class MarkedQuestionViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = QuestionIdSerializer
