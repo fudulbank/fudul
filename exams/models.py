@@ -367,7 +367,7 @@ class Question(models.Model):
     def get_contributors(self):
         contributors = []
         for revision in self.revision_list:
-            if not revision.submitter in contributors:
+            if revision.submitter and not revision.submitter in contributors:
                 contributors.append(revision.submitter)
 
         contributors.sort(key=lambda user: user.pk, reverse=True)
