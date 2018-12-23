@@ -1,12 +1,12 @@
-{% load static exam_utils account_utils%}
+{% load static account_utils %}
 {% for mnemonic in question.mnemonic_list %}
-<div class="mnemonic card-content">
+<div data-mnemonic-pk="{{ mnemonic.pk }}" data-submitter-pk="{{ mnemonic.submitter.pk }}" class="mnemonic card-content">
     {% with img=mnemonic.image %}{% include 'partials/lazy_img.html' %}{% endwith %}
     <div class="card-body"  style="margin-bottom: 5%">
        {% if mnemonic.text %}<h6 class="card-text">{{ mnemonic.text }} </h6>{% endif %}
-      <h6 class="card-subtitle text-muted">Submitted by <strong>{{ mnemonic.submitter|get_user_credit:user }}</strong></h6>
-    <button id='like'{% if mnemonic.submitter == user %} disabled {% endif %} data-mnemonic-pk="{{ mnemonic.pk }}" data-action="like" style="float: right"  class="like-mnemonic btn btn-outline-primary">{% if mnemonic.like_count != 0 %} {{ mnemonic.like_count }}{% endif %} <i class="far fa-thumbs-up"></i></button>
-    {% if question.exam|can_user_edit:user or mnemonic.submitter == user %} <a id='delete-mnemonic' data-mnemonic-pk="{{ mnemonic.pk }}" data-action="delete" style="float: right; margin-right: 2%"  class="delete-mnemonic btn btn-outline-danger"><i class="far fa-trash-alt"></i></a>{% endif %}
+      <h6 class="card-subtitle text-muted">Submitted by <strong>{{ mnemonic.submitter|get_user_credit }}</strong></h6>
+    <button data-action="like"  class="float-right like-mnemonic btn btn-outline-primary">{% if mnemonic.like_count != 0 %} {{ mnemonic.like_count }}{% endif %} <i class="far fa-thumbs-up"></i></button>
+    <button data-action="delete" style="margin-right: 2%"  class="float-right delete-mnemonic btn btn-outline-danger d-none"><i class="far fa-trash-alt"></i></button>
   </div>
 </div>
 {% endfor %}

@@ -177,7 +177,8 @@ class QuestionQuerySet(models.QuerySet):
                                      Prefetch('mnemonic_set',
                                               Mnemonic.objects.annotate(like_count=Count('likes'))\
                                                               .select_related('submitter',
-                                                                              'submitter__profile'),
+                                                                              'submitter__profile')\
+                                                              .filter(is_deleted=False),
                                               to_attr='mnemonic_list'))
 
 class RevisionQuerySet(models.QuerySet):

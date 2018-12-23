@@ -159,6 +159,7 @@
     // Keys represent PKs.  Values represent global_sequences.
     SESSION_QUESTIONS = {{ session_question_pks|safe }};
     CATEGORY_SLUGS = '{{ category_slugs }}';
+    USER_PK = {{ user.pk }};
     EXAM_PK = {{ session.exam.pk }};
     SESSION_PK = {{ session.pk }};
     SESSION_MODE = '{{ session.session_mode }}';
@@ -445,10 +446,21 @@
 
     function initializeMnemonicInteractions(){
       var question_pk = $current_question.data('question-pk');
+
+      $current_question.find('.mnemonic').each(function(){
+        var $mnemonic = $(this),
+            submitter_pk  = $mnemonic.data('submitter-pk');
+        if (submitter_pk == USER_PK){
+          $mnemonic.find('.like-mnemonic').attr('disabled', true);
+          $mnemonic.find('.delete-mnemonic').removeClass('d-none');
+        }
+      });
+
       $current_question.find(".like-mnemonic").off('click').on('click', function() {
-           action = $(this).data('action');
-           mnemonic_pk = $(this).data('mnemonic-pk');
-           url =  Urls['exams:contribute_mnemonics']() + "?" + $.param({question_pk: question_pk});
+           var $like = $(this),
+               action = $like.data('action'),
+               mnemonic_pk = $like.closest('.mnemonic').data('mnemonic-pk'),
+               url =  Urls['exams:contribute_mnemonics']() + "?" + $.param({question_pk: question_pk});
 
            $.ajax({
                url: url,
@@ -458,6 +470,7 @@
                  if (data.success == 1){
                    toastr.success("Your vote was submitted.");
                    $current_question.find(".mnemonics-content").html(data.mnemonic_html);
+                   initializeMnemonicInteractions();
                  } else {
                    toastr.error(data.message)
                  }
@@ -465,8 +478,9 @@
            });
       });
       $current_question.off('click', ".delete-mnemonic").on( 'click', ".delete-mnemonic", function() {
-           var action = $(this).data('action'),
-               mnemonic_pk = $(this).data('mnemonic-pk'),
+           var $delete = $(this),
+               action = $delete.data('action'),
+               mnemonic_pk = $delete.closest('.mnemonic').data('mnemonic-pk'),
                url = Urls['exams:contribute_mnemonics']() + "?" + $.param({question_pk: question_pk});
 
            $.ajax({
@@ -477,8 +491,7 @@
                  if (data.success == 1){
                    toastr.success("Your mnemonic is deleted.");
                    $current_question.find(".mnemonics-content").html(data.mnemonic_html);
-
-
+                   initializeMnemonicInteractions();
                  } else {
                    toastr.error(data.message)
                  }

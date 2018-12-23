@@ -81,6 +81,7 @@
                            $("#add-mnemonics-modal").modal('hide');
                            $current_question.find(".mnemonics-container").show();
                            $current_question.find(".mnemonics-content").html(data.mnemonic_html);
+                           initializeMnemonicInteractions();
                            $("#add-mnemonics-modal .modal-body").html(data);
                        } else {
                            $("#add-mnemonics-modal .modal-body").html(data);

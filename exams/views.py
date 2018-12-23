@@ -1256,8 +1256,6 @@ def contribute_mnemonics(request):
     question = get_object_or_404(Question.objects.select_for_show_session(),
                                  pk=question_pk,
                                  is_deleted=False)
-    exam = question.exam
-    mnemonics = question.mnemonic_set.filter(is_deleted=False)
 
     if request.method == 'GET':
         form = forms.ContributeMnemonic()
@@ -1269,10 +1267,6 @@ def contribute_mnemonics(request):
                                             instance=instance)
             if form.is_valid():
                 form.save()
-                template = get_template('exams/partials/show_mnemonics.html')
-                context = {'question': question,'user':request.user}
-                mnemonic_html = template.render(context)
-                return {'mnemonic_html':mnemonic_html}
         elif Mnemonic.objects.filter(question=question).exists():
             mnemonic_pk = request.POST.get('mnemonic_pk')
             mnemonic = get_object_or_404(Mnemonic.objects.select_related('submitter'), pk=mnemonic_pk)
@@ -1284,31 +1278,29 @@ def contribute_mnemonics(request):
                     raise Exception("You have already liked this mnemonic.")
                 mnemonic.likes.add(request.user)
                 mnemonic.notify_submitter(request.user)
-                template = get_template('exams/partials/show_mnemonics.html')
-                context = {'question': question,'user':request.user}
-                mnemonic_html = template.render(context)
-                return {'mnemonic_html':mnemonic_html}
-
             elif action == 'delete':
                 if not request.user.is_superuser and \
-                   not exam.can_user_edit(request.user) and \
+                   not question.exam.can_user_edit(request.user) and \
                    not mnemonic.submitter == request.user:
                     raise Exception("You cannot delete this mnemonic!")
 
                 mnemonic.is_deleted = True
                 mnemonic.save()
                 Notification.objects.filter(verb='mnemonic').delete()
-                template = get_template('exams/partials/show_mnemonics.html')
-                context = {'question': question,'user':request.user, 'exam':exam}
-                mnemonic_html = template.render(context)
-                return {'mnemonic_html':mnemonic_html}
-
             else:
                 return HttpResponseBadRequest()
         else:
             return HttpResponseBadRequest()
 
-    context = {'question': question, 'form': form, 'mnemonics':mnemonics, 'exam':exam}
+        # Get the question instance again to update
+        # prefetch_related after adding the new mnemonic.
+        question = Question.objects.select_for_show_session().get(pk=question_pk)
+        template = get_template('exams/partials/show_mnemonics.html')
+        context = {'question': question}
+        mnemonic_html = template.render(context)
+        return {'mnemonic_html':mnemonic_html}
+
+    context = {'question': question, 'form': form}
     return render(request, 'exams/partials/contribute_mnemonics.html', context)
 
 @login_required
