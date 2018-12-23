@@ -167,7 +167,9 @@ class QuestionQuerySet(models.QuerySet):
 
     def select_for_show_session(self):
         from .models import Revision, Mnemonic 
-        return self.select_related('best_revision', 'exam')\
+        return self.select_related('best_revision',
+                                   'latest_explanation_revision',
+                                   'exam')\
                    .prefetch_related(Prefetch('sources', to_attr='source_list'),
                                      Prefetch('best_revision__choice_set', to_attr='choice_list'),
                                      Prefetch('revision_set',

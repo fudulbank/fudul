@@ -106,11 +106,6 @@ class RevisionForm(forms.ModelForm):
         new_revision.save()
         self.save_m2m()
 
-        # Mark the last revision as such
-        question.update_latest()
-        question.update_best_revision()
-        question.save()
-
         return new_revision
 
     class Meta:
@@ -362,9 +357,6 @@ class ExplanationForm(forms.ModelForm):
         new_explanation.submitter = user
         new_explanation.question = question
         new_explanation.save()
-
-        # Mark the last explanation as such
-        question.update_latest()
 
         return new_explanation
 

@@ -193,10 +193,6 @@ def handle_question(request, exam_pk, question_pk=None):
             explanation.question = question
             explanation.save()
 
-        question.best_revision = revision
-        question.update_is_approved()
-        question.save()
-
         show_url = reverse('exams:approve_user_contributions', args=(exam.category.get_slugs(), exam.pk))
         return {"question_pk": question.pk,
                 "show_url": show_url}
@@ -374,8 +370,6 @@ def submit_revision(request, slugs, exam_pk, pk):
             # before.
             new_revision.is_approved = utils.test_revision_approval(new_revision)
             new_revision.save()
-            question.update_is_approved()
-            question.save()
 
             return HttpResponseRedirect(
                 reverse("exams:list_revisions",
@@ -774,8 +768,6 @@ def contribute_revision(request):
             # before.
             new_revision.is_approved = utils.test_revision_approval(new_revision)
             new_revision.save()
-            question.update_is_approved()
-            question.save()
             return {}
 
     context = {'question': question,
@@ -841,18 +833,6 @@ def delete_revision(request, pk):
     revision.is_deleted = True
     revision.save()
 
-    # If no undeleted revision remains, then mark the whole question
-    # as deleted as well.
-    if not question.revision_set.undeleted().count():
-        question.is_deleted = True
-        question.save()
-    else:
-        # Mark the new last revision as such
-        question.update_latest()
-        question.update_best_revision()
-        question.update_is_approved()
-        question.save()
-
     return {}
 
 @login_required
@@ -878,9 +858,6 @@ def delete_explanation_revision(request, pk):
     explanation_revision.is_deleted = True
     explanation_revision.save()
 
-    # Mark the new last explanation as such
-    question.update_latest()
-
     return {}
 
 @login_required
@@ -904,10 +881,6 @@ def mark_revision_approved(request, pk):
     revision.approved_by= request.user
     revision.save()
 
-    question.update_best_revision()
-    question.update_is_approved()
-    question.save()
-
     return {}
 
 @login_required
@@ -929,10 +902,6 @@ def mark_revision_pending(request, pk):
     revision.is_approved = False
     revision.approved_by= request.user
     revision.save()
-
-    question.update_best_revision()
-    question.update_is_approved()
-    question.save()
 
     return {}
 
@@ -1433,9 +1402,6 @@ def handle_suggestion(request):
             # before.
             new_revision.is_approved = utils.test_revision_approval(new_revision)
             new_revision.save()
-            question.update_is_approved()
-            question.save()
-
         else:
             raise Exception("Could not save the edit!")
         if action == 'keep':

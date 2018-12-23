@@ -249,6 +249,11 @@ class Question(models.Model):
     best_revision = models.OneToOneField('Revision', null=True, blank=True,
                                          on_delete=models.SET_NULL,
                                          related_name="best_of")
+    latest_explanation_revision = models.OneToOneField('ExplanationRevision',
+                                                       null=True,
+                                                       blank=True,
+                                                       on_delete=models.SET_NULL,
+                                                       related_name="latst_of")
     assigned_editor = models.ForeignKey(User, null=True, blank=True,
                                         on_delete=models.SET_NULL,
                                         related_name="assigned_questions")
