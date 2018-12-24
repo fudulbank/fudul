@@ -3,6 +3,8 @@ import datetime
 import json
 import math
 import operator
+import socket
+import sys
 
 from exams.models import ExamDate
 
@@ -58,3 +60,12 @@ def get_search_queryset(queryset, search_fields, search_term):
 
 def round_to(number, cut_off):
     return math.floor(number / cut_off) * cut_off
+
+
+def get_lock(process_name):
+    get_lock._lock_socket = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+
+    try:
+        get_lock._lock_socket.bind('\0' + process_name)
+    except socket.error:
+        sys.exit()

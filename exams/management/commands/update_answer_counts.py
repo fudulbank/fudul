@@ -1,14 +1,19 @@
 from datetime import timedelta
+
 from django.core.management.base import BaseCommand
 from django.db.models import Q, F
 from django.utils import timezone
+
+from core.utils import get_lock
 from exams.models import Answer, Question
+
 
 class Command(BaseCommand):
     help = ("Update correct_user_count, incorrect_user_count and "
             "skipping_user_count fields")
 
     def handle(self, *args, **options):
+        get_lock('update_answer_counts')
         # This process if running once every hour, so any question
         # that hasn't been updated for the past hour, can be scanned.
         one_hour_back = timezone.now() - timedelta(hours=1)
