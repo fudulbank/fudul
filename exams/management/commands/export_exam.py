@@ -1,10 +1,14 @@
+from string import ascii_uppercase
+import csv
+
+from django.contrib.sites.models import Site
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import BaseCommand
 from exams.models import Exam, Revision
-import csv
-from string import ascii_uppercase
+
 
 class Command(BaseCommand):
-    help = "Update a global sequence that makes it easy to account for question trees."
+    help = "Export an exam with a given pk to an CSV file."
     def add_arguments(self, parser):
         parser.add_argument('--exam-pk', dest='exam_pk',
                             type=int)
@@ -13,15 +17,21 @@ class Command(BaseCommand):
 
         exam_pk = options['exam_pk']
         csv_file = open('export-exam-%s.csv' % exam_pk, 'w')
+        # Fudul's pk is #1
+        site = Site.objects.get(pk=1)
         csv_writer = csv.writer(csv_file)
         exam = Exam.objects.get(pk=exam_pk)
         revisions = Revision.objects.per_exam(exam)\
                                     .filter(is_last=True)\
-                                    .select_related('question', 'question__parent_question')\
+                                    .select_related('question',
+                                                    'question__parent_question',
+                                                    'question__latest_explanation_revision')\
+                                    .prefetch_related('choice_set')\
                                     .order_by('question__pk')
 
         header = ['ID', 'Text', 'Choice A', 'Choice B', 'Choice C',
                   'Choice D', 'Choice E', 'Answer', 'Explanation',
+                  'Explanation figure', 'Explanation reference'
                   'Parent question', 'Exam type', 'Issues', 'Subject',
                   'Source']
 
@@ -43,7 +53,15 @@ class Command(BaseCommand):
                 remaining = 5 - len(choice_texts)
                 choice_texts = choice_texts + ([''] * remaining)
 
-            explanation = revision.explanation
+            explanation_text = explanation_figure = explanation_reference = ""
+
+            explanation = revision.question.latest_explanation_revision
+            if explanation:
+                explanation_text = explanation.explanation_text
+                if explanation.explanation_figure:
+                    explanation_figure = f"https://{site.domain}{explanation.explanation_figure.url}"
+                explanation_reference = revision.question.latest_explanation_revision.reference
+
             if revision.question.parent_question:
                 parent_question_pk = revision.question.parent_question.pk
             else:
@@ -53,8 +71,10 @@ class Command(BaseCommand):
             subjects = ", ".join([subject.name for subject in revision.question.subjects.all()])
             sources = ", ".join([source.name for source in revision.question.sources.all()])
 
-            row = [pk, text] + choice_texts + [right_answer, explanation, parent_question_pk] + \
-                  [exam_types, issues, subjects, sources]
+            row = [pk, text] + choice_texts + \
+                  [right_answer, explanation_text, explanation_figure,
+                   explanation_reference, parent_question_pk,
+                   exam_types, issues, subjects, sources]
 
             csv_writer.writerow(row)
 
