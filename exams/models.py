@@ -368,9 +368,6 @@ class Question(models.Model):
 
         return tree
 
-    def get_available_mnemonics(self):
-        return self.mnemonic_set.filter(is_deleted=False)
-
 class Revision(models.Model):
     question = models.ForeignKey(Question)
     submitter = models.ForeignKey(User, null=True, blank=True)
