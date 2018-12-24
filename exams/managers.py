@@ -177,10 +177,11 @@ class QuestionQuerySet(models.QuerySet):
                                                                               'submitter__profile').undeleted(),
                                               to_attr='revision_list'),
                                      Prefetch('mnemonic_set',
-                                              Mnemonic.objects.annotate(like_count=Count('likes'))\
+                                              Mnemonic.objects.undeleted()\
+                                                              .annotate(like_count=Count('likes'))\
                                                               .select_related('submitter',
                                                                               'submitter__profile')\
-                                                              .filter(is_deleted=False),
+                                                              .order_by('like_count'),
                                               to_attr='mnemonic_list'))
 
 class RevisionQuerySet(models.QuerySet):
@@ -316,8 +317,8 @@ class AnswerQuerySet(models.QuerySet):
                                               to_attr='subject_list'))
 
 class MnemonicQuerySet(models.QuerySet):
-    def undeleted(self,question):
-        self.filter(question=question,is_deleted=False)
+    def undeleted(self):
+        return self.filter(is_deleted=False)
 
 class DuplicateQuerySet(models.QuerySet):
     def with_undeleted_question(self):
