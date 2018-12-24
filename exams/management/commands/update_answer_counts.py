@@ -1,17 +1,26 @@
+from datetime import timedelta
 from django.core.management.base import BaseCommand
 from django.db.models import Q, F
 from django.utils import timezone
-from exams.models import Answer, Session, Question
+from exams.models import Answer, Question
 
 class Command(BaseCommand):
     help = ("Update correct_user_count, incorrect_user_count and "
             "skipping_user_count fields")
 
     def handle(self, *args, **options):
+        # This process if running once every hour, so any question
+        # that hasn't been updated for the past hour, can be scanned.
+        one_hour_back = timezone.now() - timedelta(hours=1)
         for question in Question.objects.undeleted()\
                                         .filter(Q(count_update_date__isnull=True) | \
-                                                Q(count_update_date__lt=F('answer__submission_date')))\
-                                        .distinct():
+                                                Q(count_update_date__lt=one_hour_back)):
+            # If no new answers since last update, skip
+            if question.count_update_date and \
+               not Answer.objects.filter(question=question,
+                                         submission_date__gte=question.count_update_date)\
+                                 .exists():
+                continue
             total_user_count = Answer.objects.filter(question=question)\
                                              .values_list('session__submitter', flat=True)\
                                              .distinct().count()
