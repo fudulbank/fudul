@@ -258,6 +258,13 @@ class Question(models.Model):
                                         on_delete=models.SET_NULL,
                                         related_name="assigned_questions")
 
+    # Database-heavy counts
+    total_user_count = models.PositiveIntegerField(null=True)
+    correct_user_count = models.PositiveIntegerField(null=True)
+    incorrect_user_count = models.PositiveIntegerField(null=True)
+    skipping_user_count = models.PositiveIntegerField(null=True)
+    count_update_date = models.DateTimeField(null=True, blank=True)
+
     def __str__(self):
         latest_revision = self.get_latest_revision()
         if not latest_revision:
@@ -326,16 +333,12 @@ class Question(models.Model):
                    .order_by('submission_date')\
                    .last()
 
-    def get_correct_others(self):
-        correct_user_pks = Answer.objects.filter(question=self,
-                                                 choice__is_right=True)\
-                                         .values_list('session__submitter', flat=True)
-        total_user_pks = Answer.objects.filter(question=self)\
-                                       .values_list('session__submitter', flat=True)
-        correct_users = User.objects.filter(pk__in=correct_user_pks).count()
-        total_users = User.objects.filter(pk__in=total_user_pks).count()
-        result = correct_users / total_users * 100
-        return round(result, 1)
+    def get_correct_other_percentage(self):
+        if self.total_user_count:
+            result = self.correct_user_count / self.total_user_count * 100
+            return round(result, 1)
+        else:
+            return 0
 
     def get_contributors(self):
         contributors = []

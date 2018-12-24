@@ -311,7 +311,9 @@ class AnswerQuerySet(models.QuerySet):
     def select_for_session_result(self):
         return self.select_related('choice',
                                    'question',
-                                   'question__best_revision')
+                                   'question__best_revision')\
+                   .prefetch_related(Prefetch('question__subjects',
+                                              to_attr='subject_list'))
 
 class MnemonicQuerySet(models.QuerySet):
     def undeleted(self,question):

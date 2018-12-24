@@ -91,9 +91,9 @@ th, td{
                     <td><a href="{% url 'exams:show_session' category_slugs session.exam.pk session.pk answer.question.pk %}">{{ answer.question.pk }}</a></td>
                     <td>{{ answer.question.best_revision.text|linebreaks|truncatewords:20 }}</td>
                     <td>
-                       <ul>{% for subject in answer.question.subjects.all %}<li>{{ subject.name }}</li>{% endfor %}</ul>
+                       <ul>{% for subject in answer.question.subject_list %}<li>{{ subject.name }}</li>{% endfor %}</ul>
                     </td>
-                    <td>{{ answer.question.get_correct_others }}%</td>
+                    <td>{{ answer.question.get_correct_other_percentage }}%</td>
                   </tr>
                 {% endfor %}
                 </tbody>
