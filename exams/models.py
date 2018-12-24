@@ -281,38 +281,6 @@ class Question(models.Model):
         return User.objects.filter(pk__in=user_pks)\
                            .count()
 
-    def update_best_revision(self):
-        best_revision = self.get_best_revision()
-        self.best_revision = best_revision
-
-    def update_is_approved(self):
-        approved_revision = self.get_latest_approved_revision()
-        if approved_revision and \
-           not self.is_deleted and \
-           not self.issues.filter(is_blocker=True).exists() and \
-           approved_revision.choice_set.filter(is_right=True).exists() and \
-           approved_revision.choice_set.count() > 1:
-            self.is_approved = True
-        else:
-            self.is_approved = False
-
-    def update_latest(self):
-        latest_revision = self.get_latest_revision()
-        if latest_revision:
-            self.revision_set.exclude(pk=latest_revision.pk)\
-                             .update(is_last=False)
-            if not latest_revision.is_last:
-                latest_revision.is_last = True
-                latest_revision.save()
-
-        latest_explanation_revision = self.get_latest_explanation_revision()
-        if latest_explanation_revision:
-            self.explanation_revisions.exclude(pk=latest_explanation_revision.pk)\
-                                      .update(is_last=False)
-            if not latest_explanation_revision.is_last:
-                latest_explanation_revision.is_last = True
-                latest_explanation_revision.save()
-
     def is_incomplete(self):
         latest_revision = self.get_latest_revision()
         if self.issues.filter(is_blocker=True).exists() or \
