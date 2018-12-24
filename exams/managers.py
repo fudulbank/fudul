@@ -181,7 +181,7 @@ class QuestionQuerySet(models.QuerySet):
                                                               .annotate(like_count=Count('likes'))\
                                                               .select_related('submitter',
                                                                               'submitter__profile')\
-                                                              .order_by('like_count'),
+                                                              .order_by('-like_count'),
                                               to_attr='mnemonic_list'))
 
 class RevisionQuerySet(models.QuerySet):
