@@ -2,11 +2,11 @@
 {% for mnemonic in question.mnemonic_list %}
 <div data-mnemonic-pk="{{ mnemonic.pk }}" data-submitter-pk="{{ mnemonic.submitter.pk }}" class="mnemonic card-content">
     {% with img=mnemonic.image %}{% include 'partials/lazy_img.html' %}{% endwith %}
-    <div class="card-body"  style="margin-bottom: 5%">
+    <div class="card-body mb-2">
        {% if mnemonic.text %}<h6 class="card-text">{{ mnemonic.text }} </h6>{% endif %}
       <h6 class="card-subtitle text-muted">Submitted by <strong>{{ mnemonic.submitter|get_user_credit }}</strong></h6>
     <button data-action="like"  class="float-right like-mnemonic btn btn-outline-primary">{% if mnemonic.like_count != 0 %} {{ mnemonic.like_count }}{% endif %} <i class="far fa-thumbs-up"></i></button>
-    <button data-action="delete" style="margin-right: 2%"  class="float-right delete-mnemonic btn btn-outline-danger d-none"><i class="far fa-trash-alt"></i></button>
+    <button data-action="delete" class="mr-1 float-right delete-mnemonic btn btn-outline-danger d-none"><i class="far fa-trash-alt"></i></button>
   </div>
 </div>
 {% endfor %}
