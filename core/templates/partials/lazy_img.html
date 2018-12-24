@@ -1,5 +1,5 @@
 {% if session and img %}
 <i class="fas fa-spinner fa-spin lazy my-4" data-img-class="img-fluid {{ img_class }}" data-src="{{ img.url }}"></i>
 {% elif img %}
-<img class="{{ img_class }}" src="{{ img.url }}">
+<img class="img-fluid {{ img_class }}" src="{{ img.url }}">
 {% endif %}
