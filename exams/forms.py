@@ -313,9 +313,17 @@ class SessionForm(forms.ModelForm):
             secret_key = "".join([random.choice(chars) for i in range(10)])
             session.secret_key = secret_key
 
+        # Here we try to account for cases when the requested number
+        # of questions is not completely available.
+        actual_question_count = len(self.final_questions)
+
         if self.is_automatic:
             session.is_automatic = True
-            session.number_of_questions = len(self.final_questions)
+            session.number_of_questions = actual_question_count
+
+        # Initially, the value of unused_question_count equals the
+        # number of questions in the sessions.
+        session.unused_question_count = actual_question_count
 
         session.save()
         return session

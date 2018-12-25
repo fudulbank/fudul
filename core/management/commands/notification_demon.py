@@ -20,7 +20,7 @@ class Command(BaseCommand):
                                           .undeleted()\
                                           .filter(submission_date__lte=target_date,
                                                   submitter__isnull=False,
-                                                  has_finished=False)\
+                                                  unused_question_count__gt=0)\
                                           .exclude(actor_notifications__verb='is still pending')\
                                           .exclude(session_mode__in=['INCOMPLETE', 'SOLVED'])
         for session in pending_sessions:

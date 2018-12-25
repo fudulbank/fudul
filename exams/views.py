@@ -576,14 +576,13 @@ def show_session_results(request, slugs, exam_pk, session_pk):
                                                .exclude(session_mode__in=['INCOMPLETE', 'SOLVED']),
                                 pk=session_pk)
 
-    if not session.has_finished and \
+    if session.unused_question_count and \
        request.user == session.submitter:
         answers = []
         for question in session.get_unused_questions():
             answer = Answer(session=session, question=question)
             answers.append(answer)
         Answer.objects.bulk_create(answers)
-        session.set_has_finished()
 
     # We don't use the standard QuerySets as they don't filter per a
     # specific session.
@@ -682,7 +681,6 @@ def submit_answer(request):
 
     answer = Answer.objects.create(session=session, question=question,
                                    choice=choice)
-    session.set_has_finished()
 
     return {}
 
@@ -1465,7 +1463,7 @@ def get_shared_session_stats(request):
     stats = []
     for shared_session in Session.objects.get_shared(session).exclude(pk=session_pk):
         stat = {'pk': shared_session.pk,
-                'has_finished': shared_session.has_finished or False}
+                'has_finished': shared_session.get_has_finished() or False}
 
         # Only detail the breakdown if the session mode is EXPLAINED.
         # Otherwise, only show a generic count.
@@ -1474,7 +1472,7 @@ def get_shared_session_stats(request):
                          'incorrect_count': shared_session.incorrect_answer_count,
                          'skipped_count': shared_session.skipped_answer_count})
         else:
-            stat['count'] = shared_session.get_used_questions_count()
+            stat['count'] = shared_session.get_used_question_count()
         stats.append(stat)
 
     return {'stats': stats}

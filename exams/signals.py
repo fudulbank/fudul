@@ -57,6 +57,8 @@ def update_session_stats(sender, instance, **kwargs):
     session = instance.session
     question_pool = session.get_questions()
 
+    session.unused_question_count = session.get_unused_questions().count()
+
     if choice.is_right:
         session.correct_answer_count = question_pool.filter(answer__choice__is_right=True,
                                                             answer__session=session)\

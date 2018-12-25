@@ -28,7 +28,7 @@
           <i class="ft-copy"></i>
       </button>
       {% else %}
-      <p>{{ session.submitter|get_user_credit:user }} invites you to join <strong>session #{{ session.pk }}</strong> in <a target="_blank" href="{% url 'exams:create_session' category_slugs session.exam.pk %}">{{ session.exam.name }}</a>, which contains {{ session.get_questions.count }} questions.</p>
+      <p>{{ session.submitter|get_user_credit:user }} invites you to join <strong>session #{{ session.pk }}</strong> in <a target="_blank" href="{% url 'exams:create_session' category_slugs session.exam.pk %}">{{ session.exam.name }}</a>, which contains {{ session.get_total_question_count }} questions.</p>
       <button class="btn btn-success" id="accept"><i class="ft-check mr-1"></i>Accept invitation</button>
       {% endif %}
     </div><!--card-block-->

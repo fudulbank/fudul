@@ -46,7 +46,7 @@ tr td:last-child{
          </thead>
          <tbody>
          {% for session in sessions %}
-         {% with total_count=session.get_questions.count category_slugs=session.exam.category.get_slugs %}
+         {% with total_count=session.get_total_question_count category_slugs=session.exam.category.get_slugs %}
          <tr data-pk="{{ session.pk }}">
              <td data-html="true" data-toggle="tooltip" title="{{ total_count }} questions {% if session.subject_list %}on: <ul>{% for subject in session.subject_list %}<li>{{ subject.name }}</li>{% endfor %}</ul> {% endif %}"><a href="{% url 'exams:show_session' category_slugs session.exam.pk session.pk %}">{{ session.exam.name }} ({{ session.pk }})</a></td>
              <td data-order="{{ session.submission_date|date:'U' }}">{{ session.submission_date }}</td>
@@ -58,7 +58,7 @@ tr td:last-child{
                <div class="dropdown">
                  <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="ft-settings"></i> Actions</button>
                  <div class="dropdown-menu">
-                   {% if session.session_mode == 'SOLVED' or session.session_mode == 'INCOMPLETE' or not session.has_finished %}
+                   {% if session.session_mode == 'SOLVED' or session.session_mode == 'INCOMPLETE' or session.unused_question_count %}
                    <a class="dropdown-item" href="{% url 'exams:show_session' category_slugs session.exam.pk session.pk %}"><i class="ft-play"></i> Resume</a>
                    {% else %}
                    <a class="dropdown-item" href="{% url 'exams:show_session_results' category_slugs session.exam.pk session.pk %}"><i class="ft-list"></i> View results</a>

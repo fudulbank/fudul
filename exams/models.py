@@ -116,7 +116,7 @@ class Category(models.Model):
     def get_absolute_url(self):
         return reverse("exams:show_category",
                        args=(self.get_slugs(),))
-    
+
     def __str__(self):
         parent_categories = self.get_parent_categories()
         names = [category.name for category in parent_categories] + \
@@ -506,20 +506,24 @@ class Session(models.Model):
 
     # We store these values instead of calculating them dynamically,
     # because this can tremendously enhance performance.
-
-    # `has_finished` only applies to sessions that have the exam mode
-    # enabled (does not apply to session.session_mode = 'SOLVED' and
-    # session.session_mode = 'INCOMPLETE')
-    has_finished = models.NullBooleanField(default=None)
+    unused_question_count = models.PositiveIntegerField(default=0)
     correct_answer_count = models.PositiveIntegerField(default=0)
     incorrect_answer_count = models.PositiveIntegerField(default=0)
     skipped_answer_count = models.PositiveIntegerField(default=0)
 
     objects = managers.SessionQuerySet.as_manager()
 
+    def get_used_question_count(self):
+        return self.correct_answer_count + \
+            self.incorrect_answer_count + \
+            self.skipped_answer_count
+
+    def get_total_question_count(self):
+        return self.unused_question_count + self.get_used_question_count()
+
     def get_score(self):
         try:
-            total = self.get_questions().count()
+            total = self.get_total_question_count()
             correct = self.correct_answer_count
             return round(correct / total * 100, 2)
         except ZeroDivisionError:
@@ -533,26 +537,16 @@ class Session(models.Model):
             questions = self.questions.approved()
         return questions
 
-    def get_used_questions_count(self):
-        return self.answer_set.of_undeleted_questions()\
-                              .distinct()\
-                              .count()
-
     def is_examinable(self):
         return self.session_mode not in ['INCOMPLETE', 'SOLVED']
 
-    def set_has_finished(self):
+    def get_has_finished(self):
         # Session that are either 'INCOMPLETE' or 'SOLVED' cannot be
         # considered 'finsihed'
         if not self.is_examinable():
             return
 
-        has_finished = not self.get_unused_questions().exists()
-
-        # Do not trigger save, unless the value has changed
-        if self.has_finished != has_finished:
-            self.has_finished = has_finished
-            self.save()
+        return not self.unused_question_count
 
     def get_question_sequence(self, question):
         # global_sequence may not be set for freshly created
@@ -583,7 +577,7 @@ class Session(models.Model):
         # answered, show the first session question.
         if question_pk:
             qs = self.get_questions()
-        elif not self.has_finished:
+        elif self.unused_question_count:
             qs = self.get_unused_questions()
         else:
             qs = self.get_questions().order_by('global_sequence')
@@ -777,7 +771,7 @@ status_choices = (
     ('DECLINED', 'Declined'),
 )
 
-        
+
 class DuplicateContainer(models.Model):
     primary_question = models.ForeignKey(Question,
                                          related_name="primary_duplicates")

@@ -23,7 +23,7 @@ th, td{
 {% endblock %}
 {% block content %}
 {% cache CACHE_PERIODS.STABLE show_session_results session.pk %}
-{% with question_count=session.get_questions.count %}
+{% with question_count=session.get_total_question_count %}
 <h1>Session #<a href="{% url 'exams:show_session' category_slugs session.exam.pk session.pk %}">{{ session.pk }}</a> results</h1>
 
 
