@@ -504,37 +504,23 @@ class Session(models.Model):
                                           object_id_field='actor_object_id',
                                           related_query_name="sessions")
 
-    # We store this value instead of calculating it dynamically,
-    # because this can tremendously enhance performance.  This only
-    # applies to sessions that have the exam mode enabled (does not
-    # apply to session.session_mode = 'SOLVED' and
+    # We store these values instead of calculating them dynamically,
+    # because this can tremendously enhance performance.
+
+    # `has_finished` only applies to sessions that have the exam mode
+    # enabled (does not apply to session.session_mode = 'SOLVED' and
     # session.session_mode = 'INCOMPLETE')
     has_finished = models.NullBooleanField(default=None)
+    correct_answer_count = models.PositiveIntegerField(default=0)
+    incorrect_answer_count = models.PositiveIntegerField(default=0)
+    skipped_answer_count = models.PositiveIntegerField(default=0)
 
     objects = managers.SessionQuerySet.as_manager()
-
-    def get_skipped_count(self):
-        question_pool = self.get_questions()
-        return question_pool.filter(answer__choice__isnull=True,
-                                    answer__session=self)\
-                            .count() or 0
-
-    def get_correct_count(self):
-        question_pool = self.get_questions()
-        return question_pool.filter(answer__choice__is_right=True,
-                                    answer__session=self)\
-                            .count() or 0
-
-    def get_incorrect_count(self):
-        question_pool = self.get_questions()
-        return question_pool.filter(answer__choice__is_right=False,
-                                    answer__session=self)\
-                            .count() or 0
 
     def get_score(self):
         try:
             total = self.get_questions().count()
-            correct = self.get_correct_count()
+            correct = self.correct_answer_count
             return round(correct / total * 100, 2)
         except ZeroDivisionError:
             correct = 0

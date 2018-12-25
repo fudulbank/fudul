@@ -46,24 +46,24 @@ th, td{
                                       <i class="fa fa-check success font-large-2 float-left"></i>
                                   </div>
                                   <div class="media-body text-right">
-                                      <h3>{% widthratio correct_count question_count 100 %}%</h3>
+                                      <h3>{% widthratio session.correct_answer_count question_count 100 %}%</h3>
                                       <span>of questions answered correctly</span>
                                   </div>
                               </div>
                           </div>
                       </div>
                   </div>
-                  {% if incorrect_count or skipped_count %}
+                  {% if session.incorrect_answer_count or session.skipped_answer_count %}
                   <div class="card border-teal text-center">
                     <div class="card-body">
                       <h3 class="card-title text-left">Actions</h3>
                       <div class="btn-group-vertical">
                         <button data-selector="ALL" class="btn btn-sm btn-primary automatic-creation"><i class="ft-play"></i> Re-examine on <strong>all</strong> questions <span class="font-small-2">({{ question_count }})</span></button>
-                        {% if skipped_count %}
-                          <button data-selector="SKIPPED" class="btn btn-sm btn-primary automatic-creation"><i class="ft-rotate-ccw"></i> Re-examine on <strong>skipped</strong> questions <span class="font-small-2">({{ skipped_count }})</span></button>
+                        {% if session.skipped_answer_count %}
+                          <button data-selector="SKIPPED" class="btn btn-sm btn-primary automatic-creation"><i class="ft-rotate-ccw"></i> Re-examine on <strong>skipped</strong> questions <span class="font-small-2">({{ session.skipped_answer_count }})</span></button>
                         {% endif %}
-                        {% if incorrect_count %}
-                          <button data-selector="INCORRECT" class="btn btn-sm btn-primary automatic-creation"><i class="ft-rotate-ccw"></i> Re-examine on <strong>incorrect</strong> questions <span class="font-small-2">({{ incorrect_count }})</span></button>
+                        {% if session.incorrect_answer_count %}
+                          <button data-selector="INCORRECT" class="btn btn-sm btn-primary automatic-creation"><i class="ft-rotate-ccw"></i> Re-examine on <strong>incorrect</strong> questions <span class="font-small-2">({{ session.incorrect_answer_count }})</span></button>
                         {% endif %}
                       </div>
                     </div>
@@ -108,7 +108,9 @@ th, td{
 <script src="{% static 'js/toastr.js' %}"></script>
 
 {% include 'partials/import_datatables.html' %}
-{% include 'exams/partials/performance_chart.html' %}
+{% with correct_count=session.correct_answer_count skipped_count=session.skipped_answer_count incorrect_count=session.incorrect_answer_count %}
+  {% include 'exams/partials/performance_chart.html' %}
+{% endwith %}
 
 <script>
     $(function () {
@@ -135,7 +137,7 @@ th, td{
             // Disable all automatic creation buttons upon firing one.
             $('.automatic-creation').addClass('disabled').attr('disabled', true);
 
-            var url = "{% url 'exams:create_session_automatically' category_slugs exam.pk %}";
+            var url = "{% url 'exams:create_session_automatically' category_slugs session.exam.pk %}";
             toastr.success("A new session is being created.  Give us a second!");
             $.ajax({url: url,
                     data: {selector: selector, session_pk: {{ session.pk }}},

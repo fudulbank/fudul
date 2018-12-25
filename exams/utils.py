@@ -79,11 +79,11 @@ def get_user_question_stats(target, user, result, total=None, percent=False):
                                     .of_undeleted_questions()\
                                     .distinct()
         if result == 'correct':
-            count = target.get_correct_count()
+            count = target.correct_answer_count
         elif result == 'incorrect':
-            count = target.get_incorrect_count()
+            count = target.incorrect_answer_count
         elif result == 'skipped':
-            count = target.get_skipped_count()
+            count = target.skipped_answer_count
         elif result == 'total':
             count = pool.count()
 

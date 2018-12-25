@@ -587,12 +587,7 @@ def show_session_results(request, slugs, exam_pk, session_pk):
 
     # We don't use the standard QuerySets as they don't filter per a
     # specific session.
-    context = {'session': session, 'exam': session.exam,
-               'category_slugs': slugs,
-               'skipped_count': session.get_skipped_count(),
-               'correct_count': session.get_correct_count(),
-               'incorrect_count': session.get_incorrect_count()
-    }
+    context = {'session': session, 'category_slugs': slugs}
 
     return render(request, 'exams/show_session_results.html', context)
 
@@ -1475,9 +1470,9 @@ def get_shared_session_stats(request):
         # Only detail the breakdown if the session mode is EXPLAINED.
         # Otherwise, only show a generic count.
         if session.session_mode == 'EXPLAINED':
-            stat.update({'correct_count': shared_session.get_correct_count(),
-                         'incorrect_count': shared_session.get_incorrect_count(),
-                         'skipped_count': shared_session.get_skipped_count()})
+            stat.update({'correct_count': shared_session.correct_answer_count,
+                         'incorrect_count': shared_session.incorrect_answer_count,
+                         'skipped_count': shared_session.skipped_answer_count})
         else:
             stat['count'] = shared_session.get_used_questions_count()
         stats.append(stat)

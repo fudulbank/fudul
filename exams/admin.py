@@ -136,8 +136,13 @@ class RuleAdmin(admin.ModelAdmin):
 class SuggestedChangeAdmin(admin.ModelAdmin):
     readonly_fields = ['revision', 'reviser', 'revision_date']
 
+class SessionAdmin(admin.ModelAdmin):
+    readonly_fields = ['correct_answer_count',
+                       'incorrect_answer_count',
+                       'skipped_answer_count']
+
 class SessionThemeAdmin(admin.ModelAdmin):
-    list_display = ['name', 'get_count'] 
+    list_display = ['name', 'get_count']
     def get_count(self, obj):
         return obj.profile_set.count()
     get_count.short_description = "# users"
@@ -149,7 +154,7 @@ admin.site.register(models.Exam, ExamAdmin)
 admin.site.register(models.ExamType)
 admin.site.register(models.Issue)
 admin.site.register(models.Rule, RuleAdmin)
-admin.site.register(models.Session)
+admin.site.register(models.Session, SessionAdmin)
 admin.site.register(models.SessionTheme, SessionThemeAdmin)
 admin.site.register(models.SuggestedChange, SuggestedChangeAdmin)
 editor_site.register(models.Category, CategoryAdmin)

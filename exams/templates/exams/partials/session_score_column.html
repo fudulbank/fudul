@@ -1,5 +1,5 @@
 {% if session.has_finished and session.session_mode != 'SOLVED' and  session.session_mode != 'INCOMPLETE' %}
-   {% with target=session %}{# The total argument is provided by the including template #}
+   {% with target=session correct_count=session.correct_answer_count skipped_count=session.skipped_answer_count incorrect_count=session.incorrect_answer_count %}{# The total argument is provided by the including template #}
      {% include 'exams/partials/performance_column.html' %}
    {% endwith %}
 {% else %}

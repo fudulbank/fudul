@@ -50,3 +50,24 @@ def update_latest_explanation_revision(sender, instance, **kwargs):
 
         question.latest_explanation_revision = latest_explanation_revision
         question.save()
+
+@receiver([post_save, post_delete], sender='exams.Answer')
+def update_session_stats(sender, instance, **kwargs):
+    choice = instance.choice
+    session = instance.session
+    question_pool = session.get_questions()
+
+    if choice.is_right:
+        session.correct_answer_count = question_pool.filter(answer__choice__is_right=True,
+                                                            answer__session=session)\
+                                                    .count() or 0
+    elif choice.is_right is False:
+        session.incorrect_answer_count = question_pool.filter(answer__choice__is_right=False,
+                                                              answer__session=session)\
+                                                      .count() or 0
+    elif choice.is_right is None:
+        session.skipped_answer_count = question_pool.filter(answer__choice__isnull=True,
+                                                            answer__session=session)\
+                                                    .count() or 0
+
+    session.save()
