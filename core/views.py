@@ -25,8 +25,7 @@ import teams.utils
 def show_index(request):
     if request.user.is_authenticated():
 
-        latest_sessions = request.user.session_set.select_related('exam',
-                                                                  'exam__category')\
+        latest_sessions = request.user.session_set.select_for_session_list()\
                                                   .undeleted()\
                                                   .order_by('-pk')[:8]
         context = {'latest_sessions': latest_sessions}
