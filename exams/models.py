@@ -693,12 +693,14 @@ class AnswerCorrection(models.Model):
                     verb='supported', title=title,
                     description=description, style='support')
 
-    def can_user_delete(self, user, exam=None):
-        # We can pass `exam` to avoid reterving the exam every single time
-        if not exam:
+    def can_user_delete(self, user, can_user_edit_exam=None):
+        # We can pass `can_user_edit_exam` to avoid reterving the
+        # result every single time
+        if not can_user_edit_exam:
             exam = self.choice.revision.question.exam
+            can_user_edit_exam = exam.can_user_edit(user)
         return self.submitter == user or \
-               exam.can_user_edit(user)
+            can_user_edit_exam
 
     def __str__(self):
         return "Correction of Q#{}".format(self.choice.revision.question.pk)

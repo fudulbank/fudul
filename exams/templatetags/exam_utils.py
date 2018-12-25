@@ -80,8 +80,8 @@ def can_oppose_correction(user, correction):
     return correction.submitter != user and not user in correction.opposing_user_list
 
 @register.simple_tag
-def can_delete_correction(user, exam, correction):
-    return correction.can_user_delete(user, exam)
+def can_delete_correction(user, can_user_edit_exam, correction):
+    return correction.can_user_delete(user, can_user_edit_exam)
 
 @register.filter
 def can_user_access(user, obj):

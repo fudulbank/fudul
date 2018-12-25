@@ -440,6 +440,7 @@ class CorrectionList(views.APIView):
 
     # We won't cache this as it has user-specific interactions.
     def get(self, request, format=None):
+        exam_pk = request.query_params.get('exam_pk')
         session_pk = request.query_params.get('session_pk')
         question_pk = request.query_params.get('question_pk')
         question_pks = request.query_params.get('question_pks')
@@ -474,6 +475,11 @@ class CorrectionList(views.APIView):
                 raise exceptions.ParseError('No valid "question_pks" parameter was provided')
             choices_with_corrections = choices_with_corrections.filter(revision__question__pk__in=question_pks)
 
+        # To avoid repeating this query to show the 'Delete' button,
+        # we are going to do it once and pass it to the template.
+        exam = Exam.objects.get(pk=exam_pk)
+        can_user_edit_exam = exam.can_user_edit(request.user)
+
         data = []
         template = get_template("exams/partials/show_answer_correction.html")
         for choice in choices_with_corrections:
@@ -481,6 +487,7 @@ class CorrectionList(views.APIView):
             html = template.render(context)
             data.append({'question_id': choice.revision.question.pk,
                          'choice_id': choice.pk,
+                         'can_user_edit_exam': can_user_edit_exam,
                          'html': html})
 
         return Response(data)
