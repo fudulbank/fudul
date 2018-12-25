@@ -3,7 +3,6 @@ from django import forms
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.forms.models import inlineformset_factory
-import itertools
 import random
 import string
 
@@ -298,7 +297,7 @@ class SessionForm(forms.ModelForm):
                                                     child_question__isnull=True)
             self.orphan_pool = models.Question.objects.filter(pk__in=orphan_questions[:remaining_count])
 
-            self.final_questions = itertools.chain(self.orphan_pool, self.questions_with_tree)
+            self.final_questions = list(self.orphan_pool) + list(self.questions_with_tree)
         else:
             self.final_questions = question_pool
 
