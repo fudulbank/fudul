@@ -218,6 +218,10 @@ class SessionQuerySet(models.QuerySet):
     def undeleted(self):
         return self.filter(is_deleted=False)
 
+    def select_for_session_list(self):
+        return self.select_related('exam', 'exam__category')\
+                   .prefetch_related(Prefetch('subjects', to_attr='subject_list'))
+
 class ChoiceQuerySet(models.QuerySet):
     def order_by_alphabet(self):
         return self.order_by('text')

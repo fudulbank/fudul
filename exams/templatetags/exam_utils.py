@@ -64,10 +64,6 @@ def get_user_question_stats(target, user, result, total=None, percent=False):
     return utils.get_user_question_stats(target, user, result, total, percent)
 
 @register.filter
-def get_session_subjects(session):
-    return session.subjects.all() or session.exam.subject_set.all()
-
-@register.filter
 def get_exam_question_count_per_meta(exam, meta, approved_only=False):
     return utils.get_exam_question_count_per_meta(exam, meta, approved_only)
 

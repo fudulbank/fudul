@@ -50,7 +50,7 @@ tr td:last-child{
          {% get_user_question_stats session user 'incorrect' as incorrect_count %}
          {% get_user_question_stats session user 'skipped' as skipped_count %}
          <tr data-pk="{{ session.pk }}">
-             <td data-html="true" data-toggle="tooltip" title="{{ total_count }} questions on: <ul>{% for subject in session|get_session_subjects %}<li>{{ subject.name }}</li>{% endfor %}</ul>"><a href="{% url 'exams:show_session' category_slugs session.exam.pk session.pk %}">{{ session.exam.name }} ({{ session.pk }})</a></td>
+             <td data-html="true" data-toggle="tooltip" title="{{ total_count }} questions {% if session.subject_list %}on: <ul>{% for subject in session.subject_list %}<li>{{ subject.name }}</li>{% endfor %}</ul> {% endif %}"><a href="{% url 'exams:show_session' category_slugs session.exam.pk session.pk %}">{{ session.exam.name }} ({{ session.pk }})</a></td>
              <td data-order="{{ session.submission_date|date:'U' }}">{{ session.submission_date }}</td>
              <td>{{ total_count }}</td>
              {% with total=total_count %}

@@ -695,8 +695,8 @@ def submit_answer(request):
 @login_required
 def list_previous_sessions(request):
     sessions = request.user.session_set\
-                           .select_related('exam', 'exam__category')\
-                           .undeleted()\
+                           .select_for_session_list()\
+                           .undeleted()
 
     context = {'sessions':sessions,
                'is_previous_active': True}

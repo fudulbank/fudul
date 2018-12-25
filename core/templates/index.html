@@ -114,7 +114,7 @@
 													{% get_user_question_stats session user 'incorrect' as incorrect_count %}
 													{% get_user_question_stats session user 'skipped' as skipped_count %}
 											    <tr>
-											        <td data-html="true" data-toggle="tooltip" title="{{ total_count }} questions on: <ul>{% for subject in session|get_session_subjects %}<li>{{ subject.name }}</li>{% endfor %}</ul>">
+											        <td data-html="true" data-toggle="tooltip" title="{{ total_count }} questions {% if session.subject_list %}on: <ul>{% for subject in session.subject_list %}<li>{{ subject.name }}</li>{% endfor %}</ul> {% endif %}">
 											          {% if session.session_mode == 'SOLVED' or session.session_mode == 'INCOMPLETE' or not session.has_finished %}
 											                  <a href="{% url 'exams:show_session' session.exam.category.get_slugs session.exam.pk session.pk %}"> {{ session.exam.name }} (#{{ session.pk }})</a>
 											          {% else %}
