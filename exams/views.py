@@ -583,6 +583,8 @@ def show_session_results(request, slugs, exam_pk, session_pk):
             answer = Answer(session=session, question=question)
             answers.append(answer)
         Answer.objects.bulk_create(answers)
+        session.unused_question_count = 0
+        session.save()
 
     # We don't use the standard QuerySets as they don't filter per a
     # specific session.
