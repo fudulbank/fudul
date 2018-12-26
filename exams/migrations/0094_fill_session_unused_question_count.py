@@ -7,8 +7,7 @@ from django.db import migrations
 def fill_session_unused_question_count(apps, schema_editor):
     Session = apps.get_model('exams', 'Session')
 
-    for session in Session.objects.exclude(session_mode__in=['INCOMPLETE',
-                                                             'SOLVED']):
+    for session in Session.objects.all():
         unused_question_count = session.questions.filter(is_deleted=False,
                                                          is_approved=True)\
                                                  .exclude(answer__session=session)\
