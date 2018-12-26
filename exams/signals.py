@@ -59,17 +59,17 @@ def update_session_stats(sender, instance, **kwargs):
 
     session.unused_question_count = session.get_unused_questions().count()
 
-    if choice.is_right:
-        session.correct_answer_count = question_pool.filter(answer__choice__is_right=True,
-                                                            answer__session=session)\
-                                                    .count() or 0
-    elif choice.is_right is False:
-        session.incorrect_answer_count = question_pool.filter(answer__choice__is_right=False,
-                                                              answer__session=session)\
-                                                      .count() or 0
-    elif choice.is_right is None:
+    if choice is None:
         session.skipped_answer_count = question_pool.filter(answer__choice__isnull=True,
                                                             answer__session=session)\
                                                     .count() or 0
+    elif choice.is_right:
+        session.correct_answer_count = question_pool.filter(answer__choice__is_right=True,
+                                                            answer__session=session)\
+                                                    .count() or 0
+    elif not choice.is_right:
+        session.incorrect_answer_count = question_pool.filter(answer__choice__is_right=False,
+                                                              answer__session=session)\
+                                                      .count() or 0
 
     session.save()
