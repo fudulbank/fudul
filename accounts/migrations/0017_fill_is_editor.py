@@ -15,6 +15,7 @@ def empty_is_editor(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
+        ('teams', '0001_initial'),
         ('accounts', '0016_profile_is_editor'),
     ]
 
