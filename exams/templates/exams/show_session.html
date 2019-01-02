@@ -111,7 +111,7 @@
               <p class="sharer-name mt-2 mb-1">{{ shared_session.submitter|get_user_credit:user }}</p>
               <div class="row justify-content-center">
                 <div class="col-6 col-md-10">
-                  <div data-pk="{{ shared_session.pk }}" data-has-finished="{% if shared_session.has_finished %}true{% else %}false{% endif %}" class="progress" style="height: 5px;">
+                  <div data-pk="{{ shared_session.pk }}" data-has-finished="{% if shared_session.get_has_finished %}true{% else %}false{% endif %}" class="progress" style="height: 5px;">
                     <div class="progress-bar bg-success" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
                     <div class="progress-bar bg-danger" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
                     <div class="progress-bar bg-warning" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
