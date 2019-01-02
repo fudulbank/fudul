@@ -1,6 +1,6 @@
+from django.http import JsonResponse
 import functools
 import logging
-import json
 
 from django.core import exceptions as django_exceptions
 from django.http import HttpResponse, Http404
@@ -34,13 +34,12 @@ def ajax_only(view_func):
                 'message': message,
                 'success': 0
             }
-            return HttpResponse(json.dumps(data), content_type='application/json')
+            return JsonResponse(data)
 
         if isinstance(data, HttpResponse):#is this used?
             data.mimetype = 'application/json'
             return data
         else:
             data['success'] = 1
-            json_data = json.dumps(data)
-            return HttpResponse(json_data, content_type='application/json')
+            return JsonResponse(data)
     return wrapper
