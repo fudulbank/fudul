@@ -1,20 +1,22 @@
-'use strict;'
-window.__SESSION_QUESTION_PKS = Object.keys(window.SESSION_QUESTIONS).map(function(x){ return parseInt(x)});
-window.__SESSION_QUESTION_GLOBAL_SEQUENCES = window.__SESSION_QUESTION_PKS.map(function(x){ return window.SESSION_QUESTIONS[x] }).sort(function(a, b){ return a - b});
-window.__SESSION_QUESTION_TOTAL = window.__SESSION_QUESTION_PKS.length;
-window.__PREVIOUS_HIGHLIGHTS = null;
-window.__MARKS = null;
-window.__ANSWERS = null;
-window.__STATS = null;
-window.__HAS_CONSTRUCTED_NAVIGATION = false;
-window.__SHARED_STAT_TIMER = null;
+'use strict';
+// g for global, which will be a reserved variable during mangling
+window.g = {};
+window.g.__SESSION_QUESTION_PKS = Object.keys(window.SESSION_QUESTIONS).map(function(x){ return parseInt(x)});
+window.g.__SESSION_QUESTION_GLOBAL_SEQUENCES = window.g.__SESSION_QUESTION_PKS.map(function(x){ return window.SESSION_QUESTIONS[x] }).sort(function(a, b){ return a - b});
+window.g.__SESSION_QUESTION_TOTAL = window.g.__SESSION_QUESTION_PKS.length;
+window.g.__PREVIOUS_HIGHLIGHTS = null;
+window.g.__MARKS = null;
+window.g.__ANSWERS = null;
+window.g.__STATS = null;
+window.g.__HAS_CONSTRUCTED_NAVIGATION = false;
+window.g.__SHARED_STAT_TIMER = null;
 
 // Sort SESSION_QUESTION_PKS per their global_sequences, if those
 // do not include any null values.  Otherwise, sort per pks.
-if (window.__SESSION_QUESTION_GLOBAL_SEQUENCES.indexOf(null) != -1){
-  window.__SESSION_QUESTION_PKS = window.__SESSION_QUESTION_PKS.sort(function(a, b){return window.SESSION_QUESTIONS[a] - window.SESSION_QUESTIONS[b]});
+if (window.g.__SESSION_QUESTION_GLOBAL_SEQUENCES.indexOf(null) != -1){
+  window.g.__SESSION_QUESTION_PKS = window.g.__SESSION_QUESTION_PKS.sort(function(a, b){return window.SESSION_QUESTIONS[a] - window.SESSION_QUESTIONS[b]});
 } else {
-  window.__SESSION_QUESTION_PKS = window.__SESSION_QUESTION_PKS.sort(function(a, b){return a - b});
+  window.g.__SESSION_QUESTION_PKS = window.g.__SESSION_QUESTION_PKS.sort(function(a, b){return a - b});
 }
 
 showdown.setOption('headerLevelStart', 3);
@@ -23,46 +25,46 @@ var converter = new showdown.Converter();
 
 
 // Common selectors
-window.__$markButton = $("#mark");
-window.__$submitButton = $("#submit");
+window.g.__$markButton = $("#mark");
+window.g.__$submitButton = $("#submit");
 
-window.__fetched_indexes = [],
-window.__active_keys = {},
-window.__animation_events = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend',
-window.__was_solved_markup = '<i class="far fa-check-square"></i>',
-window.__is_marked_markup = '<i class="fas fa-flag"></i>',
-window.__wrong_answer_markup = '<i class="fas fa-times text-danger mx-1"></i>',
-window.__isTablet = navigator.userAgent.match(/iPad/i) != null || (navigator.userAgent.match(/Android/i) != null && navigator.userAgent.match(/Mobile/i) == null),
-window.__isMobile = navigator.userAgent.match(/iPhone/i) != null || (navigator.userAgent.match(/Android/i) != null && navigator.userAgent.match(/Mobile/i) != null);
+window.g.__fetched_indexes = [],
+window.g.__active_keys = {},
+window.g.__animation_events = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend',
+window.g.__was_solved_markup = '<i class="far fa-check-square"></i>',
+window.g.__is_marked_markup = '<i class="fas fa-flag"></i>',
+window.g.__wrong_answer_markup = '<i class="fas fa-times text-danger mx-1"></i>',
+window.g.__isTablet = navigator.userAgent.match(/iPad/i) != null || (navigator.userAgent.match(/Android/i) != null && navigator.userAgent.match(/Mobile/i) == null),
+window.g.__isMobile = navigator.userAgent.match(/iPhone/i) != null || (navigator.userAgent.match(/Android/i) != null && navigator.userAgent.match(/Mobile/i) != null);
 
 toastr.options.positionClass = "toast-top-left";
 toastr.options.preventDuplicates = true;
 
 function handleMarked(is_marked){
     if (is_marked){
-        window.__$markButton.addClass("marked");
+        window.g.__$markButton.addClass("marked");
     } else {
-        window.__$markButton.removeClass("marked");
+        window.g.__$markButton.removeClass("marked");
     }
 }
 
 function showQuestion(target, is_initial){
   // 'target' could either be a question-sequence or url.  First,
   // let's check sequence, then URL.
-  window.__$current_question = $("#question-pool [data-question-sequence=\"" + target + "\"]")
-  if (window.__$current_question.length){
+  window.g.__$current_question = $("#question-pool [data-question-sequence=\"" + target + "\"]")
+  if (window.g.__$current_question.length){
     if (is_initial){
-      history.replaceState({url: window.__$current_question.data('url')}, '', window.__$current_question.data('url'));
+      history.replaceState({url: window.g.__$current_question.data('url')}, '', window.g.__$current_question.data('url'));
     } else {
-      history.pushState({url: window.__$current_question.data('url')}, '', window.__$current_question.data('url'));
+      history.pushState({url: window.g.__$current_question.data('url')}, '', window.g.__$current_question.data('url'));
     }
     // Update Piwik URL
     _paq.push(['setCustomUrl', window.location.href]);
   } else {
-    window.__$current_question = $("#question-pool [data-url=\"" + target + "\"]");
+    window.g.__$current_question = $("#question-pool [data-url=\"" + target + "\"]");
   }
 
-  window.__$current_question.find('.lazy').each(function(){
+  window.g.__$current_question.find('.lazy').each(function(){
     var $lazy_loader = $(this),
         src = $lazy_loader.data('src'),
         img_class = $lazy_loader.data('img-class'),
@@ -76,21 +78,21 @@ function showQuestion(target, is_initial){
 
   // If question is still unfound despite looking by URL,
   // fetch it.
-  if (!window.__$current_question.length) {
+  if (!window.g.__$current_question.length) {
     var question_set_start_index = Math.floor(target / 50) * 50;
     fetchList(question_set_start_index, target);
     return
   }
 
   // Add 'show' class to the current question
-  window.__$current_question.addClass("show");
+  window.g.__$current_question.addClass("show");
   // Remove 'show' class from other questions
-  $(".question-body").not(window.__$current_question).removeClass('show');
+  $(".question-body").not(window.g.__$current_question).removeClass('show');
   // The following is intentionally a global variable.
-  window.__current_sequence = window.__$current_question.data('question-sequence');
-  $("#question-sequence").html(window.__current_sequence);
-  var list_revision_url = window.__$current_question.data('list-revision-url')
-  $("#question-pk").html(window.__$current_question.data('question-pk'))
+  window.g.__current_sequence = window.g.__$current_question.data('question-sequence');
+  $("#question-sequence").html(window.g.__current_sequence);
+  var list_revision_url = window.g.__$current_question.data('list-revision-url')
+  $("#question-pk").html(window.g.__$current_question.data('question-pk'))
                    .attr('href', list_revision_url);
 
   initializeInteractions();
@@ -100,12 +102,12 @@ function showQuestion(target, is_initial){
   //   2) If this is the initial question and 10 questions away or less from previous or next question set, fetch either.
   //   3) If this is not the initial question, and we are 10 questions away from it, fetch the next question set.
 
-  var current_set_start_index = Math.floor(window.__current_sequence / 50) * 50,
-      next_set_start_index = (Math.floor(window.__current_sequence / 50) + 1) * 50,
-      previous_set_start_index = (Math.floor(window.__current_sequence / 50) - 1) * 50,
+  var current_set_start_index = Math.floor(window.g.__current_sequence / 50) * 50,
+      next_set_start_index = (Math.floor(window.g.__current_sequence / 50) + 1) * 50,
+      previous_set_start_index = (Math.floor(window.g.__current_sequence / 50) - 1) * 50,
       previous_set_end_index = current_set_start_index - 1;
 
-  if (next_set_start_index >= window.__SESSION_QUESTION_TOTAL){
+  if (next_set_start_index >= window.g.__SESSION_QUESTION_TOTAL){
     next_set_start_index = null;
   }
   if (0 > previous_set_start_index){
@@ -119,10 +121,10 @@ function showQuestion(target, is_initial){
   if (
     (is_initial &&
      next_set_start_index &&
-     window.__current_sequence >= (next_set_start_index - 10)) ||
+     window.g.__current_sequence >= (next_set_start_index - 10)) ||
      (!is_initial &&
       next_set_start_index &&
-      window.__current_sequence == (next_set_start_index - 10))
+      window.g.__current_sequence == (next_set_start_index - 10))
     ){
       fetchList(next_set_start_index)
   }
@@ -130,10 +132,10 @@ function showQuestion(target, is_initial){
   if (
     (is_initial &&
      previous_set_start_index !== null &&
-     window.__current_sequence <= (previous_set_end_index + 10)) ||
+     window.g.__current_sequence <= (previous_set_end_index + 10)) ||
      (!is_initial &&
       previous_set_start_index !== null &&
-      window.__current_sequence == (previous_set_end_index + 10))
+      window.g.__current_sequence == (previous_set_end_index + 10))
     ){
       fetchList(previous_set_start_index)
   }
@@ -149,30 +151,30 @@ function navigate() {
     var action = $(this).data('action');
 
     // If no previous or no next, just return
-    if (window.__current_sequence == 1 && action == 'previous'){
+    if (window.g.__current_sequence == 1 && action == 'previous'){
       $("#question-sequence").addClass("animated flash").css('color', 'yellow');
-      $("#question-sequence").one(window.__animation_events, function(){
+      $("#question-sequence").one(window.g.__animation_events, function(){
         $(this).removeClass().css('color', '');
       });
       return
-    } else if (window.__current_sequence == window.__SESSION_QUESTION_TOTAL && action == 'next'){
+    } else if (window.g.__current_sequence == window.g.__SESSION_QUESTION_TOTAL && action == 'next'){
       $("#question-total").addClass("animated flash").css('color', 'yellow');
-      $("#question-total").one(window.__animation_events, function(){
+      $("#question-total").one(window.g.__animation_events, function(){
         $(this).removeClass().css('color', '');
       });
       return
     }
 
     if (action == 'next' ){
-      var targeted_sequence = window.__current_sequence + 1;
+      var targeted_sequence = window.g.__current_sequence + 1;
     } else if (action == 'previous' ){
-      var targeted_sequence = window.__current_sequence - 1;
+      var targeted_sequence = window.g.__current_sequence - 1;
     }
 
     // If question sequence has not been loaded yet, prevent
     // and highlight the question-loading spinner
-    window.__$current_question = $("#question-pool [data-question-sequence=" + targeted_sequence + "]")
-    if (!window.__$current_question.length){
+    window.g.__$current_question = $("#question-pool [data-question-sequence=" + targeted_sequence + "]")
+    if (!window.g.__$current_question.length){
       _paq.push(['trackEvent', 'show_session', 'navigation', 'navigate-unloaded']);
       toastr.warning("You're super fast, " + window.USER_FIRST_NAME  + "!  Give us a second to bring question #" + targeted_sequence.toString() + ".");
       $("#question-loading").addClass("animated flash").css('color', 'yellow');
@@ -192,31 +194,31 @@ function toggleMarked() {
         url: Urls['exams:toggle_marked'](),
         type: 'POST',
         data: {session_pk: window.SESSION_PK,
-               question_pk: window.__$current_question.data('question-pk')},
+               question_pk: window.g.__$current_question.data('question-pk')},
         cache: false,
         success: function(data){
-           var question_pk = window.__$current_question.data('question-pk'),
-               marked_index = window.__MARKS.indexOf(question_pk);
-           window.__$current_question.data('is-marked', data.is_marked);
+           var question_pk = window.g.__$current_question.data('question-pk'),
+               marked_index = window.g.__MARKS.indexOf(question_pk);
+           window.g.__$current_question.data('is-marked', data.is_marked);
            handleMarked(data.is_marked);
            if (data.is_marked){
              if (marked_index == -1){
-               window.__MARKS.push(question_pk)
+               window.g.__MARKS.push(question_pk)
              }
              _paq.push(['trackEvent', 'show_session', 'mark-question', 'add-mark']);
            } else {
              if (marked_index != -1){
-               window.__MARKS.slice(marked_index, 1);
+               window.g.__MARKS.slice(marked_index, 1);
              }
              _paq.push(['trackEvent', 'show_session', 'mark-question', 'remove-mark']);
            }
 
            // If we have a navigation table, let's update it.
            // Otherwise, let's save the DOM queries.
-           if (window.__HAS_CONSTRUCTED_NAVIGATION){
-             var $question_row = $('.navigate-row[data-question-sequence="' + window.__current_sequence + '"]');
+           if (window.g.__HAS_CONSTRUCTED_NAVIGATION){
+             var $question_row = $('.navigate-row[data-question-sequence="' + window.g.__current_sequence + '"]');
              if (data.is_marked){
-               $question_row.find('td.is_marked').html(window.__is_marked_markup);
+               $question_row.find('td.is_marked').html(window.g.__is_marked_markup);
                if (isSafari9()){
                  FontAwesome.dom.i2svg({node: document.getElementById('navigation-table')});
                }
@@ -261,7 +263,7 @@ function highlightText() {
             replacementHtml = replacement.prop('outerHTML');
         $(this).html($(this).html().replace(escapedSelection, replacementHtml));
         // Bind only once
-        window.__$current_question.off('click', '.highlight')
+        window.g.__$current_question.off('click', '.highlight')
                          .on('click', '.highlight', removeHighlight);
         submitHighlight();
     }
@@ -276,10 +278,12 @@ function updateCorrectionTooltip(html, choice_pk){
   $choice_row.find('.check').html(notification + html);
 }
 
+/* This function does not get minified because it is called in
+   contribute_mnemonics.html */
 function initializeMnemonicInteractions(){
-  var question_pk = window.__$current_question.data('question-pk');
+  var question_pk = window.g.__$current_question.data('question-pk');
 
-  window.__$current_question.find('.mnemonic').each(function(){
+  window.g.__$current_question.find('.mnemonic').each(function(){
     var $mnemonic = $(this),
         submitter_pk = $mnemonic.data('submitter-pk');
     if (submitter_pk == window.USER_PK){
@@ -288,7 +292,7 @@ function initializeMnemonicInteractions(){
     }
   });
 
-  window.__$current_question.find(".like-mnemonic").off('click').on('click', function() {
+  window.g.__$current_question.find(".like-mnemonic").off('click').on('click', function() {
        var $like = $(this),
            action = $like.data('action'),
            mnemonic_pk = $like.closest('.mnemonic').data('mnemonic-pk'),
@@ -301,7 +305,7 @@ function initializeMnemonicInteractions(){
            success: function(data){
              if (data.success == 1){
                toastr.success("Your vote was submitted.");
-               window.__$current_question.find(".mnemonics-content").html(data.mnemonic_html);
+               window.g.__$current_question.find(".mnemonics-content").html(data.mnemonic_html);
                initializeMnemonicInteractions();
              } else {
                toastr.error(data.message)
@@ -309,7 +313,7 @@ function initializeMnemonicInteractions(){
            }
        });
   });
-  window.__$current_question.off('click', ".delete-mnemonic").on( 'click', ".delete-mnemonic", function() {
+  window.g.__$current_question.off('click', ".delete-mnemonic").on('click', ".delete-mnemonic", function() {
        var $delete = $(this),
            action = $delete.data('action'),
            mnemonic_pk = $delete.closest('.mnemonic').data('mnemonic-pk'),
@@ -322,7 +326,7 @@ function initializeMnemonicInteractions(){
            success: function(data){
              if (data.success == 1){
                toastr.success("Your mnemonic is deleted.");
-               window.__$current_question.find(".mnemonics-content").html(data.mnemonic_html);
+               window.g.__$current_question.find(".mnemonics-content").html(data.mnemonic_html);
                initializeMnemonicInteractions();
              } else {
                toastr.error(data.message)
@@ -335,7 +339,7 @@ function initializeMnemonicInteractions(){
 function initializeCorrectionInteractions(){
   // Here, we are selecting the SVG (i.e. '[data-fa-i2svg]')
   // within the '.correct' cell
-  window.__$current_question.off('click', '.correct [data-fa-i2svg]')
+  window.g.__$current_question.off('click', '.correct [data-fa-i2svg]')
                             .on('click', '.correct [data-fa-i2svg]', function () {
       _paq.push(['trackEvent', 'show_session', 'answer_correction', 'click-correct']);
       $("#correct-answer-modal").modal('show');
@@ -346,11 +350,11 @@ function initializeCorrectionInteractions(){
 }
 
 function controlExplanation(){
-  var has_explanation = window.__$current_question.find('.explanation-text').length ||
-                        window.__$current_question.find('.explanation-figure').length ||
-                        window.__$current_question.find('.explanation-reference-header').length,
-      was_solved = window.__$current_question.data('was-solved'),
-      $explanation_container = window.__$current_question.find(".explanation-container");
+  var has_explanation = window.g.__$current_question.find('.explanation-text').length ||
+                        window.g.__$current_question.find('.explanation-figure').length ||
+                        window.g.__$current_question.find('.explanation-reference-header').length,
+      was_solved = window.g.__$current_question.data('was-solved'),
+      $explanation_container = window.g.__$current_question.find(".explanation-container");
 
   if (!was_solved || (window.SESSION_MODE == 'UNEXPLAINED' && !$('body').data('has-finished'))){
     $explanation_container.hide()
@@ -365,8 +369,8 @@ function controlExplanation(){
 }
 
 function controlMnemonic(){
-  var was_solved = window.__$current_question.data('was-solved'),
-      has_mnemonics = window.__$current_question.find('.mnemonic').length;
+  var was_solved = window.g.__$current_question.data('was-solved'),
+      has_mnemonics = window.g.__$current_question.find('.mnemonic').length;
 
   if (!was_solved || (window.SESSION_MODE == 'UNEXPLAINED' && !$('body').data('has-finished'))){
     $(".mnemonics-container, #add-mnemonics").hide()
@@ -384,14 +388,14 @@ function controlSessionFinished(){
   // data-has-finished to true will cause expalantions to show
   // right away in UNEXPLAINED sessions.
   // This also affects #results and #end buttons.
-  if (window.__ANSWERS && Object.keys(window.__ANSWERS).length >= window.__SESSION_QUESTION_TOTAL){
+  if (window.g.__ANSWERS && Object.keys(window.g.__ANSWERS).length >= window.g.__SESSION_QUESTION_TOTAL){
     $('body').data('has-finished', true).attr('data-has-finished', 'true');
   }
 }
 
 function controlNavigationButtons(){
   // In case this is a tablet, we do not want the tooltips
-  if (window.__isTablet){
+  if (window.g.__isTablet){
     return
   }
 
@@ -399,19 +403,18 @@ function controlNavigationButtons(){
   // to be applied.
   $("#next").tooltip('dispose');
 
-  if (window.__current_sequence == window.__SESSION_QUESTION_TOTAL){
+  if (window.g.__current_sequence == window.g.__SESSION_QUESTION_TOTAL){
     $("#next").css('cursor', 'not-allowed');
     // select whatever button that's visible
-    button_name = $("#end:visible, #results:visible").html();
+    var button_name = $("#end:visible, #results:visible").html();
     $("#next").tooltip({title: 'This is the last question.  You can click <kbd>' + button_name + '</kbd> to end this session.',
                         html: true})
   } else {
-
     $("#next").tooltip();
     $("#next").css('cursor', 'pointer');
   }
 
-  if (window.__current_sequence == 1){
+  if (window.g.__current_sequence == 1){
     $("#previous").css('cursor', 'not-allowed');
   } else {
     $("#previous").css('cursor', 'pointer');
@@ -420,29 +423,29 @@ function controlNavigationButtons(){
 
 function highlightActiveRow(){
   // Mark row as active
-  var $question_row = $('.navigate-row[data-question-sequence="' + window.__current_sequence + '"]');
+  var $question_row = $('.navigate-row[data-question-sequence="' + window.g.__current_sequence + '"]');
   $question_row.addClass('table-active');
   $('.navigate-row').not($question_row).removeClass('table-active');
 }
 
 function disableHighlightInteractions(){
-  window.__$current_question.off('click', '.highlight')
-  window.__$current_question.find(".choice-text").off('click')
-  window.__$current_question.find(".question-text").off('mouseup touchend')
+  window.g.__$current_question.off('click', '.highlight')
+  window.g.__$current_question.find(".choice-text").off('click')
+  window.g.__$current_question.find(".question-text").off('mouseup touchend')
 }
 
 function initializeInteractions() {
     // $current_question is defined in showQuestion
-    window.__$current_question.find('[data-toggle="tooltip"]').tooltip();
+    window.g.__$current_question.find('[data-toggle="tooltip"]').tooltip();
 
     initializeCorrectionInteractions();
     initializeMnemonicInteractions();
     controlNavigationButtons();
-    handleMarked(window.__$current_question.data('is-marked'));
+    handleMarked(window.g.__$current_question.data('is-marked'));
 
     // If we have a navigation table, let's update it.
     // Otherwise, let's save the DOM queries.
-    if (window.__HAS_CONSTRUCTED_NAVIGATION){
+    if (window.g.__HAS_CONSTRUCTED_NAVIGATION){
       highlightActiveRow();
     }
 
@@ -453,22 +456,22 @@ function initializeInteractions() {
     });
     $("#contributors").tooltip({html: true,
                                 trigger: 'click',
-                                title: window.__$current_question.find(".tooltip-body").get(0)})
+                                title: window.g.__$current_question.find(".tooltip-body").get(0)})
 
     // Disable interaction if question was solved.
 
     controlExplanation();
     controlMnemonic();
-    var was_solved = window.__$current_question.data('was-solved');
+    var was_solved = window.g.__$current_question.data('was-solved');
 
     if (was_solved){
       $("#contribute,#add-mnemonics").show();
-      window.__$submitButton.hide();
-      window.__$current_question.find(".question-choice").prop("disabled", "disabled");
+      window.g.__$submitButton.hide();
+      window.g.__$current_question.find(".question-choice").prop("disabled", "disabled");
     } else {
         $("#contribute,#add-mnemonics").hide();
-        window.__$submitButton.show();
-        window.__$current_question.find(".question-choice").off('change').on('change', toggleChoices);
+        window.g.__$submitButton.show();
+        window.g.__$current_question.find(".question-choice").off('change').on('change', toggleChoices);
     }
 
     // We want to enable highlight in two cases:
@@ -478,12 +481,12 @@ function initializeInteractions() {
       // We turn off handlers first to ensure they don't get
       // triggered more than once as the user navigates and
       // binds the handlers.
-      window.__$current_question.find(".question-text").off('mouseup touchend').on('mouseup touchend', highlightText);
+      window.g.__$current_question.find(".question-text").off('mouseup touchend').on('mouseup touchend', highlightText);
       // We use event delegation as highlights could be added
       // after firing initializeInteractions.
-      window.__$current_question.off('click', '.highlight')
+      window.g.__$current_question.off('click', '.highlight')
                        .on('click', '.highlight', removeHighlight);
-      window.__$current_question.find(".choice-text").off('click').on('click', function() {
+      window.g.__$current_question.find(".choice-text").off('click').on('click', function() {
           if (!$(this).hasClass("strike")){
              // If a choice is striked, it is no longer checked.
               $(this).closest("tr").find(".question-choice").prop('checked', false).trigger('change');
@@ -497,14 +500,14 @@ function initializeInteractions() {
 }
 
 function submitHighlight(){
-  var stricken_choice_pks = window.__$current_question.find(".choice-text.strike").map(function(){return $(this).closest('tr').data('choice-pk')}).get();
+  var stricken_choice_pks = window.g.__$current_question.find(".choice-text.strike").map(function(){return $(this).closest('tr').data('choice-pk')}).get();
   stricken_choice_pks = JSON.stringify(stricken_choice_pks);
 
-  var data = {best_revision_pk: window.__$current_question.data('best-latest-revision-pk'),
-              highlighted_text: window.__$current_question.find(".question-text").html(),
+  var data = {best_revision_pk: window.g.__$current_question.data('best-latest-revision-pk'),
+              highlighted_text: window.g.__$current_question.find(".question-text").html(),
               stricken_choice_pks: stricken_choice_pks,
               session_pk: window.SESSION_PK,
-              question_pk: window.__$current_question.data('question-pk')}
+              question_pk: window.g.__$current_question.data('question-pk')}
 
   $.ajax({
       url: Urls['exams:submit_highlight'](),
@@ -517,47 +520,47 @@ function submitChoice() {
     $(this).hide();
 
     // if question was previously solved, don't submit.
-    if (window.__$current_question.data('was-solved')){
+    if (window.g.__$current_question.data('was-solved')){
       return
     }
     // Mark question as solved
     // We also set was-solved using .attr() to change the DOM and
     // be able to apply CSS.
-    window.__$current_question.data('was-solved', true).attr('data-was-solved', 'true');
+    window.g.__$current_question.data('was-solved', true).attr('data-was-solved', 'true');
 
 
     // If we have a navigation table, let's update it.
     // Otherwise, let's save the DOM queries.
-    if (window.__HAS_CONSTRUCTED_NAVIGATION){
-      var $question_row = $('.navigate-row[data-question-sequence="' + window.__current_sequence + '"]');
-      $question_row.find('td.was_solved').html(window.__was_solved_markup);
+    if (window.g.__HAS_CONSTRUCTED_NAVIGATION){
+      var $question_row = $('.navigate-row[data-question-sequence="' + window.g.__current_sequence + '"]');
+      $question_row.find('td.was_solved').html(window.g.__was_solved_markup);
       if (isSafari9()){
         FontAwesome.dom.i2svg({node: document.getElementById('navigation-table')});
       }
     }
 
     // Disable choices upon submission
-    window.__$current_question.find(".question-choice").prop("disabled", "disabled")
+    window.g.__$current_question.find(".question-choice").prop("disabled", "disabled")
     // Disable interactions after submission.
     controlExplanation();
     controlMnemonic();
     disableHighlightInteractions();
     $("#contribute,#add-mnemonics").show();
-    window.__$current_question.find(".question-text, .question-choice, .choice-text").off();
+    window.g.__$current_question.find(".question-text, .question-choice, .choice-text").off();
 
-    var $checkedChoice = window.__$current_question.find(".question-choice:checked");
+    var $checkedChoice = window.g.__$current_question.find(".question-choice:checked");
 
     // Do we have a choice, or was it skipped?
     if ($checkedChoice.length) {
         // We store choice pk at the row.
-        choice_pk = $checkedChoice.closest('tr').data("choice-pk");
+        var $choice_row = $checkedChoice.closest('tr'),
+            choice_pk = $choice_row.data("choice-pk");
 
         // If there is a correction, we invite the user to vote:
-        var $choice_row = $checkedChoice.closest('tr');
         if ($choice_row.data('is_right')){
-          window.__STATS.correct_count += 1
+          window.g.__STATS.correct_count += 1
         } else {
-          window.__STATS.incorrect_count += 1
+          window.g.__STATS.incorrect_count += 1
         }
         var $correction_notification = $choice_row.find('.answer-correction-notification')
         // Let's ensure that the support voting button is enabled
@@ -573,14 +576,14 @@ function submitChoice() {
           setTimeout(function(){$choice_row.find('.check').tooltip('hide')}, 5000);
         }
     } else {
-        window.__STATS.skipped_count += 1
-        choice_pk = null;
+        window.g.__STATS.skipped_count += 1
+        var choice_pk = null;
     }
 
-    updateSharedProgressBar(window.SESSION_PK, window.__STATS);
+    updateSharedProgressBar(window.SESSION_PK, window.g.__STATS);
 
-    var question_pk = window.__$current_question.data('question-pk')
-    window.__ANSWERS[question_pk] = choice_pk;
+    var question_pk = window.g.__$current_question.data('question-pk')
+    window.g.__ANSWERS[question_pk] = choice_pk;
     controlSessionFinished();
 
     var data = {session_pk: window.SESSION_PK,
@@ -617,20 +620,20 @@ function updateSizes() {
 function initializeKeyboard(){
   $(document).keydown(function(e){
     // record active keys so we can handle a combination of keys
-    window.__active_keys[e.which] = true;
+    window.g.__active_keys[e.which] = true;
 
     // check which key we got
-    if (window.__active_keys[37]) { // left key
+    if (window.g.__active_keys[37]) { // left key
       $("#previous").trigger('click');
       _paq.push(['trackEvent', 'show_session', 'navigation', 'keyboard-previous']);
-    } else if (window.__active_keys[39] || window.__active_keys[32]) {  // right key or space
+    } else if (window.g.__active_keys[39] || window.g.__active_keys[32]) {  // right key or space
       e.preventDefault() // prevent space scroll.
       $("#next").trigger('click');
       _paq.push(['trackEvent', 'show_session', 'navigation', 'keyboard-next']);
-    } else if (window.__active_keys[18] && window.__active_keys[77]) { // alt + m
+    } else if (window.g.__active_keys[18] && window.g.__active_keys[77]) { // alt + m
       _paq.push(['trackEvent', 'show_session', 'mark-question', 'keyboard-mark']);
-      window.__$markButton.trigger('click');
-    } else if (window.__active_keys[18] && window.__active_keys[85]) { // alt + u
+      window.g.__$markButton.trigger('click');
+    } else if (window.g.__active_keys[18] && window.g.__active_keys[85]) { // alt + u
       _paq.push(['trackEvent', 'show_session', 'find-pending', 'keyboard-pending']);
       if (window.SESSION_MODE == 'SOLVED' || window.SESSION_MODE == 'INCOMPLETE'){
         return
@@ -641,26 +644,26 @@ function initializeKeyboard(){
       } else {
         toastr.success("Yay!  No pending in this session.");
       }
-    } else if (window.__active_keys[17] && window.__active_keys[13]) { // ctrl + enter
+    } else if (window.g.__active_keys[17] && window.g.__active_keys[13]) { // ctrl + enter
       _paq.push(['trackEvent', 'show_session', 'mark-question', 'keyboard-submit']);
-      window.__$submitButton.trigger('click');
-    } else if (window.__active_keys[17] && window.__active_keys[38] || window.__active_keys[17] && window.__active_keys[40]){ // ctrl + up or ctrl + down
+      window.g.__$submitButton.trigger('click');
+    } else if (window.g.__active_keys[17] && window.g.__active_keys[38] || window.g.__active_keys[17] && window.g.__active_keys[40]){ // ctrl + up or ctrl + down
       e.preventDefault() // prevent arrow scroll.
-      var total_choices = window.__$current_question.find(".question-choice").length,
-          $checked_choice = window.__$current_question.find(".question-choice:enabled:checked")
+      var total_choices = window.g.__$current_question.find(".question-choice").length,
+          $checked_choice = window.g.__$current_question.find(".question-choice:enabled:checked")
       if ($checked_choice.length){
-        var choice_index = window.__$current_question.find(".question-choice").index($checked_choice);
-        if (window.__active_keys[38] && choice_index == 0){ // Up while at top
+        var choice_index = window.g.__$current_question.find(".question-choice").index($checked_choice);
+        if (window.g.__active_keys[38] && choice_index == 0){ // Up while at top
           // We are at the topmost choice, we cannot go up.
           return
-        } else if (window.__active_keys[40] && choice_index == (total_choices -1)){ // Up while at bottom
+        } else if (window.g.__active_keys[40] && choice_index == (total_choices -1)){ // Up while at bottom
           // We are at the bottom most choice, we cannot go futher down
           return
         } else {
-          if (window.__active_keys[40]){ // down
+          if (window.g.__active_keys[40]){ // down
             _paq.push(['trackEvent', 'show_session', 'navigation', 'keyboard-down']);
             var target_index = choice_index + 1
-          } else if (window.__active_keys[38]){ // up
+          } else if (window.g.__active_keys[38]){ // up
             _paq.push(['trackEvent', 'show_session', 'navigation', 'keyboard-up']);
             var target_index = choice_index - 1;
           }
@@ -669,7 +672,7 @@ function initializeKeyboard(){
         // If no choice is already checked, arrows always select the first choice.
         var target_index = 0;
       }
-      var target_choice = window.__$current_question.find('.question-choice:enabled').get(target_index)
+      var target_choice = window.g.__$current_question.find('.question-choice:enabled').get(target_index)
       $(target_choice).prop('checked', true).trigger('change');
     } else {
       // If no matching keyboard shortcut, do not execuse
@@ -679,7 +682,7 @@ function initializeKeyboard(){
   });
   $(document).keyup(function (e) {
       // remove keys that are no longer active;
-      delete window.__active_keys[e.which];
+      delete window.g.__active_keys[e.which];
   });
 }
 
@@ -703,14 +706,14 @@ function constructNavigationTable(){
   var tbody = document.getElementById("navigation-tbody"),
       tbody_content = "";
 
-  for (var question_sequence = 1; question_sequence <= window.__SESSION_QUESTION_PKS.length; question_sequence++) {
+  for (var question_sequence = 1; question_sequence <= window.g.__SESSION_QUESTION_PKS.length; question_sequence++) {
      var question_index = question_sequence - 1,
-         question_pk = SESSION_QUESTION_PKS[question_index],
-         was_solved = window.__ANSWERS[question_pk] !== undefined ? window.__was_solved_markup : '<i class="far fa-square"></i>';
+         question_pk = window.g.__SESSION_QUESTION_PKS[question_index],
+         was_solved = window.g.__ANSWERS[question_pk] !== undefined ? window.g.__was_solved_markup : '<i class="far fa-square"></i>';
      // In case MARKS was not populated yet, we can safely skip
      // it.
-     if (window.__MARKS){
-       var is_marked = window.__MARKS.indexOf(question_pk) != -1 ? window.__is_marked_markup : '';
+     if (window.g.__MARKS){
+       var is_marked = window.g.__MARKS.indexOf(question_pk) != -1 ? window.g.__is_marked_markup : '';
      }
      var row = "<tr class='navigate-row text-center' data-question-sequence='" + question_sequence.toString() + "'><td>" + question_sequence.toString() + "</td><td class='d-sm-table-cell d-none'>" + question_pk.toString() + "</td><td class='d-sm-table-cell d-none is_marked'>" + is_marked + "</td><td class='was_solved'>" + was_solved +"</td></tr>";
      tbody_content += row;
@@ -728,7 +731,7 @@ function constructNavigationTable(){
     showQuestion(targeted_sequence);
   });
   highlightActiveRow();
-  window.__HAS_CONSTRUCTED_NAVIGATION = true;
+  window.g.__HAS_CONSTRUCTED_NAVIGATION = true;
 }
 
 function fetchAnswers(){
@@ -737,20 +740,20 @@ function fetchAnswers(){
           data: {format: 'json',
                  session_pk: window.SESSION_PK },
           success: function(data){
-              window.__ANSWERS = {};
-              window.__STATS = {correct_count: 0,
-                                incorrect_count: 0,
-                                skipped_count: 0,};
+              window.g.__ANSWERS = {};
+              window.g.__STATS = {correct_count: 0,
+                                  incorrect_count: 0,
+                                  skipped_count: 0,};
               data.map(function(item){
                 if (item.choice === null){
-                  window.__STATS.skipped_count += 1
-                  window.__ANSWERS[item.question_id] = null;
+                  window.g.__STATS.skipped_count += 1
+                  window.g.__ANSWERS[item.question_id] = null;
                 } else if (item.choice.is_right === true){
-                  window.__STATS.correct_count += 1
-                  window.__ANSWERS[item.question_id] = item.choice.id;
+                  window.g.__STATS.correct_count += 1
+                  window.g.__ANSWERS[item.question_id] = item.choice.id;
                 } else if (item.choice.is_right === false){
-                  window.__STATS.incorrect_count += 1
-                  window.__ANSWERS[item.question_id] = item.choice.id;
+                  window.g.__STATS.incorrect_count += 1
+                  window.g.__ANSWERS[item.question_id] = item.choice.id;
                 }
               });
 
@@ -762,7 +765,7 @@ function fetchAnswers(){
               // initialize interactions after we have prepared
               // the questions.
               controlSessionFinished();
-              updateSharedProgressBar(window.SESSION_PK, window.__STATS);
+              updateSharedProgressBar(window.SESSION_PK, window.g.__STATS);
               initializeInteractions();
               $("#open-navigation").tooltip('dispose').css('cursor', 'pointer').click(function(){
                 constructNavigationTable();
@@ -779,7 +782,7 @@ function fetchMarks(){
           data: {format: 'json',
                  exam_pk: window.EXAM_PK },
           success: function(data){
-              window.__MARKS = data.map(function(item){ return item.id });
+              window.g.__MARKS = data.map(function(item){ return item.id });
 
               $('.question-body').each(function(){
                 var $question = $(this),
@@ -797,9 +800,9 @@ function fetchHighlights(){
           data: {format: 'json',
                  session_pk: window.SESSION_PK },
           success: function(data){
-              window.__PREVIOUS_HIGHLIGHTS = {};
+              window.g.__PREVIOUS_HIGHLIGHTS = {};
               data.map(function(item){
-                window.__PREVIOUS_HIGHLIGHTS[item.revision.question_id] = {revision_id: item.revision.id,
+                window.g.__PREVIOUS_HIGHLIGHTS[item.revision.question_id] = {revision_id: item.revision.id,
                                                          highlighted_text: item.highlighted_text,
                                                          stricken_choices: item.stricken_choices};
               });
@@ -849,15 +852,15 @@ function updateSharedProgressBar(session_pk, stat){
   // Only detail the breakdown if the session mode is EXPLAINED.
   // Otherwise, only show a generic count.
   if (window.SESSION_MODE == 'EXPLAINED'){
-    var correct_percentage = Math.round(stat.correct_count / window.__SESSION_QUESTION_TOTAL * 100) + '%',
-        incorrect_percentage = Math.round(stat.incorrect_count / window.__SESSION_QUESTION_TOTAL * 100) + '%',
-        skipped_percentage = Math.round(stat.skipped_count / window.__SESSION_QUESTION_TOTAL * 100) + '%';
+    var correct_percentage = Math.round(stat.correct_count / window.g.__SESSION_QUESTION_TOTAL * 100) + '%',
+        incorrect_percentage = Math.round(stat.incorrect_count / window.g.__SESSION_QUESTION_TOTAL * 100) + '%',
+        skipped_percentage = Math.round(stat.skipped_count / window.g.__SESSION_QUESTION_TOTAL * 100) + '%';
     $progress_container.find('.progress-bar.bg-success').css('width', correct_percentage).attr('aria-valuenow', stat.correct_count);
     $progress_container.find('.progress-bar.bg-danger').css('width', incorrect_percentage).attr('aria-valuenow', stat.incorrect_count);
     $progress_container.find('.progress-bar.bg-warning').css('width', skipped_percentage).attr('aria-valuenow', stat.skipped_count);
     $("#shared-session-" + session_pk).tooltip({html: true, title: '<ul class="mb-0 pl-3 sharer-name"><li>Correct: ' + stat.correct_count + ' (' + correct_percentage +')</li><li>Incorrect: ' + stat.incorrect_count + ' (' + incorrect_percentage + ')</li><li>Skipped: ' + stat.skipped_count + ' (' + skipped_percentage +')</li></ul>'})
   } else {
-    var width = stat.count / window.__SESSION_QUESTION_TOTAL * 100 + '%';
+    var width = stat.count / window.g.__SESSION_QUESTION_TOTAL * 100 + '%';
     $progress_container.find('.progress-bar.bg-success').css('width', width).attr('aria-valuenow', stat.count);
   }
 
@@ -876,11 +879,11 @@ function isSafari9(){
 
 function fetchList(fetch_list_index, question_sequence){
   // If the given index was previously fetched, skip!
-  if (window.__fetched_indexes.indexOf(fetch_list_index) != -1){
+  if (window.g.__fetched_indexes.indexOf(fetch_list_index) != -1){
     return
   }
 
-  var current_targets = window.__SESSION_QUESTION_PKS.slice(fetch_list_index, fetch_list_index + 50),
+  var current_targets = window.g.__SESSION_QUESTION_PKS.slice(fetch_list_index, fetch_list_index + 50),
       current_target_str = current_targets.join(',');
   $("#question-loading").show();
 
@@ -888,17 +891,17 @@ function fetchList(fetch_list_index, question_sequence){
           url: Urls['exams:list_partial_session_questions'](window.CATEGORY_SLUGS, window.EXAM_PK),
           data: {pks: current_target_str},
           success: function(data){
-            window.__fetched_indexes.push(fetch_list_index);
+            window.g.__fetched_indexes.push(fetch_list_index);
 
             var $questions = $(data.html);
 
             // Do not bother with filtering except if we know
             // that we need it.
-            if (current_targets.indexOf(window.__initial_question_pk) != -1){
+            if (current_targets.indexOf(window.g.__initial_question_pk) != -1){
               var $filtered_questions = $questions.filter(function(){
                 var $question = $(this),
                     question_pk = $question.data('question-pk');
-                return question_pk != window.__initial_question_pk
+                return question_pk != window.g.__initial_question_pk
               });
             } else {
               var $filtered_questions = $questions
@@ -935,12 +938,12 @@ function fetchList(fetch_list_index, question_sequence){
 function prepareHighlights($question) {
   // If we do not have the PREVIOUS_HIGHLIGHTS yet, we cannot
   // prepare the highlights.
-  if (window.__PREVIOUS_HIGHLIGHTS === null){
+  if (window.g.__PREVIOUS_HIGHLIGHTS === null){
     return
   }
 
   var question_pk = $question.data('question-pk'),
-      highlight = window.__PREVIOUS_HIGHLIGHTS[question_pk];
+      highlight = window.g.__PREVIOUS_HIGHLIGHTS[question_pk];
   if (highlight !== undefined){
     var best_revision_pk = $question.data('best-latest-revision-pk');
     if (best_revision_pk == highlight.revision_id){
@@ -950,7 +953,7 @@ function prepareHighlights($question) {
         $question.find('.question-text').html(highlight.highlighted_text);
       }
       $.each(highlight.stricken_choices, function(index){
-        choice_pk = highlight.stricken_choices[index]
+        var choice_pk = highlight.stricken_choices[index];
         $question.find('tr[data-choice-pk=' + choice_pk + '] .choice-text').addClass('strike');
       });
     }
@@ -963,13 +966,13 @@ function prepareChoices($question) {
 
   // If we do not have the ANSWERS yet, we cannot prepare the
   // choices.
-  if (window.__ANSWERS === null){
+  if (window.g.__ANSWERS === null){
     return
   }
 
   // First: Tag the previously selected choice:
   var question_pk = $question.data('question-pk'),
-      choice_pk = window.__ANSWERS[question_pk];
+      choice_pk = window.g.__ANSWERS[question_pk];
   if (choice_pk !== undefined){
     $question.data('was-solved', true).attr('data-was-solved', 'true')
     $question.find('.question-choice').attr('disabled', true)
@@ -1014,7 +1017,7 @@ function prepareChoices($question) {
 }
 
 function applyMark($question, question_pk){
-  if (window.__MARKS.indexOf(question_pk) != -1){
+  if (window.g.__MARKS.indexOf(question_pk) != -1){
     $question.data('is-marked', true).attr('data-is-marked', 'true')
     // If the marked question is currently being shown, highlight
     // the mark button.
@@ -1045,7 +1048,7 @@ function prepareQuestions($questions){
     prepareHighlights($question);
 
     // Add sequence
-    var question_sequence = window.__SESSION_QUESTION_PKS.indexOf(question_pk) + 1;
+    var question_sequence = window.g.__SESSION_QUESTION_PKS.indexOf(question_pk) + 1;
     $question.data('question-sequence', question_sequence).attr('data-question-sequence', question_sequence);
 
     // Add url data tags
@@ -1059,39 +1062,39 @@ function prepareQuestions($questions){
       $question.find('.question-choice').attr('disabled', true)
     }
 
-    if (window.__MARKS){
+    if (window.g.__MARKS){
       applyMark($question, question_pk);
     }
   });
 
-  $question_pool = $('#question-pool')
+  var $question_pool = $('#question-pool');
   if (!$question_pool.hasClass('choices-were-animated')){
     $question_pool.addClass('choices-were-animated')
-    window.__$current_question.find('tbody').addClass('animated fadeIn').one(window.__animation_events, function(){$(this).removeClass()});
+    window.g.__$current_question.find('tbody').addClass('animated fadeIn').one(window.g.__animation_events, function(){$(this).removeClass()});
   }
 }
 
 function setSharedStatTimer(){
-  if (!window.__SHARED_STAT_TIMER && document.hasFocus() && $('.progress[data-has-finished="false"]').length){
-    window.__SHARED_STAT_TIMER = setInterval(fetchSharedStats, 5000);
+  if (!window.g.__SHARED_STAT_TIMER && document.hasFocus() && $('.progress[data-has-finished="false"]').length){
+    window.g.__SHARED_STAT_TIMER = setInterval(fetchSharedStats, 5000);
   }
 }
 
 function clearSharedStatTimer(){
-    if (window.__SHARED_STAT_TIMER){
-      clearInterval(window.__SHARED_STAT_TIMER);
-      window.__SHARED_STAT_TIMER = null;
+    if (window.g.__SHARED_STAT_TIMER){
+      clearInterval(window.g.__SHARED_STAT_TIMER);
+      window.g.__SHARED_STAT_TIMER = null;
     }
 }
 
 // Show mobile sliders in tablets
-if (window.__isTablet){
+if (window.g.__isTablet){
   $('.mobile-slide').removeClass('d-lg-none');
   $('#question-col').removeClass('col-lg-12 px-lg-5');
 }
 
 // Do not show keyboard-hint in tablets or mobile phones.
-if (window.__isTablet || window.__isMobile){
+if (window.g.__isTablet || window.g.__isMobile){
   $('#keyboard-hint').addClass('d-none');
 }
 
@@ -1115,14 +1118,14 @@ $(function() {
     var $initial_question = $('.question-body.show');
 
     // Set sequence for initial question
-    window.__initial_question_pk = $initial_question.data('question-pk');
-    var initial_question_sequence = window.__SESSION_QUESTION_PKS.indexOf(window.__initial_question_pk) + 1;
+    window.g.__initial_question_pk = $initial_question.data('question-pk');
+    var initial_question_sequence = window.g.__SESSION_QUESTION_PKS.indexOf(window.g.__initial_question_pk) + 1;
     $initial_question.attr('data-question-sequence', initial_question_sequence).data('question-sequence', initial_question_sequence)
 
     // Show initial question
     showQuestion(initial_question_sequence, true);
 
-    $("#question-total").html(window.__SESSION_QUESTION_TOTAL);
+    $("#question-total").html(window.g.__SESSION_QUESTION_TOTAL);
     $("#question-sequence").html(initial_question_sequence);
 
     initializeKeyboard();
@@ -1131,14 +1134,14 @@ $(function() {
     // Note that this must NOT be overridden anywhere in the
     // code.  Tooltip intialization always has to be limited to
     // specific subelements of a context
-    if (window.__isTablet){
+    if (window.g.__isTablet){
       // In tablets, we don't want to show tooltips on the
       // 'Mark' button as well as navigation buttons.
       $('[data-toggle="tooltip"]').not("#next, #previous, #mark").tooltip();
-    } else if (window.__isMobile) {
+    } else if (window.g.__isMobile) {
       // In mobile phones, we don't want to show a tooltip on the
       // 'Mark' button
-      $('[data-toggle="tooltip"]').not(window.__$markButton).tooltip();
+      $('[data-toggle="tooltip"]').not(window.g.__$markButton).tooltip();
     } else {
       $('[data-toggle="tooltip"]').tooltip();
     }
@@ -1222,9 +1225,9 @@ $(function() {
       $("#confirm-end-modal a.submit-button").prop("href", Urls['exams:show_session_results'](window.CATEGORY_SLUGS, window.EXAM_PK, window.SESSION_PK));
       $("#confirm-end-modal").modal('show');
     });
-    window.__$submitButton.click(submitChoice);
+    window.g.__$submitButton.click(submitChoice);
     $('#previous, #next').click(navigate);
-    window.__$markButton.click(toggleMarked);
+    window.g.__$markButton.click(toggleMarked);
 
 
     // Actions are delegated are defined here.
@@ -1245,7 +1248,7 @@ $(function() {
       var choice_pk = $(this).data('choice-pk'),
           url = Urls['exams:delete_correction']() + "?" + $.param({choice_pk: choice_pk}),
           pk_selector = "[data-choice-pk=" + choice_pk + "]",
-          $choice_row = window.__$current_question.find("tr" + pk_selector);
+          $choice_row = window.g.__$current_question.find("tr" + pk_selector);
       $choice_row.data('has-correction', false).attr('data-has-correction', 'false');
       $('.answer-correction-notification').tooltip('hide');
       $(this).tooltip('hide');
@@ -1260,7 +1263,7 @@ $(function() {
                 updateCorrectionTooltip(data.correction_html, choice_pk);
               } else {
                 // Before there was a correction, it was marked as a wrong answer
-                $choice_row.find('.check').html(window.__wrong_answer_markup);
+                $choice_row.find('.check').html(window.g.__wrong_answer_markup);
               }
             } else {
               toastr.error(data.message)
@@ -1299,19 +1302,19 @@ $(function() {
 
     $("#contribute").click(function () {
         $("#modify-question-modal").modal('show');
-        var url = Urls['exams:contribute_revision']() + "?" + $.param({question_pk: window.__$current_question.data('question-pk')});
+        var url = Urls['exams:contribute_revision']() + "?" + $.param({question_pk: window.g.__$current_question.data('question-pk')});
         $("#modify-question-modal .modal-body").load(url);
     });
     // initialize project edit modal
     $("#explain, a.explain").click(function () {
         $("#explain-question-modal").modal('show');
-        var url = Urls['exams:contribute_explanation']() + "?" + $.param({question_pk: window.__$current_question.data('question-pk')});
+        var url = Urls['exams:contribute_explanation']() + "?" + $.param({question_pk: window.g.__$current_question.data('question-pk')});
         $("#explain-question-modal .modal-body").load(url);
     });
 
     $("#add-mnemonics").click(function () {
         $("#add-mnemonics-modal").modal('show');
-        var url =  Urls['exams:contribute_mnemonics']() + "?" + $.param({question_pk: window.__$current_question.data('question-pk')});
+        var url =  Urls['exams:contribute_mnemonics']() + "?" + $.param({question_pk: window.g.__$current_question.data('question-pk')});
         $("#add-mnemonics-modal .modal-body").load(url);
     });
 
