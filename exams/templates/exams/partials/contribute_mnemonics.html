@@ -58,12 +58,11 @@
                /* stop form from submitting normally */
                event.preventDefault();
                /* get some values from elements on the page: */
-               var formData = new FormData($(this)[0]);
-               action = $(this).data('action');
-               question_pk = {{ question.pk }};
+               var formData = new FormData($(this)[0]),
+                   action = $(this).data('action'),
+                   url = "{% url 'exams:contribute_mnemonics' %}?" + $.param({question_pk: {{ question.pk }}});
                formData.append('action',action);
 
-               url = "{% url 'exams:contribute_mnemonics' %}?" + $.param({question_pk: question_pk});
                /* Send the data */
                $.ajax({
                    url: url,
@@ -79,6 +78,7 @@
                            toastr.success("Thank you!  Your contribution is highly appreciated!");
                            $("#add-mnemonics-modal .modal-body").html(data);
                            $("#add-mnemonics-modal").modal('hide');
+                           var $current_question = $(".question-body.show");
                            $current_question.find(".mnemonics-container").show();
                            $current_question.find(".mnemonics-content").html(data.mnemonic_html);
                            initializeMnemonicInteractions();

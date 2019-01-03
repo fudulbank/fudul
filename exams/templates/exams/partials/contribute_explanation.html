@@ -71,14 +71,13 @@
                         // show success message (using toastr)
                         toastr.success("Thank you!  Your explanation will now be viewed by all examinees!");
                         $("#explain-question-modal").modal('hide');
+                        var $current_question = $(".question-body.show"),
+                            $explanation_content = $current_question.find(".explanation-content");
                         $current_question.find(".explanation-container").show();
-                        var $explanation_content = $current_question.find(".explanation-content");
                         $explanation_content.html(data.explanation_html);
                         var explanation_text = $explanation_content.find('.explanation-text').html();
                         var explanation_html = converter.makeHtml(explanation_text);
                         $current_question.find('.explanation-text').html(explanation_html);
-
-
                     } else {
                         toastr.error(data.message);
                         $("#explain-question-modal .modal-body").html(data);

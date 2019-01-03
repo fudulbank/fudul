@@ -157,33 +157,36 @@
         <script src="{% url 'js_reverse' %}?v=1.1"></script>
         <script>
     // Keys represent PKs.  Values represent global_sequences.
-    SESSION_QUESTIONS = {{ session_question_pks|safe }};
-    CATEGORY_SLUGS = '{{ category_slugs }}';
-    USER_PK = {{ user.pk }};
-    EXAM_PK = {{ session.exam.pk }};
-    SESSION_PK = {{ session.pk }};
-    SESSION_MODE = '{{ session.session_mode }}';
-    SESSION_IS_EXAMINABLE = {% if session.is_examinable %}true{% else %}false{% endif %};
-    USER_FIRST_NAME = "{{ user.profile.first_name }}";
-    IS_SHARED = {%if is_shared %}true{% else %}false{% endif %};
+    const SESSION_QUESTIONS = {{ session_question_pks|safe }},
+          CATEGORY_SLUGS = '{{ category_slugs }}',
+          USER_PK = {{ user.pk }},
+          EXAM_PK = {{ session.exam.pk }},
+          SESSION_PK = {{ session.pk }},
+          SESSION_MODE = '{{ session.session_mode }}',
+          SESSION_IS_EXAMINABLE = {% if session.is_examinable %}true{% else %}false{% endif %},
+          USER_FIRST_NAME = "{{ user.profile.first_name }}",
+          IS_SHARED = {%if is_shared %}true{% else %}false{% endif %};
+        </script>
+      <script>
+    'use strict;'
+    window.__SESSION_QUESTION_PKS = Object.keys(SESSION_QUESTIONS).map(function(x){ return parseInt(x)});
+    window.__SESSION_QUESTION_GLOBAL_SEQUENCES = window.__SESSION_QUESTION_PKS.map(function(x){ return SESSION_QUESTIONS[x] }).sort(function(a, b){ return a - b});
+    window.__SESSION_QUESTION_TOTAL = window.__SESSION_QUESTION_PKS.length;
+    window.__PREVIOUS_HIGHLIGHTS = null;
+    window.__PREVIOUS_CORRECTIONS = null;
+    window.__MARKS = null;
+    window.__ANSWERS = null;
+    window.__STATS = null;
+    window.__has_constructed_navigation = false;
+    window.__shared_stat_timer = null;
 
-    SESSION_QUESTION_PKS = Object.keys(SESSION_QUESTIONS).map(function(x){ return parseInt(x)})
-    SESSION_QUESTION_GLOBAL_SEQUENCES = SESSION_QUESTION_PKS.map(function(x){ return SESSION_QUESTIONS[x] }).sort(function(a, b){ return a - b});
     // Sort SESSION_QUESTION_PKS per their global_sequences, if those
     // do not include any null values.  Otherwise, sort per pks.
     if (SESSION_QUESTION_GLOBAL_SEQUENCES.indexOf(null) != -1){
-      SESSION_QUESTION_PKS = SESSION_QUESTION_PKS.sort(function(a, b){return SESSION_QUESTIONS[a] - SESSION_QUESTIONS[b]});
+      window.__SESSION_QUESTION_PKS = window.__SESSION_QUESTION_PKS.sort(function(a, b){return SESSION_QUESTIONS[a] - SESSION_QUESTIONS[b]});
     } else {
-      SESSION_QUESTION_PKS = SESSION_QUESTION_PKS.sort(function(a, b){return a - b});
+      window.__SESSION_QUESTION_PKS = window.__SESSION_QUESTION_PKS.sort(function(a, b){return a - b});
     }
-    SESSION_QUESTION_TOTAL = SESSION_QUESTION_PKS.length;
-    PREVIOUS_HIGHLIGHTS = null;
-    PREVIOUS_CORRECTIONS = null;
-    MARKS = null;
-    ANSWERS = null;
-    STATS = null;
-    has_constructed_navigation = false;
-    shared_stat_timer = null;
 
     showdown.setOption('headerLevelStart', 3);
     showdown.setOption('simpleLineBreaks', true);
@@ -191,19 +194,20 @@
 
 
     // Common selectors
-    $markButton = $("#mark");
-    $submitButton = $("#submit");
+    var $markButton = $("#mark"),
+        $submitButton = $("#submit");
 
-    fetched_indexes = [];
+    var fetched_indexes = [],
+        active_keys = {},
+        animation_events = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend',
+        was_solved_markup = '<i class="far fa-check-square"></i>',
+        is_marked_markup = '<i class="fas fa-flag"></i>',
+        wrong_answer_markup = '<i class="fas fa-times text-danger mx-1"></i>',
+        isTablet = navigator.userAgent.match(/iPad/i) != null || (navigator.userAgent.match(/Android/i) != null && navigator.userAgent.match(/Mobile/i) == null),
+        isMobile = navigator.userAgent.match(/iPhone/i) != null || (navigator.userAgent.match(/Android/i) != null && navigator.userAgent.match(/Mobile/i) != null);
+
     toastr.options.positionClass = "toast-top-left";
     toastr.options.preventDuplicates = true;
-    active_keys = {};
-    animation_events = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
-    was_solved_markup = '<i class="far fa-check-square"></i>';
-    is_marked_markup = '<i class="fas fa-flag"></i>';
-    wrong_answer_markup = '<i class="fas fa-times text-danger mx-1"></i>'
-    isTablet = navigator.userAgent.match(/iPad/i) != null || (navigator.userAgent.match(/Android/i) != null && navigator.userAgent.match(/Mobile/i) == null);
-    isMobile = navigator.userAgent.match(/iPhone/i) != null || (navigator.userAgent.match(/Android/i) != null && navigator.userAgent.match(/Mobile/i) != null);
 
     function handleMarked(is_marked){
         if (is_marked){
@@ -216,7 +220,7 @@
     function showQuestion(target, is_initial){
       // 'target' could either be a question-sequence or url.  First,
       // let's check sequence, then URL.
-      $current_question = $("#question-pool [data-question-sequence=\"" + target + "\"]")
+      window.$current_question = $("#question-pool [data-question-sequence=\"" + target + "\"]")
       if ($current_question.length){
         if (is_initial){
           history.replaceState({url: $current_question.data('url')}, '', $current_question.data('url'));
@@ -226,7 +230,7 @@
         // Update Piwik URL
         _paq.push(['setCustomUrl', window.location.href]);
       } else {
-        $current_question = $("#question-pool [data-url=\"" + target + "\"]");
+        window.$current_question = $("#question-pool [data-url=\"" + target + "\"]");
       }
 
       $current_question.find('.lazy').each(function(){
@@ -244,7 +248,7 @@
       // If question is still unfound despite looking by URL,
       // fetch it.
       if (!$current_question.length) {
-        question_set_start_index = Math.floor(target / 50) * 50
+        let question_set_start_index = Math.floor(target / 50) * 50;
         fetchList(question_set_start_index, target);
         return
       }
@@ -254,7 +258,7 @@
       // Remove 'show' class from other questions
       $(".question-body").not($current_question).removeClass('show');
       // The following is intentionally a global variable.
-      current_sequence = $current_question.data('question-sequence');
+      window.current_sequence = $current_question.data('question-sequence');
       $("#question-sequence").html(current_sequence);
       var list_revision_url = $current_question.data('list-revision-url')
       $("#question-pk").html($current_question.data('question-pk'))
@@ -267,10 +271,10 @@
       //   2) If this is the initial question and 10 questions away or less from previous or next question set, fetch either.
       //   3) If this is not the initial question, and we are 10 questions away from it, fetch the next question set.
 
-      var current_set_start_index = Math.floor(current_sequence / 50) * 50
-      var next_set_start_index = (Math.floor(current_sequence / 50) + 1) * 50
-      var previous_set_start_index = (Math.floor(current_sequence / 50) - 1) * 50
-      var previous_set_end_index = current_set_start_index - 1
+      var current_set_start_index = Math.floor(current_sequence / 50) * 50,
+          next_set_start_index = (Math.floor(current_sequence / 50) + 1) * 50,
+          previous_set_start_index = (Math.floor(current_sequence / 50) - 1) * 50,
+          previous_set_end_index = current_set_start_index - 1;
 
       if (next_set_start_index >= SESSION_QUESTION_TOTAL){
         next_set_start_index = null;
@@ -313,7 +317,7 @@
     };
 
     function navigate() {
-        action = $(this).data('action');
+        var action = $(this).data('action');
 
         // If no previous or no next, just return
         if (current_sequence == 1 && action == 'previous'){
@@ -331,14 +335,14 @@
         }
 
         if (action == 'next' ){
-          targeted_sequence = current_sequence + 1;
+          var targeted_sequence = current_sequence + 1;
         } else if (action == 'previous' ){
-          targeted_sequence = current_sequence - 1;
+          var targeted_sequence = current_sequence - 1;
         }
 
         // If question sequence has not been loaded yet, prevent
         // and highlight the question-loading spinner
-        $current_question = $("#question-pool [data-question-sequence=" + targeted_sequence + "]")
+        window.$current_question = $("#question-pool [data-question-sequence=" + targeted_sequence + "]")
         if (!$current_question.length){
           _paq.push(['trackEvent', 'show_session', 'navigation', 'navigate-unloaded']);
           toastr.warning("You're super fast, " + USER_FIRST_NAME  + "!  Give us a second to bring question #" + targeted_sequence.toString() + ".");
@@ -350,7 +354,6 @@
         $(".check, .answer-correction-notification, .opposing-users, .supporting-users").tooltip('hide');
 
         showQuestion(targeted_sequence);
-
     }
 
     function toggleMarked() {
@@ -363,8 +366,8 @@
                    question_pk: $current_question.data('question-pk')},
             cache: false,
             success: function(data){
-               var question_pk = $current_question.data('question-pk');
-               var marked_index = MARKS.indexOf(question_pk);
+               var question_pk = $current_question.data('question-pk'),
+                   marked_index = MARKS.indexOf(question_pk);
                $current_question.data('is-marked', data.is_marked);
                handleMarked(data.is_marked);
                if (data.is_marked){
@@ -404,7 +407,7 @@
         var $choice = $(this);
         if ($choice.is(":checked")) {
             // other sister choices to be removed
-            $otherChoices = $choice.closest('.question-body').find('.question-choice').not($choice);
+            var $otherChoices = $choice.closest('.question-body').find('.question-choice').not($choice);
             // If a choice is checked, it is no longer striked.
             if ($choice.closest('tr').find('.choice-text.strike').length){
               $choice.closest('tr').find('.choice-text.strike').removeClass('strike');
@@ -424,9 +427,9 @@
     function highlightText() {
         var selection = window.getSelection().toString();
         if (selection.length >= 3) {
-            var escapedSelection = $("<div>").text(selection).html();
-            var replacement = $('<span></span>').addClass('highlight').html(selection);
-            var replacementHtml = replacement.prop('outerHTML');
+            var escapedSelection = $("<div>").text(selection).html(),
+                replacement = $('<span></span>').addClass('highlight').html(selection),
+                replacementHtml = replacement.prop('outerHTML');
             $(this).html($(this).html().replace(escapedSelection, replacementHtml));
             // Bind only once
             $current_question.off('click', '.highlight')
@@ -437,10 +440,10 @@
     }
 
     function updateCorrectionTooltip(html, choice_pk){
-      var pk_selector = "[data-choice-pk=" + choice_pk + "]";
-      var $choice_row = $(".question-body tr" + pk_selector);
+      var pk_selector = "[data-choice-pk=" + choice_pk + "]",
+          $choice_row = $(".question-body tr" + pk_selector),
+          notification = '<i class="fas fa-exclamation-triangle text-warning answer-correction-notification mx-1"></i>';
       $choice_row.data('has-correction', true).attr('data-has-correction', 'true');
-      var notification = '<i class="fas fa-exclamation-triangle text-warning answer-correction-notification mx-1"></i>';
       $choice_row.find('.check').html(notification + html);
     }
 
@@ -449,7 +452,7 @@
 
       $current_question.find('.mnemonic').each(function(){
         var $mnemonic = $(this),
-            submitter_pk  = $mnemonic.data('submitter-pk');
+            submitter_pk = $mnemonic.data('submitter-pk');
         if (submitter_pk == USER_PK){
           $mnemonic.find('.like-mnemonic').attr('disabled', true);
           $mnemonic.find('.delete-mnemonic').removeClass('d-none');
@@ -507,8 +510,8 @@
                        .on('click', '.correct [data-fa-i2svg]', function () {
           _paq.push(['trackEvent', 'show_session', 'answer_correction', 'click-correct']);
           $("#correct-answer-modal").modal('show');
-          choice_pk = $(this).closest('tr').data('choice-pk');
-          url = Urls['exams:correct_answer']() + "?" + $.param({choice_pk: choice_pk});
+          var choice_pk = $(this).closest('tr').data('choice-pk'),
+              url = Urls['exams:correct_answer']() + "?" + $.param({choice_pk: choice_pk});
           $("#correct-answer-modal .modal-body").load(url);
       });
     }
@@ -627,7 +630,7 @@
 
         controlExplanation();
         controlMnemonic();
-        was_solved = $current_question.data('was-solved');
+        var was_solved = $current_question.data('was-solved');
 
         if (was_solved){
           $("#contribute,#add-mnemonics").show();
@@ -713,7 +716,7 @@
         $("#contribute,#add-mnemonics").show();
         $current_question.find(".question-text, .question-choice, .choice-text").off();
 
-        $checkedChoice = $current_question.find(".question-choice:checked");
+        var $checkedChoice = $current_question.find(".question-choice:checked");
 
         // Do we have a choice, or was it skipped?
         if ($checkedChoice.length) {
@@ -775,7 +778,7 @@
 
     function updateSizes() {
       // The question row should take all the space not taken by other elements
-      row_height = $("#container").height() - $('#top-info').height() - $('#top-options').height();
+      var row_height = $("#container").height() - $('#top-info').height() - $('#top-options').height();
       $("#question-row").css({
         'padding-bottom': $('#footer').height(),
         'min-height': row_height
@@ -814,10 +817,10 @@
           $submitButton.trigger('click');
         } else if (active_keys[17] && active_keys[38] || active_keys[17] && active_keys[40]){ // ctrl + up or ctrl + down
           e.preventDefault() // prevent arrow scroll.
-          total_choices = $current_question.find(".question-choice").length
-          $checked_choice = $current_question.find(".question-choice:enabled:checked")
+          var total_choices = $current_question.find(".question-choice").length,
+              $checked_choice = $current_question.find(".question-choice:enabled:checked")
           if ($checked_choice.length){
-            choice_index = $current_question.find(".question-choice").index($checked_choice);
+            var choice_index = $current_question.find(".question-choice").index($checked_choice);
             if (active_keys[38] && choice_index == 0){ // Up while at top
               // We are at the topmost choice, we cannot go up.
               return
@@ -827,17 +830,17 @@
             } else {
               if (active_keys[40]){ // down
                 _paq.push(['trackEvent', 'show_session', 'navigation', 'keyboard-down']);
-                target_index = choice_index + 1
+                var target_index = choice_index + 1
               } else if (active_keys[38]){ // up
                 _paq.push(['trackEvent', 'show_session', 'navigation', 'keyboard-up']);
-                target_index = choice_index - 1;
+                var target_index = choice_index - 1;
               }
             }
           } else {
             // If no choice is already checked, arrows always select the first choice.
-            target_index = 0;
+            var target_index = 0;
           }
-          target_choice = $current_question.find('.question-choice:enabled').get(target_index)
+          var target_choice = $current_question.find('.question-choice:enabled').get(target_index)
           $(target_choice).prop('checked', true).trigger('change');
         } else {
           // If no matching keyboard shortcut, do not execuse
@@ -868,13 +871,13 @@
       });
 
       // Let's not use jQuery.  It's too slow for constructing massive elements.
-      tbody = document.getElementById("navigation-tbody")
-      tbody_content = ""
+      var tbody = document.getElementById("navigation-tbody"),
+          tbody_content = "";
 
-      for (var question_sequence = 1; question_sequence <= SESSION_QUESTION_PKS.length; question_sequence++) {
-         var question_index = question_sequence - 1;
-         var question_pk = SESSION_QUESTION_PKS[question_index];
-         var was_solved = ANSWERS[question_pk] !== undefined ? was_solved_markup : '<i class="far fa-square"></i>';
+      for (var question_sequence = 1; question_sequence <= window.__SESSION_QUESTION_PKS.length; question_sequence++) {
+         var question_index = question_sequence - 1,
+             question_pk = SESSION_QUESTION_PKS[question_index],
+             was_solved = ANSWERS[question_pk] !== undefined ? was_solved_markup : '<i class="far fa-square"></i>';
          // In case MARKS was not populated yet, we can safely skip
          // it.
          if (MARKS){
@@ -892,7 +895,7 @@
 
       $("#navigation-table").find('.navigate-row').click(function(){
         _paq.push(['trackEvent', 'show_session', 'navigation', 'click-navigate-row']);
-        targeted_sequence = $(this).data('question-sequence');
+        var targeted_sequence = $(this).data('question-sequence');
         showQuestion(targeted_sequence);
       });
       highlightActiveRow();
@@ -950,8 +953,8 @@
                   MARKS = data.map(function(item){ return item.id });
 
                   $('.question-body').each(function(){
-                    var $question = $(this);
-                    var question_pk = $question.data('question-pk');
+                    var $question = $(this),
+                        question_pk = $question.data('question-pk');
                     applyMark($question, question_pk);
                   });
               }
@@ -973,7 +976,7 @@
                   });
 
                   $('.question-body').each(function(){
-                    $question = $(this);
+                    var $question = $(this);
                     prepareHighlights($question);
                   });
               }
@@ -1017,9 +1020,9 @@
       // Only detail the breakdown if the session mode is EXPLAINED.
       // Otherwise, only show a generic count.
       if (SESSION_MODE == 'EXPLAINED'){
-        var correct_percentage = Math.round(stat.correct_count / SESSION_QUESTION_TOTAL * 100) + '%';
-        var incorrect_percentage = Math.round(stat.incorrect_count / SESSION_QUESTION_TOTAL * 100) + '%';
-        var skipped_percentage = Math.round(stat.skipped_count / SESSION_QUESTION_TOTAL * 100) + '%';
+        var correct_percentage = Math.round(stat.correct_count / SESSION_QUESTION_TOTAL * 100) + '%',
+            incorrect_percentage = Math.round(stat.incorrect_count / SESSION_QUESTION_TOTAL * 100) + '%',
+            skipped_percentage = Math.round(stat.skipped_count / SESSION_QUESTION_TOTAL * 100) + '%';
         $progress_container.find('.progress-bar.bg-success').css('width', correct_percentage).attr('aria-valuenow', stat.correct_count);
         $progress_container.find('.progress-bar.bg-danger').css('width', incorrect_percentage).attr('aria-valuenow', stat.incorrect_count);
         $progress_container.find('.progress-bar.bg-warning').css('width', skipped_percentage).attr('aria-valuenow', stat.skipped_count);
@@ -1048,8 +1051,8 @@
         return
       }
 
-      var current_targets = SESSION_QUESTION_PKS.slice(fetch_list_index, fetch_list_index + 50);
-      var current_target_str = current_targets.join(',');
+      var current_targets = window.__SESSION_QUESTION_PKS.slice(fetch_list_index, fetch_list_index + 50)
+          current_target_str = current_targets.join(',');
       $("#question-loading").show();
 
       $.ajax({method: 'get',
@@ -1058,18 +1061,18 @@
               success: function(data){
                 fetched_indexes.push(fetch_list_index);
 
-                $questions = $(data.html);
+                var $questions = $(data.html);
 
                 // Do not bother with filtering except if we know
                 // that we need it.
                 if (current_targets.indexOf(initial_question_pk) != -1){
-                  $filtered_questions = $questions.filter(function(){
-                    var $question = $(this);
-                    var question_pk = $question.data('question-pk');
+                  var $filtered_questions = $questions.filter(function(){
+                    var $question = $(this),
+                        question_pk = $question.data('question-pk');
                     return question_pk != initial_question_pk
                   });
                 } else {
-                  $filtered_questions = $questions
+                  var $filtered_questions = $questions
                 }
 
                 prepareQuestions($filtered_questions);
@@ -1107,10 +1110,10 @@
         return
       }
 
-      var question_pk = $question.data('question-pk')
-      var highlight = PREVIOUS_HIGHLIGHTS[question_pk];
+      var question_pk = $question.data('question-pk'),
+          highlight = PREVIOUS_HIGHLIGHTS[question_pk];
       if (highlight !== undefined){
-        best_revision_pk = $question.data('best-latest-revision-pk');
+        var best_revision_pk = $question.data('best-latest-revision-pk');
         if (best_revision_pk == highlight.revision_id){
           // If the highlighted question text is not empty, include
           // it.
@@ -1136,15 +1139,15 @@
       }
 
       // First: Tag the previously selected choice:
-      var question_pk = $question.data('question-pk')
-      var choice_pk = ANSWERS[question_pk];
+      var question_pk = $question.data('question-pk'),
+          choice_pk = ANSWERS[question_pk];
       if (choice_pk !== undefined){
         $question.data('was-solved', true).attr('data-was-solved', 'true')
         $question.find('.question-choice').attr('disabled', true)
 
         // If question was not skipped (not null)
         if (choice_pk){
-          $checkbox = $question.find('tr[data-choice-pk=' + choice_pk + '] input[type="checkbox"]');
+          var $checkbox = $question.find('tr[data-choice-pk=' + choice_pk + '] input[type="checkbox"]');
           $checkbox.prop('checked', true)
         }
       } else {
@@ -1152,11 +1155,14 @@
       }
 
       // Second: randomizes choice rows
-      $tbody = $question.find('.choice-table tbody')
-      $choice_rows = $tbody.find('tr');
-      $choice_rows.detach()
+      var $tbody = $question.find('.choice-table tbody'),
+          $choice_rows = $tbody.find('tr'),
+          currentIndex = $choice_rows.length,
+          temporaryValue,
+          randomIndex;
+
       // Based on https://stackoverflow.com/a/2450976
-      var currentIndex = $choice_rows.length, temporaryValue, randomIndex;
+      $choice_rows.detach()
 
       // While there remain elements to shuffle...
       while (0 !== currentIndex) {
@@ -1197,10 +1203,8 @@
         var $question = $(this),
             question_pk = $question.data('question-pk'),
             question_text = $question.find('.question-text').html(),
-            explanation_text = $question.find('.explanation-text').html();
-
-        // Parse markdown
-        var question_html = converter.makeHtml(question_text);
+            explanation_text = $question.find('.explanation-text').html(),
+            question_html = converter.makeHtml(question_text); // Parse markdown
         $question.find('.question-text').html(question_html);
 
         if (explanation_text !== undefined){
@@ -1212,7 +1216,7 @@
         prepareHighlights($question);
 
         // Add sequence
-        var question_sequence = SESSION_QUESTION_PKS.indexOf(question_pk) + 1;
+        var question_sequence = window.__SESSION_QUESTION_PKS.indexOf(question_pk) + 1;
         $question.data('question-sequence', question_sequence).attr('data-question-sequence', question_sequence);
 
         // Add url data tags
@@ -1279,11 +1283,11 @@
           $(e.trigger).tooltip('show'); setTimeout(function(){$(e.trigger).tooltip('hide')}, 1000)
         });
 
-        $initial_question = $('.question-body.show');
+        var $initial_question = $('.question-body.show');
 
         // Set sequence for initial question
-        initial_question_pk = $initial_question.data('question-pk');
-        initial_question_sequence = SESSION_QUESTION_PKS.indexOf(initial_question_pk) + 1;
+        window.initial_question_pk = $initial_question.data('question-pk');
+        initial_question_sequence = window.__SESSION_QUESTION_PKS.indexOf(initial_question_pk) + 1;
         $initial_question.attr('data-question-sequence', initial_question_sequence).data('question-sequence', initial_question_sequence)
 
         // Show initial question
@@ -1310,7 +1314,7 @@
           $('[data-toggle="tooltip"]').tooltip();
         }
 
-        help_me_tooltip = $("#help-me-tooltip").get(0);
+        var help_me_tooltip = $("#help-me-tooltip").get(0);
         $("#help-me").tooltip({html: true,
                                trigger: 'click',
                                title: help_me_tooltip})
@@ -1318,7 +1322,7 @@
            _paq.push(['trackEvent', 'show_session', 'click-get-help', 'click-get-help']);
          });
 
-         setting_tooltip = $("#setting-tooltip").get(0);
+         var setting_tooltip = $("#setting-tooltip").get(0);
          $("#settings").tooltip({html: true,
                                  placement: 'bottom',
                                  trigger: 'click',
@@ -1327,7 +1331,7 @@
             _paq.push(['trackEvent', 'show_session', 'click-settings', 'click-settings']);
           });
 
-          share_tooltip = $("#share-tooltip").get(0);
+          var share_tooltip = $("#share-tooltip").get(0);
           $("#share").tooltip({html: true,
                                trigger: 'click',
                                title: share_tooltip})
@@ -1337,7 +1341,7 @@
            });
 
           $("#theme-select").change(function(){
-            $option = $(this).find('option:selected');
+            var $option = $(this).find('option:selected');
             $(":root").css({'--primary-background-color': $option.data('primary-background-color'),
                             '--secondary-background-color': $option.data('secondary-background-color'),
                             '--tertiary-background-color': $option.data('tertiary-background-color'),
@@ -1399,7 +1403,7 @@
                              html: true,
                              trigger: 'click',
                              title: function(){
-                                 $tooltip = $(this).closest("td").find('.answer-correction-tooltip-body').clone(true);
+                                 var $tooltip = $(this).closest("td").find('.answer-correction-tooltip-body').clone(true);
                                  $tooltip.find('[data-toggle="tooltip"]').tooltip();
                                  return $tooltip.get(0)
                              }
@@ -1409,10 +1413,10 @@
             _paq.push(['trackEvent', 'show_session', 'answer_correction', 'click-notification']);
         });
         $(document).on('click', '.delete-correction', function(){
-          choice_pk = $(this).data('choice-pk');
-          url = Urls['exams:delete_correction']() + "?" + $.param({choice_pk: choice_pk})
-          pk_selector = "[data-choice-pk=" + choice_pk + "]";
-          var $choice_row = $current_question.find("tr" + pk_selector);
+          var choice_pk = $(this).data('choice-pk'),
+              url = Urls['exams:delete_correction']() + "?" + $.param({choice_pk: choice_pk}),
+              pk_selector = "[data-choice-pk=" + choice_pk + "]",
+              $choice_row = $current_question.find("tr" + pk_selector);
           $choice_row.data('has-correction', false).attr('data-has-correction', 'false');
           $('.answer-correction-notification').tooltip('hide');
           $(this).tooltip('hide');
@@ -1437,9 +1441,9 @@
         });
 
         $(document).on('click', ".support-correction, .oppose-correction", function(){
-          action = $(this).data('action');
-          choice_pk = $(this).data('choice-pk');
-          url = Urls['exams:correct_answer']() + '?' + $.param({choice_pk: choice_pk})
+          var action = $(this).data('action'),
+              choice_pk = $(this).data('choice-pk'),
+              url = Urls['exams:correct_answer']() + '?' + $.param({choice_pk: choice_pk})
           _paq.push(['trackEvent', 'show_session', 'answer_correction', 'delete-notification']);
 
           $.ajax({
@@ -1466,23 +1470,23 @@
 
         $("#contribute").click(function () {
             $("#modify-question-modal").modal('show');
-            url = Urls['exams:contribute_revision']() + "?" + $.param({question_pk: $current_question.data('question-pk')})
+            var url = Urls['exams:contribute_revision']() + "?" + $.param({question_pk: $current_question.data('question-pk')});
             $("#modify-question-modal .modal-body").load(url);
         });
         // initialize project edit modal
         $("#explain, a.explain").click(function () {
             $("#explain-question-modal").modal('show');
-            url = Urls['exams:contribute_explanation']() + "?" + $.param({question_pk: $current_question.data('question-pk')});
+            var url = Urls['exams:contribute_explanation']() + "?" + $.param({question_pk: $current_question.data('question-pk')});
             $("#explain-question-modal .modal-body").load(url);
         });
 
         $("#add-mnemonics").click(function () {
             $("#add-mnemonics-modal").modal('show');
-            url =  Urls['exams:contribute_mnemonics']() + "?" + $.param({question_pk: $current_question.data('question-pk')});
+            var url =  Urls['exams:contribute_mnemonics']() + "?" + $.param({question_pk: $current_question.data('question-pk')});
             $("#add-mnemonics-modal .modal-body").load(url);
         });
 
-        modal_selectors = '#explain-question-modal, #modify-question-modal, #correct-answer-modal, #add-mnemonics-modal';
+        var modal_selectors = '#explain-question-modal, #modify-question-modal, #correct-answer-modal, #add-mnemonics-modal';
 
         $(modal_selectors).on("hidden.bs.modal", function(){
           initializeKeyboard();
