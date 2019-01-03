@@ -44,11 +44,10 @@
     <script src="{% static 'js/jquery.autogrowtextarea.min.js' %}"></script>
     <script src="{% static 'js/toastr.js' %}"></script>
 
-   <script type="text/javascript">
+   <script>
+     'use strict;'
        $(function() {
            $("textarea").autoGrow();
-{#           $("input:file").addClass("custom-file-input");#}
-
            $("form#add-mnemonics-form").submit(function (event) {
                // iOS 11.3 fails to submit AJAX with empty file input fields.
                var $figure = $("#id_image");

@@ -133,9 +133,10 @@ display:inline-block;
     <script src="{% static 'js/jquery.autogrowtextarea.min.js' %}"></script>
     <script src="{% static 'js/toastr.js' %}"></script>
 
-        <script type="text/javascript">
+        <script>
+    'use strict;'
 
-    $(document).ready(function(){
+    $(function(){
         $('.help-tooltip').tooltip();
     });
 
@@ -156,9 +157,9 @@ display:inline-block;
         $("form#modify-revision-form").submit(function (event) {
             /* stop form from submitting normally */
             event.preventDefault();
-            url = "{% url 'exams:contribute_revision' %}?" + $.param({question_pk: {{ question.pk }}});
             /* get some values from elements on the page: */
-            var formData = new FormData($(this)[0]);
+            var formData = new FormData($(this)[0]),
+                url = "{% url 'exams:contribute_revision' %}?" + $.param({question_pk: {{ question.pk }}});
             /* Send the data */
             $.ajax({
                 url: url,
