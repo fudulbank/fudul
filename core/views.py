@@ -99,12 +99,16 @@ def show_indicator_index(request):
     exam_date_json = utils.get_exam_date_json()
 
     # Feature statistics
-    users_active = User.objects.filter(session__isnull=False).distinct().count()
+    users_active = Session.objects.values('submitter').distinct().count()
     users_sharing_sessions = (User.objects.filter(session__parent_session__isnull=False) | \
                               User.objects.filter(session__children__isnull=False)).distinct().count()
     users_customizing_theme = User.objects.filter(profile__session_theme__isnull=False).distinct().count()
-    users_voting = (User.objects.filter(supported_corrections__isnull=False) | \
-                    User.objects.filter(opposed_corrections__isnull=False)).distinct().count()
+    users_supporting_corrections = list(User.objects.filter(supported_corrections__isnull=False).values_list('pk', flat=True).distinct())
+    users_opposing_corrections = list(User.objects.filter(opposed_corrections__isnull=False).values_list('pk', flat=True).distinct())
+    # Remove duplicate pks
+    users_voting = set(users_supporting_corrections + users_opposing_corrections)
+    # Count unique pks
+    users_voting = len(users_voting)
 
     context = {'is_indicators_active': True,
                'sources': sources,
