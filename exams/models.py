@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericRelation
+from django.core.cache import cache
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.core.urlresolvers import reverse
 from django.db import models
@@ -76,6 +77,12 @@ class Category(models.Model):
                                     default=True, blank=True)
     objects = managers.CategoryQuerySet.as_manager()
 
+    def set_slug_cache(self):
+        cache_key = f'category_{self.pk}_slug'
+        cached_slugs = cache.get(cache_key)
+        if not cached_slugs:
+            cache.set(cache_key, self.get_slugs(try_cache=False), None)
+
     def get_parent_categories(self):
         parent_categories = []
         parent_category = self.parent_category
@@ -104,7 +111,13 @@ class Category(models.Model):
 
         return True
 
-    def get_slugs(self):
+    def get_slugs(self, try_cache=True):
+        if try_cache:
+            cache_key = f'category_{self.pk}_slugs'
+            cached_slugs = cache.get(cache_key)
+            if cached_slugs:
+                return cached_slugs
+
         slugs = ""
         for parent_category in self.get_parent_categories():
             slugs =  slugs + parent_category.slug + '/'

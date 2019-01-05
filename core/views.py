@@ -52,7 +52,7 @@ def show_index_unauthenticated(request):
 
     sample_question = cached_values.get('sample_question')
     if not sample_question:
-        sample_question = Question.objects.first()
+        sample_question = Question.objects.select_for_show_session().first()
     question_count = cached_values.get('question_count', 0)
     answer_count = cached_values.get('answer_count')
     if not answer_count:

@@ -73,3 +73,7 @@ def update_session_stats(sender, instance, **kwargs):
                                                       .count() or 0
 
     session.save()
+
+@receiver(post_save, sender='exams.Category')
+def update_slug_cache(sender, instance, **kwargs):
+    instance.set_slug_cache()
