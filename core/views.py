@@ -93,8 +93,7 @@ def show_indicator_index(request):
     colleges = College.objects.filter(profile__isnull=False)\
                               .distinct()
     exams = Exam.objects.select_related('category')\
-                                    .filter(session__isnull=False)\
-                                    .distinct()
+                        .distinct()
     sources = Source.objects.all()
     exam_date_json = utils.get_exam_date_json()
 
