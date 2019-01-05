@@ -160,9 +160,10 @@ class Exam(models.Model):
                                       .distinct()
 
     def get_user_count(self):
-        return User.objects.filter(session__exam=self)\
-                           .distinct()\
-                           .count()
+        return Session.objects.filter(exam=self)\
+                              .values('submitter')\
+                              .distinct().count()
+
     get_user_count.short_description = '# users'
 
     def get_sources(self):
