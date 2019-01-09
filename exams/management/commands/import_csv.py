@@ -1,20 +1,38 @@
 from django.core.management.base import BaseCommand
+from django.contrib.auth.models import User
 from exams.models import *
 from string import ascii_uppercase
 import csv
 
+# We use subject/source/exam_type pools with a somewhat
+# weird way for fetching objects to optimize the code and
+# avoid insane number of database hits.
+
+def light_get_from_pool(pool, name):
+    # Clean the name
+    name = name.strip().lower()
+    # If no name is given, exit
+    if not name:
+        return
+    for i in pool:
+        if i.name.lower() == name:
+            return i
 
 class Command(BaseCommand):
     help = "Update a global sequence that makes it easy to account for question trees."
     def add_arguments(self, parser):
         parser.add_argument('--csv-path',
                             type=str)
-        parser.add_argument('--default-source-name',
+        parser.add_argument('--default-subject',
                             type=str, default=None)
-        parser.add_argument('--default-exam-type-name',
+        parser.add_argument('--default-source',
+                            type=str, default=None)
+        parser.add_argument('--default-exam-type',
                             type=str, default=None)
         parser.add_argument('--exam-pk',
                             type=str)
+        parser.add_argument('--submitter-email',
+                            type=str, default=None)
         parser.add_argument('--skip-until',
                             type=int, default=None)
         parser.add_argument('--disapproved', dest='is_disapproved',
@@ -31,58 +49,123 @@ class Command(BaseCommand):
         source_pool = exam.get_sources()
         issue_pool = Issue.objects.all()
 
-        if options['default_exam_type_name']:
-            default_exam_type = exam_type_pool.get(name=options['default_exam_type_name'])
+        if options['submitter_email']:
+            submitter = User.objects.get(email__iexact=options['submitter_email'])
+        else:
+            submitter = None
+
+        if options['default_exam_type']:
+            default_exam_type = exam_type_pool.get(name=options['default_exam_type'])
         else:
             default_exam_type = None
 
-        if options['default_source_name']:
-            default_source = source_pool.get(name=options['default_source_name'])
+        if options['default_source']:
+            default_source = source_pool.get(name=options['default_source'])
         else:
             default_source = None
 
-        # ROW DISTRIBUTION
-        COL_SEQUENCE = 0
-        COL_TEXT = 1
-        COL_CHOICE_START = 2
-        COL_CHOICE_END = 7
-        COL_ANSWER = 8
-        COL_SUBJECT_START = 9
-        COL_SUBJECT_END = 12
-        COL_SOURCE = 13
-        COL_EXAM_TYPE = 14
-        COL_ISSUE_START = 15
-        COL_ISSUE_END = 16
-        COL_PARENT_QUESTION = 17
-        COL_EXPLANATION = 18
-        COL_REFERENCE = 19
+        if options['default_subject']:
+            default_subject = subject_pool.get(name=options['default_subject'])
+        else:
+            default_subject = None
+
+        headers = next(csv_reader)
+
+        INDEXES = {'SEQUENCE': None,
+                   'QUESTION_TEXT': None,
+                   'ANSWER': None,
+                   'SUBJECTS': None,
+                   'SOURCE': None,
+                   'EXAM_TYPE': None,
+                   'PARENT_QUESTION': None,
+                   'EXPLANATION': None,
+                   'REFERENCE': None,
+        }
+
+        try:
+            INDEXES['SEQUENCE'] = headers.index('Q#')
+        except ValueError:
+            pass
+        INDEXES['CHOICES'] = [headers.index(header_name)
+                              for header_name in headers
+                              if header_name.startswith('Choice')]
+        try:
+            INDEXES['QUESTION_TEXT'] = headers.index('Question')
+        except ValueError:
+            INDEXES['QUESTION_TEXT'] = headers.index('Question text')
+
+        try:
+            INDEXES['ANSWER'] = headers.index('Answer')
+        except ValueError:
+            try:
+                INDEXES['ANSWER'] = headers.index('Right answer')
+            except ValueError:
+                pass
+
+        INDEXES['SUBJECTS'] = [headers.index(header_name)
+                               for header_name in headers
+                               if header_name.startswith('Subject')]
+        try:
+            INDEXES['SOURCE'] = headers.index('Source')
+        except ValueError:
+            pass
+        try:        
+            INDEXES['EXAM_TYPE'] = headers.index('Exam type')
+        except ValueError:
+            pass
+
+        INDEXES['ISSUES'] = [headers.index(header_name)
+                             for header_name in headers
+                             if header_name.startswith('Issue')]
+        try:
+            INDEXES['PARENT_QUESTION'] = headers.index('Parent question')
+        except ValueError:
+            try:
+                INDEXES['PARENT_QUESTION'] = headers.index('Same case as previous question?')
+            except ValueError:
+                pass
+
+        try:
+            INDEXES['EXPLANATION'] = headers.index('Explanation')
+        except ValueError:
+            pass
+
+        try:
+            INDEXES['REFERENCE'] = headers.index('Reference')
+        except ValueError:
+            pass
 
         # The latest question imported is initially None.
         question = None
-
-        # Skip headers
-        next(csv_reader)
 
         for row in csv_reader:
             # We will only mark imported revision as a apporved if a
             # right answer was specified.
             is_approved = False
-            sequence = int(row[COL_SEQUENCE])
-            print("Handling %d..." % sequence)
-            if options['skip_until'] and \
-               options['skip_until'] > sequence:
-                continue
-            text = row[COL_TEXT].strip()
+
+            if INDEXES['SEQUENCE']:
+                sequence = int(row[INDEXES['SEQUENCE']])
+                print("Handling %d..." % sequence)
+                if options['skip_until'] and \
+                   options['skip_until'] > sequence:
+                    continue
+            text = row[INDEXES['QUESTION_TEXT']].strip()
             if not text:
                 continue
-            choices = [Choice(text=choice.strip()) for choice in row[COL_CHOICE_START:COL_CHOICE_END + 1] if choice.strip()]
+
+            choices = []
+            for choice_index in INDEXES['CHOICES']:
+                choice_text = row[choice_index].strip()
+                if choice_text:
+                    choice = Choice(text=choice_text)
+                    choices.append(choice)
 
             # Check if the right answer column is filled
-            if COL_ANSWER:
+            if INDEXES['ANSWER']:
                 try:
-                    answer = row[COL_ANSWER].upper()
+                    answer = row[INDEXES['ANSWER']].upper()
                     answer_index = ascii_uppercase.index(answer)
-                    print("Right answer is %s (%s)"  % (row[COL_ANSWER], choices[answer_index].text))
+                    print("Right answer is %s (%s)"  % (row[INDEXES['ANSWER']], choices[answer_index].text))
                     choices[answer_index].is_right = True
                     if not options['is_disapproved']:
                         is_approved = True
@@ -93,57 +176,56 @@ class Command(BaseCommand):
                     # is_approved=False
                     pass
 
+            subjects = []
+            for subject_index in INDEXES['SUBJECTS']:
+                question_subject = row[subject_index]
+                subject = light_get_from_pool(subject_pool, question_subject)
+                if subject:
+                    subjects.append(subject)
+            if not subjects:
+                subjects.append(default_subject)
 
-            # We use subject/source/exam_type pools with a somewhat
-            # weird way for fetching objects to optimize the code and
-            # avoid insane number of database hits.
+            source = None
+            if INDEXES['SOURCE']:
+                source = light_get_from_pool(source_pool, row[INDEXES['SOURCE']])
 
-            subject_entries = [entry.strip().lower() for entry in row[COL_SUBJECT_START:COL_SUBJECT_END + 1] if entry.strip()]
-            print("Subjects:", ",".join(subject_entries))
-            subjects = [subject for subject in subject_pool if subject.name.lower() in subject_entries]
-
-            source_entry = row[COL_SOURCE].strip().lower()
-            print("Source:", source_entry)
-            if source_entry:
-                source = [source for source in source_pool if source.name.lower() == source_entry][0]
-            elif default_source:
+            if not source and default_source:
                 source = default_source
-            else:
-                source = None
 
-            exam_type_entry = row[COL_EXAM_TYPE].strip().lower()
-            print("Exam type:", exam_type_entry)
-            if exam_type_entry:
-                exam_type = [exam_type for exam_type in exam_type_pool if exam_type.name.lower() == exam_type_entry][0]
-            elif default_exam_type:
+            exam_type = None
+            if INDEXES['EXAM_TYPE']:
+                exam_type = light_get_from_pool(exam_type_pool, row[INDEXES['EXAM_TYPE']])
+
+            if not exam_type and default_exam_type:
                 exam_type = default_exam_type
-            else:
-                exam_type = None
 
-            issue_entries = [entry.strip() for entry in row[COL_ISSUE_START:COL_ISSUE_END + 1] if entry.strip()]
-            print("Issues:", ",".join(issue_entries))
-            issues = [issue for issue in issue_pool if issue.name in issue_entries]
+            issues = []
+            for issue_index in INDEXES['ISSUES']:
+                question_issue = row[issue_index]
+                issue = light_get_from_pool(issue_pool, question_issue)
+                if issue:
+                    issues.append(issue)
 
-            # If parent_question is specified, it is VERY LIKELY to be
-            # the latest imported revision
-
-            parent_question_pk = row[COL_PARENT_QUESTION] or None
-            if parent_question_pk:
+            # If parent_question is specified, set it to the the
+            # latest imported question.
+            if INDEXES['PARENT_QUESTION']:
                 parent_question = question
             else:
                 parent_question = None
 
-            try:
-                explanation = row[COL_EXPLANATION]
-            except IndexError:
-                # Not all Google Sheets have explanations
-                explanation = ""
+            explanation = ""
+            if INDEXES['EXPLANATION']:
+                try:
+                    explanation = row[INDEXES['EXPLANATION']]
+                except IndexError:
+                    pass
 
-            try:
-                reference = row[COL_REFERENCE]
-            except IndexError:
-                # Not all Google Sheets have references
-                reference = ""
+            reference = ""
+            if INDEXES['REFERENCE']:
+                try:
+                    reference = row[INDEXES['REFERENCE']]
+                except IndexError:
+                    pass
 
             if not options['dry']:
                 question = Question.objects.create(exam=exam,
@@ -159,6 +241,7 @@ class Command(BaseCommand):
                 revision = Revision.objects.create(question=question,
                                                    text=text,
                                                    change_summary="Imported from Google Sheets",
+                                                   submitter=submitter,
                                                    is_approved=is_approved,
                                                    is_first=True,
                                                    is_last=True)
