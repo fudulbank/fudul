@@ -223,6 +223,7 @@
     </header>
 <div style="background: white; position: absolute;">
   <p id="motto" class="text-center mt-4 mb-0">بنك أسئلة للناس، لا للربح!</p>
+  {% if question %}
   <div class="row mt-4 justify-content-center" dir="ltr">
     <div class="col-10 col-md-8">
       <h2 dir="rtl" class="text-center">تجربة!</h2>
@@ -260,6 +261,7 @@
       <button disabled type="button" id="submit" class="btn btn-primary mt-3">Submit <i class="fas fa-angle-right"></i></button>
     </div>
   </div>
+  {% endif %}
 
 
   <div class="row mt-4 justify-content-center">
