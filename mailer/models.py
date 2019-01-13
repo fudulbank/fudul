@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth.models import User
 from ckeditor_uploader.fields import RichTextUploadingField
 
-
 target_choices = [('INSTITUTIONS', 'Per institutions'),
                   ('COLLEGES', 'Per colleges'),
                   ('BATCHES', 'Per batch'),
@@ -22,8 +21,8 @@ class Message(models.Model):
 
     target = models.CharField(max_length=20, choices=target_choices, default="ALL")
     institutions = models.ManyToManyField('accounts.Institution', blank=True)
-    colleges = models.ManyToManyField('accounts.College', blank=True)
-    batches = models.ManyToManyField('accounts.Batch', blank=True)
+    groups = models.ManyToManyField('accounts.Group', blank=True)
+    levels = models.ManyToManyField('accounts.Level', blank=True)
 
     status = models.CharField(max_length=20, default="PENDING", choices=status_choices)
     submitter = models.ForeignKey(User)

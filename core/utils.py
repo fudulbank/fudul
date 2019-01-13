@@ -34,7 +34,7 @@ def get_exam_date_json(exam=None):
         date_str = date.strftime('%Y-%m-%d')
         hovertext = []
         for exam_date in pool_exam_dates.filter(date=date):
-            hovertext.append('<b>{}</b><br>{}'.format(exam_date.name, str(exam_date.batch)))
+            hovertext.append('<b>{}</b><br>{}'.format(exam_date.name, str(exam_date.level)))
         hovertext_str = '<span style=\\"font-weight: 700; text-decoration: underline;\\">{}:</span><br>'.format(date.strftime('%h %d')) + \
                         '<br>'.join(hovertext)
         exam_dates[date_str] = hovertext_str

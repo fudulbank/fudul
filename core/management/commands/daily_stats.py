@@ -7,7 +7,7 @@ import datetime
 import os.path
 
 from exams.models import *
-from accounts.models import College
+from accounts.models import Group
 
 
 current_timezone = timezone.get_current_timezone()
@@ -115,9 +115,9 @@ class Command(BaseCommand):
         day_str = end_date.strftime('%Y-%m-%d')
         stats = [day_str]
 
-        if type(target) is College:
-            for batch in target.batch_set.all():
-                users = User.objects.filter(profile__batch=batch)
+        if type(target) is Group:
+            for level in target.level_set.all():
+                users = User.objects.filter(profile__level=level)
                 stats += self.get_usage_counts(users)
                 stats += self.get_contribution_counts(users)
         elif type(target) is Exam:
@@ -149,19 +149,19 @@ class Command(BaseCommand):
         exams = Exam.objects.filter(session__isnull=False)\
                             .order_by('pk')\
                             .distinct()
-        colleges = College.objects.filter(profile__isnull=False)\
+        groups = Group.objects.filter(profile__isnull=False)\
                                   .order_by('pk')\
                                   .distinct()
-        targets = [None] + list(colleges)\
+        targets = [None] + list(groups)\
                          + list(exams)
 
         for target in targets:
             if type(target) is Exam:
                 csv_filename = 'exam-{}.csv'.format(target.pk)
-            elif type(target) is College:
-                csv_filename = 'college-{}.csv'.format(target.pk)
+            elif type(target) is Group:
+                csv_filename = 'group-{}.csv'.format(target.pk)
             else:
-                csv_filename = 'great-metric.csv'            
+                csv_filename = 'great-metric.csv'
 
             fields = ['user_count', 'answer_avg', 'contributor_count',
                       'revision_count', 'explanation_count',
@@ -169,10 +169,10 @@ class Command(BaseCommand):
 
             headers = ['date']
 
-            if type(target) is College:
-                for batch in target.batch_set.all():
+            if type(target) is Group:
+                for level in target.level_set.all():
                     for field in fields:
-                       new_field = field + "_" + str(batch.pk)
+                       new_field = field + "_" + str(level.pk)
                        headers.append(new_field)
             else:
                 headers += fields

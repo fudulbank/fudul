@@ -1,7 +1,7 @@
 from django import forms
 from dal import autocomplete
 from . import models
-from accounts.models import Batch, College, Institution
+from accounts.models import Level, Group, Institution
 
 
 select2_widget = autocomplete.ModelSelect2Multiple(attrs={'data-width': '100%'})
@@ -11,20 +11,20 @@ class TargetChoiceField(forms.ModelMultipleChoiceField):
         if type(obj) is Institution:
             count = obj.get_total_users()
             return "{} ({})".format(obj.name, count)
-        elif type(obj) is College:
+        elif type(obj) is Group:
             count = obj.profile_set.count()
             return "{}: {} ({})".format(obj.institution.name, obj.name, count)
-        elif type(obj) is Batch:
+        elif type(obj) is Level:
             return str(obj)
 
 class MessageForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(MessageForm, self).__init__(*args, **kwargs)
-        self.fields['batches'] = TargetChoiceField(required=False,
-                                                   queryset=Batch.objects.all(),
+        self.fields['levels'] = TargetChoiceField(required=False,
+                                                   queryset=Level.objects.all(),
                                                    widget=select2_widget)
-        self.fields['colleges'] = TargetChoiceField(required=False,
-                                                   queryset=College.objects.all(),
+        self.fields['groups'] = TargetChoiceField(required=False,
+                                                   queryset=Group.objects.all(),
                                                    widget=select2_widget)
         self.fields['institutions'] = TargetChoiceField(required=False,
                                                         queryset=Institution.objects.all(),
@@ -37,9 +37,9 @@ class MessageForm(forms.ModelForm):
             return cleaned_data
 
         if cleaned_data['target_type'] == 'COLLEGES' and \
-           (not 'colleges' in cleaned_data or not cleaned_data['colleges'].exists()):
-            raise forms.ValidationError("You did not choose any colleges.")
-        
+           (not 'groups' in cleaned_data or not cleaned_data['groups'].exists()):
+            raise forms.ValidationError("You did not choose any groups.")
+
         if cleaned_data['target_type'] == 'INSTITUTIONS' and \
            (not 'institutions' in cleaned_data or not cleaned_data['institutions'].exists()):
             raise forms.ValidationError("You did not choose any institutions.")
@@ -49,7 +49,7 @@ class MessageForm(forms.ModelForm):
     class Meta:
         model = models.Message
         fields = ['from_address', 'subject', 'body', 'target',
-                  'institutions', 'colleges', 'batches']
+                  'institutions', 'groups', 'levels']
         widgets = {'from_address': autocomplete.Select2()}
 
 class MessageTestForm(forms.ModelForm):

@@ -32,24 +32,24 @@
 
 <div class="card">
   <div class="card-header">
-    <h2 id="colleges">College participation indicators</h2>
+    <h2 id="groups">Group participation indicators</h2>
   </div>
 	<div class="card-body">
 		<div class="card-block">
-      <table id="college-table" class="table table-striped table-bordered datatable dt-responsive">
+      <table id="group-table" class="table table-striped table-bordered datatable dt-responsive">
           <thead>
               <tr>
-                  <th data-priority="1">College</th>
+                  <th data-priority="1">Group</th>
                   <th data-priority="2">Institution</th>
                   <th data-priority="1"># users</th>
               </tr>
           </thead>
           <tbody>
-             {% for college in colleges %}
+             {% for group in groups %}
                   <tr>
-                      <td><a href="{% url 'show_college_indicators' college.pk %}">{{ college.name }}</a></td>
-                      <td>{{ college.institution.name }}</td>
-                      <td>{{ college.profile_set.count }}</td>
+                      <td><a href="{% url 'show_group_indicators' group.pk %}">{{ group.name }}</a></td>
+                      <td>{{ group.institution.name }}</td>
+                      <td>{{ group.profile_set.count }}</td>
                 </tr>
              {% endfor %}
           </tbody>
@@ -198,7 +198,7 @@
     $(function(){
        $('[data-toggle="tooltip"]').tooltip()
        $('#exam-table, #team-table, #feature-table').dataTable({order: [[1, 'desc']]});
-       $('#college-table').dataTable({order: [[2, 'desc']]});
+       $('#group-table').dataTable({order: [[2, 'desc']]});
        $('#source-table').dataTable({order: [[3, 'desc']]});
     });
 

@@ -11,7 +11,7 @@ urlpatterns = [
     url(r'^indicators/$', views.show_indicator_index, name="show_indicator_index"),
     url(r'^indicators/teams/(?P<pk>\d+)/$', views.show_team_indicators, name='show_team_indicators'),
     url(r'^indicators/exams/(?P<pk>\d+)/$', views.show_exam_indicators, name='show_exam_indicators'),
-    url(r'^indicators/colleges/(?P<pk>\d+)/$', views.show_college_indicators, name='show_college_indicators'),
+    url(r'^indicators/groups/(?P<pk>\d+)/$', views.show_group_indicators, name='show_group_indicators'),
 
     url(r'^about/$', views.show_about, name="about"),
     url(r'^contribute/(?:(?P<language>ar)/)?$', views.show_contribute, name="contribute"),

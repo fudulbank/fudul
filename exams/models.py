@@ -11,7 +11,6 @@ import textwrap
 import re
 
 from . import managers
-from accounts.models import College, Batch
 from ckeditor_uploader.fields import RichTextUploadingField
 from notifications.models import Notification
 from notifications.signals import notify
@@ -68,7 +67,7 @@ class Category(models.Model):
     name = models.CharField(max_length=100)
     image = models.ImageField(upload_to="category_images",
                               blank=True)
-    college_limit = models.ManyToManyField(College, blank=True)
+    group_limit = models.ManyToManyField('accounts.Group', blank=True)
     parent_category = models.ForeignKey('self', null=True, blank=True,
                                         related_name="children",
                                         on_delete=models.SET_NULL,
@@ -99,13 +98,13 @@ class Category(models.Model):
         elif user.is_superuser:
             return True
 
-        user_college = accounts.utils.get_user_college(user)
+        user_group = accounts.utils.get_user_group(user)
         category = self
 
         while category:
-            if category.college_limit.exists() and \
-               (not user_college or \
-                not category.college_limit.filter(pk=user_college.pk).exists()):
+            if category.group_limit.exists() and \
+               (not user_group or \
+                not category.group_limit.filter(pk=user_group.pk).exists()):
                 return False
             category = category.parent_category
 
@@ -141,7 +140,7 @@ class Exam(models.Model):
     category = models.ForeignKey(Category,related_name='exams')
     submission_date = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
-    batches_allowed_to_take = models.ForeignKey(Batch, null=True, blank=True)
+    levels_allowed_to_take = models.ForeignKey('accounts.Level', null=True, blank=True)
     exam_types = models.ManyToManyField('ExamType', blank=True)
     credits = RichTextUploadingField(default='', blank=True)
     was_announced = models.BooleanField("This exam was announced and is readily available for users who are not editors",
@@ -219,7 +218,7 @@ class Exam(models.Model):
 class ExamDate(models.Model):
     name = models.CharField(max_length=100)
     exam = models.ForeignKey(Exam, related_name='exam_dates')
-    batch = models.ForeignKey('accounts.Batch',
+    level = models.ForeignKey('accounts.Level',
                               related_name='exam_dates')
     date = models.DateField()
 

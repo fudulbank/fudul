@@ -122,13 +122,13 @@
 		</div>
                 <input {% if form.institution.value and not form.institution.errors %}value="{{ form.institution.value }}" {% endif %}type="text" class="form-control" id="institution-text-field" placeholder="Write your institution here" style="display: none"/>
 		<div style="display: none" class="form-group has-feedback has-feedback-left">
-			{% bootstrap_field form.college show_label=False %}
+			{% bootstrap_field form.group show_label=False %}
 			<div class="form-control-feedback">
 				<i class="icon-book text-muted"></i>
 			</div>
 		</div>
 		<div style="display: none" class="form-group has-feedback has-feedback-left">
-			{% bootstrap_field form.batch show_label=False %}
+			{% bootstrap_field form.level show_label=False %}
 			<div class="form-control-feedback">
 				<i class="icon-graduation2 text-muted"></i>
 			</div>
@@ -177,13 +177,13 @@
 $(function() {
     empty_option = $('<option value="" selected="">---------</option>');
 
-    batches = null;
+    levels = null;
     $('#institution-list').change(function() {
         value = $(this).val();
         if ($('#institution-list option[value=Other]:checked').length) {
             $('#institution-text-field').show();
-            $('#id_college, #id_batch').closest('.form-group.has-feedback').hide();
-            $('#id_college, #id_batch').prop('required', false).html('');
+            $('#id_group, #id_level').closest('.form-group.has-feedback').hide();
+            $('#id_group, #id_level').prop('required', false).html('');
             $('#institution-text-field').attr('required', 'required');
         } else {
             $('#institution-text-field').hide();
@@ -196,13 +196,13 @@ $(function() {
                         name: value
                     },
                     success: function(data) {
-                        $("#id_college").prop('required', true).html(empty_option);
-                        $("#id_college").closest('.form-group.has-feedback').show();
-                        $.each(data.colleges, function(pk, name) {
+                        $("#id_group").prop('required', true).html(empty_option);
+                        $("#id_group").closest('.form-group.has-feedback').show();
+                        $.each(data.groups, function(pk, name) {
                             option = $("<option>").val(pk).html(name);
-                            option.appendTo("#id_college");
+                            option.appendTo("#id_group");
                         });
-                        batches = data.batches;
+                        levels = data.levels;
                     }
                 });
             }
@@ -212,22 +212,22 @@ $(function() {
         value = $(this).val();
         $('input[name=institution]').val(value);
     });
-    $("#id_college").change(function() {
+    $("#id_group").change(function() {
         value = $(this).val();
-        college_batches = batches[value]
-        if (value.length && college_batches.length) {
-            $("#id_batch").prop('required', true).html(empty_option);
-            $("#id_batch").closest('.form-group.has-feedback').show();
+        group_levels = levels[value]
+        if (value.length && group_levels.length) {
+            $("#id_level").prop('required', true).html(empty_option);
+            $("#id_level").closest('.form-group.has-feedback').show();
 
-            $.each(college_batches, function(index, batch_data) {
-                pk = batch_data[0];
-                name = batch_data[1];
+            $.each(group_levels, function(index, level_data) {
+                pk = level_data[0];
+                name = level_data[1];
                 option = $("<option>").val(pk).html(name);
-                option.appendTo("#id_batch");
+                option.appendTo("#id_level");
             });
         } else {
-            $("#id_batch").prop('required', false);
-            $("#id_batch").closest('.form-group.has-feedback').hide();
+            $("#id_level").prop('required', false);
+            $("#id_level").closest('.form-group.has-feedback').hide();
         }
 
     });

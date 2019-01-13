@@ -24,17 +24,17 @@ from .models import *
 def get_institution_details(request):
     name = request.GET['name']
     institution = Institution.objects.get(name=name)
-    colleges = {}
-    batches = {}
+    groups = {}
+    levels = {}
 
-    for college in institution.college_set.all():
-        colleges[college.pk] = college.name
-        batches[college.pk] = []
-        for batch in college.batch_set.all():
-            batches[college.pk].append((batch.pk, batch.name))
+    for group in institution.group_set.all():
+        groups[group.pk] = group.name
+        levels[group.pk] = []
+        for level in group.level_set.all():
+            levels[group.pk].append((level.pk, level.name))
 
-    return {'colleges':  colleges,
-            'batches': batches}
+    return {'groups':  groups,
+            'levels': levels}
 
 def signup(request):
     institutions = Institution.objects.all()

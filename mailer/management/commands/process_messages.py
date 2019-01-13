@@ -35,11 +35,11 @@ class Command(BaseCommand):
             if message.target == 'ALL':
                 receipts = user_pool
             elif message.target == 'COLLEGES':
-                receipts = user_pool.filter(profile__college__in=message.colleges.all())
+                receipts = user_pool.filter(profile__group__in=message.groups.all())
             elif message.target == 'INSTITUTIONS':
-                receipts = user_pool.filter(profile__college__institution__in=message.institutions.all())
+                receipts = user_pool.filter(profile__group__institution__in=message.institutions.all())
             elif message.target == 'BATCHES':
-                receipts = user_pool.filter(profile__batch__in=message.batches.all())
+                receipts = user_pool.filter(profile__level__in=message.levels.all())
 
             # Aaand send!
             email_addresses = receipts.values_list('email', 'profile__alternative_email')

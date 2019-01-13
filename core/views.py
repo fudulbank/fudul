@@ -16,7 +16,7 @@ from . import decorators, utils
 from .models import CoreMember
 from exams.models import *
 from teams.models import Team
-from accounts.models import College
+from accounts.models import Group
 import accounts.utils
 import teams.utils
 
@@ -90,7 +90,7 @@ def show_indicator_index(request):
         raise PermissionDenied
 
     teams = Team.objects.all()
-    colleges = College.objects.filter(profile__isnull=False)\
+    groups = Group.objects.filter(profile__isnull=False)\
                               .distinct()
     exams = Exam.objects.select_related('category')\
                         .distinct()
@@ -114,7 +114,7 @@ def show_indicator_index(request):
                'teams': teams,
                'exams': exams,
                'exam_date_json': exam_date_json,
-               'colleges': colleges,
+               'groups': groups,
                'users_active': users_active,
                'users_sharing_sessions': users_sharing_sessions,
                'users_customizing_theme': users_customizing_theme,
@@ -143,21 +143,21 @@ def show_team_indicators(request, pk):
 
 @require_safe
 @login_required
-def show_college_indicators(request, pk):
+def show_group_indicators(request, pk):
     # PERMISSION CHECK
     if not request.user.is_superuser:
         raise PermissionDenied
 
-    colleges = College.objects.filter(profile__isnull=False)\
-                              .distinct()
-    college = get_object_or_404(colleges, pk=pk)
-    csv_filename = 'indicators/college-{}.csv'.format(college.pk)
+    groups = Group.objects.filter(profile__isnull=False)\
+                          .distinct()
+    group = get_object_or_404(groups, pk=pk)
+    csv_filename = 'indicators/group-{}.csv'.format(group.pk)
 
     context = {'is_indicators_active': True,
                'csv_filename': csv_filename,
-               'college': college}
+               'group': group}
 
-    return render(request, "indicators/show_college_indicators.html", context)
+    return render(request, "indicators/show_group_indicators.html", context)
 
 @require_safe
 @login_required

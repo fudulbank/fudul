@@ -41,25 +41,25 @@ function controlTargetFields(){
 
   target = $('#id_target').val();
   if (target == 'ALL'){
-    selector_to_hide = "#id_institutions, #id_colleges, #id_batches";
+    selector_to_hide = "#id_institutions, #id_groups, #id_levels";
   } else if (target == 'COLLEGES'){
-    selector_to_show = "#id_colleges";
-    selector_to_hide = "#id_institutions, #id_batches";
+    selector_to_show = "#id_groups";
+    selector_to_hide = "#id_institutions, #id_levels";
   } else if (target == 'INSTITUTIONS'){
     selector_to_show = "#id_institutions";
-    selector_to_hide = "#id_colleges, #id_batches";
+    selector_to_hide = "#id_groups, #id_levels";
   } else if (target == 'BATCHES'){
-    selector_to_show = "#id_batches";
-    selector_to_hide = "#id_institutions, #id_colleges";
+    selector_to_show = "#id_levels";
+    selector_to_hide = "#id_institutions, #id_groups";
   } else if (target == ''){
-    if ($('#id_college').val()){
-      selector_to_show = "#id_colleges";
+    if ($('#id_group').val()){
+      selector_to_show = "#id_groups";
     } else if ($('#id_institutions').val()){
       selector_to_show = "#id_institutions";
-    } else if ($('#id_batches').val()){
-      selector_to_show = "#id_batches";
+    } else if ($('#id_levels').val()){
+      selector_to_show = "#id_levels";
     } else {
-      selector_to_hide = "#id_institutions, #id_colleges, #id_batches";
+      selector_to_hide = "#id_institutions, #id_groups, #id_levels";
     }
   }
 

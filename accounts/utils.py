@@ -46,13 +46,13 @@ def get_user_institution(user):
 
     return institution
 
-def get_user_college(user):
-    college = None
+def get_user_group(user):
+    group = None
 
     if user.is_authenticated() and hasattr(user, 'profile'):
-        college = user.profile.college
+        group = user.profile.group
 
-    return college
+    return group
 
 
 def get_user_credit(contributing_user, viewing_user=None, full=False):
@@ -85,5 +85,3 @@ def get_user_credit(contributing_user, viewing_user=None, full=False):
     else:  # not profile
         credit = contributing_user.username
     return credit
-
-

@@ -1,5 +1,5 @@
 {% extends 'base_new.html' %}{% load static %}
-{% block title %}Fudul | {{ college.name }} indicators{% endblock %}
+{% block title %}Fudul | {{ group.name }} indicators{% endblock %}
 
 {% block head %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/1.31.2/plotly.min.js" integrity="sha384-pEbvKAAHroDnU/rb2+IiUrslRtrsAGTaQNZjaFWCY3d/h5FlaWxqMkhh8MX4m0dQ" crossorigin="anonymous"></script>
@@ -7,24 +7,24 @@
 {% endblock %}
 
 {% block header_title %}
-<h1>{{ college.name }} indicators</h1>
+<h1>{{ group.name }} indicators</h1>
 {% endblock %}
 
 {% block breadcrumb %}
       <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
       <li class="breadcrumb-item"><a href="{% url 'show_indicator_index' %}">Indicators</a></li>
-			<li class="breadcrumb-item active">{{ college.name }}</li>
+			<li class="breadcrumb-item active">{{ group.name }}</li>
 {% endblock %}
 
 {% block content %}
 <div class="card">
 	<div class="card-body">
 		<div class="card-block">
-      <p>These two graphs track <strong>active users</strong> (defined as: users who created at least one new session) and <strong>average answers</strong> (defined as: answers submitted with a choice, i.e. not skipped, divided by number of active users).  This only includes users in the {{ college.name }} at {{ college.institution.name }} and is broken down per batch.</p>
-      <div id="college-user-plot" style="width:100%; height:600px;"></div>
-      <div id="college-answer-plot" style="width:100%; height:600px;"></div>
-      <div id="college-contributor-plot" style="width:100%; height:600px;"></div>
-      <div id="college-contribution-plot" style="width:100%; height:600px;"></div>
+      <p>These two graphs track <strong>active users</strong> (defined as: users who created at least one new session) and <strong>average answers</strong> (defined as: answers submitted with a choice, i.e. not skipped, divided by number of active users).  This only includes users in the {{ group.name }} at {{ group.institution.name }} and is broken down per level.</p>
+      <div id="group-user-plot" style="width:100%; height:600px;"></div>
+      <div id="group-answer-plot" style="width:100%; height:600px;"></div>
+      <div id="group-contributor-plot" style="width:100%; height:600px;"></div>
+      <div id="group-contribution-plot" style="width:100%; height:600px;"></div>
 		</div><!--card-block-->
 	</div><!--card-body-->
 </div><!--card-->
@@ -32,16 +32,16 @@
 {% block customscript %}
   <script>
 
-batches = { {% for batch in college.batch_set.all %}{{ batch.pk }}: {name: '{{ batch.name }}', complete_number: {{ batch.complete_number|default:'null'}} },{% endfor %}
+levels = { {% for level in group.level_set.all %}{{ level.pk }}: {name: '{{ level.name }}', complete_number: {{ level.complete_number|default:'null'}} },{% endfor %}
 }
 
   Plotly.d3.csv("{% url 'get_privileged_file' csv_filename %}", function(err, rows){
 
 {% include 'indicators/partials/shared_functions.js' %}
 
-      function get_user_count_hover(count_field, batch_pk){
-        if (batch_pk){
-          count_field = count_field + '_' + batch_pk;
+      function get_user_count_hover(count_field, level_pk){
+        if (level_pk){
+          count_field = count_field + '_' + level_pk;
         }
 
         return rows.map(function(row) {
@@ -50,10 +50,10 @@ batches = { {% for batch in college.batch_set.all %}{{ batch.pk }}: {name: '{{ b
 
           // Calculate change
           change_percentage = get_change_percentage(count_field, row)
-          if (batches[batch_pk].complete_number){
-            penetration_percentage = (row[count_field] / batches[batch_pk].complete_number) * 100
+          if (levels[level_pk].complete_number){
+            penetration_percentage = (row[count_field] / levels[level_pk].complete_number) * 100
             penetration_percentage = penetration_percentage.toPrecision(2)
-            penetration_str = penetration_percentage + "% penetration in " + batches[batch_pk].name + "<br>"
+            penetration_str = penetration_percentage + "% penetration in " + levels[level_pk].name + "<br>"
           } else {
             penetration_str = ""
           }
@@ -80,59 +80,59 @@ batches = { {% for batch in college.batch_set.all %}{{ batch.pk }}: {name: '{{ b
 
       dates = unpack('date');
 
-      for (batch_pk in batches){
+      for (level_pk in levels){
         var trace = {
           fill: 'tonextx',
-          name: batches[batch_pk].name,
+          name: levels[level_pk].name,
           x: dates,
-          y: unpack('user_count_' + batch_pk, true),
+          y: unpack('user_count_' + level_pk, true),
           hoverinfo: 'text+name',
-          hovertext: get_user_count_hover('user_count', batch_pk),
+          hovertext: get_user_count_hover('user_count', level_pk),
         }
         user_data.push(trace);
       }
 
-      for (batch_pk in batches){
+      for (level_pk in levels){
         var trace = {
           fill: 'tonextx',
-          name: batches[batch_pk].name,
+          name: levels[level_pk].name,
           x: dates,
-          y: unpack('answer_avg_' + batch_pk, true),
+          y: unpack('answer_avg_' + level_pk, true),
           hoverinfo: 'text+name',
-          hovertext: get_hover('answer_avg', batch_pk),
+          hovertext: get_hover('answer_avg', level_pk),
         }
         answer_data.push(trace);
       }
 
-      for (batch_pk in batches){
+      for (level_pk in levels){
         var trace = {
           fill: 'tonextx',
-          name: batches[batch_pk].name,
+          name: levels[level_pk].name,
           x: dates,
-          y: unpack('contributor_count_' + batch_pk, true),
+          y: unpack('contributor_count_' + level_pk, true),
           hoverinfo: 'text+name',
-          hovertext: get_hover('contributor_count', batch_pk),
+          hovertext: get_hover('contributor_count', level_pk),
         }
         contributor_data.push(trace);
       }
 
-      for (batch_pk in batches){
+      for (level_pk in levels){
         var trace = {
           fill: 'tonextx',
-          name: batches[batch_pk].name,
+          name: levels[level_pk].name,
           x: dates,
-          y: get_contribution_data(batch_pk),
+          y: get_contribution_data(level_pk),
           hoverinfo: 'text+name',
-          hovertext: get_contribution_hover(batch_pk),
+          hovertext: get_contribution_hover(level_pk),
         }
         contribution_data.push(trace);
       }
 
-      Plotly.newPlot('college-user-plot', stackedArea(user_data), {title: "{{ college.name}} user plot"});
-      Plotly.newPlot('college-answer-plot', stackedArea(answer_data), {title: "{{ college.name}} answer-depth plot"});
+      Plotly.newPlot('group-user-plot', stackedArea(user_data), {title: "{{ group.name}} user plot"});
+      Plotly.newPlot('group-answer-plot', stackedArea(answer_data), {title: "{{ group.name}} answer-depth plot"});
 
-      Plotly.newPlot('college-contributor-plot', stackedArea(contributor_data), {title: "{{ college.name}} contributor plot"});
-      Plotly.newPlot('college-contribution-plot', stackedArea(contribution_data), {title: "{{ college.name}} contribution plot"});
+      Plotly.newPlot('group-contributor-plot', stackedArea(contributor_data), {title: "{{ group.name}} contributor plot"});
+      Plotly.newPlot('group-contribution-plot', stackedArea(contribution_data), {title: "{{ group.name}} contribution plot"});
   })
     </script>
 

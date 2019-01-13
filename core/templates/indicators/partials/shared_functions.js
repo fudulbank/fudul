@@ -25,9 +25,9 @@ function get_change_percentage(count_field, row){
   return percentage
 }
 
-function get_hover(count_field, batch_pk){
-  if (batch_pk){
-    count_field = count_field + '_' + batch_pk;
+function get_hover(count_field, level_pk){
+  if (level_pk){
+    count_field = count_field + '_' + level_pk;
   }
 
   return rows.map(function(row) {
@@ -43,17 +43,17 @@ function get_hover(count_field, batch_pk){
   });
 }
 
-function get_contribution_data(batch_pk){
+function get_contribution_data(level_pk){
   revision_field = 'revision_count'
   explanation_field = 'explanation_count'
   correction_field = 'correction_count'
   mnemonic_field = 'mnemonic_count'
 
-  if (batch_pk){
-    revision_field += '_' + batch_pk
-    explanation_field += '_' + batch_pk
-    correction_field += '_' + batch_pk
-    mnemonic_field += '_' + batch_pk
+  if (level_pk){
+    revision_field += '_' + level_pk
+    explanation_field += '_' + level_pk
+    correction_field += '_' + level_pk
+    mnemonic_field += '_' + level_pk
   }
 
   return rows.map(function(row){
@@ -63,17 +63,17 @@ function get_contribution_data(batch_pk){
 }
 
 
-function get_contribution_hover(batch_pk){
+function get_contribution_hover(level_pk){
   revision_field = 'revision_count'
   explanation_field = 'explanation_count'
   correction_field = 'correction_count'
   mnemonic_field = 'mnemonic_count'
 
-  if (batch_pk){
-    revision_field += '_' + batch_pk
-    explanation_field += '_' + batch_pk
-    correction_field += '_' + batch_pk
-    mnemonic_field += '_' + batch_pk
+  if (level_pk){
+    revision_field += '_' + level_pk
+    explanation_field += '_' + level_pk
+    correction_field += '_' + level_pk
+    mnemonic_field += '_' + level_pk
   }
 
   return rows.map(function(row) {

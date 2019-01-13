@@ -19,9 +19,9 @@ class CustomSignupForm(SignupFormOnlyEmail):
     nickname = forms.CharField(max_length=30,required=False)
     alternative_email = forms.EmailField(required=False)
     institution = forms.CharField(max_length=100)
-    college = forms.ModelChoiceField(queryset=models.College.objects.all(),
+    group = forms.ModelChoiceField(queryset=models.Group.objects.all(),
                                      required=False)
-    batch = forms.ModelChoiceField(queryset=models.Batch.objects.all(),
+    level = forms.ModelChoiceField(queryset=models.Level.objects.all(),
                                    required=False)
     mobile_number = forms.CharField(max_length=14)
     primary_interest = forms.ModelChoiceField(queryset=models.PrimaryInterest.objects.filter(children__isnull=True))
@@ -46,19 +46,19 @@ class CustomSignupForm(SignupFormOnlyEmail):
                 # This will be handled by built-in form validation.
                 pass
             else:
-                if institution.college_set.exists() and \
-                   (not 'college' in cleaned_data or \
-                    not cleaned_data['college']):
-                    raise forms.ValidationError("You did not choose a college within {}.".format(institution.name))
-                elif institution.college_set.exists():
-                    # College check
-                    college = cleaned_data['college']
-                    # Make sure that the selected colleges falls under the institution
-                    if not institution.college_set.filter(pk=college.pk).exists():
-                        msg = ("The college you entered is not part of "
+                if institution.group_set.exists() and \
+                   (not 'group' in cleaned_data or \
+                    not cleaned_data['group']):
+                    raise forms.ValidationError("You did not choose a group within {}.".format(institution.name))
+                elif institution.group_set.exists():
+                    # Group check
+                    group = cleaned_data['group']
+                    # Make sure that the selected groups falls under the institution
+                    if not institution.group_set.filter(pk=group.pk).exists():
+                        msg = ("The group you entered is not part of "
                                "{}.".format(institution.name))
-                        self._errors['college'] = self.error_class([msg])
-                        del cleaned_data['college']
+                        self._errors['group'] = self.error_class([msg])
+                        del cleaned_data['group']
 
                 # Email check
                 if 'email' in cleaned_data:
@@ -89,8 +89,8 @@ class CustomSignupForm(SignupFormOnlyEmail):
         user_profile.nickname = self.cleaned_data.get('nickname', None)
         user_profile.mobile_number = self.cleaned_data['mobile_number']
         user_profile.institution = self.cleaned_data['institution']
-        user_profile.college = self.cleaned_data.get('college', None)
-        user_profile.batch = self.cleaned_data.get('batch', None)
+        user_profile.group = self.cleaned_data.get('group', None)
+        user_profile.level = self.cleaned_data.get('level', None)
         user_profile.display_full_name = self.cleaned_data['display_full_name']
         user_profile.primary_interest = self.cleaned_data['primary_interest']
         user_profile.personal_email_unconfirmed = self.cleaned_data['alternative_email']
@@ -112,9 +112,9 @@ class CustomEditProfileForm(forms.ModelForm):
     display_full_name = forms.ChoiceField(choices=models.display_full_name_choices)
     # nickname = forms.CharField(max_length=30,required=False)
     # institution = forms.CharField(max_length=100)
-    # college = forms.ModelChoiceField(queryset=models.College.objects.all(),
+    # group = forms.ModelChoiceField(queryset=models.Group.objects.all(),
     #                                  required=False)
-    # batch = forms.ModelChoiceField(queryset=models.Batch.objects.all(),
+    # level = forms.ModelChoiceField(queryset=models.Level.objects.all(),
     #                                required=False)
 
 
@@ -145,18 +145,18 @@ class CustomEditProfileForm(forms.ModelForm):
         #         # This will be handled by built-in form validation.
         #         pass
         #     else:
-        #         if institution.college_set.exists() and \
-        #            (not 'college' in cleaned_data or not cleaned_data['college']):
-        #             raise forms.ValidationError("You did not choose a college within {}.".format(institution.name))
-        #         elif institution.college_set.exists():
-        #             # College check
-        #             college = cleaned_data['college']
-        #             # Make sure that the selected colleges falls under the institution
-        #             if not institution.college_set.filter(pk=college.pk).exists():
-        #                 msg = ("The college you entered is not part of "
+        #         if institution.group_set.exists() and \
+        #            (not 'group' in cleaned_data or not cleaned_data['group']):
+        #             raise forms.ValidationError("You did not choose a group within {}.".format(institution.name))
+        #         elif institution.group_set.exists():
+        #             # Group check
+        #             group = cleaned_data['group']
+        #             # Make sure that the selected groups falls under the institution
+        #             if not institution.group_set.filter(pk=group.pk).exists():
+        #                 msg = ("The group you entered is not part of "
         #                        "{}.".format(institution.name))
-        #                 self._errors['college'] = self.error_class([msg])
-        #                 del cleaned_data['college']
+        #                 self._errors['group'] = self.error_class([msg])
+        #                 del cleaned_data['group']
         # # Email check
         # if 'email' in cleaned_data:
         #     email = cleaned_data['email']
@@ -172,8 +172,8 @@ class CustomEditProfileForm(forms.ModelForm):
         user_profile = super(CustomEditProfileForm, self).save()
 
         # user_profile.institution = self.cleaned_data['institution']
-        # user_profile.college = self.cleaned_data.get('college', None)
-        # user_profile.batch = self.cleaned_data.get('batch', None)
+        # user_profile.group = self.cleaned_data.get('group', None)
+        # user_profile.level = self.cleaned_data.get('level', None)
 
         # if user_profile.alternative_email:
         #     alternative_email = user_profile.alternative_email

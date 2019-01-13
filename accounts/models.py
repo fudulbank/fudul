@@ -25,7 +25,7 @@ primary_interest_choices = (
     ('SMLE', 'SMLE'),
     ('SNLE', 'SNLE'),
     ('RESIDENCY', 'Residency exams'),
-    ('COLLEGE', 'Colege exams'),
+    ('COLLEGE', 'College exams'),
 )
 
 class Profile(UserenaBaseProfile):
@@ -34,8 +34,8 @@ class Profile(UserenaBaseProfile):
     middle_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
     nickname = models.CharField(max_length=30, default="", blank=True)
-    batch = models.ForeignKey('Batch', null=True, blank=True)
-    college = models.ForeignKey('College', null=True, blank=True)
+    level = models.ForeignKey('Level', null=True, blank=True)
+    group = models.ForeignKey('Group', null=True, blank=True)
     institution = models.CharField(max_length=100, default="")
     mobile_number = models.CharField(max_length=14)
     alternative_email = models.EmailField(blank=True)
@@ -144,17 +144,17 @@ class PrimaryInterest(models.Model):
     def __str__(self):
         return self.name
 
-class Batch(models.Model):
+class Level(models.Model):
     name = models.CharField(max_length=50)
-    college = models.ForeignKey('College')
+    group = models.ForeignKey('Group')
     complete_number = models.PositiveIntegerField(null=True,
                                                   blank=True)
 
     def __str__(self):
-        return "{} ({} at {})".format(self.name, self.college.name,
-                                      self.college.institution.name)
+        return "{} ({} at {})".format(self.name, self.group.name,
+                                      self.group.institution.name)
 
-class College(models.Model):
+class Group(models.Model):
     name = models.CharField(max_length=50)
     institution = models.ForeignKey('Institution')
 
@@ -168,7 +168,7 @@ class Institution(models.Model):
                                    default="")
 
     def get_total_users(self):
-        return self.college_set\
+        return self.group_set\
                    .aggregate(total_users=Count('profile'))['total_users']
 
     def is_email_allowed(self, email):
@@ -182,5 +182,3 @@ class Institution(models.Model):
 
     def __str__(self):
         return self.name
-
-
