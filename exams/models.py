@@ -140,10 +140,10 @@ class Exam(models.Model):
     name = models.CharField(max_length=100)
     category = models.ForeignKey(Category,related_name='exams')
     is_visible = models.BooleanField(default=True)
-    levels_allowed_to_take = models.ForeignKey('accounts.Level',
-                                               null=True, blank=True)
-    groups_allowed_to_take = models.ForeignKey('accounts.Group',
-                                               null=True, blank=True)
+    levels_allowed_to_take = models.ManyToManyField('accounts.Level',
+                                                    blank=True)
+    groups_allowed_to_take = models.ManyToManyField('accounts.Group',
+                                                    blank=True)
     exam_types = models.ManyToManyField('ExamType', blank=True)
     credits = RichTextUploadingField(default='', blank=True)
     was_announced = models.BooleanField("This exam was announced and is readily available for users who are not editors",
