@@ -96,7 +96,7 @@ function get_contribution_hover(level_pk){
 exam_date_input = JSON.parse('{{ exam_date_json|safe }}')
 exam_dates = Object.keys(exam_date_input)
 exam_dates_hovertexts = Object.values(exam_date_input)
-exam_dates_counts = exam_dates.map(function(date){ row = rows.find(function(row){ return row['date'] == date}); return row['user_count']})
+exam_dates_counts = exam_dates.map(function(date){ row = rows.find(function(row){ return row['date'] == date}); if (row) {return row['user_count']} else {return 0}});
 var exam_date_data = {
   x: exam_dates,
   y: exam_dates_counts,
