@@ -208,7 +208,7 @@ class Command(BaseCommand):
 
             # If parent_question is specified, set it to the the
             # latest imported question.
-            if INDEXES['PARENT_QUESTION']:
+            if INDEXES['PARENT_QUESTION'] and row[INDEXES['PARENT_QUESTION']] == "Yes":
                 parent_question = question
             else:
                 parent_question = None
