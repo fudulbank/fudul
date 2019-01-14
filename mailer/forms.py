@@ -13,7 +13,10 @@ class TargetChoiceField(forms.ModelMultipleChoiceField):
             return "{} ({})".format(obj.name, count)
         elif type(obj) is Group:
             count = obj.profile_set.count()
-            return "{}: {} ({})".format(obj.institution.name, obj.name, count)
+            if obj.institution:
+                return f"{obj.institution.name}: {obj.name} ({count})"
+            else:
+                return f"{obj.name} ({count})"
         elif type(obj) is Level:
             return str(obj)
 

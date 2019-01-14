@@ -47,13 +47,14 @@ def get_user_institution(user):
     return institution
 
 def get_user_group(user):
-    group = None
-
     if user.is_authenticated() and hasattr(user, 'profile'):
         group = user.profile.group
+        return group
 
-    return group
-
+def get_profile_attr(user, attr):
+    if user.is_authenticated() and hasattr(user, 'profile'):
+        value = getattr(user.profile, attr, None)
+        return value
 
 def get_user_credit(contributing_user, viewing_user=None, full=False):
     if not contributing_user:

@@ -51,9 +51,12 @@ def show_category(request, slugs):
     context['is_browse_active'] = True
 
     if request.user.team_memberships.exists():
-        exams = category.exams.filter(privileged_teams__members=request.user).distinct() | category.exams.with_approved_questions()
+        exams = category.exams.filter(is_visible=True,
+                                      privileged_teams__members=request.user).distinct() | \
+                category.exams.with_approved_questions()
     else:
-        exams = category.exams.with_approved_questions()
+        exams = category.exams.filter(is_visible=True)\
+                              .with_approved_questions()
 
     context['exams'] = exams
 
@@ -209,7 +212,8 @@ def handle_question(request, exam_pk, question_pk=None):
 @decorators.ajax_only
 @login_required
 def update_exam_stats(request, pk):
-    exam = get_object_or_404(Exam, pk=pk)
+    exam = get_object_or_404(Exam.objects.select_for_can_access(),
+                             pk=pk)
 
     # PERMISSION CHECK
     if not exam.can_user_access(request.user):
@@ -226,7 +230,9 @@ def update_exam_stats(request, pk):
 def list_questions(request, slugs, pk, selector=None):
     category = Category.objects.get_from_slugs_or_404(slugs)
 
-    exam = get_object_or_404(Exam.objects.select_related('category'), pk=pk, category=category)
+    exam = get_object_or_404(Exam.objects.objects.select_for_can_access(),
+                             pk=pk,
+                             category=category)
     assignment_form = forms.AssignQuestionForm(exam=exam)
 
     # PERMISSION CHECK
@@ -333,7 +339,7 @@ def list_revisions(request, slugs, exam_pk, pk):
 def submit_revision(request, slugs, exam_pk, pk):
     category = Category.objects.get_from_slugs_or_404(slugs)
 
-    exam = get_object_or_404(Exam, pk=exam_pk, category=category)
+    exam = get_object_or_404(Exam.objects.select_for_can_access(), pk=exam_pk, category=category)
     question = get_object_or_404(Question, pk=pk, is_deleted=False)
     #TODO :latest approved revision
     latest_revision = question.get_latest_revision()
@@ -392,7 +398,7 @@ def submit_revision(request, slugs, exam_pk, pk):
 def create_session(request, slugs, exam_pk):
     category = Category.objects.get_from_slugs_or_404(slugs)
 
-    exam = get_object_or_404(Exam, pk=exam_pk, category=category)
+    exam = get_object_or_404(Exam.objects.select_for_can_access(), pk=exam_pk, category=category)
 
     # PERMISSION CHECK
     if not category.can_user_access(request.user):
@@ -776,7 +782,8 @@ def approve_user_contributions(request,slugs,exam_pk):
 
     category = Category.objects.get_from_slugs_or_404(slugs)
 
-    exam = get_object_or_404(Exam, pk=exam_pk, category=category)
+    exam = get_object_or_404(Exam.objects.select_for_can_access(),
+                             pk=exam_pk, category=category)
 
     # PERMISSION CHECK
     if not exam.can_user_edit(request.user):
@@ -905,7 +912,8 @@ def approve_question(request, slugs, exam_pk, pk):
     category = Category.objects.get_from_slugs_or_404(slugs)
 
     # PERMISSION CHECK
-    exam = get_object_or_404(Exam, pk=exam_pk, category=category)
+    exam = get_object_or_404(Exam.objects.select_for_can_access(),
+                             pk=exam_pk, category=category)
     question = get_object_or_404(Question, pk=pk)
     revision = question.get_latest_revision()
     if not exam.can_user_edit(request.user):
@@ -978,7 +986,8 @@ def show_my_performance_per_exam(request, exam_pk):
 @login_required
 @require_safe
 def show_credits(request,pk):
-    exam = get_object_or_404(Exam, pk=pk)
+    exam = get_object_or_404(Exam.objects.select_for_can_access(),
+                             pk=pk)
 
     # PERMISSION CHECK
     if not exam.can_user_access(request.user):
@@ -1122,7 +1131,8 @@ def delete_correction(request):
 @csrf.csrf_exempt
 @decorators.ajax_only
 def get_selected_question_count(request, exam_pk):
-    exam = get_object_or_404(Exam, pk=exam_pk)
+    exam = get_object_or_404(Exam.objects.select_for_can_access(),
+                             pk=exam_pk)
 
     # PERMISSION CHECK
     if not exam.can_user_access(request.user):

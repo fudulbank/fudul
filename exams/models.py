@@ -92,13 +92,14 @@ class Category(models.Model):
         parent_categories.reverse()
         return parent_categories
 
-    def can_user_access(self, user):
+    def can_user_access(self, user, user_group=None):
         if not user.is_authenticated():
             return False
         elif user.is_superuser:
             return True
 
-        user_group = accounts.utils.get_user_group(user)
+        if not user_group:
+            user_group = accounts.utils.get_user_group(user)
         category = self
 
         while category:
@@ -138,13 +139,18 @@ class Category(models.Model):
 class Exam(models.Model):
     name = models.CharField(max_length=100)
     category = models.ForeignKey(Category,related_name='exams')
-    submission_date = models.DateTimeField(auto_now_add=True)
-    is_deleted = models.BooleanField(default=False)
-    levels_allowed_to_take = models.ForeignKey('accounts.Level', null=True, blank=True)
+    is_visible = models.BooleanField(default=True)
+    levels_allowed_to_take = models.ForeignKey('accounts.Level',
+                                               null=True, blank=True)
+    groups_allowed_to_take = models.ForeignKey('accounts.Group',
+                                               null=True, blank=True)
     exam_types = models.ManyToManyField('ExamType', blank=True)
     credits = RichTextUploadingField(default='', blank=True)
     was_announced = models.BooleanField("This exam was announced and is readily available for users who are not editors",
                                         default=True, blank=True)
+
+    submission_date = models.DateTimeField(auto_now_add=True)
+    is_deleted = models.BooleanField(default=False)
 
     objects = managers.ExamQuerySet.as_manager()
 
@@ -191,7 +197,19 @@ class Exam(models.Model):
         return members
 
     def can_user_access(self, user):
-        return self.category.can_user_access(user)
+        user_group = accounts.utils.get_profile_attr(user, 'group')
+        user_level = accounts.utils.get_profile_attr(user, 'level')
+        exam_groups = self.groups_allowed_to_take.all()
+        exam_levels = self.levels_allowed_to_take.all()
+
+        if (not exam_groups or
+            user_group in exam_groups) and \
+           (not exam_levels or
+            user_level in exam_levels) and \
+           self.category.can_user_access(user, user_group):
+           return True
+        else:
+            return False
 
     def can_user_edit(self, user):
         if user.is_superuser or \

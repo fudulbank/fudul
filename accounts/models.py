@@ -156,7 +156,8 @@ class Level(models.Model):
 
 class Group(models.Model):
     name = models.CharField(max_length=50)
-    institution = models.ForeignKey('Institution')
+    institution = models.ForeignKey('Institution', null=True,
+                                    blank=True)
 
     def __str__(self):
         return "{} ({})".format(self.name, self.institution.name)

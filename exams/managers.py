@@ -201,6 +201,11 @@ class ExamQuerySet(models.QuerySet):
                            question__best_revision__is_approved=True)\
                    .distinct()
 
+    def select_for_can_access(self):
+        return self.select_related('category')\
+                   .prefetch_related('groups_allowed_to_take',
+                                     'levels_allowed_to_take')
+
 class SessionQuerySet(models.QuerySet):
     def get_shared(self, session):
         shared_sessions = self.none()
