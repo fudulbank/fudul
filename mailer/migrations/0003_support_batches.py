@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0018_group_level'),
+        ('accounts', '0010_not_null_nickname'),
         ('mailer', '0002_status_choices'),
     ]
 
@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='message',
             name='batches',
-            field=models.ManyToManyField(blank=True, to='accounts.Level'),
+            field=models.ManyToManyField(blank=True, to='accounts.Batch'),
         ),
         migrations.AlterField(
             model_name='message',

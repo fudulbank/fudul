@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('accounts', '0018_group_level'),
+        ('accounts', '0002_add_userena_profile'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
                 ('target', models.CharField(choices=[('INSTITUTIONS', 'Per institutions'), ('COLLEGES', 'Per colleges'), ('ALL', 'All confirmed users')], default='ALL', max_length=20)),
                 ('status', models.CharField(default='PENDING', max_length=20)),
                 ('submission_date', models.DateTimeField(auto_now_add=True)),
-                ('colleges', models.ManyToManyField(blank=True, to='accounts.Group')),
+                ('colleges', models.ManyToManyField(blank=True, to='accounts.College')),
                 ('institutions', models.ManyToManyField(blank=True, to='accounts.Institution')),
                 ('submitter', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],

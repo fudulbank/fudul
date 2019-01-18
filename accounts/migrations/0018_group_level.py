@@ -8,6 +8,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
+        ('mailer', '0003_support_batches'),
         ('accounts', '0017_fill_is_editor'),
     ]
 
