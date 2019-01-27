@@ -230,7 +230,7 @@ def update_exam_stats(request, pk):
 def list_questions(request, slugs, pk, selector=None):
     category = Category.objects.get_from_slugs_or_404(slugs)
 
-    exam = get_object_or_404(Exam.objects.objects.select_for_can_access(),
+    exam = get_object_or_404(Exam.objects.select_for_can_access(),
                              pk=pk,
                              category=category)
     assignment_form = forms.AssignQuestionForm(exam=exam)
