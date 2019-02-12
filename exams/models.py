@@ -148,6 +148,8 @@ class Exam(models.Model):
     credits = RichTextUploadingField(default='', blank=True)
     was_announced = models.BooleanField("This exam was announced and is readily available for users who are not editors",
                                         default=True, blank=True)
+    inherits_sources = models.BooleanField("This exam inherits sources from its parent categories",
+                                           default=True)
 
     submission_date = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
@@ -186,6 +188,8 @@ class Exam(models.Model):
 
     def get_sources(self):
         sources = Source.objects.none()
+        if not self.inherits_sources:
+            return sources
         category = self.category
         while category:
             sources |= category.source_set.all()
