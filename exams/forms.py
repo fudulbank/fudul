@@ -14,7 +14,7 @@ class MetaChoiceField(forms.ModelMultipleChoiceField):
     def __init__(self, *args, **kwargs):
         self.exam = kwargs.pop('exam')
         self.form_type = kwargs.pop('form_type')
-        super(MetaChoiceField, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def label_from_instance(self, obj):
         approved_only = self.form_type == 'session'
@@ -47,7 +47,7 @@ class QuestionForm(forms.ModelForm):
                                required=False)
 
     def __init__(self, *args, **kwargs):
-        super(QuestionForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         exam = self.instance.exam
 
         # Only include 'subjects' field if the exam has subjects
@@ -92,6 +92,13 @@ class QuestionForm(forms.ModelForm):
         }
 
 class RevisionForm(forms.ModelForm):
+    def clean_text(self):
+        """Remove illegal characters that are not allowed in the database."""
+        text = self.cleaned_data['text']
+        if text:
+            text = text.replace('\u0000', '')
+        return text
+
     def clone(self, question, user):
         new_revision = self.save(commit=False)
 
@@ -112,6 +119,13 @@ class RevisionForm(forms.ModelForm):
         fields = ['text', 'figure', 'change_summary']
 
 class ChoiceForms(forms.ModelForm):
+    def clean_text(self):
+        """Remove illegal characters that are not allowed in the database."""
+        text = self.cleaned_data['text']
+        if text:
+            text = text.replace('\u0000', '')
+        return text
+
     class Meta:
         model = models.Choice
         fields = ['text','revision','is_right']
@@ -150,7 +164,7 @@ class SessionForm(forms.ModelForm):
         self.user = kwargs.pop('user')
         original_session = kwargs.pop('original_session', None)
         self.is_automatic = kwargs.pop('is_automatic', False)
-        super(SessionForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.fields['session_mode'].widget = forms.RadioSelect(choices=models.session_mode_choices[:-1])
 
@@ -236,7 +250,7 @@ class SessionForm(forms.ModelForm):
             self.fields['number_of_questions'].required = False
             
     def clean(self):
-        cleaned_data = super(SessionForm, self).clean()
+        cleaned_data = super().clean()
 
         # If the form is invalid to start with, skip question
         # checking.
@@ -304,7 +318,7 @@ class SessionForm(forms.ModelForm):
         return cleaned_data
 
     def save(self, *args, **kwargs):
-        session = super(SessionForm, self).save(*args, **kwargs)
+        session = super().save(*args, **kwargs)
         session.questions.add(*self.final_questions)
 
         if not session.parent_session:
@@ -336,9 +350,16 @@ class SessionForm(forms.ModelForm):
 class ExplanationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.is_optional = kwargs.pop('is_optional', False)        
-        super(ExplanationForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         if self.is_optional:
             self.fields['explanation_text'].required = False
+
+    def clean_explanation_text(self):
+        """Remove illegal characters that are not allowed in the database."""
+        text = self.cleaned_data['explanation_text']
+        if text:
+            text = text.replace('\u0000', '')
+        return text
 
     def save(self,  commit=True):
         if self.is_optional and \
@@ -346,7 +367,7 @@ class ExplanationForm(forms.ModelForm):
             'explanation_text' in self.cleaned_data and \
             not self.cleaned_data['explanation_text']):
             return
-        return super(ExplanationForm, self).save(commit=commit)
+        return super().save(commit=commit)
 
     def clone(self, question, user):
         # If nothing has changed, don't create a new instance.
@@ -389,5 +410,5 @@ class AssignQuestionForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         exam = kwargs.pop('exam', None)        
-        super(AssignQuestionForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['editor'].queryset = exam.get_editors()
