@@ -49,18 +49,7 @@
             $('#choice_formset input[type=checkbox]').not(this).prop('checked', false);
         });
         $("textarea").autoGrow();
-        // add formset controls
-        $("#choice_formset .form-container").formset({
-            prefix: '{{ revisionchoiceformset.prefix }}',
-            addText: 'Add a Choice',
-            deleteText: 'Delete',
-            addCssClass: 'add-row btn btn-xs btn-primary',
-            deleteCssClass: 'delete-row btn btn-xs btn-danger',
-        });
-        // FIXME
-
-{#        $('#choice_formset div.checkbox label').append( "<span></span>" );#}
-
+        {% include 'exams/partials/initialize_formsets.js' %}
         });
     </script>
 {% with category_pk=revision.question.exam.category.pk  parent_category_pk=revision.question.exam.category.parent_category.pk %}

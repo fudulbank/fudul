@@ -1,164 +1,189 @@
-{% load static bootstrap3 %}
+{% load static bootstrap4 %}
 <style>
-.select2-container .select2-search--inline {
+	.select2-container .select2-search--inline {
 	/*workaround to fix the difference in height between used and unused select2-multiple fields*/
     padding-top: 1px;
 }
 .circle {
-   width: 20px;
-   height: 20px;
    background: lightblue;
    -moz-border-radius: 10px;
    -webkit-border-radius: 10px;
    border-radius: 10px;
-    text-align: center;
-    color: white;
-    float: right;
+	  text-align: center;
+	  color: #000;
+		display: inline-block;
+		width: 1.3em;
+		height: 1.3em;
+		margin-left: 0.25rem;
 }
-/*FIXME*/
-/*
-#choice_formset div.checkbox label {
-    display:inline-block;
-}
-#choice_formset div.checkbox label > input + span {
-    cursor: pointer;
-}
-#choice_formset div.checkbox label span {
-    float: left;
+.circle:hover{
+	cursor: click;
 }
 
-#choice_formset div.checkbox label > input {
-    position: absolute;
-    visibility: hidden;
-    width: 32px;
-    height: 32px;
-}
-#choice_formset div.checkbox label > input:checked + span:before {
-    content: url("{% static 'images/success(1).png' %}");
-    display:block;
+.form-check{
+	margin-left: 30px;
 }
 
-*/
+.delete-row{
+	margin-left: 15px;
+}
 
+.form-container .form-group{
+	margin-bottom: 0;
+}
+
+tr.form-container td {
+  padding-bottom: 1.5rem;
+}
+
+.form-check-label {
+    padding-left: 0.5rem;
+}
 </style>
-        {% bootstrap_form_errors question_form %}
+{% bootstrap_form_errors question_form %}
 <form method="post" data-exam_pk='{{ exam.pk }}' enctype="multipart/form-data" id="add-question-form">
-    {% csrf_token %}
+	{% csrf_token %}
 
-  <div class="row">
-{% if question_form.exam_types %}
-	<div class="col-md-6">
-		<div class="form-group">
-      <label class="control-label"><i class="icon-filter3 text-muted"></i> Exam type</label>
-      <div id='exam-type'>
-  			{% bootstrap_field question_form.exam_types show_label=False %}
-      </div>
-		</div>
-	</div>
-{% endif %}
-	<div class="col-md-6">
-		<div class="form-group">
-      <label class="control-label"><i class="icon-stack-check text-muted"></i> Issues <a data-placement="left" data-html="true" class="circle" data-toggle="tooltip" title="Does this question have any issues?  Note that issues have two types: <em>blocker</em> and <em>non-blocker</em>.  Questions marked with <em>blocker</em> issues will NOT be available for users to be examined on.  Issues with <em>non-blocker</em> issues will still be available.">?</a></label>
-			{{ question_form.issues }}
-		</div>
-	</div>
-  {% if question_form.sources %}
-	<div class="col-md-6">
-		<div class="form-group">
-      <label class="control-label"><i class="icon-git-branch text-muted"></i> Source<a class="circle" data-placement="left" data-toggle="tooltip"  title="PLACEHOLDER">?</a></label>
-			{{ question_form.sources }}
-		</div>
-	</div>
-  {% endif %}
-  {% if question_form.subjects %}
-	<div class="col-md-6">
-		<div class="form-group">
-      <label class="control-label"><i class="icon-list-unordered text-muted"></i> Subject<a class="circle" data-placement="left" data-toggle="tooltip"  title="PLACEHOLDER">?</a></label>
-			{{ question_form.subjects }}
-		</div>
-	</div>
-  {% endif %}
-	<div class="col-md-6">
-		<div class="form-group">
-      <label class="control-label"><i class="icon-list-unordered text-muted"></i> Parent question <a class="circle" data-placement="left" data-toggle="tooltip"  title="if you are adding a case questions you can use parent question field by typing the number of the question that should come before it.">?</a></label>
-			{{ question_form.parent_question }}
-		</div>
-	</div>
-        {% bootstrap_form_errors revision_form %}
-
-	<div class="col-md-6">
-		<div class="form-group" id="figure">
-                        <label class="control-label"><i class="icon-image2 text-muted"></i> Corresponding figure</label>
-			{% bootstrap_field revision_form.figure show_label=False %}
-
-		</div>
-	</div>
-</div>
-
-        <div class="form-group has-feedback has-feedback-left">
-            <label class="control-label">Question Text</label>
-			{% bootstrap_field revision_form.text show_label=False %}
-			<div class="form-control-feedback">
-				<i class="icon-pencil text-muted"></i>
+	<div class="row">
+		{% if question_form.exam_types %}
+		<div class="col-md-6">
+			<div class="form-group">
+				<label class="control-label"><i class="icon-filter3 text-muted"></i> Exam type</label>
+				<div id='exam-type'>
+					{% bootstrap_field question_form.exam_types show_label=False %}
+				</div>
 			</div>
 		</div>
-
-                      <h3>Question Choices</h3>
-
-                        {{ revisionchoiceformset.management_form }}
-                        {{ revisionchoiceformset.non_form_errors.as_ul }}
-                        <table id="choice_formset" class="form" style="width: 100%;">
-
-                        {% for form in revisionchoiceformset.forms %}
-                          {% if forloop.first %}
-                            <colgroup>
-                                <col style="width: 66%">
-                                <col style="width: 17%">
-                                <col style="width: 17%">
-                            </colgroup>
-                            <thead><tr>
-                              <th>Text</th>
-                              <th></th>
-                              <th></th>
-                            </tr></thead>
-                          {% endif %}
-                          <tr class="form-container">
-                          {% for field in form.visible_fields %}
-                            <td>
-                            {% if forloop.first %}
-                              {% for hidden in form.hidden_fields %}
-                              {{ hidden }}
-                              {% endfor %}
-                            {% endif %}
-                                <div class="form-group">
-                              {{ field.errors.as_ul }}
-                              {% bootstrap_field field show_label=False %}
-                                </div>
-                            </td>
-                          {% endfor %}
-                          </tr>
-                        {% endfor %}
-                        </table>
-
-        		<div class="form-group has-feedback has-feedback-left">
-            <label class="control-label">Answer explanation</label>
-			{% bootstrap_field explanation_form.explanation_text show_label=False %}
-			<div class="form-control-feedback">
-				<i class=" icon-info22 text-muted"></i>
-			</div>
-    </div>
-  	<div class="form-group">
-        <label class="control-label"><i class="icon-image2 text-muted"></i> Explanation figure</label>
-  			{% bootstrap_field explanation_form.explanation_figure show_label=False %}
-  	</div>
-    <div class="form-group has-feedback has-feedback-left">
-      <label class="control-label">Answer reference </label>
-			{% bootstrap_field explanation_form.reference show_label=False %}
-			<div class="form-control-feedback">
-				<i class=" icon-info22 text-muted"></i>
+		{% endif %}
+		<div class="col-md-6">
+			<div class="form-group">
+				<label class="control-label"><i class="icon-stack-check text-muted"></i> Issues <span data-placement="left" data-html="true" class="circle" data-toggle="tooltip" title="Does this question have any issues?  Note that issues have two types: <em>blocker</em> and <em>non-blocker</em>.  Questions marked with <em>blocker</em> issues will NOT be available for users to be examined on.  Issues with <em>non-blocker</em> issues will still be available.">?</span></label>
+				{{ question_form.issues }}
 			</div>
 		</div>
-<input name="exam_pk" type="hidden" value="{{ exam.pk }}">
-               <button type="submit" class="btn btn-primary float-sm-right"><i class="ft-check"></i> Submit Question <i class="icon-circle-right2 position-right"></i></button>
+		{% if question_form.sources %}
+		<div class="col-md-6">
+			<div class="form-group">
+				<label class="control-label"><i class="icon-git-branch text-muted"></i> Source<span class="circle" data-placement="left" data-toggle="tooltip" title="PLACEHOLDER">?</span></label>
+				{{ question_form.sources }}
+			</div>
+		</div>
+		{% endif %}
+		{% if question_form.subjects %}
+		<div class="col-md-6">
+			<div class="form-group">
+				<label class="control-label"><i class="icon-list-unordered text-muted"></i> Subject<span class="circle" data-placement="left" data-toggle="tooltip" title="PLACEHOLDER">?</span></label>
+				{{ question_form.subjects }}
+			</div>
+		</div>
+		{% endif %}
+		<div class="col-md-6">
+			<div class="form-group">
+				<label class="control-label"><i class="icon-list-unordered text-muted"></i> Parent question <span class="circle" data-placement="left" data-toggle="tooltip" title="if you are adding a case questions you can use parent question field by typing the number of the question that should come before it.">?</span></label>
+				{{ question_form.parent_question }}
+			</div>
+		</div>
+		{% bootstrap_form_errors revision_form %}
+	</div>
 
-        </form>
+	<div class="form-group has-feedback has-feedback-left">
+		<label class="control-label">Question Text</label>
+		{% bootstrap_field revision_form.text show_label=False %}
+		<div class="form-control-feedback">
+			<i class="icon-pencil text-muted"></i>
+		</div>
+	</div>
+
+	<h3>Question figures<span class="circle" data-placement="left" data-html="true" data-toggle="tooltip" title="You can optionally add one or more figures.  Each figure can optionally have a <em>caption</em> that describes it.">?</span></h3>
+	{{ revision_figure_formset.management_form }}
+	{{ revision_figure_formset.non_form_errors.as_ul }}
+	<table id="revision_figure_formset" class="form" style="width: 100%;">
+		{% for form in revision_figure_formset.forms %}
+		<tr class="form-container">
+			{% for field in form.visible_fields %}
+			<td>
+				{% if forloop.first %}
+				{% for hidden in form.hidden_fields %}
+				{{ hidden }}
+				{% endfor %}
+				{% endif %}
+				{{ field.errors.as_ul }}
+				{% bootstrap_field field show_label=False %}
+			</td>
+			{% endfor %}
+		</tr>
+		{% endfor %}
+	</table>
+	<h3>Question Choices</h3>
+
+	{{ revisionchoiceformset.management_form }}
+	{{ revisionchoiceformset.non_form_errors.as_ul }}
+	<table id="choice_formset" class="form" style="width: 100%;">
+
+		{% for form in revisionchoiceformset.forms %}
+		{% if forloop.first %}
+		<thead>
+			<tr>
+				<th>Text</th>
+				<th></th>
+				<th></th>
+			</tr>
+		</thead>
+		{% endif %}
+		<tr class="form-container">
+			{% for field in form.visible_fields %}
+			<td>
+				{% if forloop.first %}
+				{% for hidden in form.hidden_fields %}
+				{{ hidden }}
+				{% endfor %}
+				{% endif %}
+				{{ field.errors.as_ul }}
+				{% bootstrap_field field show_label=False %}
+			</td>
+			{% endfor %}
+		</tr>
+		{% endfor %}
+	</table>
+
+	<div class="form-group has-feedback has-feedback-left">
+		<label class="control-label">Answer explanation</label>
+		{% bootstrap_field explanation_form.explanation_text show_label=False %}
+		<div class="form-control-feedback">
+			<i class=" icon-info22 text-muted"></i>
+		</div>
+	</div>
+	<div class="form-group">
+		<h3>Explanation figures<span class="circle" data-placement="left" data-html="true" data-toggle="tooltip" title="You can optionally add one or more figures.  Each figure can optionally have a <em>caption</em> that describes it.">?</span></h3>
+		{{ explanation_figure_formset.management_form }}
+		{{ explanation_figure_formset.non_form_errors.as_ul }}
+		<table id="explanation_figure_formset" class="form" style="width: 100%;">
+
+			{% for form in explanation_figure_formset.forms %}
+			<tr class="form-container">
+				{% for field in form.visible_fields %}
+				<td>
+					{% if forloop.first %}
+					{% for hidden in form.hidden_fields %}
+					{{ hidden }}
+					{% endfor %}
+					{% endif %}
+					{{ field.errors.as_ul }}
+					{% bootstrap_field field show_label=False %}
+				</td>
+				{% endfor %}
+			</tr>
+			{% endfor %}
+		</table>
+	</div>
+	<div class="form-group has-feedback has-feedback-left">
+		<label class="control-label">Answer reference </label>
+		{% bootstrap_field explanation_form.reference show_label=False %}
+		<div class="form-control-feedback">
+			<i class=" icon-info22 text-muted"></i>
+		</div>
+	</div>
+	<input name="exam_pk" type="hidden" value="{{ exam.pk }}">
+	<button type="submit" class="btn btn-primary float-sm-right"><i class="ft-check"></i> Submit Question <i class="icon-circle-right2 position-right"></i></button>
+
+</form>

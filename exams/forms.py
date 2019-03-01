@@ -2,7 +2,7 @@ from dal import autocomplete
 from django import forms
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.forms.models import inlineformset_factory
+from django.forms.models import modelformset_factory, inlineformset_factory
 import random
 import string
 
@@ -145,6 +145,45 @@ class CustomRevisionChoiceFormset(forms.BaseInlineFormSet):
             choice.revision = revision
             choice.save()
 
+class CustomFigureForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['caption'].widget.attrs = {'rows': '1'}
+
+    class Meta:
+        model = models.Figure
+        fields = '__all__'
+
+class CustomFigureFormSet(forms.BaseModelFormSet):
+    def clone(self, revision):
+        # How we handle figures?
+        # 1) Clear all previous figures
+        # 2) Add all unchanged figures
+        # 3) Add all new figures
+        # 4) Clone all changed figures
+
+        self.save(commit=False)
+        # 1) Clear all previous figures
+        revision.figures.clear()
+
+        # 2) Add all unchanged figures
+        figures = list(self.queryset)
+        for figure in [figure for figure, changed_fields in self.changed_objects] + self.deleted_objects:
+            figures.remove(figure)
+
+        # 3) Add all new figures
+        for figure in self.new_objects:
+            figure.save()
+            figures.append(figure)
+
+        # 4) Clone all changed figures
+        for figure, changed_fields in self.changed_objects:
+            figure.pk = None
+            figure.save()
+            figures.append(figure)
+
+        revision.figures.add(*figures)
+
 RevisionChoiceFormset = inlineformset_factory(models.Revision,
                                               models.Choice,
                                               formset=CustomRevisionChoiceFormset,
@@ -157,6 +196,16 @@ ContributedRevisionChoiceFormset = inlineformset_factory(models.Revision,
                                               formset=CustomRevisionChoiceFormset,
                                               extra=0,
                                               fields=['text','is_right'])
+
+RevisionFigureFormset = modelformset_factory(models.Figure, extra=1,
+                                             can_delete=True,
+                                             formset=CustomFigureFormSet,
+                                             form=CustomFigureForm)
+ExplanationFigureFormset = modelformset_factory(models.Figure,
+                                                can_delete=True,
+                                                extra=1,
+                                                formset=CustomFigureFormSet,
+                                                form=CustomFigureForm)
 
 class SessionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -369,10 +418,21 @@ class ExplanationForm(forms.ModelForm):
             return
         return super().save(commit=commit)
 
-    def clone(self, question, user):
+    def clone(self, question, user, figure_formset=None):
+        # We induce save at this stage to pop up the new_objects,
+        # changed_objects and deleted_objects attributed.
+        if figure_formset:
+            figure_formset.save(commit=False)
+            formset_changed = figure_formset.new_objects or \
+                              figure_formset.changed_objects or \
+                              figure_formset.deleted_objects
+        else:
+            formset_changed = False
+
         # If nothing has changed, don't create a new instance.
         if self.instance.pk and \
-           not self.changed_data:
+           not self.changed_data and \
+           not formset_changed:
             return
 
         new_explanation = self.save(commit=False)
@@ -385,6 +445,9 @@ class ExplanationForm(forms.ModelForm):
         new_explanation.submitter = user
         new_explanation.question = question
         new_explanation.save()
+
+        if formset_changed:
+            figure_formset.clone(new_explanation)
 
         return new_explanation
 

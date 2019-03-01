@@ -62,17 +62,20 @@
     <script src="{% static 'js/jquery.formset.js' %}"></script>
     <script src="{% static 'js/jquery.autogrowtextarea.min.js' %}"></script>
     <script src="{% static 'js/toastr.js' %}"></script>
-    <script type="text/javascript">
-
+    <script>
+      'use strict';
     $(function(){
         $('[data-toggle="tooltip"]').tooltip();
 
         $("form#add-question-form").submit(function (event) {
             // iOS 11.3 fails to submit AJAX with empty file input fields.
-            var $figure = $("#id_figure");
-            if(!$figure.val()){
-                $figure.attr('disabled', true);
-            }
+            var $figures = $("input[type=file]");
+            $figures.each(function(){
+              var $figure = $(this);
+              if(!$figure.val()){
+                  $figure.attr('disabled', true);
+              }
+            });
             /* stop form from submitting normally */
             event.preventDefault();
             /* get some values from elements on the page: */
@@ -125,14 +128,8 @@
         });
         $("textarea").autoGrow();
 
-        // add formset controls
-        $("#choice_formset .form-container").formset({
-            prefix: '{{ choice_formset.prefix }}',
-            addText: 'Add a Choice',
-            deleteText: 'Delete',
-            addCssClass: 'add-row btn btn-xs btn-primary',
-            deleteCssClass: 'delete-row btn btn-xs btn-danger',
-        });
+        {% include 'exams/partials/initialize_formsets.js' %}
+
         // FIXME
 {#        $('#choice_formset div.checkbox label').append( "<span></span>" );#}
     </script>

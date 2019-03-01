@@ -140,13 +140,8 @@ display:inline-block;
         $('.help-tooltip').tooltip();
     });
 
-    $("#choice_formset .form-container").formset({
-            prefix: '{{ choice_formset.prefix }}',
-            addText: 'Add a Choice',
-            deleteText: 'Delete',
-            addCssClass: 'add-row btn btn-xs btn-primary',
-            deleteCssClass: 'delete-row btn btn-xs btn-danger',
-    });
+    {% include 'exams/partials/initialize_formsets.js' %}
+
     $('#choice_formset input[type=checkbox]').change(function(){
             $('#choice_formset input[type=checkbox]').not(this).prop('checked', false);
     });

@@ -433,6 +433,7 @@ class Revision(models.Model):
                                            content_type_field='actor_content_type',
                                            object_id_field='actor_object_id',
                                            related_query_name="acting_revisions")
+    figures = models.ManyToManyField('Figure', blank=True)
 
     def get_previous(self):
         return self.question.revision_set\
@@ -745,6 +746,7 @@ class ExplanationRevision(models.Model):
                                            content_type_field='actor_content_type',
                                            object_id_field='actor_object_id',
                                            related_query_name="acting_explanation_revisions")
+    figures = models.ManyToManyField('Figure', blank=True)
 
     def get_absolute_url(self):
         return reverse("exams:list_revisions",
@@ -1002,3 +1004,10 @@ class SessionTheme(models.Model):
 
     def __str__(self):
         return self.name
+
+class Figure(models.Model):
+    figure = models.ImageField(upload_to="figures")
+    caption = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.caption or self.figure.url

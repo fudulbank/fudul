@@ -85,6 +85,8 @@ def add_question(request, slugs, pk):
     context = {'exam': exam,
                'question_form': forms.QuestionForm(instance=instance),
                'revision_form': forms.RevisionForm(),
+               'revision_figure_formset': forms.RevisionFigureFormset(prefix='revision-figures', queryset=Figure.objects.none()),
+               'explanation_figure_formset': forms.ExplanationFigureFormset(prefix='explanation-figures', queryset=Figure.objects.none()),
                'explanation_form': forms.ExplanationForm(is_optional=True),
                'revisionchoiceformset': forms.RevisionChoiceFormset(),
                'is_browse_active': True, # To make sidebar 'active'
@@ -170,11 +172,19 @@ def handle_question(request, exam_pk, question_pk=None):
                                              request.FILES,
                                              instance=explanation,
                                              is_optional=True)
+    revision_figure_formset = forms.RevisionFigureFormset(request.POST,
+                                                          request.FILES,
+                                                          prefix='explanation-figures')
+    explanation_figure_formset = forms.ExplanationFigureFormset(request.POST,
+                                                                request.FILES,
+                                                                prefix='explanation-figures')
 
     if question_form.is_valid() and \
        revision_form.is_valid() and \
        explanation_form.is_valid() and \
-       revisionchoiceformset.is_valid():
+       revisionchoiceformset.is_valid() and \
+       revision_figure_formset.is_valid() and \
+       explanation_figure_formset.is_valid():
         question = question_form.save()
         revision = revision_form.save(commit=False)
         revision.question = question
@@ -195,6 +205,12 @@ def handle_question(request, exam_pk, question_pk=None):
             explanation.is_contribution = not teams.utils.is_editor(request.user)
             explanation.question = question
             explanation.save()
+
+        revision_figures = revision_figure_formset.save()
+        revision.figures.add(*revision_figures)
+
+        explanation_figures = explanation_figure_formset.save()
+        explanation.figures.add(*explanation_figures)
 
         show_url = reverse('exams:approve_user_contributions', args=(exam.category.get_slugs(), exam.pk))
         return {"question_pk": question.pk,
@@ -360,22 +376,35 @@ def submit_revision(request, slugs, exam_pk, pk):
                                                  request.FILES,
                                                  instance=latest_explanation_revision,
                                                  is_optional=True)
-
         revisionchoiceformset = forms.RevisionChoiceFormset(request.POST,
                                                             instance=latest_revision)
+        revision_figure_formset = forms.RevisionFigureFormset(request.POST,
+                                                              request.FILES,
+                                                              prefix='revision-figures',
+                                                              queryset=latest_revision.figures.all())
+        explanation_figure_formset = forms.ExplanationFigureFormset(request.POST,
+                                                                    request.FILES,
+                                                                    prefix='explanation-figures',
+                                                                    queryset=latest_explanation_revision.figures.all())
         if question_form.is_valid() and \
            revision_form.is_valid() and \
            explanation_form.is_valid() and \
-           revisionchoiceformset.is_valid():
+           revisionchoiceformset.is_valid() and \
+           revision_figure_formset.is_valid() and \
+           explanation_figure_formset.is_valid():
             question = question_form.save()
-            new_revision = revision_form.clone(question, request.user)
-            explanation_form.clone(question, request.user)
+            new_revision = revision_form.clone(question, request.user,
+                                               revision_figure_formset)
             revisionchoiceformset.clone(new_revision)
 
             # This test relies on choices, so the choices have to be saved
             # before.
             new_revision.is_approved = utils.test_revision_approval(new_revision)
             new_revision.save()
+
+            new_explanation = explanation_form.clone(question,
+                                                     request.user,
+                                                     explanation_figure_formset)
 
             return HttpResponseRedirect(
                 reverse("exams:list_revisions",
@@ -387,10 +416,17 @@ def submit_revision(request, slugs, exam_pk, pk):
         explanation_form = forms.ExplanationForm(instance=latest_explanation_revision,
                                                  is_optional=True)
         revisionchoiceformset = forms.RevisionChoiceFormset(instance=latest_revision)
+        revision_figure_formset = forms.RevisionFigureFormset(prefix='revision-figures',
+                                                              queryset=latest_revision.figures.all())
+        explanation_figure_formset = forms.ExplanationFigureFormset(prefix='explanation-figures',
+                                                                    queryset=latest_explanation_revision.figures.all())
+
     context['question_form'] = question_form
     context['revision_form'] = revision_form
     context['explanation_form'] = explanation_form
     context['revisionchoiceformset'] = revisionchoiceformset
+    context['revision_figure_formset'] = revision_figure_formset
+    context['explanation_figure_formset'] = explanation_figure_formset
 
     return render(request, 'exams/submit_revision.html', context)
 
@@ -716,23 +752,27 @@ def contribute_explanation(request):
 
     if request.method == 'GET':
         form = forms.ExplanationForm(instance=instance)
-
+        figure_formset = forms.ExplanationFigureFormset(queryset=instance.figures.all())
     elif request.method == 'POST':
+        figure_formset = forms.ExplanationFigureFormset(request.POST,
+                                                        request.FILES,
+                                                        queryset=instance.figures.all())
+
         if not instance:
             instance = ExplanationRevision(question=question,
                                            submitter=request.user)
         form = forms.ExplanationForm(request.POST,
                                      request.FILES,
                                      instance=instance)
-        if form.is_valid():
-            new_explanation = form.clone(question, request.user)
-
+        if form.is_valid() and figure_formset.is_valid():
+            new_explanation = form.clone(question, request.user, figure_formset)
             template = get_template('exams/partials/show_explanation.html')
             context = {'explanation_revision': new_explanation}
             explanation_html = template.render(context)
             return {'explanation_html': explanation_html}
 
     context = {'question': question,
+               'explanation_figure_formset': figure_formset,
                'form': form}
     return render(request, 'exams/partials/contribute_explanation.html', context)
 
@@ -744,21 +784,26 @@ def contribute_revision(request):
     question = get_object_or_404(Question.objects.undeleted(),
                                  pk=question_pk)
     latest_revision = question.get_latest_revision()
-
     if request.method == 'GET':
         revision_initial = {'change_summary': ''}
         revision_form = forms.RevisionForm(instance=latest_revision, initial=revision_initial)
-        revisionchoiceformset = forms.ContributedRevisionChoiceFormset(instance=latest_revision)
+        revisionchoiceformset = forms.ContributedRevisionChoiceFormset(instance=latest_revision, prefix='choices')
+        figure_formset = forms.RevisionFigureFormset(queryset=latest_revision.figures.all(), prefix='figures')
     elif request.method == 'POST':
         revision_form = forms.RevisionForm(request.POST,
-                                          request.FILES,
-                                          instance=latest_revision)
-
+                                           request.FILES,
+                                           instance=latest_revision)
         revisionchoiceformset = forms.ContributedRevisionChoiceFormset(request.POST,
-                                                            instance=latest_revision)
+                                                                       instance=latest_revision,
+                                                                       prefix='choices')
+        figure_formset = forms.RevisionFigureFormset(request.POST,
+                                                     request.FILES,
+                                                     queryset=latest_revision.figures.all(),
+                                                     prefix='figures')
         if revision_form.is_valid() and \
-           revisionchoiceformset.is_valid():
-            new_revision = revision_form.clone(question,request.user)
+           revisionchoiceformset.is_valid() and \
+           figure_formset.is_valid():
+            new_revision = revision_form.clone(question, request.user, figure_formset)
             choices = revisionchoiceformset.clone(new_revision)
 
             new_revision.is_contribution = not teams.utils.is_editor(request.user)
@@ -769,10 +814,12 @@ def contribute_revision(request):
             # before.
             new_revision.is_approved = utils.test_revision_approval(new_revision)
             new_revision.save()
+
             return {}
 
     context = {'question': question,
                'revision_form': revision_form,
+               'revision_figure_formset': figure_formset,
                'revisionchoiceformset': revisionchoiceformset}
 
     return render(request, 'exams/partials/contribute_revision.html', context)

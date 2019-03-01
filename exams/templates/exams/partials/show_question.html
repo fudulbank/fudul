@@ -18,9 +18,7 @@ p.question-text{
 </style>
 <div class="panel panel-flat">
    <div class="panel-body">
-    {% if revision.figure %}
-       <img class="img-responsive center-block" src="{{ revision.figure.url }}">
-    {% endif %}
+    {% with figures=revision.figures.all img_class="center-block" %}{% include 'exams/partials/figures.html' %}{% endwith %}
     <p class="question-text">{{ revision.text|linebreaksbr }}</p>
     <ol type="A">
      {% for choice in revision.choice_set.order_by_alphabet %}

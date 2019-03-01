@@ -2,7 +2,7 @@
 
 {% with explanation_revision=question.latest_explanation_revision best_revision=question.best_revision %}
 <div class="question-body well-sm{% if question == current_question %} show{% endif %}" data-best-latest-revision-pk="{{ best_revision.pk }}" data-question-pk="{{ question.pk }}">
-  {% with img=best_revision.figure img_class="center-block" %}{% include 'partials/lazy_img.html' %}{% endwith %}
+  {% with figures=best_revision.figures.all img_class="center-block" %}{% include 'exams/partials/figures.html' %}{% endwith %}
 <div>
     {% if question.source_list|length > 1 %}
        <span data-html="true" data-toggle="tooltip" title="<strong>Repeated in:</strong> <ul>{% for source in  question.source_list %}<li>{{ source.name }}</li>{% endfor %}</ul>" class="d-block float-right badge badge-default badge-success">Repeated {{ question.source_list|length }} times </span>
