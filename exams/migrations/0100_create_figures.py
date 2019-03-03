@@ -39,6 +39,7 @@ def forward(apps, schema_editor):
         try:
             files = os.listdir(directory_path)
         except FileNotFoundError:
+            print(f"Skipping {directory_path} as it does not exists...")
             continue
         for filename in files:
             file_full_path = os.path.join(directory_path, filename)
@@ -54,8 +55,11 @@ def forward(apps, schema_editor):
         elif type(revision) is ExplanationRevision:
             path = revision.explanation_figure.path
         file_hexdigest = get_hexdigest(path)
-        if not file_hexdigest or \
-           not file_hexdigest in hashes:
+        if not file_hexdigest:
+            print(f"Skipping {path} as it does not exists...")
+            continue
+        elif file_hexdigest in hashes:
+            print(f"Skipping {path} as it is duplicated (SHA256: {file_hexdigest} matches {hashes[file_hexdigest]}...")
             continue
         full_path = hashes[file_hexdigest]
         relative_path = full_path.replace(settings.MEDIA_ROOT, '')
