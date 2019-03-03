@@ -51,21 +51,36 @@ def forward(apps, schema_editor):
                                              ExplanationRevision.objects.exclude(explanation_figure=""))
     for revision in revisions_with_figures:
         if type(revision) is Revision:
-            path = revision.figure.path
+            old_figure = revision.figure
         elif type(revision) is ExplanationRevision:
-            path = revision.explanation_figure.path
-        file_hexdigest = get_hexdigest(path)
+            old_figure = revision.explanation_figure
+
+        old_full_path = getattr(old_figure, 'path')
+        old_name = getattr(old_figure, 'name')
+        file_hexdigest = get_hexdigest(old_full_path)
+
+        # If the file does not exists
         if not file_hexdigest:
-            print(f"Skipping {path} as it does not exists...")
+            print(f"Revision #{revision.pk}: Skipping {old_full_path} as it does not exists...")
             continue
-        elif file_hexdigest in hashes:
-            print(f"Skipping {path} as it is duplicated (SHA256: {file_hexdigest} matches {hashes[file_hexdigest]}...")
+
+        # If the file matches a known hash, fetch the first incidence
+        # of that hash.
+        if file_hexdigest in hashes:
+            full_path = hashes[file_hexdigest]
+            relative_path = full_path.replace(settings.MEDIA_ROOT, '')
+        else:
+            print(f"Revision #{revision.pk}: ERROR! We don't have a hash for {old_full_path}. Skipping")
             continue
-        full_path = hashes[file_hexdigest]
-        relative_path = full_path.replace(settings.MEDIA_ROOT, '')
-        figure = Figure()
-        figure.figure.name = relative_path
-        figure.save()
+
+        # If no figure already exists, create one.
+        figure = Figure.objects.filter(figure=relative_path).first()
+        if not figure:
+            figure = Figure()
+            figure.figure.name = relative_path
+            figure.save()
+        else:
+            print(f"Revision #{revision.pk}: We already have a figure for {file_hexdigest}.  Let us use that.")
         revision.figures.add(figure)
 
 def backward(apps, schema_editor):
