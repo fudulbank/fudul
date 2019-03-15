@@ -355,12 +355,13 @@ class SessionForm(forms.ModelForm):
             if question_filter != 'INCOMPLETE':
                 self.questions_with_tree = self.questions_with_tree.approved()
 
+            self.final_questions = list(self.questions_with_tree)
             remaining_count = number_of_questions - self.questions_with_tree.count()
-            orphan_questions = selected_pool.filter(parent_question__isnull=True,
-                                                    child_question__isnull=True)
-            self.orphan_pool = models.Question.objects.filter(pk__in=orphan_questions[:remaining_count])
-
-            self.final_questions = list(self.orphan_pool) + list(self.questions_with_tree)
+            if remaining_count > 0:
+                orphan_questions = selected_pool.filter(parent_question__isnull=True,
+                                                        child_question__isnull=True)
+                self.orphan_pool = models.Question.objects.filter(pk__in=orphan_questions[:remaining_count])
+                self.final_questions += list(self.orphan_pool)
         else:
             self.final_questions = question_pool
 
