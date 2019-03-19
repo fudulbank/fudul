@@ -422,9 +422,8 @@ def submit_revision(request, slugs, exam_pk, pk):
         revisionchoiceformset = forms.RevisionChoiceFormset(instance=latest_revision)
         revision_figure_formset = forms.RevisionFigureFormset(prefix='revision-figures',
                                                               queryset=latest_revision.figures.all())
-        if latest_explanation_revision:
-            explanation_figure_formset = forms.ExplanationFigureFormset(prefix='explanation-figures',
-                                                                        queryset=explanation_figures)
+        explanation_figure_formset = forms.ExplanationFigureFormset(prefix='explanation-figures',
+                                                                    queryset=explanation_figures)
 
     context['question_form'] = question_form
     context['revision_form'] = revision_form
