@@ -360,6 +360,10 @@ def submit_revision(request, slugs, exam_pk, pk):
     #TODO :latest approved revision
     latest_revision = question.get_latest_revision()
     latest_explanation_revision = question.get_latest_explanation_revision()
+    if latest_explanation_revision:
+        explanation_figures = latest_explanation_revision.figures.all()
+    else:
+        explanation_figures = Figure.objects.none()
 
     # PERMISSION CHECK
     # if not exam.can_user_edit(request.user):
@@ -385,7 +389,7 @@ def submit_revision(request, slugs, exam_pk, pk):
         explanation_figure_formset = forms.ExplanationFigureFormset(request.POST,
                                                                     request.FILES,
                                                                     prefix='explanation-figures',
-                                                                    queryset=latest_explanation_revision.figures.all())
+                                                                    queryset=explanation_figures)
         if question_form.is_valid() and \
            revision_form.is_valid() and \
            explanation_form.is_valid() and \
@@ -418,8 +422,9 @@ def submit_revision(request, slugs, exam_pk, pk):
         revisionchoiceformset = forms.RevisionChoiceFormset(instance=latest_revision)
         revision_figure_formset = forms.RevisionFigureFormset(prefix='revision-figures',
                                                               queryset=latest_revision.figures.all())
-        explanation_figure_formset = forms.ExplanationFigureFormset(prefix='explanation-figures',
-                                                                    queryset=latest_explanation_revision.figures.all())
+        if latest_explanation_revision:
+            explanation_figure_formset = forms.ExplanationFigureFormset(prefix='explanation-figures',
+                                                                        queryset=explanation_figures)
 
     context['question_form'] = question_form
     context['revision_form'] = revision_form
@@ -749,14 +754,18 @@ def contribute_explanation(request):
     question = get_object_or_404(Question, pk=question_pk,
                                  is_deleted=False)
     instance = question.get_latest_explanation_revision()
+    if instance:
+        explanation_figures = instance.figures.all()
+    else:
+        explanation_figures = Figure.objects.none()
 
     if request.method == 'GET':
         form = forms.ExplanationForm(instance=instance)
-        figure_formset = forms.ExplanationFigureFormset(queryset=instance.figures.all())
+        figure_formset = forms.ExplanationFigureFormset(queryset=explanation_figures)
     elif request.method == 'POST':
         figure_formset = forms.ExplanationFigureFormset(request.POST,
                                                         request.FILES,
-                                                        queryset=instance.figures.all())
+                                                        queryset=explanation_figures)
 
         if not instance:
             instance = ExplanationRevision(question=question,
