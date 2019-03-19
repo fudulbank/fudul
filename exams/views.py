@@ -205,12 +205,11 @@ def handle_question(request, exam_pk, question_pk=None):
             explanation.is_contribution = not teams.utils.is_editor(request.user)
             explanation.question = question
             explanation.save()
+            explanation_figures = explanation_figure_formset.save()
+            explanation.figures.add(*explanation_figures)
 
         revision_figures = revision_figure_formset.save()
         revision.figures.add(*revision_figures)
-
-        explanation_figures = explanation_figure_formset.save()
-        explanation.figures.add(*explanation_figures)
 
         show_url = reverse('exams:approve_user_contributions', args=(exam.category.get_slugs(), exam.pk))
         return {"question_pk": question.pk,
