@@ -280,24 +280,38 @@ function isRightClick (e) {
 
 var selectionInfo = { mouse: {}, isVisible: false }
 
-function addShare (text, event) {
-  var boxVerticalPosition = selectionInfo.mouse.top - 60,
-      boxHorizontalPosition = selectionInfo.mouse.left + (event.clientX - selectionInfo.mouse.left) / 2;
+function addSelectionHint(text, event) {
+    var boxVerticalPosition = selectionInfo.mouse.top - 60,
+        boxHorizontalPosition = selectionInfo.mouse.left + (event.clientX - selectionInfo.mouse.left) / 2,
+        buttons = '',
+        encodedText = encodeURIComponent(text);
 
-  var tag = '<p class="selection-hint"><i class="rounded py-2 fas fa-highlighter highlight-selection"></i>'
-  if (text.length <= 35){
-     tag += '<a class="d-inline-block" target="_blank" href="https://duckduckgo.com/?q=' + encodeURIComponent(text) + '"><i class="rounded py-2 fas fa-globe duckduckgo"></i></a>'
-     tag += '<a class="d-inline-block" target="_blank" href="https://en.wikipedia.org/wiki/Special:Search/' + encodeURIComponent(text) + '"><i class="rounded py-2 fab fa-wikipedia-w wikipedia"></i></a>'
-  }
-  tag += '</p>'
-  $('body').append(tag);
-  $('.highlight-selection').attr('data-text', text);
+    // Add highlight only when approrpiate.
+    // Otherwise, show the other buttons.
+    if (window.SESSION_IS_EXAMINABLE && !window.g.__$current_question.data('was-solved') || !window.SESSION_IS_EXAMINABLE){
+      buttons += '<i class="rounded py-2 fas fa-highlighter highlight-selection"></i>'
+    }
+    if (text.length <= 40){
+       buttons += '<a class="d-inline-block" target="_blank" href="https://duckduckgo.com/?q=' + encodedText + '"><i class="rounded py-2 fas fa-globe duckduckgo"></i></a>'
+       buttons += '<a class="d-inline-block" target="_blank" href="https://en.wikipedia.org/wiki/Special:Search/' + encodedText + '"><i class="rounded py-2 fab fa-wikipedia-w wikipedia"></i></a>'
+    }
+    if (text.indexOf(' ') == -1){
+      buttons += '<a class="d-inline-block" target="_blank" href="https://en.wiktionary.org/wiki/Special:Search/' + encodedText + '"><i class="rounded py-2 fas fa-language wiktionary"></i></a>'
+    }
+    // If no buttons are applicable, abort.
+    if (!buttons.length){
+      return
+    }
 
-  $('.selection-hint').css({
-    position: 'absolute',
-    top: boxVerticalPosition,
-    left: boxHorizontalPosition
-  })
+    var tag = '<p class="selection-hint">' + buttons + '</p>'
+    $('body').append(tag);
+    $('.highlight-selection').attr('data-text', text);
+
+    $('.selection-hint').css({
+      position: 'absolute',
+      top: boxVerticalPosition,
+      left: boxHorizontalPosition
+    })
 }
 
 function removeSelectionHint () {
@@ -323,16 +337,11 @@ $('#question-pool').mousedown(function (event) {
 
 // actions when the user ends the selection
 $('#question-pool').mouseup(function (event) {
-  // We only add selection if the session has not been solved yet.
-  if (window.SESSION_IS_EXAMINABLE && window.g.__$current_question.data('was-solved')){
-
-    return
-  }
   var textSelected = window.getSelection().toString().trim();
 
   // go further just if user click is left mouse click and the selection length is grater than 3 characters
   if (textSelected.length > 5 && !isRightClick(event)) {
-    addShare(textSelected, event)
+    addSelectionHint(textSelected, event)
     selectionInfo.isVisible = true
   }
 })
@@ -1298,6 +1307,9 @@ $(function() {
     });
     $(document).on('click', '.duckduckgo', function(){
       _paq.push(['trackEvent', 'show_session', 'selection_hint', 'duckduckgo']);
+    });
+    $(document).on('click', '.wiktionary', function(){
+      _paq.push(['trackEvent', 'show_session', 'selection_hint', 'wiktionary']);
     });
     $(document).on('click', '.highlight-selection', highlightText);
     $(document).on('click', '.highlight', removeHighlight);
