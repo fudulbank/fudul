@@ -291,7 +291,7 @@ function addShare (text, event) {
   }
   tag += '</p>'
   $('body').append(tag);
-  $('.highlight-selection').data('text', text);
+  $('.highlight-selection').attr('data-text', text);
 
   $('.selection-hint').css({
     position: 'absolute',
