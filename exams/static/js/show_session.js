@@ -256,19 +256,89 @@ function removeHighlight(){
 }
 
 function highlightText() {
-    var selection = window.getSelection().toString();
+    var selection = $(this).data('text');
     if (selection.length >= 3) {
         var escapedSelection = $("<div>").text(selection).html(),
             replacement = $('<span></span>').addClass('highlight').html(selection),
-            replacementHtml = replacement.prop('outerHTML');
-        $(this).html($(this).html().replace(escapedSelection, replacementHtml));
-        // Bind only once
-        window.g.__$current_question.off('click', '.highlight')
-                         .on('click', '.highlight', removeHighlight);
+            replacementHtml = replacement.prop('outerHTML'),
+            $question_text = window.g.__$current_question.find('.question-text');
+        $question_text.html($question_text.html().replace(escapedSelection, replacementHtml));
         submitHighlight();
+        removeSelectionHint();
     }
 
 }
+
+// == Start of selection hint ==
+// This code was adapted from https://github.com/Kikobeats/tweet-selection
+function isRightClick (e) {
+  var WHICH_RIGHT_CLICK = 3
+  var BUTTON_RIGHT_CLICK = 2
+  e = e || window.event
+  return e.which === WHICH_RIGHT_CLICK || e.button === BUTTON_RIGHT_CLICK || false
+}
+
+var selectionInfo = { mouse: {}, isVisible: false }
+
+function addShare (text, event) {
+  var boxVerticalPosition = selectionInfo.mouse.top - 60,
+      boxHorizontalPosition = selectionInfo.mouse.left + (event.clientX - selectionInfo.mouse.left) / 2;
+
+  var tag = '<p class="selection-hint"><i class="rounded py-2 fas fa-highlighter highlight-selection"></i>'
+  if (text.length <= 20){
+     tag += '<a target="_blank" href="https://duckduckgo.com/?q=' + encodeURIComponent(text) + '"><i class="rounded py-2 fas fa-globe duckduckgo"></i></a>'
+     tag += '<a target="_blank" href="https://en.wikipedia.org/wiki/Special:Search/' + encodeURIComponent(text) + '"><i class="rounded py-2 fab fa-wikipedia-w wikipedia"></i></a>'
+  }
+  tag += '</p>'
+  $('body').append(tag);
+  $('.highlight-selection').attr('data-text', text);
+
+  $('.selection-hint').css({
+    position: 'absolute',
+    top: boxVerticalPosition,
+    left: boxHorizontalPosition
+  })
+}
+
+function removeSelectionHint () {
+  $('.selection-hint').remove()
+  document.getSelection().removeAllRanges()
+}
+
+// actions when the user starts the selection
+$('#question-pool').mousedown(function (event) {
+  // take the position of the mouse where the user starts the selection
+  // we need this for showing the share button in the middle of the selection
+  selectionInfo.mouse.top = event.clientY + window.pageYOffset
+  selectionInfo.mouse.left = event.clientX
+
+  // remove share button and the old selection
+  // Just if the user clicks the left button of the mouse.
+  // For right click we must show the genuine browser menu.
+  if (!isRightClick(event) && selectionInfo.isVisible) {
+    removeSelectionHint();
+    selectionInfo.isVisible = false;
+  }
+})
+
+// actions when the user ends the selection
+$('#question-pool').mouseup(function (event) {
+  // We only add selection if the session has not been solved yet.
+  if (window.SESSION_IS_EXAMINABLE && window.g.__$current_question.data('was-solved')){
+
+    return
+  }
+  var textSelected = window.getSelection().toString().trim();
+
+  // go further just if user click is left mouse click and the selection length is grater than 3 characters
+  if (textSelected.length > 5 && !isRightClick(event)) {
+    addShare(textSelected, event)
+    selectionInfo.isVisible = true
+  }
+})
+
+// == End of selection hint ==
+
 
 function updateCorrectionTooltip(html, choice_pk){
   var pk_selector = "[data-choice-pk=" + choice_pk + "]",
@@ -478,14 +548,6 @@ function initializeInteractions() {
     // 1) If the session is examinable, and the current question was NOT solved.
     // 2) If the session is not examinable.
     if (window.SESSION_IS_EXAMINABLE && !was_solved || !window.SESSION_IS_EXAMINABLE){
-      // We turn off handlers first to ensure they don't get
-      // triggered more than once as the user navigates and
-      // binds the handlers.
-      window.g.__$current_question.find(".question-text").off('mouseup touchend').on('mouseup touchend', highlightText);
-      // We use event delegation as highlights could be added
-      // after firing initializeInteractions.
-      window.g.__$current_question.off('click', '.highlight')
-                       .on('click', '.highlight', removeHighlight);
       window.g.__$current_question.find(".choice-text").off('click').on('click', function() {
           if (!$(this).hasClass("strike")){
              // If a choice is striked, it is no longer checked.
@@ -1231,6 +1293,14 @@ $(function() {
 
 
     // Actions are delegated are defined here.
+    $(document).on('click', '.wikipedia', function(){
+      _paq.push(['trackEvent', 'show_session', 'selection_hint', 'wikipedia']);
+    });
+    $(document).on('click', '.duckduckgo', function(){
+      _paq.push(['trackEvent', 'show_session', 'selection_hint', 'duckduckgo']);
+    });
+    $(document).on('click', '.highlight-selection', highlightText);
+    $(document).on('click', '.highlight', removeHighlight);
     $(document).tooltip({selector: '.answer-correction-notification',
                          html: true,
                          trigger: 'click',

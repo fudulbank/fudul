@@ -337,3 +337,66 @@ body[data-session-is-examinable="true"] .question-body[data-was-solved="false"] 
 .emphasized{
    animation: emphasized-hint 3s ease-in infinite alternate
 }
+
+/* == Start of selection hint ==  */
+/* This code below was adapted from https://github.com/Kikobeats/tweet-selection */
+@keyframes pop-upwards {
+  0% {
+    transform: matrix(.97, 0, 0, 1, 0, 12);
+    opacity: 0;
+  }
+
+  20% {
+    transform: matrix(.99, 0, 0, 1, 0, 2);
+    opacity: .7;
+  }
+
+  40% {
+    transform: matrix(1, 0, 0, 1, 0, -1);
+    opacity: 1;
+  }
+
+  70% {
+    transform: matrix(1, 0, 0, 1, 0, 0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: matrix(1, 0, 0, 1, 0, 0);
+    opacity: 1;
+  }
+}
+
+.selection-hint {
+  border-radius: 4px;
+  margin-left: -35px;
+  background: #14485f;
+  color: #FFF;
+  display: block;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  transition: background 180ms ease-out;
+  opacity: 0;
+  animation: pop-upwards 180ms forwards linear;
+  font-size: 2.1rem;
+  line-height: 0;
+  z-index: 4;
+}
+
+.selection-hint a {
+  color: inherit;
+}
+
+.selection-hint svg:hover {
+  background: #55acee;
+}
+
+.selection-hint a:focus, .selection-hint a:hover  {
+  text-decoration: none;
+  color: inherit;
+}
+.selection-hint p{
+text-align: center;
+}
+/* == End of selection hint ==  */
