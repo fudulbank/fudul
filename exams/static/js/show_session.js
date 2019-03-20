@@ -285,13 +285,13 @@ function addShare (text, event) {
       boxHorizontalPosition = selectionInfo.mouse.left + (event.clientX - selectionInfo.mouse.left) / 2;
 
   var tag = '<p class="selection-hint"><i class="rounded py-2 fas fa-highlighter highlight-selection"></i>'
-  if (text.length <= 20){
-     tag += '<a target="_blank" href="https://duckduckgo.com/?q=' + encodeURIComponent(text) + '"><i class="rounded py-2 fas fa-globe duckduckgo"></i></a>'
-     tag += '<a target="_blank" href="https://en.wikipedia.org/wiki/Special:Search/' + encodeURIComponent(text) + '"><i class="rounded py-2 fab fa-wikipedia-w wikipedia"></i></a>'
+  if (text.length <= 35){
+     tag += '<a class="d-inline-block" target="_blank" href="https://duckduckgo.com/?q=' + encodeURIComponent(text) + '"><i class="rounded py-2 fas fa-globe duckduckgo"></i></a>'
+     tag += '<a class="d-inline-block" target="_blank" href="https://en.wikipedia.org/wiki/Special:Search/' + encodeURIComponent(text) + '"><i class="rounded py-2 fab fa-wikipedia-w wikipedia"></i></a>'
   }
   tag += '</p>'
   $('body').append(tag);
-  $('.highlight-selection').attr('data-text', text);
+  $('.highlight-selection').data('text', text);
 
   $('.selection-hint').css({
     position: 'absolute',
