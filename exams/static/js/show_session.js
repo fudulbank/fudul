@@ -256,10 +256,10 @@ function removeHighlight(){
 }
 
 function highlightText() {
-    var selection = $(this).data('text');
-    if (selection.length >= 3) {
-        var escapedSelection = $("<div>").text(selection).html(),
-            replacement = $('<span></span>').addClass('highlight').html(selection),
+    var text = $(this).closest('.selection-hint').data('text');
+    if (text.length >= 3) {
+        var escapedSelection = $("<div>").text(text).html(),
+            replacement = $('<span></span>').addClass('highlight').html(text),
             replacementHtml = replacement.prop('outerHTML'),
             $question_text = window.g.__$current_question.find('.question-text');
         $question_text.html($question_text.html().replace(escapedSelection, replacementHtml));
@@ -303,9 +303,10 @@ function addSelectionHint(text, event) {
       return
     }
 
-    var tag = '<p class="selection-hint">' + buttons + '</p>'
-    $('body').append(tag);
-    $('.highlight-selection').attr('data-text', text);
+    var $tag = $('<p class="selection-hint">' + buttons + '</p>');
+    // We use this to utlize the power of jQuery's esacaping.
+    $tag.attr('data-text', text);
+    $('body').append($tag);
 
     $('.selection-hint').css({
       position: 'absolute',
@@ -1302,14 +1303,10 @@ $(function() {
 
 
     // Actions are delegated are defined here.
-    $(document).on('click', '.wikipedia', function(){
-      _paq.push(['trackEvent', 'show_session', 'selection_hint', 'wikipedia']);
-    });
-    $(document).on('click', '.duckduckgo', function(){
-      _paq.push(['trackEvent', 'show_session', 'selection_hint', 'duckduckgo']);
-    });
-    $(document).on('click', '.wiktionary', function(){
-      _paq.push(['trackEvent', 'show_session', 'selection_hint', 'wiktionary']);
+    $(document).on('click', '.wikipedia, .duckduckgo, .wiktionary', function(){
+      var text = $(this).closest('.selection-hint').data('text'),
+          action = $(this).hasClass('wikipedia')? 'wikipedia' : ($(this).hasClass('duckduckgo')? 'duckduckgo' : 'wiktionary');
+      _paq.push(['trackEvent', 'show_session', action, text]);
     });
     $(document).on('click', '.highlight-selection', highlightText);
     $(document).on('click', '.highlight', removeHighlight);
