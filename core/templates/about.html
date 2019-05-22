@@ -1,0 +1,167 @@
+{% extends 'base_new.html' %}{% load static humanize %}
+{% block title %}Fudul | About{% endblock %}
+{% block head %}
+<style>
+.card-profile-image img{
+	width: 120px;
+}
+.blockquote{
+	font-size: 16px;
+}
+
+.profile-card-with-cover .card-profile-image{
+	top: 80px !important;
+}
+</style>
+{% endblock %}
+
+{% block header_title %}
+	<h1>About Fudul</h1>
+{% endblock %}
+
+{% block breadcrumb %}
+      <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
+			<li class="breadcrumb-item active">About</li>
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+	<div class="card-body">
+		<div class="card-block">
+			<p>Fudul is the comprehensive, collective, free-of-charge <strong>question bank</strong> built by and for examinees.</p>
+			<p>We believe in the crucial importance of review questions in gaining knowledge, assessing progress and passing exams.  Review questions are an indispensable component of the body of knowledge.  We believe that all knowledge must be built collectively and be made available to all people for free.  We believe in your right to access knowledge.</p>
+			<div class="row justify-content-center">
+		    <blockquote class="blockquote p-2 border-left-3 border-left-primary box-shadow-1 col-sm-10 col-md-8">
+		       <p class="mb-0">“Information is power. But like all power, there are those who want to keep it for themselves. <em>[...]</em> We need to take information, wherever it is stored, make our copies and share them with the world.”</p>
+		       <footer class="text-right blockquote-footer">Aaron Swartz in the <cite title="Guerilla Open Access Manifesto"><a target="_blank" href="https://archive.org/stream/GuerillaOpenAccessManifesto/Goamjuly2008_djvu.txt">Guerilla Open Access Manifesto</a></cite></footer>
+		    </blockquote>
+			</div>
+			<p>The source code behind Fudul is <a target="_blank" href="https://github.com/fudulbank/fudul">available</a> as free software.</p>
+		</div>
+		<div class="card-block">
+			<h2>Meet the numbers</h2>
+			<hr class="small">
+				<div class="row justify-content-center">
+					<div class="col-sm-5 col-xl-4 col-12">
+						<div class="card border-primary">
+              <div class="card-content">
+                <div class="card-body">
+                  <div class="media d-flex">
+                    <div class="align-self-center">
+                      <i class="ft-edit font-large-2 float-left"></i>
+                    </div>
+										<div class="media-body text-right">
+											<h3>{{ session_count|intcomma }}+</h3>
+											<span>sessions created</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+			    </div>
+					<div class="col-sm-5 col-xl-4 col-12">
+						<div class="card border-primary">
+              <div class="card-content">
+                <div class="card-body">
+                  <div class="media d-flex">
+                    <div class="align-self-center">
+                      <i class="ft-help-circle font-large-2 float-left"></i>
+                    </div>
+										<div class="media-body text-right">
+											<h3>{{ question_count|intcomma }}+</h3>
+											<span>questions collected</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+			    </div>
+				</div><!--/row-->
+				<div class="row justify-content-center">
+					<div class="col-sm-5 col-xl-4 col-12">
+            <div class="card border-primary">
+              <div class="card-content">
+                <div class="card-body">
+                  <div class="media d-flex">
+                    <div class="align-self-center">
+                      <i class="ft-crosshair font-large-2 float-left"></i>
+                    </div>
+										<div class="media-body text-right">
+											<h3>{{ exam_count|intcomma }}+</h3>
+											<span>exams targeted</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+			    </div>
+					{% if editor_count >= 10 %}
+					<div class="col-sm-5 col-xl-4 col-12">
+						<div class="card border-primary">
+              <div class="card-content">
+                <div class="card-body">
+                  <div class="media d-flex">
+                    <div class="align-self-center">
+                      <i class="ft-heart font-large-2 float-left"></i>
+                    </div>
+										<div class="media-body text-right">
+											<h3>{{ editor_count|intcomma }}+</h3>
+											<span>amazing editors</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+			    </div>
+					{% endif %}
+				</div>
+		</div>
+
+		<div class="card-block">
+			<h2 id="reach-out">Reach out!</h2>
+			<hr class="small">
+			<p>Our team is an inclusive, open one!  If you share the vision of Fudul, you can join us in a variety of ways.  For example:</p>
+			<ul>
+				<li>Help introduce Fudul to your colleagues</li>
+				<li>Help collect more review questions</li>
+				<li>Help review user contributions</li>
+				<li>Help with the design</li>
+				<li>Help with the programming</li>
+			</ul>
+			<p>If you are interested in any of the above, please drop us a line at <a href="mailto:support@fudulbank.com">support@fudulbank.com</a>.</p>
+
+		</div>
+
+		<div class="card-block"  style="display:none" >
+			<h2>Meet the team</h2>
+			<hr class="small">
+
+			<p>Fudul is built by a large team of enthusiasts!  The overall coordination and facilation is done by a team of {{ team.count }} core members.  They are:</p>
+
+			<div class="row">
+				{% for member in team %}
+				<div class="col-sm-6 col-md-4">
+			     {% include 'partials/profile-card.html' %}
+				</div>
+				{% endfor %}
+			</div>
+
+		</div>
+
+		<div class="card-block" style="display:none">
+			<h2>Special thanks</h2>
+			<hr class="small">
+			<p>Our special thanks goes to the following remarkable contributors</p>
+			<ul>
+				<li><a target="_blank" href="https://twitter.com/MohammadElSaif">Mohammad al-Saif</a> for designing our <a target="_blank" href="{% static 'img/logo.svg' %}">beautiful logo</a>.</li>
+				<li><a target="_blank" href="https://twitter.com/AAlharbi_k">Abdulkareem Alharbi</a> for his coordination of the basic years at the College of Medicine at KSAU-HS.</li>
+				<li><a target="_blank" href="https://twitter.com/FayMadhi">Fay al-Madhi</a> for her coordination of the College of Pharmacy at KSAU-HS.</li>
+				<li><a target="_blank" href="https://monerhcartoons.com/">Monerh bin Mosa</a> for drawing Fudul's monkey mascot.</li>
+			</ul>
+		</div>
+	</div>
+</div>
+</div>
+
+{% endblock %}
