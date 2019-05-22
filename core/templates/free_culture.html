@@ -1,0 +1,30 @@
+{% extends 'base_new.html' %}{% load static %}
+{% block title %}Fudul | Free culture{% endblock %}
+
+
+{% block header_title %}
+	<h1>Fudul is a free culture project</h1>
+{% endblock %}
+
+{% block breadcrumb %}
+      <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'about' %}">About</a></li>
+			<li class="breadcrumb-item active">Free culture</li>
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+	<div class="card-body">
+		<div class="card-block">
+      <a href="https://freedomdefined.org" target="_blank"><img alt="Freedom Defined Logo" class="mx-auto m-sm-2 d-block float-sm-right" src="{% static 'img/freedomdefined-logo.svg' %}"></a>
+      <p>At the heart of Fudul lies the belief that full and equal access to all learning resources is the only ethical choice.</p>
+      <p>Like health care and education, knowledge is a public benifit that should be gurenteed for every single human being no matter where they live or how much they earn.  To stand against this is to stand against indivitual flourishing and prosperity.</p>
+      <p>But under the existing laws of copyright, whenever a cultural or scientific work is written, it is automatically restricted from public.  No matter how useful the work is, people are barred from sharing into cultural innoviation and scientific progress.</p>
+      <p>We cannot accept this.</p>
+      <p>Many cooperative projects, such as <a href="https://wikipedia.org" target="_blank">Wikipedia</a>, <a href="https://khanacademy.org" target="_blank">Khan Academy</a>, and <a href="https://unsplash.com/" target="_blank">Unsplash</a>, have a trick: contributors to these projects explicitly give everyone the freedom to share, modify and redistribute their contributions.  The accumlation of these freedoms produce 'free culture' projects.</p>
+			<p>We are a community of cooperators, too.  We help each others build a comprehensive, collective, and free-of-charge question bank.  To make this happen, all contributors with question edits, explantions, and mnemonics submitted to Fudul must agree to release their contributions under the <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank">Creative Commons Attribution-ShareAlike 4.0</a>.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

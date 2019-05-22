@@ -14,6 +14,7 @@ urlpatterns = [
     url(r'^indicators/groups/(?P<pk>\d+)/$', views.show_group_indicators, name='show_group_indicators'),
 
     url(r'^about/$', views.show_about, name="about"),
+    url(r'^about/free-culture/$', TemplateView.as_view(template_name="free_culture.html"), name="free_culture"),
     url(r'^contribute/(?:(?P<language>ar)/)?$', views.show_contribute, name="contribute"),
     url(r'^help/$', TemplateView.as_view(template_name="help.html"), name="help"),
     url(r'^$', views.show_index, name="index"),
