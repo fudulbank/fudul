@@ -11,7 +11,7 @@ regex_patterns = {'PEDIATRIC_PART_I': {'full_question': ' +\d+[\.\-\)]\s+(?P<que
                                           'choice': ' *\(?[a-f][\)\-\.] (.+)\n'},
                   'PEDIATRIC_ARAB_BOARD': {'full_question': '^(?P<question_sequence>\d+)\.\s+(?P<question_text>.+\n+(?:.+\n+)*?)(?P<choices>(?: *\(?[a-f][\-\)\.] .+\n)+)',
                                 'choice': ' *\(?[a-f][\)\-\.] (.+)\n'},
-                  'TAIF': {'full_question': '^(?P<question_sequence>\d+)\.\s*(?P<question_text>.+\n+(?:.+\n+)*?)(?P<choices>(?:^ *\(?[a-f][\-\)\.,] *.+\n)+)\s*The answer is\s+(?P<answer>[A-F])',
+                  'TAIF': {'full_question': '^(?P<question_sequence>\d+)\.\s*(?P<question_text>.+\n+(?:.+\n+)*?)(?P<choices>(?:^ *\(?[a-f][\-\)\.,] *.+\n)+)\s*The answer is\s+(?P<answer>[A-F])?',
                                 'choice': '^ *\(?[a-f][\)\-\.] *(.+)\n'},
                   'PNU': {'full_question': '^ *(?P<question_sequence>\d+)\.\s*(?P<question_text>.+\n+(?:.+\n+)*?)(?P<choices>(?: *\(?[a-f][\-\)\.] *.+\n)+)\s*?(?:Answer is\s+(?P<answer>[A-F]))?\s+?',
                                 'choice': ' *\(?[a-f][\)\-\.] *(.+)\n'},
