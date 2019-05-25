@@ -262,25 +262,27 @@ class SessionForm(forms.ModelForm):
         # Limit subjects and exams per exam
         subjects = models.Subject.objects.filter(exam=self.exam)\
                                          .with_approved_questions()\
-                                         .distinct()
+                                         .distinct()\
+                                         .order_by('name')
         if subjects.exists():
             self.fields['subjects'] = MetaChoiceField(exam=self.exam,
                                                       required=False,
                                                       form_type='session',
                                                       queryset=subjects,
-                                                      widget=select2_widget)
+                                                      widget=forms.CheckboxSelectMultiple)
         else:
             del self.fields['subjects']
 
         sources = self.exam.get_sources().filter(parent_source__isnull=True)\
                                          .with_approved_questions(self.exam)\
-                                         .distinct()
+                                         .distinct()\
+                                         .order_by('name')                                        
         if sources.exists():
             self.fields['sources'] = MetaChoiceField(exam=self.exam,
                                                      required=False,
                                                      form_type='session',
                                                      queryset=sources,
-                                                     widget=select2_widget)
+                                                     widget=forms.CheckboxSelectMultiple)
         else:
             del self.fields['sources']
 
@@ -291,7 +293,7 @@ class SessionForm(forms.ModelForm):
                                                         form_type='session',
                                                         exam=self.exam,
                                                         queryset=exam_types,
-                                                        widget=select2_widget)
+                                                        widget=forms.CheckboxSelectMultiple)
         else:
             del self.fields['exam_types']
 

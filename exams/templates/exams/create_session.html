@@ -38,6 +38,24 @@
     #id_number_of_questions{
         display: inline-block;
     }
+    sup.required{
+      color: red;
+      font-size: inherit;
+    }
+
+    .step button {
+      font-size: 1.2rem;
+    }
+
+    .step-header, .select-all-label{
+      font-weight: 700;
+    }
+
+    .step-explanation{
+      background: #B2C2C4;
+      border-color: #728881;
+      color: #053124;
+    }
     </style>
 {% endblock %}
 
@@ -76,80 +94,120 @@
          {% endif %}
        </div>
        <div class="card-body">
-        <div id="form-panel" class="card-block">
-          {% bootstrap_form_errors sessionform %}
-          <form method="post" id="start-session-form">
-          {% csrf_token %}
-          <h5>Session mode:</h5>
-          <div id="session-mode" class='mode'>
-            {{ sessionform.session_mode }}
-          </div>
-
-          <h5>Type of questions:</h5>
-          <div class='mode'>
-            {{ sessionform.question_filter }}
-          </div>
-{% cache 1200 session_options exam.pk %}
-          <div class="row">
-{% if sessionform.subjects %}
-            <div class="col-sm-6">
-                <div class="form-group has-feedback has-feedback-left">
-                    <label class="control-label"><h5>Subjects</h5></label>
-                    <select id="meta-subjects" class="alpaca-control form-control" name="">
-                    <option value="ALL">All</option>
-                    <option value="CUSTOM">Custom</option>
-                    </select>
-                    <div class="form-control-feedback">
-
-                    </div>
-                </div>
-
-                <div id="specific-subjects" style="display: none">
-                   {{ sessionform.subjects }}
-                    <div class="form-control-feedback">
-                    </div>
-                </div>
-            </div>
-      {% endif %}
-      {% if sessionform.sources %}
-            <div class="col-sm-6">
-                <div class="form-group has-feedback has-feedback-left">
-                    <label class="control-label"><h5>Sources</h5></label>
-                    <select id="meta-sources" class="alpaca-control form-control" name="">
-                    <option value="ALL">All</option>
-                    <option value="CUSTOM">Custom</option>
-                    </select>
-                    <div class="form-control-feedback">
-    {#icon is here #}
-                    </div>
-                </div>
-
-                <div id="specific-sources" style="display: none">
-                    {{ sessionform.sources }}
-                </div>
-            </div>
-            {% endif %}
-
-        </div>
-{% if sessionform.exam_types %}
-    <div class="form-group has-feedback has-feedback-left">
-        <label class="control-label"><h5>Exam type:</h5></label>
-        {% bootstrap_field sessionform.exam_types show_label=False  %}
+         <p class="alert step-explanation">Fudul is here to give you the finest control over your study plan.  By following these <span id="total-steps"></span> quick steps, you can create a session that matches your plan.</p>
+         {% bootstrap_form_errors sessionform %}
+         <form method="post" id="start-session-form">
+         {% csrf_token %}
+         <div id="accordion">
+  <div class="card mb-0 step">
+    <div class="card-header p-0" id="session-feel-header">
+      <h5 class="m-0">
+        <button type="button" class="btn btn-link" data-toggle="collapse" data-target="#session-feel" aria-expanded="true" aria-controls="session-feel">
+          Session feel<sup class="required">*</sup>
+        </button>
+      </h5>
     </div>
-{% endif %}
-{% endcache %}
-    <label class="control-label"><h5>Number of questions</h5></label>
-    <div class="row">
-        <div class="col-12">
-          <div class="form-group has-feedback has-feedback-left" style="display: inline-block;">
-{% bootstrap_field sessionform.number_of_questions show_label=False  %}
-          </div>
-          <strong>/ <span id="question-count">{{ question_count }}</span> </strong>
+
+    <div id="session-feel" class="collapse" aria-labelledby="session-feel-header">
+      <div class="card-body pb-0">
+        <p class="alert step-explanation">How would you like the session to feel? Do you want to study as you go through (choose <i>Explained</i>), mimic the exam situation (choose <i>Unexplained</i>), or review questions quickly (choose <i>Solved</i>)?</p>
+        <div id="session-mode" class='mode'>
+          {{ sessionform.session_mode }}
+        </div>
       </div>
     </div>
-    <button data-delay='{"show": 100, "hide": 3000}' data-toggle="tooltip" data-html="true" data-title="<a target='_blank' href='https://youtu.be/VZ2HcRl4wSk'><img title='You can do it!' class='img-fluid' src='{% static 'img/monerh/start-session.png' %}'></a>" id="session-submit" type="submit" class="btn btn-primary btn-block btn-lg">Start Session <i class="icon-circle-right2 position-right"></i></button>
-    <input name="exam_pk" type="hidden" value="{{ exam.pk }}">
-    </form>
+  </div>
+  <div class="card mb-0 step">
+    <div class="card-header p-0" id="question-filter-header">
+      <h5 class="m-0">
+        <button type="button" class="btn btn-link" data-toggle="collapse" data-target="#question-filter" aria-expanded="true" aria-controls="question-filter">
+          Question filter<sup class="required">*</sup>
+        </button>
+      </h5>
+    </div>
+
+    <div id="question-filter" class="collapse" aria-labelledby="question-filter-header">
+      <div class="card-body pb-0">
+          {{ sessionform.question_filter }}
+      </div>
+    </div>
+  </div>
+{% cache 1200 session_options exam.pk %}
+{% if sessionform.subjects %}
+<div class="card mb-0 step">
+  <div class="card-header p-0" id="subject-header">
+    <h5 class="m-0">
+      <button type="button" class="btn btn-link" data-toggle="collapse" data-target="#subjects" aria-expanded="true" aria-controls="subjects">
+        Customize your subjects <i>(optional)</i>
+      </button>
+    </h5>
+  </div>
+    <div id="subjects" class="collapse" aria-labelledby="subject-header">
+      <div class="card-body pb-0 multiple-choices">
+          {{ sessionform.subjects }}
+      </div>
+    </div>
+  </div>
+{% endif %}
+{% if sessionform.sources %}
+<div class="card mb-0 step">
+  <div class="card-header p-0" id="source-header">
+    <h5 class="m-0">
+      <button type="button" class="btn btn-link" data-toggle="collapse" data-target="#sources" aria-expanded="true" aria-controls="sources">
+        Customize your sources <i>(optional)</i>
+      </button>
+    </h5>
+  </div>
+    <div id="sources" class="collapse" aria-labelledby="source-header">
+      <div class="card-body pb-0 multiple-choices">
+          {{ sessionform.sources }}
+      </div>
+    </div>
+  </div>
+{% endif %}
+{% if sessionform.exam_types %}
+<div class="card mb-0 step">
+  <div class="card-header p-0" id="exam-type-header">
+    <h5 class="m-0">
+      <button type="button" class="btn btn-link" data-toggle="collapse" data-target="#exam-types" aria-expanded="true" aria-controls="exam-types">
+        Customize your exam type <i>(optional)</i>
+      </button>
+    </h5>
+  </div>
+    <div id="exam-types" class="collapse" aria-labelledby="exam-type-header">
+      <div class="card-body pb-0 multiple-choices">
+          {{ sessionform.exam_types }}
+      </div>
+    </div>
+</div>
+{% endif %}
+{% endcache %}
+<div class="card mb-0 step">
+  <div class="card-header p-0" id="question-number-header">
+    <h5 class="m-0">
+      <button type="button" class="btn btn-link" data-toggle="collapse" data-target="#question-number" aria-expanded="true" aria-controls="question-number">
+        Set the number <sup class="required">*</sup>
+      </button>
+    </h5>
+  </div>
+    <div id="question-number" class="collapse" aria-labelledby="question-number-header">
+      <div class="card-body pb-0">
+        <label class="control-label"><h5>Number of questions</h5></label>
+        <div class="row">
+            <div class="col-12">
+              <div class="form-group has-feedback has-feedback-left" style="display: inline-block;">
+        {% bootstrap_field sessionform.number_of_questions show_label=False  %}
+              </div>
+              <strong>/ <span id="question-count">{{ question_count }}</span> </strong>
+          </div>
+        </div>
+        </div>
+      </div>
+    </div>
+</div>
+<button data-delay='{"show": 100, "hide": 3000}' data-toggle="tooltip" data-html="true" data-title="<a target='_blank' href='https://youtu.be/VZ2HcRl4wSk'><img title='You can do it!' class='img-fluid' src='{% static 'img/monerh/start-session.png' %}'></a>" id="session-submit" type="submit" class="btn btn-primary btn-block btn-lg mt-2">Start Session <i class="icon-circle-right2 position-right"></i></button>
+<input name="exam_pk" type="hidden" value="{{ exam.pk }}">
+</form>
   </div><!--card-block-->
  </div><!--card-body-->
 </div> <!--card-->
@@ -186,14 +244,14 @@
     <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
     <script src="{% static 'js/toastr.js' %}"></script>
     <script>
-
+    'use strict;'
     function controlSessionModes(){
         if ($('input[value=INCOMPLETE]:checked').length) {
           $("#session-mode input").attr({disabled: true,
                                          name: false,
                                          checked: false,
                                          required: false});
-          $hidden_mode = $("<input>").attr({type: 'hidden',
+          var $hidden_mode = $("<input>").attr({type: 'hidden',
                                            name: 'session_mode',
                                            value: 'INCOMPLETE',
                                            id: 'hidden-session-mode'});
@@ -204,24 +262,6 @@
                                           disabled: false});
           $("#hidden-session-mode").remove();
         }
-    }
-
-    function controlMetaSelection(field, is_changed){
-      meta_selector = '#meta-' + field;
-      specific_selector = '#specific-' + field;
-      real_selector =  '#id_' + field;
-      if (!is_changed && $(real_selector).find(":selected").length) {
-        // This applies if the page was preloaded selections in the 'real' selector
-        $(specific_selector).show();
-        $(meta_selector).find('[value=CUSTOM]').prop('selected', true);
-      } else if ($(meta_selector).val() == 'CUSTOM'){
-        // This applies upon manual selection of 'CUSTOM' meta option.
-        $(specific_selector).show();
-      } else if ($(meta_selector).val() == 'ALL'){
-        // This applies upon manual selection of 'ALL' meta option.
-        $(specific_selector).hide();
-        $(real_selector).val('').trigger('change');
-      }
     }
 
     function updateTotalQuestions(){
@@ -249,6 +289,16 @@
       });
     }
 
+    function multipleChoiceChange(){
+        var $container = $(this).closest('.multiple-choices'),
+            $all_checkbox = $(this).closest('.multiple-choices').find('.select-all');
+        if ($container.find('input:not(.select-all):not(:checked)').length){
+          $all_checkbox.prop('checked', false)
+        } else {
+          $all_checkbox.prop('checked', true)
+        }
+    }
+
     $(function() {
         $('[data-toggle="tooltip"]').tooltip();
 
@@ -263,6 +313,38 @@
         $("#id_question_filter li:nth-child(5) label").tooltip({title: "Select questions that you have marked in the {{ exam.name }} exam."})
         $("#id_question_filter li:nth-child(6) label").tooltip({title: "Select incomplete questions in the {{ exam.name }} exam."})
 
+        $('.step button').each(function(index, element){
+          var step_number = index + 1,
+              $header = $(element),
+              header_title = $header.html();
+          $header.html('<span class="step-header">Step ' + step_number + '</span> - ' + header_title)
+        });
+
+        $('input').on('invalid', function(){
+          $(this).closest('.collapse').collapse('show');
+        });
+
+        $('#total-steps').html($('.step').length);
+
+        $('#id_subjects, #id_sources').prepend('<li><label class="select-all-label"><input type="checkbox" class="select-all"> All</label></li>')
+
+        $('.multiple-choices input:not(.select-all)').change(multipleChoiceChange);
+        $('.select-all').change(function(){
+          var $checkbox = $(this),
+              $other_checkboxes = $checkbox.closest('.multiple-choices').find('input:not(.select-all)');
+          // Temporarily switched off the change event listener as we are going to trigger it.
+          $('.multiple-choices input:not(.select-all)').off('change');
+          if ($checkbox.prop('checked')){
+            $other_checkboxes.prop('checked', true)
+          } else {
+            $other_checkboxes.prop('checked', false)
+          }
+          // Return the change event listener
+          $('.multiple-choices input:not(.select-all)').change(multipleChoiceChange);
+        });
+
+        // By default, 'All' is checked.
+        $('.select-all').prop('checked', true).trigger('change');
 
         updateTotalQuestions();
         $("input, select").not('#id_number_of_questions, input[name=session_mode]').change(updateTotalQuestions);
@@ -272,25 +354,13 @@
 
         // disable question filters with zero counts
         $("input[name=question_filter]").each(function(){
-          label = $(this).closest("label").text()
-          regex = /\((\d+)\)/
-          count = label.match(regex)[1]
+          var label = $(this).closest("label").text(),
+              regex = /\((\d+)\)/,
+              count = label.match(regex)[1]
           if (count == 0){
             $(this).attr('disabled', true);
           }
         })
-
-
-        // If the form was pre-filled with subject or source selections.
-        controlMetaSelection('subjects');
-        controlMetaSelection('sources');
-        // If the meta subject or source selection field changes
-        $('#meta-subjects').change(function() {
-          controlMetaSelection('subjects', true)
-        });
-        $('#meta-sources').change(function() {
-            controlMetaSelection('sources', true)
-        });
 
         // initialize credit modal
         $('#show-credit-modal').modal({
@@ -309,8 +379,6 @@
             $('#session-list-div').show();
         };
         $('#id_question_filter label').append( "<span></span>" );
-
-
     });
 </script>
 {% with modal_id='show-credit-modal' no_footer=True %}
