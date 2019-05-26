@@ -313,6 +313,16 @@
         $("#id_question_filter li:nth-child(5) label").tooltip({title: "Select questions that you have marked in the {{ exam.name }} exam."})
         $("#id_question_filter li:nth-child(6) label").tooltip({title: "Select incomplete questions in the {{ exam.name }} exam."})
 
+        $('#subjects').on('show.bs.collapse', function(){
+          _paq.push(['trackEvent', 'start_session', 'subject_step']);
+        });
+        $('#sources').on('show.bs.collapse', function(){
+          _paq.push(['trackEvent', 'start_session', 'source_step']);
+        });
+        $('#exam-types').on('show.bs.collapse', function(){
+          _paq.push(['trackEvent', 'start_session', 'exam_type_step']);
+        });
+
         $('.step button').each(function(index, element){
           var step_number = index + 1,
               $header = $(element),
