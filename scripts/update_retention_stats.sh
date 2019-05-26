@@ -8,7 +8,7 @@ INDICATOR_FILE=$ROOT_DIR/privileged_files/indicators/retention.csv
 D_USERNAME="fudul_django"
 D_NAME="fudul_django"
 
-psql -d $D_USERNAME $D_NAME -c  "COPY(
+PGOPTIONS="--statement-timeout=0" psql -d $D_USERNAME $D_NAME -c  "COPY(
     SELECT active_days, current_cumulative_sum, older_cumulative_sum FROM (
         SELECT current_cumulative.active_days, current_cumulative_sum, older_cumulative_sum, MAX(current_cumulative_sum) OVER () as max_sum FROM (
             SELECT active_days, SUM(total_count) OVER (ORDER BY active_days DESC) as current_cumulative_sum FROM (
