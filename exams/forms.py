@@ -193,7 +193,6 @@ class CustomFigureFormSet(forms.BaseModelFormSet):
 
         # 2) Remove all changed and deleted figures (to be cloned in #4)
         figures = list(self.queryset)
-        print(figures)
         for figure in [figure for figure, changed_fields in self.changed_objects] + self.deleted_objects:
             figures.remove(figure)
 
