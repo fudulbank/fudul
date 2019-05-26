@@ -91,28 +91,53 @@ class QuestionForm(forms.ModelForm):
                                                                 'data-width': '100%'}),
         }
 
-class RevisionForm(forms.ModelForm):
+class GenericRevisionForm(forms.ModelForm):
+    def clone(self, question, user, figure_formset=None):
+        # We induce save at this stage to pop up the new_objects,
+        # changed_objects and deleted_objects attributed.  The actual
+        # saving is done in figure_formset.clone().
+        if figure_formset:
+            figure_formset.save(commit=False)
+            formset_changed = figure_formset.new_objects or \
+                              figure_formset.changed_objects or \
+                              figure_formset.deleted_objects
+        else:
+            formset_changed = False
+
+        # If nothing has changed, don't create a new instance.
+        if self.instance.pk and \
+           not self.changed_data and \
+           not formset_changed:
+            return
+
+        new_object = self.save(commit=False)
+        if not new_object:
+            return
+        new_object.pk = None
+        if not self.instance.pk:
+            new_object.is_first = True
+        else:
+            new_object.is_first = False
+        new_object.is_last = True
+        new_object.is_contribution = not teams.utils.is_editor(user)
+        new_object.submitter = user
+        # We pass question as this 'clone' method might also be used
+        # to create new explanation.
+        new_object.question = question
+        new_object.save()
+
+        if figure_formset:
+            figure_formset.clone(new_object)
+
+        return new_object
+
+class RevisionForm(GenericRevisionForm):
     def clean_text(self):
         """Remove illegal characters that are not allowed in the database."""
         text = self.cleaned_data['text']
         if text:
             text = text.replace('\u0000', '')
         return text
-
-    def clone(self, question, user):
-        new_revision = self.save(commit=False)
-
-        # Setting primary key to None creates a new object, rather
-        # than modifying the pre-existing one
-        new_revision.pk = None
-        new_revision.submitter = user
-        new_revision.is_first = False
-        new_revision.is_last = True
-        new_revision.is_contribution = not teams.utils.is_editor(user)
-        new_revision.save()
-        self.save_m2m()
-
-        return new_revision
 
     class Meta:
         model = models.Revision
@@ -158,7 +183,7 @@ class CustomFigureFormSet(forms.BaseModelFormSet):
     def clone(self, revision):
         # How we handle figures?
         # 1) Clear all previous figures
-        # 2) Add all unchanged figures
+        # 2) Remove all changed figures (to be cloned in #4)
         # 3) Add all new figures
         # 4) Clone all changed figures
 
@@ -166,8 +191,9 @@ class CustomFigureFormSet(forms.BaseModelFormSet):
         # 1) Clear all previous figures
         revision.figures.clear()
 
-        # 2) Add all unchanged figures
+        # 2) Remove all changed and deleted figures (to be cloned in #4)
         figures = list(self.queryset)
+        print(figures)
         for figure in [figure for figure, changed_fields in self.changed_objects] + self.deleted_objects:
             figures.remove(figure)
 
@@ -399,7 +425,7 @@ class SessionForm(forms.ModelForm):
                   'sources', 'subjects', 'question_filter']
 
 
-class ExplanationForm(forms.ModelForm):
+class ExplanationForm(GenericRevisionForm):
     def __init__(self, *args, **kwargs):
         self.is_optional = kwargs.pop('is_optional', False)        
         super().__init__(*args, **kwargs)
@@ -420,39 +446,6 @@ class ExplanationForm(forms.ModelForm):
             not self.cleaned_data['explanation_text']):
             return
         return super().save(commit=commit)
-
-    def clone(self, question, user, figure_formset=None):
-        # We induce save at this stage to pop up the new_objects,
-        # changed_objects and deleted_objects attributed.
-        if figure_formset:
-            figure_formset.save(commit=False)
-            formset_changed = figure_formset.new_objects or \
-                              figure_formset.changed_objects or \
-                              figure_formset.deleted_objects
-        else:
-            formset_changed = False
-
-        # If nothing has changed, don't create a new instance.
-        if self.instance.pk and \
-           not self.changed_data and \
-           not formset_changed:
-            return
-
-        new_explanation = self.save(commit=False)
-        if not new_explanation:
-            return
-        new_explanation.pk = None
-        new_explanation.is_first = False
-        new_explanation.is_last = True
-        new_explanation.is_contribution = not teams.utils.is_editor(user)
-        new_explanation.submitter = user
-        new_explanation.question = question
-        new_explanation.save()
-
-        if formset_changed:
-            figure_formset.clone(new_explanation)
-
-        return new_explanation
 
     class Meta:
         model = models.ExplanationRevision

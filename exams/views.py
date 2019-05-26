@@ -398,12 +398,13 @@ def submit_revision(request, slugs, exam_pk, pk):
             question = question_form.save()
             new_revision = revision_form.clone(question, request.user,
                                                revision_figure_formset)
-            revisionchoiceformset.clone(new_revision)
-
-            # This test relies on choices, so the choices have to be saved
-            # before.
-            new_revision.is_approved = utils.test_revision_approval(new_revision)
-            new_revision.save()
+            # We will only return a new_revision if an edit was made.
+            if new_revision:
+                revisionchoiceformset.clone(new_revision)
+                # This test relies on choices, so the choices have to be saved
+                # before.
+                new_revision.is_approved = utils.test_revision_approval(new_revision)
+                new_revision.save()
 
             new_explanation = explanation_form.clone(question,
                                                      request.user,
@@ -812,10 +813,6 @@ def contribute_revision(request):
            figure_formset.is_valid():
             new_revision = revision_form.clone(question, request.user, figure_formset)
             choices = revisionchoiceformset.clone(new_revision)
-
-            new_revision.is_contribution = not teams.utils.is_editor(request.user)
-            new_revision.save()
-            revision_form.save_m2m()
 
             # This test relies on choices, so the choices have to be saved
             # before.
