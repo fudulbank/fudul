@@ -28,8 +28,8 @@ def update_latest_revision(sender, instance, **kwargs):
     if approved_revision and \
        not question.is_deleted and \
        not question.issues.filter(is_blocker=True).exists() and \
-       approved_revision.choice_set.filter(is_right=True).exists() and \
-       approved_revision.choice_set.count() > 1:
+       approved_revision.choices.filter(is_right=True).exists() and \
+       approved_revision.choices.count() > 1:
         question.is_approved = True
     else:
         question.is_approved = False

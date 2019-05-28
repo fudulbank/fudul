@@ -15,17 +15,17 @@
 			</div>
 		</div>
 
-        {% if not revisionchoiceformset.total_form_count == 0  %}
+        {% if not revision_choice_formset.total_form_count == 0  %}
 
         <h3 style="font-weight: bold">Question Choices</h3><a data-placement="left" class="help-tooltip circle" data-toggle="tooltip" title="Make sure to check the box for the right answer."> ? </a>
         {% endif %}
 
         <div class="mx-3">
-                        {{ revisionchoiceformset.management_form }}
-                        {{ revisionchoiceformset.non_form_errors.as_ul }}
+                        {{ revision_choice_formset.management_form }}
+                        {{ revision_choice_formset.non_form_errors.as_ul }}
                         <table id="choice_formset" class="form" style="width: 100%;">
 
-                        {% for form in revisionchoiceformset.forms %}
+                        {% for form in revision_choice_formset.forms %}
                           {% if forloop.first %}
                             <colgroup>
                                 <col style="width: 66%">

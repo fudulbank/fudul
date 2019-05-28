@@ -6,23 +6,23 @@ register = template.Library()
 
 @register.filter
 def has_changed_choices(revision, previous_revision):
-    previous_choice_texts = previous_revision.choice_set\
+    previous_choice_texts = previous_revision.choices\
                                              .values_list('text')
-    new_choice_texts = revision.choice_set\
+    new_choice_texts = revision.choices\
                                .values_list('text')
-    return revision.choice_set\
+    return revision.choices\
                    .exclude(text__in=previous_choice_texts)\
                    .exists() or \
-           previous_revision.choice_set\
+           previous_revision.choices\
                             .exclude(text__in=new_choice_texts)\
                             .exists()
 
 @register.filter
 def get_choice_pairs(revision, previous_revision):
     index = 0
-    for new_choice in revision.choice_set.order_by_alphabet():
+    for new_choice in revision.choices.order_by_alphabet():
         try:
-            previous_choice = previous_revision.choice_set.order_by_alphabet()[index]
+            previous_choice = previous_revision.choices.order_by_alphabet()[index]
         except IndexError:
             previous_choice_text = ''
         else:

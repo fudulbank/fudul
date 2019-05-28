@@ -26,7 +26,7 @@ class Command(BaseCommand):
                                     .select_related('question',
                                                     'question__parent_question',
                                                     'question__latest_explanation_revision')\
-                                    .prefetch_related('choice_set')\
+                                    .prefetch_related('choices')\
                                     .order_by('question__pk')
 
         header = ['ID', 'Text', 'Choice A', 'Choice B', 'Choice C',
@@ -43,7 +43,7 @@ class Command(BaseCommand):
             choice_texts = []
             right_answer = ''
             choice_index = 0
-            for choice in revision.choice_set.order_by_alphabet():
+            for choice in revision.choices.order_by_alphabet():
                 choice_texts.append(choice.text)
                 if choice.is_right:
                     right_answer = ascii_uppercase[choice_index]

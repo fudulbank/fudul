@@ -1,6 +1,6 @@
 {% load bootstrap3 static %}
 
-<p>You are suggesting that <strong>"{{ choice }}"</strong> is the right answer for question #{{ choice.revision.question.pk }}.  Please note that users examining on this question will be <em>immediately</em> shown a notification telling about your suggested correction.  Editors of Fudul will also be notified about your suggestion so that they can update the recorded answer.</p>
+<p>You are suggesting that <strong>"{{ choice }}"</strong> is the right answer for question #{{ choice.question.pk }}.  Please note that users examining on this question will be <em>immediately</em> shown a notification telling about your suggested correction.  Editors of Fudul will also be notified about your suggestion so that they can update the recorded answer.</p>
 
 <form method="post" id="correct-answer-form">
  {% csrf_token %}

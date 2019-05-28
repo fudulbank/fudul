@@ -86,8 +86,8 @@ function getFormattedDiff(first_text, second_text){
 
 function constructChoices(question){
   var output = '<ul class="choices" type="A">';
-  for (choice_index in question.latest_revision.choice_set){
-    var choice = question.latest_revision.choice_set[choice_index];
+  for (choice_index in question.latest_revision.choices){
+    var choice = question.latest_revision.choices[choice_index];
     output += "<li data-is-right='" + choice.is_right.toString() + "'>" + choice.text + "</li>"
   }
   output += '</ul>'

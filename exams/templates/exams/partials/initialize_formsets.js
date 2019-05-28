@@ -3,7 +3,7 @@ var add_icon = '<i class="fa fa-plus" aria-hidden="true"></i>',
 
 // add formset controls
 $("#choice_formset .form-container").formset({
-    prefix: '{{ revisionchoiceformset.prefix }}',
+    prefix: '{{ revision_choice_formset.prefix }}',
     formCssClass: 'dynamic-formset1',
     addText: add_icon,
     deleteText: delete_icon,

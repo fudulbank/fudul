@@ -116,11 +116,11 @@ tr.form-container td {
 	</table>
 	<h3>Question Choices</h3>
 
-	{{ revisionchoiceformset.management_form }}
-	{{ revisionchoiceformset.non_form_errors.as_ul }}
+	{{ revision_choice_formset.management_form }}
+	{{ revision_choice_formset.non_form_errors.as_ul }}
 	<table id="choice_formset" class="form" style="width: 100%;">
 
-		{% for form in revisionchoiceformset.forms %}
+		{% for form in revision_choice_formset.forms %}
 		{% if forloop.first %}
 		<thead>
 			<tr>

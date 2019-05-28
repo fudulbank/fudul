@@ -114,21 +114,20 @@ class Command(BaseCommand):
 
 
             corrections = AnswerCorrection.objects.select_related('choice',
-                                                          'choice__revision',
-                                                          'choice__revision__question',
-                                                          'choice__revision__question__exam')\
+                                                          'choice__question',
+                                                          'choice__question__exam')\
                                           .filter(submitter__isnull=False,
-                                                  choice__revision__question__is_deleted=False,
-                                                  choice__revision__question__answer__submission_date__gte=F("submission_date"))\
-                                          .annotate(answer_count=Count('choice__revision__question__answer'))\
+                                                  choice__question__is_deleted=False,
+                                                  choice__question__answer__submission_date__gte=F("submission_date"))\
+                                          .annotate(answer_count=Count('choice__question__answer'))\
                                           .filter(answer_count__gte=threshold)\
                                           .exclude(actor_notifications__verb=verb)\
                                           .distinct()
 
             for correction in corrections:
                 title = "Your correction was seen more than {} times!".format(threshold)
-                description = "Your correction to question #{} in {} was seen {} times.".format(correction.choice.revision.question.pk,
-                                                                                                correction.choice.revision.question.exam.name,
+                description = "Your correction to question #{} in {} was seen {} times.".format(correction.choice.question.pk,
+                                                                                                correction.choice.question.exam.name,
                                                                                                 correction.answer_count)
                 if not options['is_dry']:
                     notify.send(correction,

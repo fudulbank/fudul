@@ -318,7 +318,7 @@ class Question(models.Model):
                              self.exam.pk, self.pk))
 
     def get_answering_user_count(self):
-        user_pks = Answer.objects.filter(choice__revision__question=self)\
+        user_pks = Answer.objects.filter(choice__question=self)\
                                  .values('session__submitter')
         return User.objects.filter(pk__in=user_pks)\
                            .count()
@@ -326,8 +326,8 @@ class Question(models.Model):
     def is_incomplete(self):
         latest_revision = self.get_latest_revision()
         if self.issues.filter(is_blocker=True).exists() or \
-           not latest_revision.choice_set.filter(is_right=True).exists() or \
-           latest_revision.choice_set.count >= 1:
+           not latest_revision.choices.filter(is_right=True).exists() or \
+           latest_revision.choices.count() >= 1:
             return True
         else:
             return False
@@ -434,6 +434,7 @@ class Revision(models.Model):
                                            object_id_field='actor_object_id',
                                            related_query_name="acting_revisions")
     figures = models.ManyToManyField('Figure', blank=True)
+    choices = models.ManyToManyField('Choice', blank=True, related_name="revision_set")
 
     def get_previous(self):
         return self.question.revision_set\
@@ -442,10 +443,10 @@ class Revision(models.Model):
                             .order_by('submission_date').last()
 
     def get_right_choice(self):
-        return self.choice_set.filter(is_right=True).first()
+        return self.choices.filter(is_right=True).first()
 
     def has_right_answer(self):
-        return self.choice_set.filter(is_right=True).exists()
+        return self.choices.filter(is_right=True).exists()
 
     def get_relevant_highlight(self, session):
         return Highlight.objects.select_related('revision')\
@@ -495,6 +496,7 @@ class Choice(models.Model):
     text = models.CharField(max_length=255)
     is_right = models.BooleanField("Right answer?", default=False)
     revision = models.ForeignKey(Revision, on_delete=models.CASCADE,null=True)
+    question = models.ForeignKey(Question, null=True)
     objects = managers.ChoiceQuerySet.as_manager()
 
     def __str__(self):
@@ -703,7 +705,7 @@ class AnswerCorrection(models.Model):
     def notify_submitter(self, actor):
         title = "Your correction was supported by another Fuduli!"
         user_credit = accounts.utils.get_user_credit(actor)
-        description = "Your correction for question #{} was supported by {}".format(self.choice.revision.question.pk,
+        description = "Your correction for question #{} was supported by {}".format(self.choice.question.pk,
                                                                                     user_credit)
         notify.send(actor, recipient=self.submitter, target=self,
                     verb='supported', title=title,
@@ -713,13 +715,13 @@ class AnswerCorrection(models.Model):
         # We can pass `can_user_edit_exam` to avoid reterving the
         # result every single time
         if not can_user_edit_exam:
-            exam = self.choice.revision.question.exam
+            exam = self.choice.question.exam
             can_user_edit_exam = exam.can_user_edit(user)
         return self.submitter == user or \
             can_user_edit_exam
 
     def __str__(self):
-        return "Correction of Q#{}".format(self.choice.revision.question.pk)
+        return "Correction of Q#{}".format(self.choice.question.pk)
 
 class ExplanationRevision(models.Model):
     question = models.ForeignKey(Question,
@@ -835,13 +837,13 @@ class DuplicateContainer(models.Model):
 
         # Merge corrections
         corrections_to_delete = AnswerCorrection.objects\
-                                                .filter(choice__revision__question__in=questions_to_delete)\
+                                                .filter(choice__question__in=questions_to_delete)\
                                                 .select_related('choice')
 
         for correction in corrections_to_delete:
             choice_text = correction.choice.text
             try:
-                choice_to_keep = best_revision.choice_set.get(text__iexact=choice_text,
+                choice_to_keep = best_revision.choices.get(text__iexact=choice_text,
                                                               answer_correction__isnull=True)
             except (Choice.DoesNotExist, MultipleObjectsReturned):
                 pass
@@ -859,7 +861,7 @@ class DuplicateContainer(models.Model):
         # Construct an easy-to-access choice dictionary to
         # save repeated database queries
         choices_to_keep = {}
-        for choice in best_revision.choice_set.all():
+        for choice in best_revision.choices.all():
             choices_to_keep[choice.text] = choice
 
         sessions = Session.objects.filter(questions__in=questions_to_delete).distinct()
@@ -875,7 +877,7 @@ class DuplicateContainer(models.Model):
                 # answers that either has the same choice text, or was
                 # skipped.  If all that exist are obsolete answers
                 # with text that are different, ignore it.
-                answer_to_change = obsolete_answers.filter(choice__text__in=best_revision.choice_set.values('text'))\
+                answer_to_change = obsolete_answers.filter(choice__text__in=best_revision.choices.values('text'))\
                                                    .distinct()\
                                                    .first() or \
                                    obsolete_answers.filter(choice__isnull=True)\

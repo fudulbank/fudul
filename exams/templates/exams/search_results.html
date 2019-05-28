@@ -94,7 +94,7 @@ a:hover {
     <p class="question-info">Q#{{ question.pk }} - {{ question.exam.name }}</p>
     <p class="question-text">{{ question.get_latest_approved_revision.text|linebreaksbr }}</p>
     <ol type="A">
-     {% for choice in question.get_latest_approved_revision.choice_set.order_by_alphabet %}
+     {% for choice in question.get_latest_approved_revision.choices.order_by_alphabet %}
        <li {% if choice.is_right %}class="is-right text-success-800"{% endif %}>{{ choice.text|linebreaksbr }}</li>
      {% endfor %}
     </ol>

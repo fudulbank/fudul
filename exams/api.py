@@ -37,11 +37,11 @@ class ChoiceTextSerializer(serializers.ModelSerializer):
         fields = ('id', 'text', 'is_right')
 
 class RevisionTextSerializer(serializers.ModelSerializer):
-    choice_set = ChoiceTextSerializer(read_only=True, many=True)
+    choices = ChoiceTextSerializer(read_only=True, many=True)
 
     class Meta:
         model = Revision
-        fields = ('id', 'question_id', 'text', 'choice_set')
+        fields = ('id', 'question_id', 'text', 'choices')
 
 class QuestionTextSerializer(serializers.ModelSerializer):
     latest_revision = RevisionTextSerializer(read_only=True,
@@ -309,13 +309,12 @@ class ActivityList(views.APIView):
                                                                  is_deleted=False)\
                                                          .order_by('-submission_date')
         recent_corrections = AnswerCorrection.objects.select_related('choice',
-                                                                     'choice__revision',
-                                                                     'choice__revision__question',
-                                                                     'choice__revision__question__exam',
-                                                                     'choice__revision__question__exam__category',
+                                                                     'choice__question',
+                                                                     'choice__question__exam',
+                                                                     'choice__question__exam__category',
                                                                      'submitter',
                                                                      'submitter__profile')\
-                                                     .filter(choice__revision__question__exam__in=exams)\
+                                                     .filter(choice__question__exam__in=exams)\
                                                      .order_by('-submission_date')
         recent_mnemonics = Mnemonic.objects.select_related('submitter',
                                                            'question',
@@ -408,10 +407,10 @@ class ActivityList(views.APIView):
                     summary['is_first'] = activity.is_first
                     summary['url'] = activity.get_absolute_url()
                 elif type(activity) is AnswerCorrection:
-                    question = activity.choice.revision.question
+                    question = activity.choice.question
                     summary['text'] = textwrap.shorten(activity.justification, 70,
                                                        placeholder='...')
-                    summary['url'] = activity.choice.revision.question.get_absolute_url()
+                    summary['url'] = activity.choice.question.get_absolute_url()
                 elif type(activity) is Mnemonic:
                     question = activity.question
                     summary['text'] = textwrap.shorten(activity.text, 70,
@@ -452,28 +451,26 @@ class CorrectionList(views.APIView):
         choices_with_corrections = Choice.objects.select_related('answer_correction',
                                                                  'answer_correction__submitter',
                                                                  'answer_correction__submitter__profile',
-                                                                 'revision',
-                                                                 'revision__question',
-                                                                 'revision__question__exam')\
+                                                                 'question',
+                                                                 'question__exam')\
                                                  .prefetch_related(Prefetch('answer_correction__supporting_users',
                                                                             user_qs,
                                                                             to_attr="supporting_user_list"),
                                                                    Prefetch('answer_correction__opposing_users',
                                                                             user_qs,
                                                                             to_attr="opposing_user_list"))\
-                                                 .filter(revision__best_of__isnull=False,
-                                                         answer_correction__isnull=False)
+                                                 .filter(answer_correction__isnull=False)
 
         if session_pk:
-            choices_with_corrections = choices_with_corrections.filter(revision__question__session__pk=session_pk)
+            choices_with_corrections = choices_with_corrections.filter(question__session__pk=session_pk)
         elif question_pk:
-            choices_with_corrections = choices_with_corrections.filter(revision__question__pk=question_pk)
+            choices_with_corrections = choices_with_corrections.filter(question__pk=question_pk)
         elif question_pks:
             try:
                 question_pks = [int(pk) for pk in request.GET.get('question_pks', '').split(',')]
             except TypeError:
                 raise exceptions.ParseError('No valid "question_pks" parameter was provided')
-            choices_with_corrections = choices_with_corrections.filter(revision__question__pk__in=question_pks)
+            choices_with_corrections = choices_with_corrections.filter(question__pk__in=question_pks)
 
         # To avoid repeating this query to show the 'Delete' button,
         # we are going to do it once and pass it to the template.
@@ -485,7 +482,7 @@ class CorrectionList(views.APIView):
         for choice in choices_with_corrections:
             context = {'choice': choice, 'user': request.user}
             html = template.render(context)
-            data.append({'question_id': choice.revision.question.pk,
+            data.append({'question_id': choice.question.pk,
                          'choice_id': choice.pk,
                          'can_user_edit_exam': can_user_edit_exam,
                          'html': html})

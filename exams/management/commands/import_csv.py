@@ -109,7 +109,7 @@ class Command(BaseCommand):
             INDEXES['SOURCE'] = headers.index('Source')
         except ValueError:
             pass
-        try:        
+        try:
             INDEXES['EXAM_TYPE'] = headers.index('Exam type')
         except ValueError:
             pass
@@ -252,9 +252,8 @@ class Command(BaseCommand):
                                                        reference=reference,
                                                        explanation_text=explanation)
 
-                for choice in choices:
-                    choice.revision = revision
-
-                Choice.objects.bulk_create(choices)
+                choice_objects = Choice.objects.bulk_create(choices)
+                for choice in choice_objects:
+                    revision.choices.add(choice)
                 question.best_revision = revision
                 question.save()

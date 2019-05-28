@@ -171,7 +171,7 @@ class QuestionQuerySet(models.QuerySet):
                                    'latest_explanation_revision',
                                    'exam')\
                    .prefetch_related(Prefetch('sources', to_attr='source_list'),
-                                     Prefetch('best_revision__choice_set', to_attr='choice_list'),
+                                     Prefetch('best_revision__choices', to_attr='choice_list'),
                                      Prefetch('revision_set',
                                               Revision.objects.select_related('submitter',
                                                                               'submitter__profile').undeleted(),

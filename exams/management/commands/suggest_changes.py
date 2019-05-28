@@ -67,7 +67,7 @@ class Command(BaseCommand):
                         if match:
                             applied_rules.append(rule)
                     if rule.scope in ['ALL', 'CHOICES']:
-                        for choice in revision.choice_set.all():
+                        for choice in revision.choices.all():
                             match = re.search(compiled_regex,
                                               choice.text)
                             if match:

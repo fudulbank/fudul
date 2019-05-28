@@ -3,7 +3,7 @@
   <div class="answer-correction-tooltip-body">
     <div class="answer-correction-header">
       <h5 class="title">Answer correction</h5>
-      {% can_delete_correction user choice.revision.question.exam correction as can_delete_correction_result %}
+      {% can_delete_correction user choice.question.exam correction as can_delete_correction_result %}
       {% if can_delete_correction_result %}
       <button data-choice-pk="{{ choice.pk }}" data-toggle="tooltip" data-html="true" title="{% if correction.supporting_user_list %}<strong>Delete this correction.</strong><br>Please note that other Fudul members have supported this correction.  By deleting this correction, your name will be removed from being the primary submitter and will be replaced by the name of another fellow Fudul member{% else %}Delete this correction{% endif %}." class="delete-correction"><i class="fas fa-trash-alt text-danger"></i></button>
       {% endif %}

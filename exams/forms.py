@@ -37,7 +37,7 @@ class StatusChoiceField(forms.ModelMultipleChoiceField):
 class UserChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
         return accounts.utils.get_user_credit(obj, full=True)
-    
+
 # shared widgets for exam_types, sources and subjects in QuestionForm and SessionForm
 select2_widget = autocomplete.ModelSelect2Multiple(attrs={'data-width': '100%'})
 
@@ -92,7 +92,7 @@ class QuestionForm(forms.ModelForm):
         }
 
 class GenericRevisionForm(forms.ModelForm):
-    def clone(self, question, user, figure_formset=None):
+    def clone(self, question, user, figure_formset=None, choice_formset=None):
         # We induce save at this stage to pop up the new_objects,
         # changed_objects and deleted_objects attributed.  The actual
         # saving is done in figure_formset.clone().
@@ -103,6 +103,16 @@ class GenericRevisionForm(forms.ModelForm):
                               figure_formset.deleted_objects
         else:
             formset_changed = False
+
+        # In case of handling Revisions, we will also choice the
+        # formset for choices for any potential changes.
+        if not formset_changed and \
+           type(self.instance) is models.Revision and \
+           choice_formset:
+            choice_formset.save(commit=False)
+            formset_changed = choice_formset.new_objects or \
+                              choice_formset.changed_objects or \
+                              choice_formset.deleted_objects
 
         # If nothing has changed, don't create a new instance.
         if self.instance.pk and \
@@ -129,6 +139,12 @@ class GenericRevisionForm(forms.ModelForm):
         if figure_formset:
             figure_formset.clone(new_object)
 
+        if type(new_object) is models.Revision:
+            if choice_formset:
+                choice_formset.clone(new_object)
+            new_object.is_approved = utils.test_revision_approval(new_object)
+            new_object.save()
+
         return new_object
 
 class RevisionForm(GenericRevisionForm):
@@ -143,7 +159,7 @@ class RevisionForm(GenericRevisionForm):
         model = models.Revision
         fields = ['text', 'figure', 'change_summary']
 
-class ChoiceForms(forms.ModelForm):
+class ChoiceForm(forms.ModelForm):
     def clean_text(self):
         """Remove illegal characters that are not allowed in the database."""
         text = self.cleaned_data['text']
@@ -153,24 +169,9 @@ class ChoiceForms(forms.ModelForm):
 
     class Meta:
         model = models.Choice
-        fields = ['text','revision','is_right']
+        fields = ['text', 'is_right']
 
-class CustomRevisionChoiceFormset(forms.BaseInlineFormSet):
-    def clone(self, revision):
-        # Let's clone choices!
-        modified_choices = self.save(commit=False)
-        unmodified_choices = []
-        for choice in self.queryset:
-            if not choice in self.deleted_objects and \
-               not choice in modified_choices:
-                unmodified_choices.append(choice)
-        choices = modified_choices + unmodified_choices
-        for choice in choices:
-            choice.pk = None
-            choice.revision = revision
-            choice.save()
-
-class CustomFigureForm(forms.ModelForm):
+class FigureForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['caption'].widget.attrs = {'rows': '1'}
@@ -179,7 +180,7 @@ class CustomFigureForm(forms.ModelForm):
         model = models.Figure
         fields = '__all__'
 
-class CustomFigureFormSet(forms.BaseModelFormSet):
+class FigureFormSet(forms.BaseModelFormSet):
     def clone(self, revision):
         # How we handle figures?
         # 1) Clear all previous figures
@@ -209,28 +210,57 @@ class CustomFigureFormSet(forms.BaseModelFormSet):
 
         revision.figures.add(*figures)
 
-RevisionChoiceFormset = inlineformset_factory(models.Revision,
-                                              models.Choice,
-                                              formset=CustomRevisionChoiceFormset,
-                                              extra=4,
-                                              fields=['text','is_right'])
+class ChoiceFormset(forms.BaseModelFormSet):
+    def clone(self, revision):
+        # How we handle choices?
+        # 1) Clear all previous choices
+        # 2) Remove all changed choices (to be cloned in #4)
+        # 3) Add all new choices
+        # 4) Clone all changed choices
 
+        self.save(commit=False)
+        # 1) Clear all previous choices
+        revision.choices.clear()
 
-ContributedRevisionChoiceFormset = inlineformset_factory(models.Revision,
-                                              models.Choice,
-                                              formset=CustomRevisionChoiceFormset,
-                                              extra=0,
-                                              fields=['text','is_right'])
+        # 2) Remove all changed and deleted choices (to be cloned in #4)
+        choices = list(self.queryset)
+        for choice in [choice for choice, changed_fields in self.changed_objects] + self.deleted_objects:
+            choices.remove(choice)
 
+        # 3) Add all new choices
+        for choice in self.new_objects:
+            choice.question = revision.question
+            choice.save()
+            choices.append(choice)
+
+        # 4) Clone all changed choices
+        for choice, changed_fields in self.changed_objects:
+            choice.pk = None
+            choice.save()
+            choices.append(choice)
+
+        revision.choices.add(*choices)
+
+RevisionChoiceFormset = modelformset_factory(models.Choice,
+                                             formset=ChoiceFormset,
+                                             form=ChoiceForm,
+                                             extra=4, can_delete=True,
+                                             fields=['text','is_right'])
+ContributedRevisionChoiceFormset = modelformset_factory(models.Choice,
+                                                        formset=ChoiceFormset,
+                                                        form=ChoiceForm,
+                                                        can_delete=True,
+                                                        extra=0,
+                                                        fields=['text','is_right'])
 RevisionFigureFormset = modelformset_factory(models.Figure, extra=1,
                                              can_delete=True,
-                                             formset=CustomFigureFormSet,
-                                             form=CustomFigureForm)
+                                             formset=FigureFormSet,
+                                             form=FigureForm)
 ExplanationFigureFormset = modelformset_factory(models.Figure,
                                                 can_delete=True,
                                                 extra=1,
-                                                formset=CustomFigureFormSet,
-                                                form=CustomFigureForm)
+                                                formset=FigureFormSet,
+                                                form=FigureForm)
 
 class SessionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -301,7 +331,7 @@ class SessionForm(forms.ModelForm):
         sources = self.exam.get_sources().filter(parent_source__isnull=True)\
                                          .with_approved_questions(self.exam)\
                                          .distinct()\
-                                         .order_by('name')                                        
+                                         .order_by('name')
         if sources.exists():
             self.fields['sources'] = MetaChoiceField(exam=self.exam,
                                                      required=False,
@@ -324,7 +354,7 @@ class SessionForm(forms.ModelForm):
 
         if self.is_automatic:
             self.fields['number_of_questions'].required = False
-            
+
     def clean(self):
         cleaned_data = super().clean()
 
@@ -426,7 +456,7 @@ class SessionForm(forms.ModelForm):
 
 class ExplanationForm(GenericRevisionForm):
     def __init__(self, *args, **kwargs):
-        self.is_optional = kwargs.pop('is_optional', False)        
+        self.is_optional = kwargs.pop('is_optional', False)
         super().__init__(*args, **kwargs)
         if self.is_optional:
             self.fields['explanation_text'].required = False
@@ -467,6 +497,6 @@ class AssignQuestionForm(forms.Form):
                              queryset=User.objects.none())
 
     def __init__(self, *args, **kwargs):
-        exam = kwargs.pop('exam', None)        
+        exam = kwargs.pop('exam', None)
         super().__init__(*args, **kwargs)
         self.fields['editor'].queryset = exam.get_editors()

@@ -113,8 +113,8 @@
         output += "<div data-suggestion-pk='" + suggestion.id + "' class='suggestion-container'>"
         output += "<h3 class='text-bold-600'><a target='_blank' href='" + Urls['exams:list_revisions']('{{ category_slugs }}', {{ exam.pk }}, suggestion.revision.question_id) + "'>Question #" + suggestion.revision.question_id + "</a></h3>";
         output += "<div class='automatic-control'><div data-revision-pk='" + suggestion.revision.id + "' class='revision-text'>" + formatted_revision + "</div><ul class='mt-2 choices' type='A'>"
-        for (choice_index in suggestion.revision.choice_set){
-          var choice = suggestion.revision.choice_set[choice_index]
+        for (choice_index in suggestion.revision.choices){
+          var choice = suggestion.revision.choices[choice_index]
           var processed_choice_text = choice.text;
           for (rule_index in suggestion.rules){
             var rule = suggestion.rules[rule_index];
@@ -222,16 +222,16 @@
                       'action': action,
                       'text': revision_text,
                       'change_summary': change_summary,
-                      'choice_set-TOTAL_FORMS': $choices.length,
-                      'choice_set-INITIAL_FORMS': $choices.length,
-                      'choice_set-MAX_NUM_FORMS': ''}
+                      'choices-TOTAL_FORMS': $choices.length,
+                      'choices-INITIAL_FORMS': $choices.length,
+                      'choices-MAX_NUM_FORMS': ''}
 
           $choices.each(function(index){
             var $choice = $(this)
             var choice_pk = $choice.data('choice-pk')
             var is_right = $choice.data('is-right')
-            data['choice_set-' + index + '-id'] = choice_pk;
-            data['choice_set-' + index + '-revision'] = revision_pk;
+            data['choices-' + index + '-id'] = choice_pk;
+            data['choices-' + index + '-revision'] = revision_pk;
 
             if (action == 'submit_edit'){
               var choice_text = $choice.find('input').val();
@@ -239,14 +239,14 @@
               var choice_text = $choice.html();
             }
 
-            data['choice_set-' + index + '-text'] = choice_text;
+            data['choices-' + index + '-text'] = choice_text;
 
             if (is_right){
               is_right_switch = 'on';
             } else {
               is_right_switch = '';
             }
-            data['choice_set-' + index + '-is_right'] = is_right_switch;
+            data['choices-' + index + '-is_right'] = is_right_switch;
           });
         } else if (action == 'decline'){
           var data = {'action': action,
