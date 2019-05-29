@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 
 from django.db import migrations
-from django.db.models import Count
+from django.db.models import Count, Prefetch
 
 # The purpose of merging choices is:
 #
@@ -14,9 +14,23 @@ from django.db.models import Count
 
 def forward(apps, schema_editor):
     Question = apps.get_model('exams', 'Question')
+    Revision = apps.get_model('exams', 'Revision')
     Choice = apps.get_model('exams', 'Choice')
     Answer = apps.get_model('exams', 'Answer')
     Highlight = apps.get_model('exams', 'Highlight')
+
+    for revision in Revision.objects.filter(choices__isnull=True)\
+                                    .prefetch_related(Prefetch('choice_set', to_attr='choice_list'))\
+                                    .order_by('pk'):
+       print(f"Filling revision.choices for revision #{revision.pk}...")
+       revision.choices.add(*revision.choice_list)
+
+    for choice in Choice.objects.select_related('revision', 'revision__question')\
+                                .filter(revision__isnull=False)\
+                                .order_by('pk'):
+        print(f"Filling choice.question for choice #{choice.pk}...")
+        choice.question = choice.revision.question
+        choice.save()
 
     total_obsolete_count = 0
     current_question_count = 0
@@ -40,7 +54,7 @@ def forward(apps, schema_editor):
                                                     is_right=choice.is_right)\
                                             .select_related('revision')
 
-            if not similar_choices.exists():
+            if similar_choices.count() == 1:
                 continue
 
             # We will pick the preferred choice depending on the
@@ -68,17 +82,16 @@ def forward(apps, schema_editor):
             print("Question {} ({}%): We are removing {} obsolete choices...".format(question.pk, percentage,obsolete_count))
             for obsolete_choice in obsolete_choices:
                 # 1) Revisions
-                obsolete_choice.revision.choices.remove(obsolete_choice)
-                obsolete_choice.revision.choices.add(preferred_choice)
+                print(f"Adding choice \"{preferred_choice.text}\" (#{preferred_choice.pk}) to revision #{obsolete_choice.revision.pk} in place of choice #{obsolete_choice.pk}")
+                revision = obsolete_choice.revision
+                revision.choices.add(preferred_choice)
+                revision.choices.remove(obsolete_choice)
                 # 2) Answers
                 Answer.objects.filter(choice=obsolete_choice).update(choice=preferred_choice)
                 # 3) Highlights
                 for highlight in Highlight.objects.filter(stricken_choices=obsolete_choice):
                     highlight.stricken_choices.remove(obsolete_choice)
                     highlight.stricken_choices.add(preferred_choice)
-
-            preferred_choice.question = question
-            preferred_choice.save()
 
         current_question_count += 1
 
