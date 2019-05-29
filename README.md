@@ -22,7 +22,7 @@ pip3 install --user -r requirements.txt
 # Set up the database:
 python3 manage.py migrate
 # Load initial data:
-python3 manage.py loaddata core/fixtures/default_sites.json
+python3 manage.py loaddata core/fixtures/default_sites.json exams/fixutres/session_themes.json
 # Prepare basic permissions:
 python3 manage.py check_permissions
 ```
