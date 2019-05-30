@@ -2,7 +2,10 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
 @receiver([post_save, post_delete], sender='exams.Revision')
-def update_latest_revision(sender, instance, **kwargs):
+def update_latest_revision(sender, instance, raw, **kwargs):
+    # If we are importing a fixture, do not fire the signal.
+    if raw:
+        return
     question = instance.question
 
     # Update is_last field:
@@ -37,7 +40,11 @@ def update_latest_revision(sender, instance, **kwargs):
     question.save()
 
 @receiver([post_save, post_delete], sender='exams.ExplanationRevision')
-def update_latest_explanation_revision(sender, instance, **kwargs):
+def update_latest_explanation_revision(sender, instance, raw, **kwargs):
+    # If we are importing a fixture, do not fire the signal.
+    if raw:
+        return
+
     question = instance.question
 
     latest_explanation_revision = question.get_latest_explanation_revision()
@@ -75,5 +82,8 @@ def update_session_stats(sender, instance, **kwargs):
     session.save()
 
 @receiver(post_save, sender='exams.Category')
-def update_slug_cache(sender, instance, **kwargs):
+def update_slug_cache(sender, instance, raw, **kwargs):
+    # If we are importing a fixture, do not fire the signal.
+    if raw:
+        return
     instance.set_slug_cache()
