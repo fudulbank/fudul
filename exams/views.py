@@ -85,10 +85,13 @@ def add_question(request, slugs, pk):
     context = {'exam': exam,
                'question_form': forms.QuestionForm(instance=instance),
                'revision_form': forms.RevisionForm(),
-               'revision_figure_formset': forms.RevisionFigureFormset(prefix='revision-figures', queryset=Figure.objects.none()),
-               'explanation_figure_formset': forms.ExplanationFigureFormset(prefix='explanation-figures', queryset=Figure.objects.none()),
+               'revision_figure_formset': forms.RevisionFigureFormset(prefix='revision-figures',
+                                                                      queryset=Figure.objects.none()),
+               'explanation_figure_formset': forms.ExplanationFigureFormset(prefix='explanation-figures',
+                                                                            queryset=Figure.objects.none()),
                'explanation_form': forms.ExplanationForm(is_optional=True),
-               'revision_choice_formset': forms.RevisionChoiceFormset(queryset=Choice.objects.none()),
+               'revision_choice_formset': forms.RevisionChoiceFormset(prefix='revision-choices',
+                                                                      queryset=Choice.objects.none()),
                'is_browse_active': True, # To make sidebar 'active'
     }
     return render(request, "exams/add_question.html", context)
@@ -165,7 +168,8 @@ def handle_question(request, exam_pk, question_pk=None):
     revision_form = forms.RevisionForm(request.POST,
                                        request.FILES,
                                        instance=revision)
-    revision_choice_formset = forms.RevisionChoiceFormset(request.POST)
+    revision_choice_formset = forms.RevisionChoiceFormset(request.POST,
+                                                          prefix='revision-choices')
     explanation_form = forms.ExplanationForm(request.POST,
                                              request.FILES,
                                              instance=explanation,
@@ -381,6 +385,7 @@ def submit_revision(request, slugs, exam_pk, pk):
                                                  instance=latest_explanation_revision,
                                                  is_optional=True)
         revision_choice_formset = forms.RevisionChoiceFormset(request.POST,
+                                                              prefix='revision-choices',
                                                               queryset=latest_revision.choices.all())
         revision_figure_formset = forms.RevisionFigureFormset(request.POST,
                                                               request.FILES,
@@ -413,7 +418,8 @@ def submit_revision(request, slugs, exam_pk, pk):
         revision_form = forms.RevisionForm(instance=latest_revision)
         explanation_form = forms.ExplanationForm(instance=latest_explanation_revision,
                                                  is_optional=True)
-        revision_choice_formset = forms.RevisionChoiceFormset(queryset=latest_revision.choices.all())
+        revision_choice_formset = forms.RevisionChoiceFormset(prefix='revision-choices',
+                                                              queryset=latest_revision.choices.all())
         revision_figure_formset = forms.RevisionFigureFormset(prefix='revision-figures',
                                                               queryset=latest_revision.figures.all())
         explanation_figure_formset = forms.ExplanationFigureFormset(prefix='explanation-figures',
@@ -789,18 +795,21 @@ def contribute_revision(request):
     if request.method == 'GET':
         revision_initial = {'change_summary': ''}
         revision_form = forms.RevisionForm(instance=latest_revision, initial=revision_initial)
-        revision_choice_formset = forms.ContributedRevisionChoiceFormset(queryset=latest_revision.choices.all())
-        figure_formset = forms.RevisionFigureFormset(queryset=latest_revision.figures.all(), prefix='figures')
+        revision_choice_formset = forms.ContributedRevisionChoiceFormset(prefix='revision-choices',
+                                                                         queryset=latest_revision.choices.all())
+        figure_formset = forms.RevisionFigureFormset(queryset=latest_revision.figures.all(),
+                                                     prefix='revision-figures')
     elif request.method == 'POST':
         revision_form = forms.RevisionForm(request.POST,
                                            request.FILES,
                                            instance=latest_revision)
         revision_choice_formset = forms.ContributedRevisionChoiceFormset(request.POST,
+                                                                         prefix='revision-choices',
                                                                          queryset=latest_revision.choices.all())
         figure_formset = forms.RevisionFigureFormset(request.POST,
                                                      request.FILES,
                                                      queryset=latest_revision.figures.all(),
-                                                     prefix='figures')
+                                                     prefix='revision-figures')
         if revision_form.is_valid() and \
            revision_choice_formset.is_valid() and \
            figure_formset.is_valid():
@@ -963,7 +972,8 @@ def approve_question(request, slugs, exam_pk, pk):
     context = {'exam': exam,
                'question_form': forms.QuestionForm(instance=question),
                'revision_form': forms.RevisionForm(instance=revision),
-               'revision_choice_formset': forms.RevisionChoiceFormset(queryset=revision.choices.all()),
+               'revision_choice_formset': forms.RevisionChoiceFormset(prefix='revision-choices',
+                                                                      queryset=revision.choices.all()),
                'question': question}
 
     return render(request, "exams/add_question.html", context)
@@ -1434,6 +1444,7 @@ def handle_suggestion(request):
                                            request.FILES,
                                            instance=revision_instance)
         revision_choice_formset = forms.RevisionChoiceFormset(request.POST,
+                                                              prefix='revision-choices',
                                                               queryset=revision_instance.choices.all())
 
         if revision_form.is_valid() and \
