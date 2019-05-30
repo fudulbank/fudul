@@ -181,11 +181,7 @@
       /* get some values from elements on the page: */
       var formData = new FormData($(this)[0]),
         url = "{% url 'exams:contribute_revision' %}?" + $.param({
-          question_pk: {
-            {
-              question.pk
-            }
-          }
+          question_pk: {{ question.pk }}
         });
       /* Send the data */
       $.ajax({
