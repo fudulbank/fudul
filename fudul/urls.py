@@ -11,13 +11,13 @@ from exams.api import *
 
 
 router = routers.DefaultRouter()
-router.register(r'answers', AnswerViewSet, base_name="answer")
-router.register(r'highlights', HighlightViewSet, base_name="highlight")
-router.register(r'marked', MarkedQuestionViewSet, base_name="marked")
-router.register(r'question_summary', QuestionSummaryViewSet, base_name="summary")
-router.register(r'question_assignment', QuestionAssignmentViewSet, base_name="assigned")
-router.register(r'suggestions', SuggestedChangeViewSet, base_name="suggestion")
-router.register(r'duplicates', DuplicateContainerViewSet, base_name="duplicate")
+router.register(r'answers', AnswerViewSet, basename="answer")
+router.register(r'highlights', HighlightViewSet, basename="highlight")
+router.register(r'marked', MarkedQuestionViewSet, basename="marked")
+router.register(r'question_summary', QuestionSummaryViewSet, basename="summary")
+router.register(r'question_assignment', QuestionAssignmentViewSet, basename="assigned")
+router.register(r'suggestions', SuggestedChangeViewSet, basename="suggestion")
+router.register(r'duplicates', DuplicateContainerViewSet, basename="duplicate")
 
 urlpatterns = [
     url(r'^api/activities/$', ActivityList.as_view(), name="activity-list"),

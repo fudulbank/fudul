@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 
 from django.db import migrations
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 def create_explanation_revisions(apps, schema_editor):
     Question = apps.get_model('exams', 'Question')

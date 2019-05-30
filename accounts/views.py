@@ -6,7 +6,7 @@ from userena.utils import get_user_profile
 from django.shortcuts import get_object_or_404,redirect
 from userena.decorators import secure_required
 from guardian.decorators import permission_required_or_403
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from userena import signals as userena_signals
 from userena.views import ExtraContextTemplateView
 from userena.models import UserenaSignup

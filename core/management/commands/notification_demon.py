@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db.models import Count, F
 from django.utils import timezone
 import datetime
