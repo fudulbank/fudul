@@ -349,8 +349,9 @@
           } else {
             $other_checkboxes.prop('checked', false)
           }
-          // Return the change event listener
-          $('.multiple-choices input:not(.select-all)').change(multipleChoiceChange);
+          // Return the change event listeners.
+          $('.multiple-choices input:not(.select-all)').change(multipleChoiceChange)
+                                                       .change(updateTotalQuestions);
         });
 
         // By default, 'All' is checked.
