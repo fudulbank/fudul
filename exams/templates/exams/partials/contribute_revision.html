@@ -4,6 +4,8 @@
   <div class="panel-body">
     <form method="post" enctype="multipart/form-data" id="modify-revision-form" action="post">
       {% csrf_token %}
+      {{ revision_figure_formset.management_form }}
+      {{ revision_choice_formset.management_form }}
 
       {% bootstrap_form_errors revision_form %}
       <strong class="help-block"> </strong>
@@ -17,7 +19,6 @@
 
       {% if revision_figure_formset.total_form_count > 0 %}
       <h3>Question figures<span class="circle" data-placement="left" data-html="true" data-toggle="tooltip" title="You can optionally add one or more figures.  Each figure can optionally have a <em>caption</em> that describes it.">?</span></h3>
-      {{ revision_figure_formset.management_form }}
       {{ revision_figure_formset.non_form_errors.as_ul }}
       <table id="revision_figure_formset" class="form" style="width: 100%;">
         {% for form in revision_figure_formset.forms %}
@@ -41,7 +42,6 @@
       {% if revision_choice_formset.total_form_count > 0 %}
       <h3 style="font-weight: bold">Choices</h3><a data-placement="left" class="help-tooltip circle" data-toggle="tooltip" title="Make sure to check the box for the right answer."> ? </a>
       <div class="mx-3">
-        {{ revision_choice_formset.management_form }}
         {{ revision_choice_formset.non_form_errors.as_ul }}
         <table id="choice_formset" class="form" style="width: 100%;">
 
