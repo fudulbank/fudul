@@ -844,7 +844,7 @@ class DuplicateContainer(models.Model):
             choice_text = correction.choice.text
             try:
                 choice_to_keep = best_revision.choices.get(text__iexact=choice_text,
-                                                              answer_correction__isnull=True)
+                                                           answer_correction__isnull=True)
             except (Choice.DoesNotExist, MultipleObjectsReturned):
                 pass
             else:
@@ -864,7 +864,11 @@ class DuplicateContainer(models.Model):
         for choice in best_revision.choices.all():
             choices_to_keep[choice.text] = choice
 
-        sessions = Session.objects.filter(questions__in=questions_to_delete).distinct()
+        # OPTIMIZE: We unpack the primary keys before passing them to
+        # the QuerySet.  Otherwise, the SQL statement will fail before
+        # compilation.
+        questions_to_delete_pks = list(questions_to_delete.values_list('pk', flat=True))
+        sessions = Session.objects.filter(questions__in=questions_to_delete_pks).distinct()
 
         for session in sessions:
             session.questions.add(question_to_keep)
@@ -874,8 +878,8 @@ class DuplicateContainer(models.Model):
             if not session.answer_set.filter(question=question_to_keep).exists() and \
                obsolete_answers.exists():
                 # For each session, we will look for an obsolete
-                # answers that either has the same choice text, or was
-                # skipped.  If all that exist are obsolete answers
+                # answers that either have the same choice text, or
+                # was skipped.  If all that exist are obsolete answers
                 # with text that are different, ignore it.
                 answer_to_change = obsolete_answers.filter(choice__text__in=best_revision.choices.values('text'))\
                                                    .distinct()\
@@ -891,20 +895,21 @@ class DuplicateContainer(models.Model):
                     answer_to_change.question = question_to_keep
                     answer_to_change.save()
 
-        # MERGE THE SOURCES
-        for source in Source.objects.filter(question__in=questions_to_delete).distinct():
-            question_to_keep.sources.add(source)
+        # MERGE SOURCES
+        sources = Source.objects.filter(question__in=questions_to_delete).distinct()
+        question_to_keep.sources.add(*sources)
 
-        # MERGE THE SUBJECT
-        for subject in Subject.objects.filter(question__in=questions_to_delete).distinct():
-            question_to_keep.subjects.add(subject)
+        # MERGE SUBJECTS
+        subjects = Subject.objects.filter(question__in=questions_to_delete).distinct()
+        question_to_keep.subjects.add(*subjects)
 
-        # MERGE THE SUBJECT
-        for exam_type in ExamType.objects.filter(question__in=questions_to_delete).distinct():
-            question_to_keep.exam_types.add(exam_type)
+        # MERGE EXAM TYPES
+        exam_types = ExamType.objects.filter(question__in=questions_to_delete).distinct()
+        question_to_keep.exam_types.add(*exam_types)
 
         # MERGE MARKING USERS
-        question_to_keep.marking_users.add(*User.objects.filter(marked_questions__in=questions_to_delete).distinct())
+        marking_users = User.objects.filter(marked_questions__in=questions_to_delete).distinct()
+        question_to_keep.marking_users.add(*marking_users)
 
         questions_to_delete.update(is_deleted=True)
 
