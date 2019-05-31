@@ -858,57 +858,42 @@ class DuplicateContainer(models.Model):
         #    field, and replace the question field of all
         #    non-skipped answers.
 
-        # Construct an easy-to-access choice dictionary to
-        # save repeated database queries
-        choices_to_keep = {}
-        for choice in best_revision.choices.all():
-            choices_to_keep[choice.text] = choice
-
-        # OPTIMIZE: We unpack the primary keys before passing them to
-        # the QuerySet.  Otherwise, the SQL statement will fail before
-        # compilation.
+        # OPTIMIZE: We unpack the primary keys in
+        # questions_to_delete_pks and question_to_keep_session_pks
+        # before passing them to the QuerySet.  Otherwise, the SQL
+        # statement will fail before compilation.  Idealy, there
+        # should be a better, SQL-native way to do this.
         questions_to_delete_pks = list(questions_to_delete.values_list('pk', flat=True))
         sessions = Session.objects.filter(questions__in=questions_to_delete_pks).distinct()
+
+        # We will skip changing answers that happen to be in the same
+        # session as question_to_keep as this would violate the
+        # unique_together constrain in the Answer model.
+        question_to_keep_session_pks = list(question_to_keep.session_set.values_list('pk', flat=True))
+        obsolete_answers = Answer.objects.filter(question__in=questions_to_delete_pks)\
+                                         .exclude(session__in=question_to_keep_session_pks)
+        obsolete_answers.update(question=question_to_keep)
+        for choice in best_revision.choices.select_related('question'):
+            obsolete_answers.filter(choice__text=choice.text).update(choice=choice)
 
         for session in sessions:
             session.questions.add(question_to_keep)
             session.questions.remove(*questions_to_delete)
-            obsolete_answers = session.answer_set.select_related('choice')\
-                                                 .filter(question__in=questions_to_delete)
-            if not session.answer_set.filter(question=question_to_keep).exists() and \
-               obsolete_answers.exists():
-                # For each session, we will look for an obsolete
-                # answers that either have the same choice text, or
-                # was skipped.  If all that exist are obsolete answers
-                # with text that are different, ignore it.
-                answer_to_change = obsolete_answers.filter(choice__text__in=best_revision.choices.values('text'))\
-                                                   .distinct()\
-                                                   .first() or \
-                                   obsolete_answers.filter(choice__isnull=True)\
-                                                   .first()
-                if answer_to_change:
-                    # If the choice is not null, replace it with a
-                    # choice that has the same text.
-                    if answer_to_change.choice:
-                        choice = choices_to_keep[answer_to_change.choice.text]
-                        answer_to_change.choice = choice
-                    answer_to_change.question = question_to_keep
-                    answer_to_change.save()
 
         # MERGE SOURCES
-        sources = Source.objects.filter(question__in=questions_to_delete).distinct()
+        sources = Source.objects.filter(question__in=questions_to_delete_pks).distinct()
         question_to_keep.sources.add(*sources)
 
         # MERGE SUBJECTS
-        subjects = Subject.objects.filter(question__in=questions_to_delete).distinct()
+        subjects = Subject.objects.filter(question__in=questions_to_delete_pks).distinct()
         question_to_keep.subjects.add(*subjects)
 
         # MERGE EXAM TYPES
-        exam_types = ExamType.objects.filter(question__in=questions_to_delete).distinct()
+        exam_types = ExamType.objects.filter(question__in=questions_to_delete_pks).distinct()
         question_to_keep.exam_types.add(*exam_types)
 
         # MERGE MARKING USERS
-        marking_users = User.objects.filter(marked_questions__in=questions_to_delete).distinct()
+        marking_users = User.objects.filter(marked_questions__in=questions_to_delete_pks).distinct()
         question_to_keep.marking_users.add(*marking_users)
 
         questions_to_delete.update(is_deleted=True)
