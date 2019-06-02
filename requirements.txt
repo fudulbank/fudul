@@ -1,5 +1,5 @@
 Django>=1.11.20,<1.11.99
-django-autocomplete-light>=3.3,<3.3.99
+django-autocomplete-light>=3.2.10,<3.2.99 # 3.2.10 was the last to support Django 1.11
 django-bootstrap3>=8.2.3,<8.2.99
 django-bootstrap4==0.0.8
 django-ckeditor>=5.3,<5.3.99
