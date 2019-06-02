@@ -59,7 +59,9 @@ def update_latest_explanation_revision(sender, instance, raw, **kwargs):
         question.save()
 
 @receiver([post_save, post_delete], sender='exams.Answer')
-def update_session_stats(sender, instance, **kwargs):
+def update_session_stats(sender, instance, raw, **kwargs):
+    if raw:
+        return
     choice = instance.choice
     session = instance.session
     question_pool = session.get_questions()
