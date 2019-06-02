@@ -8,7 +8,7 @@ Fudul is designed to work with Python 3.6 (or later) and Django 1.11.
 To start your instance, clone this repository:
 ```
 git clone https://github.com/fudulbank/fudul.git
-cd Fudulbank
+cd fudul
 ```
 
 Then copy `fudul/secrets.template.py` to `fudul/secrets.py` and set
@@ -74,7 +74,9 @@ python3 manage.py collectstatic
 
 # Licensing
 
-* Copyright (C) 2017-Presentm User 1 <user1@fudulbank.com>
+For privacy reasons, the real names of authors has been hidden from this file.  In no way should this affect the copyright and the license below.   You can also contact the primary two authors of this code base through the emails below.
+
+* Copyright (C) 2017-Present, User 1 <user1@fudulbank.com>
 * Copyright (C) 2017-Present, User 2 <user2@fudulbank.com>
 
 ```

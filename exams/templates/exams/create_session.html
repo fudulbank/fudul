@@ -336,7 +336,9 @@
 
         $('#total-steps').html($('.step').length);
 
-        $('#id_subjects, #id_sources').prepend('<li><label class="select-all-label"><input type="checkbox" class="select-all"> All</label></li>')
+        $('#id_subjects').prepend('<li><label class="select-all-label"><input type="checkbox" name="all_subjects" class="select-all"> All</label></li>')
+        $('#id_sources').prepend('<li><label class="select-all-label"><input type="checkbox" name="all_sources" class="select-all"> All</label></li>')
+        $('#id_exam_types').prepend('<li><label class="select-all-label"><input type="checkbox" name="all_exam_types" class="select-all"> All</label></li>')
 
         $('.multiple-choices input:not(.select-all)').change(multipleChoiceChange);
         $('.select-all').change(function(){

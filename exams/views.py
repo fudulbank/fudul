@@ -1189,24 +1189,7 @@ def get_selected_question_count(request, exam_pk):
                              user=request.user,
                              exam=exam)
     form.full_clean()
-
-    question_filter = form.cleaned_data.get('question_filter')
-    if question_filter:
-        question_pool = form.question_pools[question_filter]
-    else:
-        question_pool = form.question_pools['ALL']
-
-    subjects = form.cleaned_data.get('subjects')
-    if subjects:
-        question_pool = question_pool.filter(subjects__in=subjects)
-
-    sources = form.cleaned_data.get('sources')
-    if sources:
-        question_pool = question_pool.filter(sources__in=sources)
-
-    exam_types = form.cleaned_data.get('exam_types')
-    if exam_types:
-        question_pool = question_pool.filter(exam_types__in=exam_types)
+    question_pool = form.get_question_pool()
 
     return {'count': question_pool.count()}
 

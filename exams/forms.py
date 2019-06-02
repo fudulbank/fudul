@@ -263,6 +263,10 @@ ExplanationFigureFormset = modelformset_factory(models.Figure,
                                                 form=FigureForm)
 
 class SessionForm(forms.ModelForm):
+    all_subjects = forms.BooleanField(label="All", required=False)
+    all_sources = forms.BooleanField(label="All", required=False)
+    all_exam_types = forms.BooleanField(label="All", required=False)
+
     def __init__(self, *args, **kwargs):
         self.exam = kwargs.pop('exam')
         self.user = kwargs.pop('user')
@@ -355,6 +359,29 @@ class SessionForm(forms.ModelForm):
         if self.is_automatic:
             self.fields['number_of_questions'].required = False
 
+    def get_question_poll(self, cleaned_data=None):
+        cleaned_data = cleaned_data or self.cleaned_data
+
+        question_filter = cleaned_data.get('question_filter', 'ALL')
+        question_pool = self.question_pools[question_filter]
+
+        if not cleaned_data.get('all_subjects'):
+            subjects = cleaned_data.get('subjects')
+            if subjects:
+                question_pool = question_pool.filter(subjects__in=subjects)
+
+        if not cleaned_data.get('all_sources'):
+            sources = cleaned_data.get('sources')
+            if sources:
+                question_pool = question_pool.filter(sources__in=sources)
+
+        if not cleaned_data.get('all_exam_types'):
+            exam_types = cleaned_data.get('exam_types')
+            if exam_types:
+                question_pool = question_pool.filter(exam_types__in=exam_types)
+
+        return question_pool
+
     def clean(self):
         cleaned_data = super().clean()
 
@@ -366,19 +393,7 @@ class SessionForm(forms.ModelForm):
 
         number_of_questions = cleaned_data.get('number_of_questions')
         question_filter = cleaned_data['question_filter']
-        question_pool = self.question_pools[question_filter]
-
-        subjects = cleaned_data.get('subjects')
-        if subjects:
-            question_pool = question_pool.filter(subjects__in=subjects)
-
-        sources = cleaned_data.get('sources')
-        if sources:
-            question_pool = question_pool.filter(sources__in=sources)
-
-        exam_types = cleaned_data.get('exam_types')
-        if exam_types:
-            question_pool = question_pool.filter(exam_types__in=exam_types)
+        question_pool = self.get_question_poll(cleaned_data)
 
         if not question_pool.exists():
             raise forms.ValidationError("No questions at all match your selection.  Please try other options.")
