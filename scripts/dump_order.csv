@@ -1,0 +1,11 @@
+dump-1.json,auth
+dump-2.json,accounts.Institution
+dump-3.json,accounts.Group
+dump-4.json,accounts.Level
+dump-5.json,accounts.PrimaryInterest
+dump-6.json,exams.SessionTheme
+dump-7.json,accounts.Profile
+dump-8.json,exams.Issue exams.Category exams.Source
+dump-9.json,exams.Exam exams.ExamType exams.Subject exams.ExamDate
+dump-10.json,exams.Question exams.Revision exams.Choice exams.AnswerCorrection exams.ExplanationRevision exams.Figure exams.Mnemonic
+dump-11.json,teams
