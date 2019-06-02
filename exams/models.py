@@ -873,7 +873,7 @@ class DuplicateContainer(models.Model):
         obsolete_answers = Answer.objects.filter(question__in=questions_to_delete_pks)\
                                          .exclude(session__in=question_to_keep_session_pks)
         obsolete_answers.update(question=question_to_keep)
-        for choice in best_revision.choices.select_related('question'):
+        for choice in best_revision.choices.all():
             obsolete_answers.filter(choice__text=choice.text).update(choice=choice)
 
         for session in sessions:
