@@ -263,10 +263,6 @@ ExplanationFigureFormset = modelformset_factory(models.Figure,
                                                 form=FigureForm)
 
 class SessionForm(forms.ModelForm):
-    all_subjects = forms.BooleanField(label="All", required=False)
-    all_sources = forms.BooleanField(label="All", required=False)
-    all_exam_types = forms.BooleanField(label="All", required=False)
-
     def __init__(self, *args, **kwargs):
         self.exam = kwargs.pop('exam')
         self.user = kwargs.pop('user')
@@ -324,6 +320,7 @@ class SessionForm(forms.ModelForm):
                                          .distinct()\
                                          .order_by('name')
         if subjects.exists():
+            self.fields['all_subjects'] = forms.BooleanField(label="All", required=False)
             self.fields['subjects'] = MetaChoiceField(exam=self.exam,
                                                       required=False,
                                                       form_type='session',
@@ -337,6 +334,7 @@ class SessionForm(forms.ModelForm):
                                          .distinct()\
                                          .order_by('name')
         if sources.exists():
+            self.fields['all_sources'] = forms.BooleanField(label="All", required=False)
             self.fields['sources'] = MetaChoiceField(exam=self.exam,
                                                      required=False,
                                                      form_type='session',
@@ -348,6 +346,7 @@ class SessionForm(forms.ModelForm):
         exam_types = self.exam.exam_types.with_approved_questions(self.exam)\
                                          .distinct()
         if exam_types.exists():
+            self.fields['all_exam_types'] = forms.BooleanField(label="All", required=False)
             self.fields['exam_types'] = MetaChoiceField(required=not self.is_automatic,
                                                         form_type='session',
                                                         exam=self.exam,
@@ -359,7 +358,7 @@ class SessionForm(forms.ModelForm):
         if self.is_automatic:
             self.fields['number_of_questions'].required = False
 
-    def get_question_poll(self, cleaned_data=None):
+    def get_question_pool(self, cleaned_data=None):
         cleaned_data = cleaned_data or self.cleaned_data
 
         question_filter = cleaned_data.get('question_filter', 'ALL')
@@ -393,7 +392,7 @@ class SessionForm(forms.ModelForm):
 
         number_of_questions = cleaned_data.get('number_of_questions')
         question_filter = cleaned_data['question_filter']
-        question_pool = self.get_question_poll(cleaned_data)
+        question_pool = self.get_question_pool(cleaned_data)
 
         if not question_pool.exists():
             raise forms.ValidationError("No questions at all match your selection.  Please try other options.")
