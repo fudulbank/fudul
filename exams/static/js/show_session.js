@@ -214,10 +214,13 @@ function toggleSharingResults() {
              }
              toastr.success("Sharing the results of this session with " + joined_names + " has been enabled.");
              _paq.push(['trackEvent', 'show_session', 'share-results', 'enable-sharing']);
+             $("#share-results").prop('checked', true);
            } else {
              toastr.success("Sharing the results of this session has been disabled.");
              _paq.push(['trackEvent', 'show_session', 'share-results', 'disable-sharing']);
+             $("#share-results").prop('checked', false);
            }
+           updateSharedProgressBar(window.SESSION_PK, window.g.__STATS);
         }
     });
 }
@@ -948,20 +951,24 @@ function updateSharedProgressBar(session_pk, stat){
     return
   }
 
-  var $progress_container = $('.progress[data-pk="' + session_pk +'"]');
+  var $shared_session_container = $("#shared-session-" + session_pk),
+      $progress_container = $shared_session_container.find('.progress');
 
   if (session_pk != window.SESSION_PK){
     $progress_container.attr('data-has-finished', stat.has_finished.toString());
-  } else if (session_pk == window.SESSION_PK && window.SESSION_MODE != 'EXPLAINED'){
-    stat.count = stat.correct_count + stat.incorrect_count + stat.skipped_count
+  } else if (session_pk == window.SESSION_PK && (window.SESSION_MODE != 'EXPLAINED' || !$('#share-results').prop('checked'))){
+    stat.count = stat.correct_count + stat.incorrect_count + stat.skipped_count;
+  } else {
+    delete stat.count;
   }
 
   // Only detail the breakdown if the session mode is EXPLAINED.
   // Otherwise, only show a generic count.
+  $shared_session_container.tooltip('dispose');
   if (stat.count){
     var percentage = stat.count / window.g.__SESSION_QUESTION_TOTAL * 100 + '%';
     $progress_container.html('<div class="progress-bar bg-success" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + stat.count + '" style="width: ' + percentage + '"></div>');
-    $("#shared-session-" + session_pk).tooltip({html: true, title: '<span class="sharer-name">' + stat.count + " out of " + window.g.__SESSION_QUESTION_TOTAL + " questions (" + percentage + ")</span>"});
+    $shared_session_container.tooltip({html: true, title: '<span class="sharer-name">' + stat.count + " out of " + window.g.__SESSION_QUESTION_TOTAL + " questions (" + percentage + ")</span>"});
   } else {
     var correct_percentage = Math.round(stat.correct_count / window.g.__SESSION_QUESTION_TOTAL * 100) + '%',
         incorrect_percentage = Math.round(stat.incorrect_count / window.g.__SESSION_QUESTION_TOTAL * 100) + '%',
@@ -969,7 +976,7 @@ function updateSharedProgressBar(session_pk, stat){
     $progress_container.html('<div class="progress-bar bg-success" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + stat.correct_count + '" style="width: ' + correct_percentage + '"></div>' +
                              '<div class="progress-bar bg-danger" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + stat.incorrect_count + '" style="width: ' + incorrect_percentage + '"></div>' +
                              '<div class="progress-bar bg-warning" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + stat.skipped_count + '" style="width: ' + skipped_percentage + '"></div>')
-    $("#shared-session-" + session_pk).tooltip({html: true, title: '<ul class="mb-0 pl-3 sharer-name"><li>Correct: ' + stat.correct_count + ' (' + correct_percentage +')</li><li>Incorrect: ' + stat.incorrect_count + ' (' + incorrect_percentage + ')</li><li>Skipped: ' + stat.skipped_count + ' (' + skipped_percentage +')</li></ul>'})
+    $shared_session_container.tooltip({html: true, title: '<ul class="mb-0 pl-3 sharer-name"><li>Correct: ' + stat.correct_count + ' (' + correct_percentage +')</li><li>Incorrect: ' + stat.incorrect_count + ' (' + incorrect_percentage + ')</li><li>Skipped: ' + stat.skipped_count + ' (' + skipped_percentage +')</li></ul>'})
   }
 
 }
