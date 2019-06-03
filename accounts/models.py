@@ -29,20 +29,24 @@ primary_interest_choices = (
 )
 
 class Profile(UserenaBaseProfile):
-    user = models.OneToOneField(User)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=30)
     middle_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
     nickname = models.CharField(max_length=30, default="", blank=True)
-    level = models.ForeignKey('Level', null=True, blank=True)
-    group = models.ForeignKey('Group', null=True, blank=True)
+    level = models.ForeignKey('Level', null=True, blank=True,
+                              on_delete=models.SET_NULL)
+    group = models.ForeignKey('Group', null=True, blank=True,
+                              on_delete=models.SET_NULL)
     institution = models.CharField(max_length=100, default="")
     mobile_number = models.CharField(max_length=14)
     alternative_email = models.EmailField(blank=True)
     is_editor = models.BooleanField(default=False)
     submission_date = models.DateTimeField(auto_now_add=True)
     modification_date = models.DateTimeField(auto_now=True, null=True)
-    primary_interest = models.ForeignKey('PrimaryInterest', null=True, blank=True, limit_choices_to={'children__isnull': True})
+    primary_interest = models.ForeignKey('PrimaryInterest',
+                                         on_delete=models.SET_NULL, null=True, blank=True,
+                                         limit_choices_to={'children__isnull': True})
 
     display_full_name = models.CharField(max_length=1, choices=display_full_name_choices,default="N")
     personal_email_unconfirmed = models.EmailField(('unconfirmed email address'),
@@ -55,7 +59,9 @@ class Profile(UserenaBaseProfile):
     personal_email_confirmation_key_created = models.DateTimeField(_('creation date of alternative email confirmation key'),
                                                                    blank=True,
                                                                    null=True)
-    session_theme = models.ForeignKey('exams.SessionTheme', null=True, blank=True)
+    session_theme = models.ForeignKey('exams.SessionTheme',
+                                      on_delete=models.SET_NULL,
+                                      null=True, blank=True)
 
     objects = managers.ProfileManger()
 
@@ -130,14 +136,20 @@ class Profile(UserenaBaseProfile):
 class PrimaryInterest(models.Model):
     name = models.CharField(max_length=100)
     parent = models.ForeignKey('self', null=True, blank=True,
+                               on_delete=models.CASCADE,
                                related_name="children")
 
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
+    content_type = models.ForeignKey(ContentType,
+                                     on_delete=models.CASCADE,
+                                     null=True, blank=True)
     object_id = models.PositiveIntegerField(null=True, blank=True)
     content_object = GenericForeignKey('content_type', 'object_id')
 
-    exam = models.ForeignKey('exams.Exam', null=True, blank=True)
-    category = models.ForeignKey('exams.Category', null=True, blank=True)
+    exam = models.ForeignKey('exams.Exam', on_delete=models.CASCADE,
+                             null=True, blank=True)
+    category = models.ForeignKey('exams.Category',
+                                 on_delete=models.CASCADE,
+                                 null=True, blank=True)
 
     objects = managers.PrimaryInterestQuerySet.as_manager()
 
@@ -146,7 +158,7 @@ class PrimaryInterest(models.Model):
 
 class Level(models.Model):
     name = models.CharField(max_length=50)
-    group = models.ForeignKey('Group')
+    group = models.ForeignKey('Group', on_delete=models.CASCADE)
     complete_number = models.PositiveIntegerField(null=True,
                                                   blank=True)
 
@@ -157,6 +169,7 @@ class Level(models.Model):
 class Group(models.Model):
     name = models.CharField(max_length=50)
     institution = models.ForeignKey('Institution', null=True,
+                                    on_delete=models.CASCADE,
                                     blank=True)
 
     def __str__(self):

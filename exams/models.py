@@ -19,10 +19,12 @@ import accounts.utils
 
 class Source(models.Model):
     name = models.CharField(max_length=100)
-    category = models.ForeignKey('Category')
+    category = models.ForeignKey('Category',
+                                 on_delete=models.SET_NULL,
+                                 null=True)
     parent_source = models.ForeignKey('self', null=True, blank=True,
                                       related_name="children",
-                                      on_delete=models.SET_NULL)
+                                      on_delete=models.CASCADE)
     submission_date = models.DateTimeField(auto_now_add=True)
     objects = managers.SourceQuerySet.as_manager()
 
@@ -138,7 +140,9 @@ class Category(models.Model):
 
 class Exam(models.Model):
     name = models.CharField(max_length=100)
-    category = models.ForeignKey(Category,related_name='exams')
+    category = models.ForeignKey(Category, related_name='exams',
+                                 null=True,
+                                 on_delete=models.SET_NULL)
     is_visible = models.BooleanField(default=True)
     levels_allowed_to_take = models.ManyToManyField('accounts.Level',
                                                     blank=True)
@@ -239,8 +243,11 @@ class Exam(models.Model):
 
 class ExamDate(models.Model):
     name = models.CharField(max_length=100)
-    exam = models.ForeignKey(Exam, related_name='exam_dates')
+    exam = models.ForeignKey(Exam, related_name='exam_dates',
+                             on_delete=models.CASCADE)
     level = models.ForeignKey('accounts.Level',
+                              null=True,
+                              on_delete=models.SET_NULL,
                               related_name='exam_dates')
     date = models.DateField()
 
@@ -250,7 +257,7 @@ class ExamDate(models.Model):
 
 class Subject(models.Model):
     name = models.CharField(max_length=100)
-    exam = models.ForeignKey(Exam)
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
     submission_date = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
     objects = managers.MetaInformationQuerySet.as_manager()
@@ -264,7 +271,7 @@ class Subject(models.Model):
 class Question(models.Model):
     sources = models.ManyToManyField(Source, blank=True)
     subjects = models.ManyToManyField(Subject, blank=True)
-    exam = models.ForeignKey(Exam)
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
     exam_types = models.ManyToManyField(ExamType, blank=True)
     is_deleted = models.BooleanField(default=False)
     is_approved = models.BooleanField(default=False)
@@ -404,8 +411,9 @@ class Question(models.Model):
         return tree
 
 class Revision(models.Model):
-    question = models.ForeignKey(Question)
-    submitter = models.ForeignKey(User, null=True, blank=True)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    submitter = models.ForeignKey(User, null=True, blank=True,
+                                  on_delete=models.SET_NULL)
     text = models.TextField()
     figure = models.ImageField(upload_to="revision_images",
                                blank=True)
@@ -423,7 +431,9 @@ class Revision(models.Model):
     change_summary = models.TextField(default="", blank=True)
     is_contribution = models.BooleanField(default=False)
     #NOTE:colud be a model instead
-    approved_by = models.ForeignKey(User,related_name="approved_revision",null=True, blank=True)
+    approved_by = models.ForeignKey(User,related_name="approved_revision",
+                                    null=True,blank=True,
+                                    on_delete=models.SET_NULL)
 
     target_notifications = GenericRelation('notifications.Notification',
                                            content_type_field='target_content_type',
@@ -496,7 +506,7 @@ class Choice(models.Model):
     text = models.CharField(max_length=255)
     is_right = models.BooleanField("Right answer?", default=False)
     revision = models.ForeignKey(Revision, on_delete=models.CASCADE,null=True)
-    question = models.ForeignKey(Question, null=True)
+    question = models.ForeignKey(Question,  null=True, on_delete=models.CASCADE)
     objects = managers.ChoiceQuerySet.as_manager()
 
     def __str__(self):
@@ -522,6 +532,7 @@ session_mode_choices = (
 class Session(models.Model):
     session_mode = models.CharField(max_length=20, choices=session_mode_choices, default=None)
     parent_session = models.ForeignKey('self',
+                                       on_delete=models.SET_NULL,
                                        related_name="children",
                                        null=True,
                                        blank=True)
@@ -529,10 +540,10 @@ class Session(models.Model):
     number_of_questions = models.PositiveIntegerField(null=True)
     sources = models.ManyToManyField(Source, blank=True)
     subjects = models.ManyToManyField(Subject, blank=True)
-    exam = models.ForeignKey(Exam)
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
     questions = models.ManyToManyField(Question, blank=True)
     exam_types = models.ManyToManyField(ExamType, blank=True)
-    submitter = models.ForeignKey(User)
+    submitter = models.ForeignKey(User, on_delete=models.CASCADE)
     question_filter = models.CharField(max_length=20, choices=questions_choices, default=None)
     submission_date = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
@@ -641,9 +652,10 @@ class Session(models.Model):
         return "Session #{}".format(self.pk)
 
 class Answer(models.Model):
-    session = models.ForeignKey(Session)
-    question = models.ForeignKey(Question)
-    choice = models.ForeignKey(Choice, null=True)
+    session = models.ForeignKey(Session, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    choice = models.ForeignKey(Choice, null=True,
+                               on_delete=models.CASCADE)
 
     submission_date = models.DateTimeField(auto_now_add=True, null=True)
 
@@ -657,14 +669,15 @@ class Answer(models.Model):
                                                self.session.pk)
 
 class Highlight(models.Model):
-    session = models.ForeignKey(Session)
-    question = models.ForeignKey(Question, null=True)
+    session = models.ForeignKey(Session, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, null=True,
+                                 on_delete=models.CASCADE)
 
     # Since revision text and choices are changeable, but we also want
     # to keep the highlights/strikes, let's remember which revision
     # was the user faced with.  In case the text of that revision and
     # the showed revision differs, we won't keep
-    revision = models.ForeignKey(Revision)
+    revision = models.ForeignKey(Revision, on_delete=models.CASCADE)
     highlighted_text = models.TextField()
     stricken_choices = models.ManyToManyField(Choice, blank=True,
                                               related_name="striking_answers")
@@ -685,7 +698,7 @@ class AnswerCorrection(models.Model):
                                               related_name="supported_corrections")
     opposing_users = models.ManyToManyField(User, blank=True,
                                             related_name="opposed_corrections")
-    submitter = models.ForeignKey(User)
+    submitter = models.ForeignKey(User, on_delete=models.CASCADE)
     justification = models.TextField(default="")
     submission_date = models.DateTimeField(auto_now_add=True)
 
@@ -725,8 +738,10 @@ class AnswerCorrection(models.Model):
 
 class ExplanationRevision(models.Model):
     question = models.ForeignKey(Question,
-                                 related_name="explanation_revisions")
+                                 related_name="explanation_revisions",
+                                 on_delete=models.CASCADE)
     submitter = models.ForeignKey(User, null=True, blank=True,
+                                  on_delete=models.SET_NULL,
                                   related_name="submitted_explanations")
 
     explanation_text = models.TextField(default="")
@@ -766,7 +781,7 @@ class ExplanationRevision(models.Model):
             return "Explanation revision #{}".format(self.pk)
 
 class Mnemonic(models.Model):
-    question = models.ForeignKey(Question)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
     image = models.ImageField(upload_to="mnemonic_images",
                               blank=True)
     text = models.TextField(default="")
@@ -774,7 +789,7 @@ class Mnemonic(models.Model):
                                    related_name="liked_mnemonic")
     # reports = models.ManyToManyField(User, blank=True,
     #                                         related_name="reported_mnemonic")
-    submitter = models.ForeignKey(User)
+    submitter = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     submission_date = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
     objects = managers.MnemonicQuerySet.as_manager()
@@ -813,8 +828,9 @@ status_choices = (
 
 class DuplicateContainer(models.Model):
     primary_question = models.ForeignKey(Question,
+                                         on_delete=models.CASCADE,
                                          related_name="primary_duplicates")
-    reviser = models.ForeignKey(User, null=True, blank=True)
+    reviser = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
     revision_date = models.DateTimeField(null=True, blank=True)
 
     status = models.CharField(max_length=20, choices=status_choices,
@@ -903,7 +919,7 @@ class DuplicateContainer(models.Model):
                                                                     self.duplicate_set.count())
 
 class Duplicate(models.Model):
-    container = models.ForeignKey(DuplicateContainer, null=True)
+    container = models.ForeignKey(DuplicateContainer, null=True, on_delete=models.SET_NULL)
     question = models.ForeignKey(Question, null=True,
                                  related_name="secondary_duplicates")
     ratio = models.FloatField()
@@ -952,11 +968,12 @@ class Rule(models.Model):
 
 class SuggestedChange(models.Model):
     rules = models.ManyToManyField(Rule, blank=True)
-    revision = models.ForeignKey(Revision)
+    revision = models.ForeignKey(Revision, on_delete=models.CASCADE)
 
     status = models.CharField(max_length=20, choices=status_choices,
                               default="PENDING")
-    reviser = models.ForeignKey(User, null=True, blank=True)
+    reviser = models.ForeignKey(User, null=True, blank=True,
+                                on_delete=models.SET_NULL)
     revision_date = models.DateTimeField(null=True, blank=True)
 
     submission_date = models.DateTimeField(auto_now_add=True)

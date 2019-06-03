@@ -25,7 +25,8 @@ class Message(models.Model):
     levels = models.ManyToManyField('accounts.Level', blank=True)
 
     status = models.CharField(max_length=20, default="PENDING", choices=status_choices)
-    submitter = models.ForeignKey(User)
+    submitter = models.ForeignKey(User, null=True,
+                                  on_delete=models.SET_NULL)
     submission_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
