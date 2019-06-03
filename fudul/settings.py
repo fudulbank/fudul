@@ -194,7 +194,7 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
 SITE_ID = 1
-ANONYMOUS_USER_ID = -1
+ANONYMOUS_USER_NAME = 'AnonymousUser'
 AUTH_PROFILE_MODULE = 'accounts.Profile'
 LOGIN_URL = reverse_lazy('userena_signin')
 LOGOUT_URL = reverse_lazy('loginas-logout')
@@ -271,8 +271,8 @@ CKEDITOR_CONFIGS = {
 }
 
 PRIVILEGED_DIR = os.path.join(BASE_DIR, 'privileged_files/')
-NOTIFICATIONS_USE_JSONFIELD = True
-NOTIFICATIONS_SOFT_DELETE = True
+DJANGO_NOTIFICATIONS_CONFIG = {'SOFT_DELETE': True,
+                               'USE_JSONFIELD': True}
 
 DEFAULT_CACHES = {
     'default': {
