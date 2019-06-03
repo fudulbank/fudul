@@ -187,6 +187,34 @@ function navigate() {
     showQuestion(targeted_sequence);
 }
 
+function toggleSharingResults() {
+    if (!window.IS_SHARED || !window.SESSION_MODE == 'UNEXPLAINED'){
+      return
+    }
+    $.ajax({
+        url: Urls['exams:toggle_sharing_results'](),
+        type: 'POST',
+        data: {session_pk: window.SESSION_PK},
+        cache: false,
+        success: function(data){
+           if (data.share_results){
+             var names = [];
+             $('.sharer-name').each(function(){
+               var session_pk = $(this).closest('.shared-session').find('.progress').data('pk');
+               if (session_pk != window.SESSION_PK){
+                 names.push(this.innerHTML)
+               }
+             });
+             toastr.success("Sharing the results of this session with " + names.join(',') + " has been enabled.");
+             _paq.push(['trackEvent', 'show_session', 'share-results', 'enable-sharing']);
+           } else {
+             toastr.success("Sharing the results of this session has been disabled.");
+             _paq.push(['trackEvent', 'show_session', 'share-results', 'disable-sharing']);
+           }
+        }
+    });
+}
+
 function toggleMarked() {
     $("#mark-icon").hide();
     $("#mark-loading").css('display', 'inline-block');
@@ -913,7 +941,7 @@ function updateSharedProgressBar(session_pk, stat){
     return
   }
 
-  var $progress_container = $('.progress[data-pk="' + session_pk +'"]')
+  var $progress_container = $('.progress[data-pk="' + session_pk +'"]');
 
   if (session_pk != window.SESSION_PK){
     $progress_container.attr('data-has-finished', stat.has_finished.toString());
@@ -923,17 +951,18 @@ function updateSharedProgressBar(session_pk, stat){
 
   // Only detail the breakdown if the session mode is EXPLAINED.
   // Otherwise, only show a generic count.
-  if (window.SESSION_MODE == 'EXPLAINED'){
+  if (stat.count){
+    var percentage = stat.count / window.g.__SESSION_QUESTION_TOTAL * 100 + '%';
+    $progress_container.html('<div class="progress-bar bg-success" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + stat.count + '" style="width: ' + percentage + '"></div>');
+    $("#shared-session-" + session_pk).tooltip({html: true, title: '<span class="sharer-name">' + stat.count + " out of " + window.g.__SESSION_QUESTION_TOTAL + " questions (" + percentage + ")</span>"});
+  } else {
     var correct_percentage = Math.round(stat.correct_count / window.g.__SESSION_QUESTION_TOTAL * 100) + '%',
         incorrect_percentage = Math.round(stat.incorrect_count / window.g.__SESSION_QUESTION_TOTAL * 100) + '%',
         skipped_percentage = Math.round(stat.skipped_count / window.g.__SESSION_QUESTION_TOTAL * 100) + '%';
-    $progress_container.find('.progress-bar.bg-success').css('width', correct_percentage).attr('aria-valuenow', stat.correct_count);
-    $progress_container.find('.progress-bar.bg-danger').css('width', incorrect_percentage).attr('aria-valuenow', stat.incorrect_count);
-    $progress_container.find('.progress-bar.bg-warning').css('width', skipped_percentage).attr('aria-valuenow', stat.skipped_count);
+    $progress_container.html('<div class="progress-bar bg-success" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + stat.correct_count + '" style="width: ' + correct_percentage + '"></div>' +
+                             '<div class="progress-bar bg-danger" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + stat.incorrect_count + '" style="width: ' + incorrect_percentage + '"></div>' +
+                             '<div class="progress-bar bg-warning" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + stat.skipped_count + '" style="width: ' + skipped_percentage + '"></div>')
     $("#shared-session-" + session_pk).tooltip({html: true, title: '<ul class="mb-0 pl-3 sharer-name"><li>Correct: ' + stat.correct_count + ' (' + correct_percentage +')</li><li>Incorrect: ' + stat.incorrect_count + ' (' + incorrect_percentage + ')</li><li>Skipped: ' + stat.skipped_count + ' (' + skipped_percentage +')</li></ul>'})
-  } else {
-    var width = stat.count / window.g.__SESSION_QUESTION_TOTAL * 100 + '%';
-    $progress_container.find('.progress-bar.bg-success').css('width', width).attr('aria-valuenow', stat.count);
   }
 
 }
@@ -1281,6 +1310,7 @@ $(function() {
      if (window.IS_SHARED){
        fetchSharedStats();
        setSharedStatTimer();
+       $("#share-results").change(toggleSharingResults);
      }
 
      $(".mobile-slide").click(function(){

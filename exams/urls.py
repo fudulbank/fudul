@@ -35,6 +35,7 @@ urlpatterns =[
     url(r'^ajax/examinees/submit_answer$', views.submit_answer, name='submit_answer'),
     url(r'^ajax/examinees/submit_highlight$', views.submit_highlight, name='submit_highlight'),
     url(r'^ajax/examinees/toggle_marked$', views.toggle_marked, name='toggle_marked'),
+    url(r'^ajax/examinees/toggle_sharing_results$', views.toggle_sharing_results, name='toggle_sharing_results'),
     url(r'^ajax/examinees/update_theme$', views.update_session_theme, name='update_session_theme'),
     url(r'^tmep/end_session/$', TemplateView.as_view(template_name='exams/session_end.html'), name="session_end"),
     url(r'^previous/$', views.list_previous_sessions, name='list_previous_sessions'),

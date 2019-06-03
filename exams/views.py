@@ -1499,13 +1499,15 @@ def get_shared_session_stats(request):
         raise PermissionDenied
 
     stats = []
-    for shared_session in Session.objects.get_shared(session).exclude(pk=session_pk):
+    for shared_session in Session.objects.get_shared(session)\
+                                         .exclude(pk=session_pk):
         stat = {'pk': shared_session.pk,
                 'has_finished': shared_session.get_has_finished() or False}
 
-        # Only detail the breakdown if the session mode is EXPLAINED.
+        # Only detail the breakdown if the session mode is EXPLAINED
+        # and the user did not disable sharing the results.
         # Otherwise, only show a generic count.
-        if session.session_mode == 'EXPLAINED':
+        if session.session_mode == 'EXPLAINED' and shared_session.share_results:
             stat.update({'correct_count': shared_session.correct_answer_count,
                          'incorrect_count': shared_session.incorrect_answer_count,
                          'skipped_count': shared_session.skipped_answer_count})
@@ -1514,3 +1516,21 @@ def get_shared_session_stats(request):
         stats.append(stat)
 
     return {'stats': stats}
+
+@login_required
+@require_POST
+@csrf.csrf_exempt
+@decorators.ajax_only
+def toggle_sharing_results(request):
+    session_pk = request.POST.get('session_pk')
+    session = get_object_or_404(Session.objects.select_related('submitter')\
+                                               .undeleted(),
+                                pk=session_pk)
+    # PERMISSION CHECKS
+    if not session.submitter == request.user:
+        raise Exception("You cannot toggle sharing results in this session.")
+
+    session.share_results = not session.share_results
+    session.save()
+
+    return {'share_results': session.share_results}

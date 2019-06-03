@@ -105,7 +105,7 @@
           <div id="sharing-sidebar" class="col-12 col-md-4 col-lg-3 text-center py-4">
             <p class="mb-0">You are sharing this session with:</p>
             {% for shared_session in shared_sessions %}
-            <div id="shared-session-{{ shared_session.pk }}">
+            <div id="shared-session-{{ shared_session.pk }}" class="shared-session">
               <p class="sharer-name mt-2 mb-1">{{ shared_session.submitter|get_user_credit:user }}</p>
               <div class="row justify-content-center">
                 <div class="col-6 col-md-10">
@@ -118,7 +118,9 @@
               </div>
             </div>
             {% endfor %}
-
+            {% if session.session_mode == 'EXPLAINED' %}
+            <label class="mt-2" data-toggle="tooltip" data-title="This will share the details of your results with your study mates.  In addition to the number of questions answered, which is always shared, this will also include the percentages of correct, incorrect and skipped questions."><input id="share-results" type="checkbox" {% if session.share_results %}checked{% endif %}> Share my results.</label>
+            {% endif %}
           </div>
           {% endif %}
         </div>
@@ -152,7 +154,7 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
         <script src="{% static 'js/toastr.js' %}"></script>
-        <script src="{% url 'js_reverse' %}?v=1.1"></script>
+        <script src="{% url 'js_reverse' %}?v=1.2"></script>
         <script>
 // These are the global varaibles used later in the JavaScript-side
 // of show session.
@@ -169,7 +171,7 @@ window.SESSION_IS_EXAMINABLE = {% if session.is_examinable %}true{% else %}false
 window.USER_FIRST_NAME = "{{ user.profile.first_name }}";
 window.IS_SHARED = {%if is_shared %}true{% else %}false{% endif %};
         </script>
-        <script src="{% static 'js/show_session.min.js' %}?version=1.1"></script>
+        <script src="{% static 'js/show_session.min.js' %}?version=1.2"></script>
         {% include 'exams/partials/normal_values.html' %}
 
         {% with modal_id='confirm-end-modal' is_small=True confirm_link=True modal_title="End session" modal_content="<i class='text-danger fas fa-sign-out-alt'></i> Are you sure you want to end this session, and mark unsubmitted questions as unsolved?" %}

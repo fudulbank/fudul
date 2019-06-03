@@ -536,6 +536,7 @@ class Session(models.Model):
                                        related_name="children",
                                        null=True,
                                        blank=True)
+    share_results = models.BooleanField(default=True)
     secret_key = models.CharField(max_length=10)
     number_of_questions = models.PositiveIntegerField(null=True)
     sources = models.ManyToManyField(Source, blank=True)
