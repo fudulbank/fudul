@@ -205,7 +205,14 @@ function toggleSharingResults() {
                  names.push(this.innerHTML)
                }
              });
-             toastr.success("Sharing the results of this session with " + names.join(',') + " has been enabled.");
+             var joined_names;
+             if (names.length > 1){
+               var last_name = names.pop();
+               joined_names =  names.join(', ') + ' and ' + last_name;
+             } else {
+               joined_names = names[0];
+             }
+             toastr.success("Sharing the results of this session with " + joined_names + " has been enabled.");
              _paq.push(['trackEvent', 'show_session', 'share-results', 'enable-sharing']);
            } else {
              toastr.success("Sharing the results of this session has been disabled.");
