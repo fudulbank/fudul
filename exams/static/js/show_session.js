@@ -188,7 +188,7 @@ function navigate() {
 }
 
 function toggleSharingResults() {
-    if (!window.IS_SHARED || !window.SESSION_MODE == 'UNEXPLAINED'){
+    if (!window.IS_SHARED || !window.SESSION_MODE == 'EXPLAINED'){
       return
     }
     $.ajax({
