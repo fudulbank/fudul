@@ -19,14 +19,13 @@ def forward(apps, schema_editor):
     Answer = apps.get_model('exams', 'Answer')
     Highlight = apps.get_model('exams', 'Highlight')
 
-    for revision in Revision.objects.filter(choices__isnull=True)\
-                                    .prefetch_related(Prefetch('choice_set', to_attr='choice_list'))\
+    for revision in Revision.objects.prefetch_related(Prefetch('choice_set', to_attr='choice_list'))\
                                     .order_by('pk'):
        print(f"Filling revision.choices for revision #{revision.pk}...")
        revision.choices.add(*revision.choice_list)
 
     for choice in Choice.objects.select_related('revision', 'revision__question')\
-                                .filter(revision__isnull=False)\
+                                .filter(revision__isnull=False, question__isnull=True)\
                                 .order_by('pk'):
         print(f"Filling choice.question for choice #{choice.pk}...")
         choice.question = choice.revision.question
@@ -42,14 +41,14 @@ def forward(apps, schema_editor):
     for question in question_pool:
         choices_scanned = []
         for choice in Choice.objects.select_related('answer_correction')\
-                                    .filter(revision__question=question):
+                                    .filter(question=question):
             choice_identifier = (choice.text, choice.is_right) 
             if choice_identifier in choices_scanned:
                 continue
             else:
                 choices_scanned.append(choice_identifier)
 
-            similar_choices = Choice.objects.filter(revision__question=question,
+            similar_choices = Choice.objects.filter(question=question,
                                                     text=choice.text,
                                                     is_right=choice.is_right)\
                                             .select_related('revision')
