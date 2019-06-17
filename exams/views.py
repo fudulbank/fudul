@@ -1097,12 +1097,10 @@ def correct_answer(request):
     changed = False
 
     # PERMISSION CHECK
-    choice_pool = Choice.objects.filter(question__session__submitter=request.user)\
+    choice_pool = Choice.objects.filter(question__is_deleted=False)\
                                 .select_related('question',
-                                                'question__exam')\
-                                .distinct()
-    choice = get_object_or_404(choice_pool, pk=choice_pk,
-                               question__is_deleted=False)
+                                                'question__exam')
+    choice = get_object_or_404(choice_pool, pk=choice_pk)
     if not choice.question.exam.can_user_access(request.user):
         raise PermissionDenied
 
