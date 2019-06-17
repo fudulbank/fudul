@@ -182,7 +182,7 @@ class Command(BaseCommand):
                 subject = light_get_from_pool(subject_pool, question_subject)
                 if subject:
                     subjects.append(subject)
-            if not subjects:
+            if not subjects and default_subject:
                 subjects.append(default_subject)
 
             source = None
@@ -231,7 +231,8 @@ class Command(BaseCommand):
                 question = Question.objects.create(exam=exam,
                                                    is_approved=is_approved,
                                                    parent_question=parent_question)
-                question.subjects.add(*subjects)
+                if subjects:
+                    question.subjects.add(*subjects)
                 question.issues.add(*issues)
                 if source:
                     question.sources.add(source)
@@ -252,8 +253,10 @@ class Command(BaseCommand):
                                                        reference=reference,
                                                        explanation_text=explanation)
 
+                for choice in choices:
+                    choice.question = question
+
                 choice_objects = Choice.objects.bulk_create(choices)
-                for choice in choice_objects:
-                    revision.choices.add(choice)
+                revision.choices.add(*choice_objects)
                 question.best_revision = revision
                 question.save()
