@@ -1,7 +1,9 @@
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+from exams.models import Category, Answer, Revision, ExplanationRevision
 
-@receiver([post_save, post_delete], sender='exams.Revision')
+
+@receiver([post_save, post_delete], sender=Revision)
 def update_latest_revision(sender, instance, raw, **kwargs):
     # If we are importing a fixture, do not fire the signal.
     if raw:
@@ -39,7 +41,7 @@ def update_latest_revision(sender, instance, raw, **kwargs):
 
     question.save()
 
-@receiver([post_save, post_delete], sender='exams.ExplanationRevision')
+@receiver([post_save, post_delete], sender=ExplanationRevision)
 def update_latest_explanation_revision(sender, instance, raw, **kwargs):
     # If we are importing a fixture, do not fire the signal.
     if raw:
@@ -58,7 +60,7 @@ def update_latest_explanation_revision(sender, instance, raw, **kwargs):
         question.latest_explanation_revision = latest_explanation_revision
         question.save()
 
-@receiver([post_save, post_delete], sender='exams.Answer')
+@receiver([post_save, post_delete], sender=Answer)
 def update_session_stats(sender, instance, raw, **kwargs):
     if raw:
         return
@@ -85,12 +87,12 @@ def update_session_stats(sender, instance, raw, **kwargs):
 
     # Set is_first
     if Answer.objects.filter(question_id=instance.question_id,
-                             session__submitter_id=answer.session.submitter_id)\
+                             session__submitter_id=instance.session.submitter_id)\
                      .count() == 1:
         instance.is_first = True
         instance.save()
 
-@receiver(post_save, sender='exams.Category')
+@receiver(post_save, sender=Category)
 def update_slug_cache(sender, instance, raw, **kwargs):
     # If we are importing a fixture, do not fire the signal.
     if raw:
