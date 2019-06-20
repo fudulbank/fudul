@@ -106,6 +106,8 @@ def get_exam_question_count_per_meta(exam, meta, approved_only=False):
         keyword = 'subjects'
     elif type(meta) is models.Issue:
         keyword = 'issues'
+    elif type(meta) is models.Difficulty:
+        keyword = 'difficulty'
 
     query = {keyword: meta}
 

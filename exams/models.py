@@ -154,7 +154,8 @@ class Exam(models.Model):
                                         default=True, blank=True)
     inherits_sources = models.BooleanField("This exam inherits sources from its parent categories",
                                            default=True)
-
+    last_answer_for_difficulty = models.ForeignKey('Answer', null=True, blank=True,
+                                                   on_delete=models.SET_NULL)
     submission_date = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
 
@@ -268,6 +269,16 @@ class Subject(models.Model):
     def __str__(self):
         return self.name
 
+class Difficulty(models.Model):
+    label = models.CharField(max_length=100)
+    tooltip = models.TextField()
+    upper_limit = models.PositiveIntegerField(null=True)
+    lower_limit = models.PositiveIntegerField(null=True)
+    objects = managers.MetaInformationQuerySet.as_manager()
+
+    def __str__(self):
+        return self.label
+
 class Question(models.Model):
     sources = models.ManyToManyField(Source, blank=True)
     subjects = models.ManyToManyField(Subject, blank=True)
@@ -299,13 +310,12 @@ class Question(models.Model):
     assigned_editor = models.ForeignKey(User, null=True, blank=True,
                                         on_delete=models.SET_NULL,
                                         related_name="assigned_questions")
+    difficulty = models.ForeignKey(Difficulty, null=True, blank=True,
+                                   on_delete=models.SET_NULL)
 
     # Database-heavy counts
     total_user_count = models.PositiveIntegerField(null=True)
-    correct_user_count = models.PositiveIntegerField(null=True)
-    incorrect_user_count = models.PositiveIntegerField(null=True)
-    skipping_user_count = models.PositiveIntegerField(null=True)
-    count_update_date = models.DateTimeField(null=True, blank=True)
+    correct_first_timer_count = models.PositiveIntegerField(null=True)
 
     def __str__(self):
         latest_revision = self.get_latest_revision()
@@ -377,7 +387,7 @@ class Question(models.Model):
 
     def get_correct_other_percentage(self):
         if self.total_user_count:
-            result = self.correct_user_count / self.total_user_count * 100
+            result = self.correct_first_timer_count / self.total_user_count * 100
             return round(result, 1)
         else:
             return 0
@@ -541,6 +551,7 @@ class Session(models.Model):
     number_of_questions = models.PositiveIntegerField(null=True)
     sources = models.ManyToManyField(Source, blank=True)
     subjects = models.ManyToManyField(Subject, blank=True)
+    difficulties = models.ManyToManyField(Difficulty, blank=True)
     exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
     questions = models.ManyToManyField(Question, blank=True)
     exam_types = models.ManyToManyField(ExamType, blank=True)
@@ -657,7 +668,8 @@ class Answer(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     choice = models.ForeignKey(Choice, null=True,
                                on_delete=models.CASCADE)
-
+    is_first = models.BooleanField("Is this the first time this question was answered by the user?",
+                                   blank=True, default=False)
     submission_date = models.DateTimeField(auto_now_add=True, null=True)
 
     objects = managers.AnswerQuerySet.as_manager()

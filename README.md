@@ -53,7 +53,7 @@ On Fudul's production server, we have these settings:
 * * * * * python3 /path/to/fudul/manage.py process_messages
 0 * * * * python3 /path/to/fudul/manage.py silk_clear_request_log
 0 * * * * python3 /path/to/fudul/manage.py cleanup_questions
-0 * * * * python3 /path/to/fudul/manage.py update_answer_counts
+0 * * * * python3 /path/to/fudul/manage.py update_difficulty
 0 21 * * * python3 /path/to/fudul/manage.py catch_duplicates
 0 21 * * * python3 /path/to/fudul/manage.py daily_stats
 0 21 * * * bash /path/to/fudul/scripts/update_retention_stats.sh

@@ -181,6 +181,22 @@
     </div>
 </div>
 {% endif %}
+{% if sessionform.difficulties %}
+<div class="card mb-0 step">
+  <div class="card-header p-0" id="difficulty-header">
+    <h5 class="m-0">
+      <button type="button" class="btn btn-link" data-toggle="collapse" data-target="#difficulties" aria-expanded="true" aria-controls="exam-types">
+        Customize your difficulty level <i>(optional)</i>
+      </button>
+    </h5>
+  </div>
+    <div id="difficulties" class="collapse" aria-labelledby="difficulty-header">
+      <div class="card-body pb-0 multiple-choices">
+          {{ sessionform.difficulties }}
+      </div>
+    </div>
+</div>
+{% endif %}
 {% endcache %}
 <div class="card mb-0 step">
   <div class="card-header p-0" id="question-number-header">
@@ -339,6 +355,7 @@
         $('#id_subjects').prepend('<li><label class="select-all-label"><input type="checkbox" name="all_subjects" class="select-all"> All</label></li>')
         $('#id_sources').prepend('<li><label class="select-all-label"><input type="checkbox" name="all_sources" class="select-all"> All</label></li>')
         $('#id_exam_types').prepend('<li><label class="select-all-label"><input type="checkbox" name="all_exam_types" class="select-all"> All</label></li>')
+        $('#id_difficulties').prepend('<li><label class="select-all-label"><input type="checkbox" name="all_difficulties" class="select-all"> All</label></li>')
 
         $('.multiple-choices input:not(.select-all)').change(multipleChoiceChange);
         $('.select-all').change(function(){

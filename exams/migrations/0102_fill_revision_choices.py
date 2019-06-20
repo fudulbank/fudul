@@ -19,7 +19,7 @@ def forward(apps, schema_editor):
     Answer = apps.get_model('exams', 'Answer')
     Highlight = apps.get_model('exams', 'Highlight')
 
-    for revision in Revision.objects.prefetch_related(Prefetch('choice_set', to_attr='choice_list'))\
+    for revision in Revision.objects.filter(question_id=20376).prefetch_related(Prefetch('choice_set', to_attr='choice_list'))\
                                     .order_by('pk'):
        print(f"Filling revision.choices for revision #{revision.pk}...")
        revision.choices.add(*revision.choice_list)
@@ -33,9 +33,7 @@ def forward(apps, schema_editor):
 
     total_obsolete_count = 0
     current_question_count = 0
-    question_pool = Question.objects.annotate(revision_count=Count('revision'))\
-                                    .filter(revision_count__gte=2)\
-                                    .order_by('pk')
+    question_pool = Question.objects.filter(pk=20376)
     total_question_count = question_pool.count()
 
     for question in question_pool:
@@ -81,10 +79,14 @@ def forward(apps, schema_editor):
             print("Question {} ({}%): We are removing {} obsolete choices...".format(question.pk, percentage,obsolete_count))
             for obsolete_choice in obsolete_choices:
                 # 1) Revisions
-                print(f"Adding choice \"{preferred_choice.text}\" (#{preferred_choice.pk}) to revision #{obsolete_choice.revision.pk} in place of choice #{obsolete_choice.pk}")
-                revision = obsolete_choice.revision
-                revision.choices.add(preferred_choice)
-                revision.choices.remove(obsolete_choice)
+                if obsolete_choice.revision:
+                    revisions = [obsolete_choice.revision]
+                else:
+                    revisions = obsolete_choice.revision_set.all()
+                for revision in revisions:
+                    print(f"Adding choice \"{preferred_choice.text}\" (#{preferred_choice.pk}) to revision #{revision.pk} in place of choice #{obsolete_choice.pk}")
+                    revision.choices.add(preferred_choice)
+                    revision.choices.remove(obsolete_choice)
                 # 2) Answers
                 Answer.objects.filter(choice=obsolete_choice).update(choice=preferred_choice)
                 # 3) Highlights

@@ -3,6 +3,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.forms.models import modelformset_factory, inlineformset_factory
+from django.utils.safestring import mark_safe
 import random
 import string
 
@@ -21,8 +22,10 @@ class MetaChoiceField(forms.ModelMultipleChoiceField):
         count = utils.get_exam_question_count_per_meta(self.exam,
                                                        meta=obj,
                                                        approved_only=approved_only)
-
-        return "{} ({})".format(str(obj), count)
+        if type(obj) is models.Difficulty:
+            return mark_safe(f"<abbr data-tooltip='{obj.tooltip}'>{str(obj)} ({count})</abbr>")
+        else:
+            return f"{str(obj)} ({count})"
 
 class StatusChoiceField(forms.ModelMultipleChoiceField):
     def label_from_instance(self, obj):
@@ -355,6 +358,19 @@ class SessionForm(forms.ModelForm):
         else:
             del self.fields['exam_types']
 
+        difficulties = models.Difficulty.objects.with_approved_questions()\
+                                                .distinct()\
+                                                .order_by('-upper_limit')
+        if difficulties.exists():
+            self.fields['all_difficulties'] = forms.BooleanField(label="All", required=False)
+            self.fields['difficulties'] = MetaChoiceField(required=not self.is_automatic,
+                                                          form_type='session',
+                                                          exam=self.exam,
+                                                          queryset=difficulties,
+                                                          widget=forms.CheckboxSelectMultiple)
+        else:
+            del self.fields['difficulties']
+
         if self.is_automatic:
             self.fields['number_of_questions'].required = False
 
@@ -378,6 +394,11 @@ class SessionForm(forms.ModelForm):
             exam_types = cleaned_data.get('exam_types')
             if exam_types:
                 question_pool = question_pool.filter(exam_types__in=exam_types)
+
+        if not cleaned_data.get('all_difficulties'):
+            difficulties = cleaned_data.get('difficulties')
+            if difficulties:
+                question_pool = question_pool.filter(difficulty__in=difficulties)
 
         return question_pool
 
@@ -465,7 +486,7 @@ class SessionForm(forms.ModelForm):
     class Meta:
         model = models.Session
         fields = ['session_mode', 'number_of_questions','exam_types',
-                  'sources', 'subjects', 'question_filter']
+                  'sources', 'subjects', 'question_filter', 'difficulties']
 
 
 class ExplanationForm(GenericRevisionForm):

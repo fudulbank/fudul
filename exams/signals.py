@@ -83,6 +83,13 @@ def update_session_stats(sender, instance, raw, **kwargs):
 
     session.save()
 
+    # Set is_first
+    if Answer.objects.filter(question_id=instance.question_id,
+                             session__submitter_id=answer.session.submitter_id)\
+                     .count() == 1:
+        instance.is_first = True
+        instance.save()
+
 @receiver(post_save, sender='exams.Category')
 def update_slug_cache(sender, instance, raw, **kwargs):
     # If we are importing a fixture, do not fire the signal.
