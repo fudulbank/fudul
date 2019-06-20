@@ -86,11 +86,15 @@ def update_session_stats(sender, instance, raw, **kwargs):
     session.save()
 
     # Set is_first
-    if Answer.objects.filter(question_id=instance.question_id,
-                             session__submitter_id=instance.session.submitter_id)\
-                     .count() == 1:
-        instance.is_first = True
-        instance.save()
+    if instance.choice:
+        similar_answers = Answer.objects.filter(question_id=instance.question_id,
+                                                choice__isnull=False,
+                                                session__submitter_id=instance.session.submitter_id)\
+                                        .order_by('pk')
+        first_answer = similar_answers.first()
+        first_answer.is_first = True
+        first_answer.save()
+        similar_answers.exclude(pk=first_answer.pk).update(is_first=False)
 
 @receiver(post_save, sender=Category)
 def update_slug_cache(sender, instance, raw, **kwargs):
