@@ -98,13 +98,13 @@
         </td>
       </tr>
       <tr>
-        <th># times answered</th>
+        <th># times answered (# users)</th>
         <td>
-          {{ question.answer_set.count }}
+          {{ question.answer_set.count }} ({{ question.total_user_count }})
         </td>
-        <th>% correct</th>
+        <th><abbr title="Percentage of users who answered this question correctly in the first time.">% correct</abbr></th>
         <td>
-          {{ question.get_correct_percentage }}
+          {{ question.get_correct_percentage }}%
         </td>
       </tr>
   </table>
