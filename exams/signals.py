@@ -95,9 +95,6 @@ def update_session_stats(sender, instance, raw, **kwargs):
         if not first_answer.is_first: 
             # Here we use update instead of save to avoid signal
             # recrusion.
-            question = first_answer.question
-            question.total_user_count += 1
-            question.save()
             similar_answers.filter(pk=first_answer.pk).update(is_first=True)
             similar_answers.exclude(pk=first_answer.pk).update(is_first=False)
 
