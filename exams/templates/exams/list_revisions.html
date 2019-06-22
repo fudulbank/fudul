@@ -98,9 +98,9 @@
         </td>
       </tr>
       <tr>
-        <th># times answered (# users)</th>
+        <th># times answered</th>
         <td>
-          {{ question.answer_set.count }} ({{ question.total_user_count }})
+          {{ question.answer_set.count }} times by ~{{ question.total_user_count }} users
         </td>
         <th><abbr title="Percentage of users who answered this question correctly in the first time.">% correct</abbr></th>
         <td>
@@ -191,6 +191,7 @@
 
 <script type="text/javascript">
     $(function () {
+        $('abbr').tooltip();
         $revision_table = $(".datatable").DataTable({
 	            order: [[ 2, "desc" ]]
 	      });

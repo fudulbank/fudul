@@ -147,13 +147,20 @@ class SessionThemeAdmin(admin.ModelAdmin):
         return obj.profile_set.count()
     get_count.short_description = "# users"
 
+class DifficultyAdmin(admin.ModelAdmin):
+    list_display = ['label', 'get_count']
+    def get_count(self, obj):
+        return obj.question_set.count()
+    get_count.short_description = "# questions"
+    
+
 editor_site = EditorAdmin("editor_admin")
 
 admin.site.register(models.Category, CategoryAdmin)
 admin.site.register(models.Exam, ExamAdmin)
 admin.site.register(models.ExamType)
 admin.site.register(models.Issue)
-admin.site.register(models.Difficulty)
+admin.site.register(models.Difficulty, DifficultyAdmin)
 admin.site.register(models.Rule, RuleAdmin)
 admin.site.register(models.Session, SessionAdmin)
 admin.site.register(models.SessionTheme, SessionThemeAdmin)

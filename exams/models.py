@@ -154,8 +154,6 @@ class Exam(models.Model):
                                         default=True, blank=True)
     inherits_sources = models.BooleanField("This exam inherits sources from its parent categories",
                                            default=True)
-    last_answer_for_difficulty = models.ForeignKey('Answer', null=True, blank=True,
-                                                   on_delete=models.SET_NULL)
     submission_date = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
 
@@ -272,8 +270,8 @@ class Subject(models.Model):
 class Difficulty(models.Model):
     label = models.CharField(max_length=100)
     tooltip = models.TextField()
-    upper_limit = models.PositiveIntegerField(null=True)
-    lower_limit = models.PositiveIntegerField(null=True)
+    upper_limit = models.PositiveIntegerField()
+    lower_limit = models.PositiveIntegerField()
     objects = managers.MetaInformationQuerySet.as_manager()
 
     def __str__(self):
