@@ -338,6 +338,9 @@
         $('#exam-types').on('show.bs.collapse', function(){
           _paq.push(['trackEvent', 'start_session', 'exam_type_step']);
         });
+        $('#difficulties').on('show.bs.collapse', function(){
+          _paq.push(['trackEvent', 'start_session', 'difficulty_step']);
+        });
 
         $('.step button').each(function(index, element){
           var step_number = index + 1,
