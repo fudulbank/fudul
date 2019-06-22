@@ -1,9 +1,9 @@
 from django.core.management.base import BaseCommand
 from django.db import connection
-from django.config import settings
+from django.conf import settings
 from django.db.models import F, FloatField
 from django.db.models.functions import Cast
-from exams.models import Exam, Difficulty, Answer
+from exams.models import Exam, Difficulty, Answer, Question
 
 
 class Command(BaseCommand):
@@ -40,7 +40,6 @@ class Command(BaseCommand):
                 if pool_count:
                     if options['verbose']:
                         print(f"Updating {pool_count} with {difficulty.label}")
-
                     question_pool.update(difficulty=difficulty)
                 elif options['verbose']:
-                    print(f"Nothing for {difficulty.label} in {exam.name}")
+                    print(f"Nothing for {difficulty.label}.")
