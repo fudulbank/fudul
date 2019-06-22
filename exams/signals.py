@@ -92,10 +92,14 @@ def update_session_stats(sender, instance, raw, **kwargs):
                                                 session__submitter_id=instance.session.submitter_id)\
                                         .order_by('pk')
         first_answer = similar_answers.first()
-        # Here we use update instead of save to avoid signal
-        # recrusion.
-        similar_answers.filter(pk=first_answer.pk).update(is_first=True)
-        similar_answers.exclude(pk=first_answer.pk).update(is_first=False)
+        if not first_answer.is_first: 
+            # Here we use update instead of save to avoid signal
+            # recrusion.
+            question = first_answer.question
+            question.total_user_count += 1
+            question.save()
+            similar_answers.filter(pk=first_answer.pk).update(is_first=True)
+            similar_answers.exclude(pk=first_answer.pk).update(is_first=False)
 
 @receiver(post_save, sender=Category)
 def update_slug_cache(sender, instance, raw, **kwargs):
