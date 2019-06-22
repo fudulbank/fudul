@@ -45,6 +45,8 @@
 
     .step button {
       font-size: 1.2rem;
+      text-align: left;
+      white-space: normal;
     }
 
     .step-header, .select-all-label{
@@ -316,7 +318,7 @@
     }
 
     $(function() {
-        $('[data-toggle="tooltip"]').tooltip();
+        $('[data-toggle="tooltip"], abbr').tooltip();
 
         $("#id_session_mode li:nth-child(1) label").tooltip({title: "This shows the right answer with its explanation after submitting each question."})
         $("#id_session_mode li:nth-child(2) label").tooltip({title: "This hides the right answer and explanation, and only shows them at the end."})
