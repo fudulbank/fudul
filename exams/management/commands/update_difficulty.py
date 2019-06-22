@@ -1,4 +1,6 @@
 from django.core.management.base import BaseCommand
+from django.db import connection
+from django.config import settings
 from django.db.models import F, FloatField
 from django.db.models.functions import Cast
 from exams.models import Exam, Difficulty, Answer
@@ -13,43 +15,22 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         difficulties = Difficulty.objects.all()
-        for exam in Exam.objects.all():
-            # If no answer was submitted to this exam since it was
-            # last evaluated, save the trouble of updating the
-            # difficulty.
-            last_answer = Answer.objects.filter(session__exam=exam)\
-                                        .order_by('pk').last()
-            if not options['force'] and \
-               (not last_answer or \
-                exam.last_answer_for_difficulty == last_answer):
-                continue
+        with connection.cursor() as cursor:
+            # Temporarily disable the statement timeout in production server
+            if not settings.DEBUG:
+                cursor.excute('SET statement_timeout=0;')
 
-            for question in exam.question_set.available():
-                total_users = Answer.objects.filter(question=question)\
-                                            .values('session__submitter_id')\
-                                            .distinct()\
-                                            .count()
-                correct_first_timers = Answer.objects.filter(choice__is_right=True,
-                                                             is_first=True,
-                                                             question=question)\
-                                                     .values('session__submitter_id')\
-                                                     .distinct()\
-                                                     .count()                
-                if question.total_user_count != total_users or \
-                   question.correct_first_timer_count != correct_first_timers:
-                    question.total_user_count = total_users
-                    question.correct_first_timer_count = correct_first_timers
-                    if options['verbose']:
-                        print(f"Updating counts for Q#{question.pk} ({total_users}, {correct_first_timers})...")
-                    question.save()
-                elif options['verbose']:
-                    print(f"Nothing to be done for Q#{question.pk}.")
+            # Updating total_user_count and correct_first_timer_count
+            cursor.execute("UPDATE exams_question SET total_user_count=(SELECT COUNT(exams_answer.id) FROM exams_answer INNER JOIN exams_choice ON exams_answer.choice_id=exams_choice.id INNER JOIN exams_session ON exams_answer.session_id=exams_session.id WHERE exams_answer.question_id=exams_question.id AND is_first=TRUE AND exams_answer.choice_id IS NOT NULL);")
+            cursor.execute("UPDATE exams_question SET correct_first_timer_count=(SELECT COUNT(exams_answer.id) FROM exams_answer INNER JOIN exams_choice ON exams_answer.choice_id=exams_choice.id WHERE exams_answer.question_id=exams_question.id AND is_first=TRUE AND is_right=TRUE);")
+            if not settings.DEBUG:
+                cursor.excute('SET statement_timeout=30000;')
 
             for difficulty in difficulties:
-                question_pool = exam.question_set.available()\
-                                                 .filter(total_user_count__gt=0,
-                                                         correct_first_timer_count__gt=0)\
-                                                 .annotate(correct_percentage=Cast(F('correct_first_timer_count'), FloatField()) / Cast(F('total_user_count'), FloatField()) * 100)
+                question_pool = Question.objects.available()\
+                                                .filter(total_user_count__gt=0,
+                                                        correct_first_timer_count__gt=0)\
+                                                .annotate(correct_percentage=Cast(F('correct_first_timer_count'), FloatField()) / Cast(F('total_user_count'), FloatField()) * 100)
                 if difficulty.upper_limit:
                     question_pool = question_pool.filter(correct_percentage__lte=difficulty.upper_limit)
                 if difficulty.lower_limit:
@@ -63,5 +44,3 @@ class Command(BaseCommand):
                     question_pool.update(difficulty=difficulty)
                 elif options['verbose']:
                     print(f"Nothing for {difficulty.label} in {exam.name}")
-            exam.last_answer_for_difficulty = last_answer
-            exam.save()
