@@ -104,7 +104,7 @@
         </td>
         <th>% correct</th>
         <td>
-          {% widthratio question.answer_set.correct.count question.answer_set.count 100 %}%
+          {{ question.get_correct_percentage }}
         </td>
       </tr>
   </table>

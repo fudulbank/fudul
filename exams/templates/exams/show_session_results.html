@@ -93,7 +93,7 @@ th, td{
                     <td>
                        <ul>{% for subject in answer.question.subject_list %}<li>{{ subject.name }}</li>{% endfor %}</ul>
                     </td>
-                    <td>{{ answer.question.get_correct_other_percentage }}%</td>
+                    <td>{{ answer.question.get_correct_percentage }}%</td>
                   </tr>
                 {% endfor %}
                 </tbody>

@@ -385,7 +385,7 @@ class Question(models.Model):
                    .order_by('submission_date')\
                    .last()
 
-    def get_correct_other_percentage(self):
+    def get_correct_percentage(self):
         if self.total_user_count:
             result = self.correct_first_timer_count / self.total_user_count * 100
             return round(result, 1)
