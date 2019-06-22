@@ -23,7 +23,7 @@ class MetaChoiceField(forms.ModelMultipleChoiceField):
                                                        meta=obj,
                                                        approved_only=approved_only)
         if type(obj) is models.Difficulty:
-            return mark_safe(f"<abbr data-tooltip='{obj.tooltip}'>{str(obj)} ({count})</abbr>")
+            return mark_safe(f"<abbr title='{obj.tooltip}'>{str(obj)} ({count})</abbr>")
         else:
             return f"{str(obj)} ({count})"
 
