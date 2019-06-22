@@ -27,6 +27,7 @@
           --table-hover: {{ user.profile.session_theme.table_hover|default:default_session_theme.table_hover }};
         }
         </style>
+        <script src="https://cdn.jsdelivr.net/gh/HubSpot/offline@0.7.13/offline.min.js" integrity="sha384-j+x+boT4WuwTBsIjRFzuvvp3mtRa0WS5vqwUEKYPIeXjiadY+/b3aoecbkODKc68" crossorigin="anonymous"></script>
         {% include 'partials/piwik.html' %}
     </head>
     <body data-session-is-examinable="{% if session.is_examinable %}true{% else %}false{% endif %}" data-session-mode="{{ session.session_mode }}" data-has-finished="false">
