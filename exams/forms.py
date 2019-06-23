@@ -380,25 +380,31 @@ class SessionForm(forms.ModelForm):
         question_filter = cleaned_data.get('question_filter', 'ALL')
         question_pool = self.question_pools[question_filter]
 
-        if not cleaned_data.get('all_subjects'):
-            subjects = cleaned_data.get('subjects')
-            if subjects:
-                question_pool = question_pool.filter(subjects__in=subjects)
+        # If 'all_*' is selected, no need to save the m2m relationships.
 
-        if not cleaned_data.get('all_sources'):
-            sources = cleaned_data.get('sources')
-            if sources:
-                question_pool = question_pool.filter(sources__in=sources)
+        subjects = cleaned_data.get('subjects')
+        if cleaned_data.get('all_subjects') and subjects:
+            del cleaned_data['subjects']
+        elif subjects:
+            question_pool = question_pool.filter(subjects__in=subjects)
 
-        if not cleaned_data.get('all_exam_types'):
-            exam_types = cleaned_data.get('exam_types')
-            if exam_types:
-                question_pool = question_pool.filter(exam_types__in=exam_types)
+        sources = cleaned_data.get('sources')
+        if cleaned_data.get('all_sources') and sources:
+            del cleaned_data['sources']
+        elif sources:
+            question_pool = question_pool.filter(sources__in=sources)
 
-        if not cleaned_data.get('all_difficulties'):
-            difficulties = cleaned_data.get('difficulties')
-            if difficulties:
-                question_pool = question_pool.filter(difficulty__in=difficulties)
+        exam_types = cleaned_data.get('exam_types')
+        if cleaned_data.get('all_exam_types') and exam_types:
+            del cleaned_data['exam_types']
+        elif exam_types:
+            question_pool = question_pool.filter(exam_types__in=exam_types)
+
+        difficulties = cleaned_data.get('difficulties')
+        if cleaned_data.get('all_difficulties') and difficulties:
+            del cleaned_data['difficulties']
+        elif difficulties:
+            question_pool = question_pool.filter(difficulty__in=difficulties)
 
         return question_pool
 
