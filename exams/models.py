@@ -538,7 +538,7 @@ session_mode_choices = (
 )
 
 class Session(models.Model):
-    session_mode = models.CharField(max_length=20, choices=session_mode_choices, default=None)
+    session_mode = models.CharField(max_length=20, choices=session_mode_choices, default='EXPLAINED')
     parent_session = models.ForeignKey('self',
                                        on_delete=models.SET_NULL,
                                        related_name="children",
