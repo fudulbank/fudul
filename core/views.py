@@ -104,6 +104,7 @@ def show_indicator_index(request):
     users_customizing_theme = User.objects.filter(profile__session_theme__isnull=False).distinct().count()
     users_supporting_corrections = list(User.objects.filter(supported_corrections__isnull=False).values_list('pk', flat=True).distinct())
     users_opposing_corrections = list(User.objects.filter(opposed_corrections__isnull=False).values_list('pk', flat=True).distinct())
+    users_customizing_difficulty = Session.objects.filter(difficulties__isnull=False).values('submitter_id').distinct().count()
     # Remove duplicate pks
     users_voting = set(users_supporting_corrections + users_opposing_corrections)
     # Count unique pks
@@ -118,7 +119,8 @@ def show_indicator_index(request):
                'users_active': users_active,
                'users_sharing_sessions': users_sharing_sessions,
                'users_customizing_theme': users_customizing_theme,
-               'users_voting': users_voting}
+               'users_voting': users_voting,
+               'users_customizing_difficulty': users_customizing_difficulty}
 
     return render(request, "indicators/show_indicator_index.html", context)
 
