@@ -60,7 +60,7 @@ class Command(BaseCommand):
         exam_type = options['exam_type']
         automatic_sequence = 1
         csv_writer = csv.writer(sys.stdout)
-        csv_writer.writerow(['Sequence', 'Text', 'Choice 1',
+        csv_writer.writerow(['Sequence', 'Question text', 'Choice 1',
                              'Choice 2', 'Choice 3', 'Choice 4',
                              'Choice 5', 'Choice 6', 'Answer',
                              'Subject 1', 'Subject 2', 'Subject 3',
@@ -88,6 +88,9 @@ class Command(BaseCommand):
                     answer = ''
                 try:
                     explanation = matched_question.group('explanation').strip()
+                    if options['remove_line_breaks']:
+                        explanation = explanation.replace('\n', ' ')
+                        explanation = explanation.replace('  ', ' ')
                 except IndexError:
                     explanation = ''
             subjects = ['', '', '']
