@@ -255,8 +255,7 @@ class Command(BaseCommand):
 
                 for choice in choices:
                     choice.question = question
-
-                choice_objects = Choice.objects.bulk_create(choices)
-                revision.choices.add(*choice_objects)
+                    choice.save()
+                revision.choices.add(*choices)
                 question.best_revision = revision
                 question.save()
