@@ -48,6 +48,7 @@ class Command(BaseCommand):
         exam_type_pool = exam.exam_types.all()
         source_pool = exam.get_sources()
         issue_pool = Issue.objects.all()
+        added_pks = [] 
 
         if options['submitter_email']:
             submitter = User.objects.get(email__iexact=options['submitter_email'])
@@ -139,10 +140,6 @@ class Command(BaseCommand):
         question = None
 
         for row in csv_reader:
-            # We will only mark imported revision as a apporved if a
-            # right answer was specified.
-            is_approved = False
-
             if INDEXES['SEQUENCE']:
                 sequence = int(row[INDEXES['SEQUENCE']])
                 print("Handling %d..." % sequence)
@@ -167,13 +164,7 @@ class Command(BaseCommand):
                     answer_index = ascii_uppercase.index(answer)
                     print("Right answer is %s (%s)"  % (row[INDEXES['ANSWER']], choices[answer_index].text))
                     choices[answer_index].is_right = True
-                    if not options['is_disapproved']:
-                        is_approved = True
                 except (IndexError, ValueError):
-                    # If the no proper right asnwer was specified, or
-                    # if the chosen answer falls outside the range of
-                    # possible choices, the revision's
-                    # is_approved=False
                     pass
 
             subjects = []
@@ -229,7 +220,6 @@ class Command(BaseCommand):
 
             if not options['dry']:
                 question = Question.objects.create(exam=exam,
-                                                   is_approved=is_approved,
                                                    parent_question=parent_question)
                 if subjects:
                     question.subjects.add(*subjects)
@@ -243,7 +233,6 @@ class Command(BaseCommand):
                                                    text=text,
                                                    change_summary="Imported from Google Sheets",
                                                    submitter=submitter,
-                                                   is_approved=is_approved,
                                                    is_first=True,
                                                    is_last=True)
                 if explanation:
@@ -259,3 +248,9 @@ class Command(BaseCommand):
                 revision.choices.add(*choices)
                 question.best_revision = revision
                 question.save()
+                added_pks.append(question.pk)
+
+                
+        if not options['is_disapproved']:
+            Question.objects.filter(pk__in=added_pks).update(is_approved=True)
+            Revision.objects.filter(question_id__in=added_pks).update(is_approved=True)
