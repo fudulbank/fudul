@@ -4,7 +4,7 @@ from exams.models import Category, Answer, Revision, ExplanationRevision
 
 
 @receiver([post_save, post_delete], sender=Revision)
-def update_latest_revision(sender, instance, raw, **kwargs):
+def update_latest_revision(sender, instance, raw=None, **kwargs):
     # If we are importing a fixture, do not fire the signal.
     if raw:
         return
@@ -42,7 +42,7 @@ def update_latest_revision(sender, instance, raw, **kwargs):
     question.save()
 
 @receiver([post_save, post_delete], sender=ExplanationRevision)
-def update_latest_explanation_revision(sender, instance, raw, **kwargs):
+def update_latest_explanation_revision(sender, instance, raw=None, **kwargs):
     # If we are importing a fixture, do not fire the signal.
     if raw:
         return
@@ -61,7 +61,7 @@ def update_latest_explanation_revision(sender, instance, raw, **kwargs):
         question.save()
 
 @receiver([post_save, post_delete], sender=Answer)
-def update_session_stats(sender, instance, raw, **kwargs):
+def update_session_stats(sender, instance, raw=None, **kwargs):
     if raw:
         return
     choice = instance.choice
@@ -99,7 +99,7 @@ def update_session_stats(sender, instance, raw, **kwargs):
             similar_answers.exclude(pk=first_answer.pk).update(is_first=False)
 
 @receiver(post_save, sender=Category)
-def update_slug_cache(sender, instance, raw, **kwargs):
+def update_slug_cache(sender, instance, raw=None, **kwargs):
     # If we are importing a fixture, do not fire the signal.
     if raw:
         return
