@@ -58,6 +58,10 @@
       border-color: #728881;
       color: #053124;
     }
+    label[data-original-title]{
+      text-decoration: underline dotted;
+      cursor: help;
+    }
     </style>
 {% endblock %}
 
@@ -204,7 +208,7 @@
   <div class="card-header p-0" id="question-number-header">
     <h5 class="m-0">
       <button type="button" class="btn btn-link" data-toggle="collapse" data-target="#question-number" aria-expanded="true" aria-controls="question-number">
-        Set the number <sup class="required">*</sup>
+        Set the number<sup class="required">*</sup>
       </button>
     </h5>
   </div>
