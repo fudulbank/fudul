@@ -677,7 +677,7 @@ function submitChoice() {
         // (i.e. the user is not the submitter of the correction
         // or a previous voter)
         var $support_button = $choice_row.find('button.support-correction:enabled')
-        if ($correction_notification.length && $support_button.length){
+        if ($correction_notification.length && $support_button.length && !(window.SESSION_MODE == 'UNEXPLAINED' && !$('body').data('has-finished'))){
           $choice_row.find('.check').tooltip({template: '<div class="tooltip hint" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>',
                                               html: true,
                                               title:"<strong>Are you sure that this is the right answer?</strong>  Vote to support this correction! <img height=\'17\' src=\'https://cdnjs.cloudflare.com/ajax/libs/emojione/2.2.7/assets/png/1f64a.png\'>",

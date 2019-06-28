@@ -556,9 +556,9 @@ def list_partial_session_questions(request, slugs, exam_pk):
     template = get_template("exams/partials/partial_session_question_list.html")
     context = {'questions': questions, 'user': request.user}
     html = template.render(context)
-    minified_html = html_minify(html)
+    #minified_html = html_minify(html)
 
-    return {'html': minified_html}
+    return {'html': html}
 
 @require_safe
 def show_single_question(request, slugs, exam_pk, question_pk):
