@@ -9,7 +9,6 @@ from rest_framework import routers
 from exams.admin import editor_site
 from exams.api import *
 
-
 router = routers.DefaultRouter()
 router.register(r'answers', AnswerViewSet, basename="answer")
 router.register(r'highlights', HighlightViewSet, basename="highlight")
@@ -29,7 +28,7 @@ urlpatterns = [
     url(r'^api-auth/', include('rest_framework.urls')),
     url(r'^accounts/', include('accounts.urls')),
     url(r'^mailer/', include('mailer.urls', namespace="mailer")),
-    url(r'^exams/admin/', include(editor_site.urls)),
+    url(r'^exams/admin/', editor_site.urls),
     url(r'^exams/', include('exams.urls', namespace="exams")),
     url(r'', include('core.urls')),
     url(r'^ckeditor/', include('ckeditor_uploader.urls')),

@@ -4,7 +4,7 @@ from django.views.generic.base import RedirectView
 from . import views
 from django.contrib.auth.decorators import login_required
 
-
+app_name = 'exams'
 urlpatterns =[
     url(r'^$', views.list_meta_categories, name='list_meta_categories'),
     url(r'^ajax/general/correct_percentage$', views.get_correct_percentage, name='get_correct_percentage'),
