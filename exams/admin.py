@@ -62,7 +62,10 @@ class EditorModelAdmin(admin.ModelAdmin):
                request.user.is_superuser
     
 class ExamAdmin(EditorModelAdmin):
-    search_fields = ['name', 'category__name']
+    search_fields = ['name', 'category__name',
+                     'category__parent_category__name',
+                     'category__parent_category__parent_category__name',
+                     'category__parent_category__parent_category__parent_category__name']
     list_display = ['__str__', 'get_user_count', 'get_question_count']
     list_filter = ['was_announced']
     inlines = [SubjectInline, ExamDateInline]

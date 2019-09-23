@@ -2,6 +2,14 @@ from django.db import models
 from django.contrib.auth.models import User
 import exams.models
 
+def get_name(self):
+    if hasattr(self, 'profile'):
+        return self.profile.get_full_name()
+    else:
+        return self.username
+
+User.add_to_class("__str__", get_name)
+
 class Team(models.Model):
     name = models.CharField(max_length=200)
     code_name = models.CharField(max_length=200)
