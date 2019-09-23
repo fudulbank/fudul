@@ -24,6 +24,7 @@ class Command(BaseCommand):
                                                        revision__choice__answer_correction__isnull=True)\
                                                .values('pk')                                              
                 sample_question = Question.objects.filter(pk__in=possible_pks)\
+                                                  .select_for_show_session()\
                                                   .order_by('?')\
                                                   .first()
                 cache.set('sample_question', sample_question,
