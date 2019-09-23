@@ -704,6 +704,7 @@ class Highlight(models.Model):
 
 class AnswerCorrection(models.Model):
     choice = models.OneToOneField(Choice, null=True,
+                                  on_delete=models.CASCADE,
                                   related_name="answer_correction")
     supporting_users = models.ManyToManyField(User, blank=True,
                                               related_name="supported_corrections")
@@ -930,8 +931,8 @@ class DuplicateContainer(models.Model):
                                                                     self.duplicate_set.count())
 
 class Duplicate(models.Model):
-    container = models.ForeignKey(DuplicateContainer, null=True, on_delete=models.SET_NULL)
-    question = models.ForeignKey(Question, null=True,
+    container = models.ForeignKey(DuplicateContainer, null=True, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, null=True, on_delete=models.CASCADE,
                                  related_name="secondary_duplicates")
     ratio = models.FloatField()
     objects = managers.DuplicateQuerySet.as_manager()
