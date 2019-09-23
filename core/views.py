@@ -23,7 +23,7 @@ import teams.utils
 
 @require_safe
 def show_index(request):
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
 
         latest_sessions = request.user.session_set.select_for_session_list()\
                                                   .undeleted()\
@@ -68,7 +68,7 @@ def show_index_unauthenticated(request):
 
 class UserAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
-        if not self.request.user.is_authenticated():
+        if not self.request.user.is_authenticated:
             return User.objects.none()
 
         qs = User.objects.filter(is_active=True)

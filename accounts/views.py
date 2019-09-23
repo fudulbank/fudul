@@ -16,7 +16,7 @@ from django.contrib.auth import REDIRECT_FIELD_NAME
 from userena.utils import signin_redirect
 from django.utils.translation import ugettext_lazy as _
 
-from .forms import CustomSignupForm,CustomEditProfileForm,ChangePersonalEmailForm,CustomAuthenticationForm
+from .forms import CustomSignupForm,CustomEditProfileForm,ChangePersonalEmailForm
 from .models import *
 
 
@@ -44,15 +44,6 @@ def signup(request):
     return userena_views.signup(request, signup_form=CustomSignupForm,
                                 template_name='accounts/signup.html',
                                 extra_context=extra_context)
-
-
-# not sure if this view and form is nessecary
-def signin(request):
-    return userena_views.signin(request,auth_form=CustomAuthenticationForm,
-                                template_name='userena/signin_form.html',
-                                redirect_field_name=REDIRECT_FIELD_NAME,
-                                redirect_signin_function=signin_redirect, extra_context=None)
-
 
 def edit_profile(request,username):
     institutions = Institution.objects.all()

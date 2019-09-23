@@ -188,7 +188,7 @@ SECURE_HSTS_SECONDS = getattr(secrets, "SECURE_HSTS_SECONDS", None)
 
 # Userena settings
 AUTHENTICATION_BACKENDS = (
-    'fudul.backends.UserAuthenticationBackend',
+    'userena.backends.UserenaAuthenticationBackend',
     'guardian.backends.ObjectPermissionBackend',
     'rules.permissions.ObjectPermissionBackend',
     'django.contrib.auth.backends.ModelBackend',

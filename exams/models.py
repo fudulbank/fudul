@@ -95,7 +95,7 @@ class Category(models.Model):
         return parent_categories
 
     def can_user_access(self, user, user_group=None):
-        if not user.is_authenticated():
+        if not user.is_authenticated:
             return False
         elif user.is_superuser:
             return True

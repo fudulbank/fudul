@@ -33,7 +33,7 @@ def get_user_representation(user, with_email=True, with_nickname=False):
 def get_user_full_name(user):
     full_name = ''
 
-    if user.is_authenticated() and hasattr(user, 'profile'):
+    if user.is_authenticated and hasattr(user, 'profile'):
         full_name = user.profile.get_full_name()
 
     return full_name
@@ -41,18 +41,18 @@ def get_user_full_name(user):
 def get_user_institution(user):
     institution = ''
 
-    if user.is_authenticated() and hasattr(user, 'profile'):
+    if user.is_authenticated and hasattr(user, 'profile'):
         institution = user.profile.institution
 
     return institution
 
 def get_user_group(user):
-    if user.is_authenticated() and hasattr(user, 'profile'):
+    if user.is_authenticated and hasattr(user, 'profile'):
         group = user.profile.group
         return group
 
 def get_profile_attr(user, attr):
-    if user.is_authenticated() and hasattr(user, 'profile'):
+    if user.is_authenticated and hasattr(user, 'profile'):
         value = getattr(user.profile, attr, None)
         return value
 
@@ -67,7 +67,7 @@ def get_user_credit(contributing_user, viewing_user=None, full=False):
 
     if not full:
         if viewing_user and \
-           viewing_user.is_authenticated() and \
+           viewing_user.is_authenticated and \
            teams.utils.is_editor(viewing_user):
             full = True
         else:

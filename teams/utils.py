@@ -1,5 +1,5 @@
 def is_editor(user):
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         return False
 
     return user.is_superuser or \
