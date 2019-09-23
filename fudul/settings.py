@@ -168,7 +168,7 @@ EMAIL_HOST_USER = getattr(secrets, 'EMAIL_HOST_USER', None)
 EMAIL_HOST_PASSWORD = getattr(secrets, 'EMAIL_HOST_PASSWORD', None)
 EMAIL_BACKEND = getattr(secrets, "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
 EMAIL_FILE_PATH = 'core/email-messages/'
-DEFAULT_FROM_EMAIL = 'noreply@fudulbank.com'
+DEFAULT_FROM_EMAIL = 'Fudul <noreply@fudulbank.com>'
 SERVER_EMAIL = 'errors@fudulbank.com'
 ADMINS = [('Errors', 'errors@fudulbank.com')]
 
