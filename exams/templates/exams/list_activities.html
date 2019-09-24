@@ -99,12 +99,16 @@
 
         output += " in <a href='" + activity.exam_url + "'>" + activity.exam_name + "</a></strong>; "
         output += moment(activity.timestamp * 1000).format("MMM. D, H:mm; ")
-        if (activity.submitter_is_editor){
-          output += "<a class='editor'"
+        if (activity.submitter != 'Unspecified'){
+          if (activity.submitter_is_editor){
+            output += "<a class='editor'"
+          } else {
+            output += "<a"
+          }
+          output += " href='" + activity.submitter_url + "'>" + activity.submitter + "</a> <em>"
         } else {
-          output += "<a"
+          output +=  activity.submitter + " <em>"
         }
-        output += " href='" + activity.submitter_url + "'>" + activity.submitter + "</a> <em>"
 
         if (activity.type == 'revision'){
           if (activity.is_first){

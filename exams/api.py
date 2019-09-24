@@ -387,12 +387,20 @@ class ActivityList(views.APIView):
                 sorted_activities.remove(last_activity)
             for activity in sorted_activities:
                 actor = get_actor(activity)
+                if actor:
+                    submitter_is_editor = teams.utils.is_editor(actor)
+                    submitter_url = reverse('exams:list_contributions', args=(actor.pk,))
+                    submitter = accounts.utils.get_user_credit(actor)
+                else:
+                    submitter_is_editor = True
+                    submitter_url = ""
+                    submitter = 'Unspecified'
                 summary = {'timestamp': get_date(activity).timestamp(),
                            'pk': activity.pk,
                            'type': activity.__class__.__name__.lower(),
-                           'submitter': accounts.utils.get_user_credit(actor),
-                           'submitter_is_editor': teams.utils.is_editor(actor),
-                           'submitter_url': reverse('exams:list_contributions', args=(actor.pk,))}
+                           'submitter': submitter,
+                           'submitter_is_editor': submitter_is_editor,
+                           'submitter_url': submitter_url}
 
                 if type(activity) is Revision:
                     question = activity.question
