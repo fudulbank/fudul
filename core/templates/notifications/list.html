@@ -4,10 +4,10 @@
 
 {% block header_title %}
 <h1>Notification Center</h1>
-{% if notifications.unread %}
+{% if notifications %}
 <button type="button" class="btn btn-sm mark-all-as-read"><i class="ft-check"></i> Mark all as read</button>
 {% endif %}
-{% if notifications.exists %}
+{% if notifications %}
 <button type="button" class="btn btn-sm btn-danger" id="mark-all-as-deleted"><i class="ft-trash"></i> Delete all notifications</button>
 {% endif %}
 {% endblock %}
@@ -20,7 +20,7 @@
 {% block content %}
 
 
-{% if notifications.exists %}
+{% if notifications %}
 <div class="list-group" id="notifications">
   {% for notification in notifications %}
   <div class="list-group-item list-group-item-action flex-column align-items-start">
