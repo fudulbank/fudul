@@ -297,6 +297,7 @@
       $.ajax({method: 'get',
               url: "{% url 'correction-list' %}",
               data: {format: 'json',
+                     exam_pk: window.EXAM_PK,
                      question_pk: $current_question.data('question-pk') },
               success: function(data){
                   PREVIOUS_CORRECTIONS = data;
