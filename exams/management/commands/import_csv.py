@@ -1,8 +1,13 @@
-from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from exams.models import *
+from django.core.files import File
+from django.core.management.base import BaseCommand
 from string import ascii_uppercase
 import csv
+import os
+import urllib.parse
+
+from exams.models import *
+
 
 # We use subject/source/exam_type pools with a somewhat
 # weird way for fetching objects to optimize the code and
@@ -21,34 +26,64 @@ def light_get_from_pool(pool, name):
 class Command(BaseCommand):
     help = "Update a global sequence that makes it easy to account for question trees."
     def add_arguments(self, parser):
-        parser.add_argument('--csv-path',
-                            type=str)
-        parser.add_argument('--default-subject',
-                            type=str, default=None)
-        parser.add_argument('--default-source',
-                            type=str, default=None)
-        parser.add_argument('--default-exam-type',
-                            type=str, default=None)
-        parser.add_argument('--exam-pk',
-                            type=str)
-        parser.add_argument('--submitter-email',
-                            type=str, default=None)
-        parser.add_argument('--skip-until',
-                            type=int, default=None)
+        parser.add_argument('--exam-pk', type=int, required=True)
+        parser.add_argument('--question-csv', required=True)
+
+        parser.add_argument('--default-exam-type', default=None)
+        parser.add_argument('--default-source', default=None)
+        parser.add_argument('--default-subject', default=None)
         parser.add_argument('--disapproved', dest='is_disapproved',
                             action='store_true', default=False)
         parser.add_argument('--dry', action='store_true',
                             default=False)
+        parser.add_argument('--figure-csv')
+        parser.add_argument('--figure-root')
+
+        parser.add_argument('--skip-until', default=None)
+        parser.add_argument('--submitter-email', default=None)
 
     def handle(self, *args, **options):
-        csv_file = open(options['csv_path'])
-        csv_reader = csv.reader(csv_file)
+        csv_file = open(options['question_csv'])
+        question_reader = csv.reader(csv_file)
         exam = Exam.objects.get(pk=options['exam_pk'])
         subject_pool = exam.subject_set.all()
         exam_type_pool = exam.exam_types.all()
         source_pool = exam.get_sources()
         issue_pool = Issue.objects.all()
-        added_pks = [] 
+        added_pks = []
+
+        if options['figure_csv']:
+            figures = {}
+            with open(options['figure_csv']) as f:
+                figure_reader = csv.reader(f)
+                next(figure_reader)
+                for row in figure_reader:
+                    # Skip non-integer question_ids
+                    sequence = row[2]
+                    try:
+                        if type(sequence) is str:
+                            sequence = sequence.strip()
+                        sequence = int(sequence)
+                    except ValueError:
+                        continue
+
+                    path = urllib.parse.unquote(row[1])
+                    figure_place = row[3].strip()
+
+                    assert figure_place in ['Question', 'Explanation']
+
+                    try:
+                        caption = row[4]
+                    except IndexError:
+                        caption = ""
+
+                    if not sequence in figures:
+                        figures[sequence] = []
+                    
+                    data = {'path': path,
+                            'figure_place': figure_place,
+                            'caption': caption}
+                    figures[sequence].append(data)
 
         if options['submitter_email']:
             submitter = User.objects.get(email__iexact=options['submitter_email'])
@@ -70,7 +105,7 @@ class Command(BaseCommand):
         else:
             default_subject = None
 
-        headers = next(csv_reader)
+        headers = next(question_reader)
 
         INDEXES = {'SEQUENCE': None,
                    'QUESTION_TEXT': None,
@@ -87,6 +122,7 @@ class Command(BaseCommand):
             INDEXES['SEQUENCE'] = headers.index('Q#')
         except ValueError:
             pass
+
         INDEXES['CHOICES'] = [headers.index(header_name)
                               for header_name in headers
                               if header_name.startswith('Choice')]
@@ -139,13 +175,17 @@ class Command(BaseCommand):
         # The latest question imported is initially None.
         question = None
 
-        for row in csv_reader:
-            if INDEXES['SEQUENCE']:
+        for row in question_reader:
+            if not INDEXES['SEQUENCE'] is None:
                 sequence = int(row[INDEXES['SEQUENCE']])
                 print("Handling %d..." % sequence)
                 if options['skip_until'] and \
                    options['skip_until'] > sequence:
                     continue
+            else:
+                print("No sequence was provided!")
+                raise Exception()
+                    
             text = row[INDEXES['QUESTION_TEXT']].strip()
             if not text:
                 continue
@@ -204,10 +244,10 @@ class Command(BaseCommand):
             else:
                 parent_question = None
 
-            explanation = ""
+            explanation_text = ""
             if INDEXES['EXPLANATION']:
                 try:
-                    explanation = row[INDEXES['EXPLANATION']]
+                    explanation_text = row[INDEXES['EXPLANATION']]
                 except IndexError:
                     pass
 
@@ -235,12 +275,13 @@ class Command(BaseCommand):
                                                    submitter=submitter,
                                                    is_first=True,
                                                    is_last=True)
-                if explanation:
-                    ExplanationRevision.objects.create(question=question,
-                                                       is_first=True,
-                                                       is_last=True,
-                                                       reference=reference,
-                                                       explanation_text=explanation)
+                if explanation_text:
+                    explanation = ExplanationRevision.objects\
+                                                     .create(question=question,
+                                                             is_first=True,
+                                                             is_last=True,
+                                                             reference=reference,
+                                                             explanation_text=explanation_text)
 
                 for choice in choices:
                     choice.question = question
@@ -248,8 +289,33 @@ class Command(BaseCommand):
                 revision.choices.add(*choices)
                 question.best_revision = revision
                 question.save()
-                added_pks.append(question.pk)
+                print("sequence", sequence)
 
+                if options['figure_csv'] and sequence in figures:
+                    figure_count = 1
+                    question_figures = []
+                    explanation_figures = []
+                    for figure_data in figures[sequence]:
+                        clean_path = os.path.join(options['figure_root'],
+                                                  urllib.parse.unquote(figure_data['path']))
+                        figure = Figure.objects.create(caption=figure_data['caption'])
+                        extension = clean_path.split('.')[-1]
+                        print(f"Adding the figure in `{clean_path}` to question #{sequence} ({figure_data['figure_place']})...")
+                        with open(clean_path, 'rb') as figure_file:
+                            print(f'prep-{sequence}-{figure_count}.{extension}')
+                            figure.figure.save(f'prep-{sequence}-{figure_count}.{extension}',
+                                               File(figure_file))
+                        figure_count += 1
+                        if figure_data['figure_place'] == 'Question':
+                            question_figures.append(figure)
+                        elif figure_data['figure_place'] == 'Explanation':
+                            explanation_figures.append(figure)
+                    if question_figures:
+                        revision.figures.add(*question_figures)
+                    if explanation_figures:
+                        explanation.figures.add(*explanation_figures)
+
+                added_pks.append(question.pk)
                 
         if not options['is_disapproved']:
             Question.objects.filter(pk__in=added_pks).update(is_approved=True)
