@@ -73,12 +73,16 @@ function showQuestion(target, is_initial){
       var gallary_name = $(this).closest('[data-fancybox]').data('fancybox');
       $lazy_loader.remove();
       $(this).removeClass('d-none');
-      $('[data-fancybox="' + gallary_name + '"]').fancybox({beforeShow: function(){
-        console.log("before show")
+      $('[data-fancybox="' + gallary_name + '"]').fancybox({
+      buttons: [
+          "zoom",
+          "download",
+          "close"
+        ],
+      beforeShow: function(){
         $(document).off('keydown keydup');
       },
       afterClose: function(){
-        console.log("after close")
         initializeKeyboard();
       }});
 
