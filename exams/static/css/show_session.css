@@ -94,12 +94,23 @@ body[data-session-is-examinable="true"][data-has-finished="false"] #end{
   background-color: var(--table-hover);
 }
 
+.choice-table tr[data-choice-pk] td{
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
 @media (min-width: 576px) {
   #footer .option{
     height: 38px;
   }
   #top-options .option{
     height: 32px;
+  }
+  .choice-table tr[data-choice-pk] td{
+    padding: 0;
+  }
+  .choice-table{
+    line-height: inherit !important;
   }
 }
 
@@ -176,6 +187,10 @@ td.check, td.correct{
 body[data-session-is-examinable="false"] .highlight,
 body[data-session-is-examinable="true"] .question-body[data-was-solved="false"] .highlight{
     cursor: pointer;
+}
+
+.choice-table{
+  line-height: 1.5;
 }
 
 .correct, .check, .option, .navbar-brand, .mobile-slide{
