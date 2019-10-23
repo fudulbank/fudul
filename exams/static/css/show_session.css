@@ -238,7 +238,7 @@ body[data-session-is-examinable="true"] .question-body[data-was-solved="false"] 
   font-size: 1.2rem;
 }
 
-.explanation-figure, .question-figure{
+figure img{
   width: 250px;
   cursor: zoom-in;
 }
