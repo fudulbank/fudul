@@ -976,7 +976,7 @@ function updateSharedProgressBar(session_pk, stat){
   // Otherwise, only show a generic count.
   $shared_session_container.tooltip('dispose');
   if (stat.count){
-    var percentage = stat.count / window.g.__SESSION_QUESTION_TOTAL * 100 + '%';
+    var percentage = Math.round(stat.count / window.g.__SESSION_QUESTION_TOTAL * 100) + '%';
     $progress_container.html('<div class="progress-bar bg-success" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + stat.count + '" style="width: ' + percentage + '"></div>');
     $shared_session_container.tooltip({html: true, title: '<span class="sharer-name">' + stat.count + " out of " + window.g.__SESSION_QUESTION_TOTAL + " questions (" + percentage + ")</span>"});
   } else {
