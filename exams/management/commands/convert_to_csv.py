@@ -27,6 +27,8 @@ class Command(BaseCommand):
                             type=str)
         parser.add_argument('--remove-line-breaks',
                             action='store_true')
+        parser.add_argument('--split',
+                            action='store_true')
         parser.add_argument('--exam-type',
                             type=str)
         parser.add_argument('--answer-csv-file',
@@ -67,8 +69,12 @@ class Command(BaseCommand):
                              'Subject 4', 'Source', 'Exam type',
                              'Issue 1', 'Issue 2', 'Parent question',
                              'Explanation', 'Reference'])
+        if options['split']:
+            pool = [re.match(regex_patterns[rule]['full_question'], question, re.M | re.I) for question in raw_text.split('--end--')]
+        else:
+            pool = re.finditer(regex_patterns[rule]['full_question'], raw_text, re.M | re.I)
 
-        for matched_question in re.finditer(regex_patterns[rule]['full_question'], raw_text, re.M | re.I):
+        for matched_question in pool:
             try:
                sequence = matched_question.group('question_sequence')
             except IndexError:
@@ -91,7 +97,7 @@ class Command(BaseCommand):
                     if options['remove_line_breaks']:
                         explanation = explanation.replace('\n', ' ')
                         explanation = explanation.replace('  ', ' ')
-                except IndexError:
+                except (IndexError, AttributeError):
                     explanation = ''
             subjects = ['', '', '']
             try:
