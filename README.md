@@ -3,7 +3,7 @@ question bank platform.
 
 # Installation
 
-Fudul is designed to work with Python 3.6 (or later) and Django 1.11.
+Fudul is designed to work with Python 3.6 (or later) and Django 2.2 (LTS).
 
 To start your instance, clone this repository:
 ```
