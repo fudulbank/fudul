@@ -70,8 +70,18 @@ function showQuestion(target, is_initial){
         img_class = $lazy_loader.data('img-class'),
         $lazy_img = $('<img class="d-none ' + img_class + '" src="' + src + '">');
     $lazy_img.on('load', function(){
+      var gallary_name = $(this).closest('[data-fancybox]').data('fancybox');
       $lazy_loader.remove();
       $(this).removeClass('d-none');
+      $('[data-fancybox="' + gallary_name + '"]').fancybox({beforeShow: function(){
+        console.log("before show")
+        $(document).off('keydown keydup');
+      },
+      afterClose: function(){
+        console.log("after close")
+        initializeKeyboard();
+      }});
+
     });
     $lazy_loader.after($lazy_img);
   });

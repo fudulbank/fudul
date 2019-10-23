@@ -1,10 +1,10 @@
 {% if figures %}<div class="row">
 {% for figure in figures %}
-  <div class="col-auto mw-100 mt-3">
+  <figure class="col-auto mw-100 mt-3">
     {% with img=figure.figure %}{% include 'partials/lazy_img.html' %}{% endwith %}
     {% if figure.caption %}
-      <p class="font-italic">{{ figure.caption }}</p>
+      <figcaption class="font-italic">{{ figure.caption }}</figcaption>
     {% endif %}
-  </div>
+  </figure>
 {% endfor %}
 </div>{% endif %}
