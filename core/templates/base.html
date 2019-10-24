@@ -1,224 +1,368 @@
-<!DOCTYPE html>{% load static %}{% load exam_utils %}
-<html lang="en">
+<!DOCTYPE html>{% load static cache account_utils core_utils exam_utils %}
+<html lang="en" data-textdirection="ltr" class="loading">
+{% include 'partials/call_out.html' %}
 <head>
+  {% include 'partials/common_meta_tags.html' %}
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
+  <meta name="description" content="A comprehensive, collective, free-of-charge question bank built by and for examinees.">
 
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>{% block title %}{% endblock %}</title>
+  <title>{% block title %}{% endblock %}</title>
 
-	<!-- Global stylesheets -->
-	<link href="https://fonts.googleapis.com/css?family=Roboto:400,300,100,500,700,900" rel="stylesheet" type="text/css">
-	<link href="{% static 'limitless/assets/css/bootstrap.css' %}" rel="stylesheet" type="text/css">
-	<link href="{% static 'limitless/assets/css/icons/icomoon/styles.css' %}" rel="stylesheet" type="text/css">
-	<link href="{% static 'limitless/assets/css/core.css' %}" rel="stylesheet" type="text/css">
-	<link href="{% static 'limitless/assets/css/components.css' %}" rel="stylesheet" type="text/css">
-	<link href="{% static 'limitless/assets/css/colors.css' %}" rel="stylesheet" type="text/css">
-	<!-- /global stylesheets -->
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:300,300i,400,400i,500,500i%7COpen+Sans:300,300i,400,400i,600,600i,700,700i" rel="stylesheet">
+  <!-- BEGIN VENDOR CSS-->
+  <link rel="stylesheet" type="text/css" href="{% static 'stack/css/vendors.css' %}">
+  <!-- END VENDOR CSS-->
+  <!-- BEGIN STACK CSS-->
+  <link rel="stylesheet" type="text/css" href="{% static 'stack/css/app.css' %}">
+  <!-- END STACK CSS-->
+  <!-- BEGIN Page Level CSS-->
+  <link rel="stylesheet" type="text/css" href="{% static 'stack/css/core/menu/menu-types/vertical-menu.css' %}">
+  <!-- END Page Level CSS-->
+  <!-- BEGIN Custom CSS-->
+  <link rel="stylesheet" type="text/css" href="{% static 'stack/css/style.css' %}">
+  <!-- END Custom CSS-->
 
-	<!-- Core JS files -->
-	<script type="text/javascript" src="{% static 'limitless/assets/js/plugins/loaders/pace.min.js' %}"></script>
-	<script type="text/javascript" src="{% static 'limitless/assets/js/core/libraries/jquery.min.js' %}"></script>
-	<script type="text/javascript" src="{% static 'limitless/assets/js/core/libraries/bootstrap.min.js' %}"></script>
-	<script type="text/javascript" src="{% static 'limitless/assets/js/plugins/loaders/blockui.min.js' %}"></script>
-	<!-- /core JS files -->
-
-	<!-- Theme JS files -->
-	<script type="text/javascript" src="{% static 'limitless/assets/js/plugins/visualization/d3/d3.min.js' %}"></script>
-	<script type="text/javascript" src="{% static 'limitless/assets/js/plugins/visualization/d3/d3_tooltip.js' %}"></script>
-	<script type="text/javascript" src="{% static 'limitless/assets/js/plugins/forms/styling/switchery.min.js' %}"></script>
-	<script type="text/javascript" src="{% static 'limitless/assets/js/plugins/forms/styling/uniform.min.js' %}"></script>
-	<script type="text/javascript" src="{% static 'limitless/assets/js/plugins/forms/selects/bootstrap_multiselect.js' %}"></script>
-	<script type="text/javascript" src="{% static 'limitless/assets/js/plugins/ui/moment/moment.min.js' %}"></script>
-	<script type="text/javascript" src="{% static 'limitless/assets/js/plugins/pickers/daterangepicker.js' %}"></script>
-
-	<script type="text/javascript" src="{% static 'limitless/assets/js/core/app.js' %}"></script>
-	<!-- /theme JS files -->
+  {% if config.DONATION_ACTIVATED or user.is_superuser and 'donation_message_pk' in request.GET %}
+  {% get_donation_message pk=request.GET.donation_message_pk as donation_message %}
+  {% if donation_message.language == 'ar' %}
+  <link href="https://fonts.googleapis.com/css?family=Tajawal:400,700" rel="stylesheet">
+  {% endif %}
+  <style>
+  #donation-card{
+    background-color: #ffee63;
+    font-size: 1.3rem;
+    font-weight: 700;
+    {% if donation_message.language == 'ar' %}
+    font-family: 'Tajawal';
+    direction: rtl;
+    {% endif %}
+  }
+  </style>
+  {% endif %}
+    <style>
+    body{
+      font-size: 16px;
+    }
+    /* Since we are increasing the size, we need to reduce the minimal size of the select2 container.*/
+    .select2-container {
+        min-width: 15em !important;
+    }
+    </style>
 {% include 'partials/piwik.html' %}
 {% block head %}
 {% endblock %}
-</head>
+  </head>
+  <body data-open="click" data-menu="vertical-menu" data-col="2-columns" class="vertical-layout vertical-menu 2-columns   menu-expanded fixed-navbar">
+    <!-- navbar-fixed-top-->
+    <nav class="header-navbar navbar-expand-md navbar navbar-with-menu fixed-top navbar-light navbar-border">
+      <div class="navbar-wrapper">
+        <div class="navbar-header">
+          <ul class="nav navbar-nav flex-row">
+            <li class="nav-item mobile-menu d-md-none mr-auto"><a href="#" class="nav-link nav-menu-main menu-toggle hidden-xs"><i class="ft-menu font-large-1"></i></a></li>
+            <li class="nav-item">
+              <a href="{% url 'index' %}" class="navbar-brand"><img alt="stack admin logo" src="{% static 'img/logo-monkey.png' %}" class="img-fluid brand-logo">
+                <h2 class="brand-text">Fudul</h2></a>
+              </li>
+              <li class="nav-item d-md-none">
+                <a data-toggle="collapse" data-target="#navbar-mobile" class="nav-link open-navbar-container"><i class="fa fa-ellipsis-v"></i></a>
+              </li>
+          </ul>
+        </div>
+        <div class="navbar-container content">
+          <div id="navbar-mobile" class="collapse navbar-collapse">
+            <ul class="nav navbar-nav mr-auto float-left">
+              <li class="nav-item hidden-sm-down"><a href="#" class="nav-link nav-menu-main menu-toggle hidden-xs"><i class="ft-menu"></i></a></li>
 
-<body>
+              <li class="nav-item d-none d-md-block"><a href="#" class="nav-link nav-link-expand"><i class="ficon ft-maximize"></i></a></li>
+              <li class="nav-item nav-search"><a href="#" class="nav-link nav-link-search"><i class="ficon ft-search"></i></a>
+                <div class="search-input">
+                  <form type="get" action="{% url 'exams:search' %}" accept-charset="utf-8">
+                    <input  type="search" id="q" name="q" placeholder="Search by ID or Text" class="input">
+                  </form>
+                </div>
+              </li>
+            </ul>
+            <ul class="nav navbar-nav float-right">
 
-	<!-- Main navbar -->
-	<div class="navbar bg-primary navbar-inverse">
-		<div class="navbar-header">
-			<a class="navbar-brand" href="{% url 'index' %}"></a>
+              {% with notification_count=user.notifications.unread.count %}
 
-			<ul class="nav navbar-nav visible-xs-block">
-                <li><a href="{% url 'userena_signout' %}"><i class=" icon-switch"></i></a></li>
-				<li><a data-toggle="collapse" data-target="#navbar-mobile"><i class="icon-tree5"></i></a></li>
-				<li><a class="sidebar-mobile-main-toggle"><i class="icon-paragraph-justify3"></i></a></li>
-			</ul>
-		</div>
-{% if user.is_authinticated %}
-		<div class="navbar-collapse collapse" id="navbar-mobile">
-			<ul class="nav navbar-nav navbar-right">
-				<li class="dropdown dropdown-user">
-					<a class="dropdown-toggle" data-toggle="dropdown">
-						<span>{{ user.profile.first_name|default:user.username }}</span>
-						<i class="caret"></i>
-					</a>
+              <li class="dropdown dropdown-notification nav-item">
+                <a href="#" data-toggle="dropdown" class="nav-link nav-link-label"><i class="ficon ft-bell"></i>
+                  {% if notification_count %}
+                  <span id="notification-count-outer" class="badge badge-pill badge-default badge-danger badge-default badge-up">{{ notification_count }}</span>
+                  {% endif %}
+                </a>
+                <ul id="notification-dropdown" class="dropdown-menu dropdown-menu-media dropdown-menu-right pb-0">
+                  <li class="dropdown-menu-header">
+                    <h6 class="dropdown-header m-0">
+                      <span class="grey darken-2">Notifications</span>
+                      {% if notification_count %}
+                      <span id="notification-count-new" class="notification-tag badge badge-default badge-danger float-right m-0">{{ notification_count }} New</span>
+                      {% endif %}
+                    </h6>
+                  </li>
+                  <li id="notification-list" class="scrollable-container media-list" style="width: 100%">
+                    {% for notification in  user.notifications.unread.all  %}
+                    <a href="{% if notification.data.url %}{{ notification.data.url }}{% else %}javascript:void(0){% endif %}">
+                      <div class="media">
+                        {% if notification.data.style == 'count' %}
+                        <div class="media-left align-self-center"><i class="ft-heart icon-bg-circle bg-red bg-darken-3"></i></div>
+                        {% elif notification.data.style == 'support' %}
+                        <div class="media-left align-self-center"><i class="ft-thumbs-up icon-bg-circle bg-success bg-darken-3"></i></div>
+                        {% elif notification.level == 'warning' %}
+                        <div class="media-left align-self-center"><i class="ft-alert-triangle icon-bg-circle bg-yellow bg-darken-3"></i></div>
+                        {% elif notification.level == 'success' %}
+                        <div class="media-left align-self-center"><i class="ft-check-circle icon-bg-circle bg-cyan"></i></div>
+                        {% elif notification.level == 'info' %}
+                        <div class="media-left align-self-center"><i class="ft-info icon-bg-circle bg-teal"></i></div>
+                        {% elif notification.level == 'error' %}
+                        <div class="media-left align-self-center"><i class="ft-x icon-bg-circle bg-red"></i></div>
+                        {% endif %}
+                        <div class="media-body">
+                          <h6 class="media-heading">{% if notification.data.title %}{{ notification.data.title }}{% else %}{% if notification.actor == user %}You{% else %}{{ notification.actor }}{% endif %} {{ notification.verb }}{% if notification.target %} {{ notification.target }}{% endif %}{% endif %}</h6>
+                          {% if notification.description %}
+                          <p class="notification-text font-small-3 text-muted">{{ notification.description|safe }}</p>
+                          {% endif %}
+                          <small>
+                            <time datetime="{{ notification.timestamp|date:'c' }}" class="media-meta text-muted">{{ notification.timesince }}</time>
+                          </small>
+                        </div>
+                      </div>
+                    </a>
+                    {% endfor %}
+                    <a id="empty-notification"{% if notification_count %} class="d-none"{% endif %} href="javascript:void(0)">
+                      <div class="media">
+                        <div class="media-left align-self-center"><i class="ft-check-circle icon-bg-circle bg-black"></i></div>
+                        <div class="media-body">
+                          <h6 style="color: black;" class="media-heading">You do not have any notificaitons.</h6>
+                          <p class="notification-text font-small-3 text-muted">Enjoy Fudul!</p>
+                        </div>
+                      </div>
+                    </a>
+                  </li>
+                  {% if notification_count %}
+                  <li class="dropdown-menu-footer"><a class="py-1 dropdown-item text-muted text-center mark-all-as-read">Mark all as read</a></li>
+                  {% endif %}
+                  <li class="dropdown-menu-footer"><a href="{% url 'notifications:all' %}" class="py-1 dropdown-item text-muted text-center">See all notifications</a></li>
+                </ul>
+              </li>
+              {% endwith %}
 
-					<ul class="dropdown-menu dropdown-menu-right">
-						<li><a href="{% url 'userena_password_change' user.username %}"><i class="icon-reset"></i> Change password</a></li>
-						<li><a href="{% url 'userena_signout' %}"><i class="icon-switch2"></i> Logout</a></li>
-					</ul>
-				</li>
-			</ul>
-		</div>
-{% endif %}
-	</div>
-	<!-- /main navbar -->
+              <!--
+              <li class="dropdown dropdown-notification nav-item"><a href="#" data-toggle="dropdown" class="nav-link nav-link-label"><i class="ficon ft-bell"></i><span class="tag tag-pill tag-default tag-danger tag-default tag-up">5</span></a>
+                <ul class="dropdown-menu dropdown-menu-media dropdown-menu-right">
+                  <li class="dropdown-menu-header">
+                    <h6 class="dropdown-header m-0"><span class="grey darken-2">Notifications</span><span class="notification-tag tag tag-default tag-danger float-xs-right m-0">5 New</span></h6>
+                  </li>
+                  <li class="list-group scrollable-container"><a href="javascript:void(0)" class="list-group-item">
+                      <div class="media">
+                        <div class="media-left valign-middle"><i class="ft-plus-square icon-bg-circle bg-cyan"></i></div>
+                        <div class="media-body">
+                          <h6 class="media-heading">You have new order!</h6>
+                          <p class="notification-text font-small-3 text-muted">Lorem ipsum dolor sit amet, consectetuer elit.</p><small>
+                            <time datetime="2015-06-11T18:29:20+08:00" class="media-meta text-muted">30 minutes ago</time></small>
+                        </div>
+                      </div></a><a href="javascript:void(0)" class="list-group-item">
+                      <div class="media">
+                        <div class="media-left valign-middle"><i class="ft-download-cloud icon-bg-circle bg-red bg-darken-1"></i></div>
+                        <div class="media-body">
+                          <h6 class="media-heading red darken-1">99% Server load</h6>
+                          <p class="notification-text font-small-3 text-muted">Aliquam tincidunt mauris eu risus.</p><small>
+                            <time datetime="2015-06-11T18:29:20+08:00" class="media-meta text-muted">Five hour ago</time></small>
+                        </div>
+                      </div></a><a href="javascript:void(0)" class="list-group-item">
+                      <div class="media">
+                        <div class="media-left valign-middle"><i class="ft-alert-triangle icon-bg-circle bg-yellow bg-darken-3"></i></div>
+                        <div class="media-body">
+                          <h6 class="media-heading yellow darken-3">Warning notifixation</h6>
+                          <p class="notification-text font-small-3 text-muted">Vestibulum auctor dapibus neque.</p><small>
+                            <time datetime="2015-06-11T18:29:20+08:00" class="media-meta text-muted">Today</time></small>
+                        </div>
+                      </div></a><a href="javascript:void(0)" class="list-group-item">
+                      <div class="media">
+                        <div class="media-left valign-middle"><i class="ft-check-circle icon-bg-circle bg-cyan"></i></div>
+                        <div class="media-body">
+                          <h6 class="media-heading">Complete the task</h6><small>
+                            <time datetime="2015-06-11T18:29:20+08:00" class="media-meta text-muted">Last week</time></small>
+                        </div>
+                      </div></a><a href="javascript:void(0)" class="list-group-item">
+                      <div class="media">
+                        <div class="media-left valign-middle"><i class="ft-file icon-bg-circle bg-teal"></i></div>
+                        <div class="media-body">
+                          <h6 class="media-heading">Generate monthly report</h6><small>
+                            <time datetime="2015-06-11T18:29:20+08:00" class="media-meta text-muted">Last month</time></small>
+                        </div>
+                      </div></a></li>
+                  <li class="dropdown-menu-footer"><a href="javascript:void(0)" class="dropdown-item text-muted text-xs-center">Read all notifications</a></li>
+                </ul>
+              </li>
+            -->
+              <li class="dropdown dropdown-user nav-item"><a href="#" data-toggle="dropdown" class="dropdown-toggle nav-link dropdown-user-link"><span class="avatar avatar-online"><img src="{% static 'img/logo-monkey.png' %}" alt="avatar"><i></i></span><span class="user-name">{{ user.profile.first_name|default:user.username }}</span></a>
+                <div class="dropdown-menu dropdown-menu-right">
+                   <a href="{% url 'userena_profile_edit' user.username %}" class="dropdown-item"><i class="ft-user"></i> Edit Profile</a>
+                   <a href="{% url 'exams:list_contributions' user.pk %}" class="dropdown-item"><i class="ft-edit"></i> My contributions</a>
+                   <div class="dropdown-divider"></div>
+                   <a href="{% url 'loginas-logout' %}" class="dropdown-item"><i class="ft-power"></i> Logout</a>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ////////////////////////////////////////////////////////////////////////////-->
 
 
-	<!-- Page container -->
-	<div class="page-container">
+    <!-- - var menuBorder = true-->
+    <div data-scroll-to-active="true" class="main-menu menu-fixed menu-light menu-accordion">
+      <div class="main-menu-content">
+        <ul id="main-menu-navigation" data-menu="menu-navigation" class="navigation navigation-main">
 
-		<!-- Page content -->
-		<div class="page-content">
+          <li class=" navigation-header"><span>Exams</span><i data-toggle="tooltip" data-placement="right" data-original-title="General" class=" ft-minus"></i>
+          </li>
+          <li class="nav-item has-sub{% if is_browse_active %} open{% endif %}"><a href="#"><i class="ft-align-left"></i><span data-i18n="" class="menu-title">Browse exams</span></a>
+{% cache 3600 meta_categories %}{# Cache for one hour #}
+            <ul class="menu-content">
+              {% for meta_category in meta_categories %}
+                  {% if meta_category.children.exists %}
+                      <li class="has-sub" data-category-pk="{{ meta_category.pk }}"><a href="{% url 'exams:show_category' meta_category.get_slugs %}" class="menu-item">{{ meta_category.name }}</a>
+                        <ul class="menu-content">
+                          {% for child_category in meta_category.children.all %}
+                          {% if child_category.children.exists %}
+                          <li class="has-sub" data-category-pk="{{ child_category.pk }}"><a href="{% url 'exams:show_category' child_category.get_slugs %}" class="menu-item">{{ child_category.name }}</a>
+                            <ul class="menu-content">
+                              {% for grandchild_category in child_category.children.all %}
+                              <li data-category-pk="{{ grandchild_category.pk }}"><a href="{% url 'exams:show_category' grandchild_category.get_slugs %}" class="menu-item">{{ grandchild_category.name }}</a></li>
+                              {% endfor %}
+                            </ul>
+                          </li>
+                          {% else %}
+                          <li data-category-pk="{{ child_category.pk }}"><a href="{% url 'exams:show_category' child_category.get_slugs %}" class="menu-item">{{ child_category.name }}</a></li>
+                          {% endif %}
+                          {% endfor %}
+                        </ul>
+                      </li>
+                  {% else %}
+                      <li><a href="{% url 'exams:show_category' meta_category.get_slugs %}" class="menu-item">{{ meta_category.name }}</a></li>
+                  {% endif %}
+              {% endfor %}
+            </ul>
+{% endcache %}
+          </li>
 
-			<!-- Main sidebar -->
-			<div class="sidebar bg-primary-600 sidebar-main">
-				<div class="sidebar-content">
-                                        <div class="text-center">
-                                        <a href="{% url 'index' %}"><img style="width: 150px; max-width: 70%;" src="{% static "img/logo.png" %}" alt=""></a>
-                                        </div>
-					<!-- User menu -->
-					<div class="sidebar-user">
-						<div class="category-content">
-							<div class="media">
-								<div class="media-body text-center">
-									<span class="media-heading text-semibold">Welcome, {{ user.profile.first_name|default:user.username }}!</span>
-								<form type="get" action="{% url 'exams:search' %}" accept-charset="utf-8">
-                                    <div class="form-group has-feedback has-feedback-left">
-														<input  type="search" id="q" name="q"  class="form-control" placeholder="Search by ID or Text" >
-														<div class="form-control-feedback">
-															<i class="icon-search4 text-size-base"></i>
-														</div>
-									</div>                                </form>
-
-                                </div>
-
-							</div>
-						</div>
-					</div>
-					<!-- /user menu -->
+          <li class="{% if is_previous_active %}active {% endif %}nav-item"><a href="{% url 'exams:list_previous_sessions' %}"><i class="ft-edit"></i><span data-i18n="" class="menu-title">Previous sessions</span></a></li>
+          <li class="{% if is_performance_active %}active {% endif %}nav-item"><a href="{% url 'exams:show_my_performance' %}"><i class="ft-bar-chart-2"></i><span data-i18n="" class="menu-title">Performance</span></a></li>
+          <li class="{% if is_search_active %}active {% endif %}nav-item"><a href="{% url 'exams:search' %}"><i class="ft-search"></i><span data-i18n="" class="menu-title">Search</span></a></li>
 
 
-					<!-- Main navigation -->
-					<div class="sidebar-category sidebar-category-visible">
-						<div class="category-content no-padding">
-							<ul class="navigation navigation-main navigation-accordion">
 
-								<!-- Main -->
-								<li>
-									<a href="{% url 'exams:list_meta_categories' %}"><i class="icon-stack-check"></i> <span>Explore exams!</span></a>
-								</li>
-                            <li>
-									<a href="{% url 'exams:list_previous_sessions' %}"><i class="icon-drawer3"></i> <span>Previous sessions</span></a>
-								</li>
-                            {% if exam %}
-                                {% if exam.category|is_editor:user %}
-                                    <li>
-									<a class="has-ul"><i class="icon-puzzle2"></i> <span>Questions and Revisions</span></a>
-									<ul class="hidden-ul">
-                                    <li>
-                                        <a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}"><i class="icon-pen-plus"></i> <span>Add Question</span></a>
-                                    </li>
-                                    <li>
-                                        <a href="{% url 'exams:list_questions' exam.category.get_slugs exam.pk %}"><i class="icon-list2 position-right"></i><span>List questions</span> </a>
-                                    </li>
-                                    <li>
-                                       <a href="{% url 'exams:approve_user_contributions' exam.category.get_slugs exam.pk %}"><i class="icon-file-plus"></i> <span>User contributions</span></a>
-                                    </li>
-									</ul>
-								</li>
 
-                                     {% else %}
-                                    <li>
-                                <a href="{% url 'exams:add_question' exam.category.get_slugs exam.pk %}"><i class="icon-database-add"></i> <span>Submit A Question</span></a>
-                            </li>
-                            {% endif %}
-                            <li>
-                                <a href="{% url 'exams:list_contributions' %}"><i class="icon-file-plus"></i> <span>My contributions</span></a>
-                            </li>
-                            <li>
-                            <a href="{% url 'exams:create_session' exam.category.get_slugs exam.pk %}"><i class="icon-pencil3"></i>Start Session</a>
-                            </li>
-
-                            {% endif %}
-                                {% block sidepanel %}
-                                {% endblock %}
+          {% if is_any_editor %}
+          {% with pending_count=user|get_pending_action_count assigned_count=user.assigned_questions.count %}
+          <li class=" navigation-header"><span>Editors</span><i data-toggle="tooltip" data-placement="right" data-original-title="Editors" class=" ft-minus"></i>
+            <li class="nav-item"><a href="{% url 'exams:list_assigned_questions' %}"><i class="ft-package"></i><span data-i18n="" class="menu-title">Assigned questions</span> {% if assigned_count %}<span class="badge badge badge-danger badge-pill float-right">{{ assigned_count }}</span>{% endif %}</a></li>
+            <li class="nav-item"><a href="{% url 'exams:list_activities' %}"><i class="ft-clock"></i><span data-i18n="" class="menu-title">Recent activities</span> <span class="badge badge badge-danger badge-pill float-right">New</span></a></li>
+            <li class="nav-item"><a href="{% url 'exams:show_tool_index' %}"><i class="ft-loader"></i><span data-i18n="" class="menu-title">Editor tools</span> {% if pending_count %}<span class="badge badge badge-danger badge-pill float-right">{{ pending_count }}</span>{% endif %}</a></li>
+{#          <li class="{% if is_contributions_active %}active {% endif %}nav-item"><a href="{% url 'list_latest_changes' %}"><i class="ft-watch"></i><span data-i18n="" class="menu-title">Latest changes</span><span class="tag tag tag-warning tag-pill float-xs-right mr-2">{{ pending_revision_count }}</span></a></li>#}
 {% if user.is_superuser %}
-								<li>
-									<a href="{% url 'exams:show_my_performance' %}"><i class="icon-chart"></i> <span>My performance</span></a>
-								</li>
-								<li>
-									<a href="{% url 'exams:list_category_indicators' %}"><i class="icon-pie-chart2"></i> <span>Category indicators</span></a>
-								</li>
-								<li>
-									<a href="{% url 'admin:index' %}"><i class="icon-shield2"></i> <span>Superuser Admin</span></a>
-								</li>
+          <li><a href="{% url 'mailer:list_messages' %}"><i class="ft-mic"></i> <span>Mailer</span></a></li>
+          <li class="{% if is_indicators_active %}active {% endif %}nav-item"><a href="{% url 'show_indicator_index' %}"><i class="ft-pie-chart"></i><span data-i18n="" class="menu-title">Indicators</span></a></li>
 {% endif %}
-								<li>
-									<a href="{% url 'editor_admin:index' %}"><i class="icon-power2"></i> <span>Editor Admin</span></a>
-								</li>
-
-                                <li>
-									<a href="{% url 'about' %}"><i class="icon-info3"></i> <span>About <em>Fudul</em></span></a>
-								</li>
-
-{#								<li>#}
-{#									<a href="#"><i class="icon-copy"></i> <span>Menu item</span></a>#}
-{#								</li>#}
-							</ul>
-						</div>
-					</div>
-					<!-- /main navigation -->
-
-				</div>
-			</div>
-			<!-- /main sidebar -->
+          <li class="nav-item"><a href="{% if user.is_superuser %}{% url 'admin:index' %}{% else %}{% url 'editor_admin:index' %}{% endif %}"><i class="ft-zap"></i><span data-i18n="" class="menu-title">Admin</span></a></li>
+          {% endwith %}
+          {% endif %}
 
 
-			<!-- Main content -->
-			<div class="content-wrapper">
+          <li class=" navigation-header"><span>About</span><i data-toggle="tooltip" data-placement="right" data-original-title="About" class=" ft-minus"></i>
+          <li class="{% if is_about_active %}active {% endif %}nav-item"><a href="{% url 'about' %}"><i class="ft-info"></i><span data-i18n="" class="menu-title">About Fudul</span></a></li>
+          <li class="{% if is_ask_active %}active {% endif %}nav-item"><a href="{% url 'help' %}"><i class="ft-message-circle"></i><span data-i18n="" class="menu-title">Get help</span></a></li>
+        </ul>
+      </div>
+    </div>
 
-				<!-- Page header -->
-				<div class="page-header page-header-default">
-{% block breadcrumb %}{% endblock %}
-				</div>
-				<!-- /page header -->
+    <div class="app-content content">
+      <div class="content-wrapper">
+        {% if donation_message %}
+        {% get_donation_target_percentage as donation_target_percentage %}
+        <div id="donation-card" class="card">
+          <div class="card-body">
+            <div class="row justify-content-center">
+              <div class="col-md-auto d-none d-md-flex">
+                <img style="height: 120px;" src="{% static 'img/logo-avatar.svg' %}">
+              </div>
+              <div class="col-10 col-md-8 text-center align-self-center">
+                {{ donation_message.get_markup }}
+                <div class="progress mb-1">
+                  <div class="progress-bar bg-success" role="progressbar" style="width: {{ donation_target_percentage }}%;" aria-valuenow="{{ donation_target_percentage }}" aria-valuemin="0" aria-valuemax="100">{{ donation_target_percentage }}%</div>
+                </div>
+                <div class="text-center">
+                  <a class="btn btn-success bold" href="{% if donation_message.language == 'ar' %}{% url 'contribute' 'ar' %}{% else %}{% url 'contribute' %}{% endif %}#pk_campaign=donation&pk_kwd=message-with-progress-{{ donation_message.pk }}"><strong>{% if donation_message.language == 'ar' %}تبرُّع{% else %}Donate{% endif %}</strong></a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+        <div class="content-header row">
+           <div class="content-header-left col-md-6 col-12 mb-1">
+{% block header_title %}{% endblock %}
+          </div>
+          <div class="content-header-right breadcrumbs-right breadcrumbs-top col-md-6 col-12">
+             <div class="breadcrumb-wrapper col-12">
+               <ol class="breadcrumb">
+       {% block breadcrumb %}{% endblock %}
+              </ol>
+            </div>
+          </div>
 
-
-				<!-- Content area -->
-				<div class="content">
+        </div>
+        <div class="content-body"><!-- fitness target -->
 {% block content %}{% endblock %}
-					</div>
-					<!-- /dashboard content -->
+        </div>
+      </div>
+    </div>
+    <!-- ////////////////////////////////////////////////////////////////////////////-->
 
 
-					<!-- Footer -->
-					<div style="margin-bottom: 10px;" class="text-muted pull-right">
-						 بُني بأيدٍ طلابية. <a href="https://github.com/Zahajamaan/Fudulbank" target="_blank">حقّك في النسخ مكفول</a>
-					</div>
-					<!-- /footer -->
+    <footer class="footer footer-static footer-light navbar-border">
+      <p class="clearfix blue-grey lighten-2 text-sm-center mb-0 px-2 font-small-3">
+        <span class="float-md-left d-block d-md-inline-block">
+          <a href="{% url 'about' %}">About</a>
+        </span>
+        <span class="float-md-right d-block d-md-inline-blockd-none d-lg-block">
+          Copying is an act of <i class="ft-heart pink"></i>. Please copy and share.
+        </span>
+        </p>
+    </footer>
 
-				</div>
-				<!-- /content area -->
+    <!-- BEGIN VENDOR JS-->
+    <script src="{% static 'stack/vendors/js/vendors.min.js' %}" type="text/javascript"></script>
+    <!-- END VENDOR JS-->
 
-			</div>
-			<!-- /main content -->
+<script>
+$(function(){
+ $(".mark-all-as-read").click(function(){
+   $.ajax({url: '{% url "notifications:mark_all_as_read" %}',
+           success: function(){
+             empty_html = $("#empty-notification").removeClass('d-none').prop('outerHTML');
+             $("#notification-list").html(empty_html);
+             $("#notification-dropdown").addClass('pb-0');
+             $("#notification-count-new, #notification-count-outer").hide();
+             $(".mark-all-as-read").hide();
+             $('.mark-as-read').css('visibility', 'hidden')
+           }
+   })
+ });
+});
+</script>
 
-		</div>
-		<!-- /page content -->
+{% block customscript %}{% endblock %}
 
-	</div>
-	<!-- /page container -->
-	{% block customscript %}
-    {% endblock %}
+    <!-- BEGIN STACK JS-->
+    <script src="{% static 'stack/js/core/app-menu.js' %}" type="text/javascript"></script>
+    <script src="{% static 'stack/js/core/app.js' %}" type="text/javascript"></script>
+    <!-- END STACK JS-->
 
-</body>
+  </body>
 </html>
