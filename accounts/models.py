@@ -42,6 +42,7 @@ class Profile(UserenaBaseProfile):
     mobile_number = models.CharField(max_length=14)
     alternative_email = models.EmailField(blank=True)
     is_editor = models.BooleanField(default=False)
+    is_examiner = models.BooleanField(default=False)
     submission_date = models.DateTimeField(auto_now_add=True)
     modification_date = models.DateTimeField(auto_now=True, null=True)
     primary_interest = models.ForeignKey('PrimaryInterest',

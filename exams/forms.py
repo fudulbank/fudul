@@ -269,7 +269,7 @@ class SessionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.exam = kwargs.pop('exam')
         self.user = kwargs.pop('user')
-        original_session = kwargs.pop('original_session', None)
+        self.original_session = kwargs.pop('original_session', None)
         self.is_automatic = kwargs.pop('is_automatic', False)
         super().__init__(*args, **kwargs)
 
@@ -279,11 +279,11 @@ class SessionForm(forms.ModelForm):
                                                             'child_question')
 
         # We can base the session on a previous session
-        if original_session:
-            session_question_pks = original_session.answer_set.values('question').distinct()
+        if self.original_session:
+            session_question_pks = self.original_session.answer_set.values('question').distinct()
             incorrect_question_pks = session_question_pks.filter(choice__is_right=False)
             skipped_question_pks = session_question_pks.filter(choice__isnull=True)
-            self.question_pools = {'ALL': original_session.get_questions(),
+            self.question_pools = {'ALL': self.original_session.get_questions(),
                                    'INCORRECT': models.Question.objects.filter(pk__in=incorrect_question_pks),
                                    'SKIPPED': models.Question.objects.filter(pk__in=skipped_question_pks),
             }
@@ -486,13 +486,19 @@ class SessionForm(forms.ModelForm):
         # number of questions in the sessions.
         session.unused_question_count = actual_question_count
 
+        if self.original_session:
+            session.examinee_name = self.original_session.examinee_name
+            session.description = self.original_session.description
+
         session.save()
         return session
 
     class Meta:
         model = models.Session
-        fields = ['session_mode', 'number_of_questions','exam_types',
-                  'sources', 'subjects', 'question_filter', 'difficulties']
+        fields = ['session_mode', 'number_of_questions',
+                  'description', 'examinee_name', 'exam_types',
+                  'sources', 'subjects', 'question_filter',
+                  'difficulties']
 
 
 class ExplanationForm(GenericRevisionForm):

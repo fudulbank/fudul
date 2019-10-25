@@ -2,8 +2,25 @@ def mark_editors(sender, raw, **kwargs):
     if raw:
         return
     team = kwargs['instance']
-    for user in team.members.select_related('profile')\
-                            .filter(profile__is_editor=False):
-        profile = user.profile
-        profile.is_editor = True
-        profile.save()
+    from accounts.models import Profile
+    Profile.objects.filter(is_editor=False,
+                           user__privileged_teams__isnull=False)\
+                   .update(is_editor=True)
+
+    Profile.objects.filter(is_editor=True,
+                           user__privileged_teams__isnull=True)\
+                   .update(is_editor=False)
+
+def mark_examiners(sender, raw, **kwargs):
+    if raw:
+        return
+    team = kwargs['instance']
+    if team.is_examiner:
+        from accounts.models import Profile
+        Profile.objects.filter(is_examiner=False,
+                               user__privileged_teams__is_examiner=True)\
+                       .update(is_examiner=True)
+
+        Profile.objects.filter(is_examiner=True)\
+                       .exclude(user__privileged_teams__is_examiner=True)\
+                       .update(is_examiner=False)

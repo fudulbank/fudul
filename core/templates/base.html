@@ -219,7 +219,7 @@
       <div class="main-menu-content">
         <ul id="main-menu-navigation" data-menu="menu-navigation" class="navigation navigation-main">
 
-          <li class=" navigation-header"><span>Exams</span><i data-toggle="tooltip" data-placement="right" data-original-title="General" class=" ft-minus"></i>
+          <li class=" navigation-header"><span>Exams</span><i data-toggle="tooltip" data-placement="right" data-original-title="Exams" class=" ft-minus"></i>
           </li>
           <li class="nav-item has-sub{% if is_browse_active %} open{% endif %}"><a href="#"><i class="ft-align-left"></i><span data-i18n="" class="menu-title">Browse exams</span></a>
 {% cache 3600 meta_categories %}{# Cache for one hour #}
@@ -250,13 +250,16 @@
             </ul>
 {% endcache %}
           </li>
-
           <li class="{% if is_previous_active %}active {% endif %}nav-item"><a href="{% url 'exams:list_previous_sessions' %}"><i class="ft-edit"></i><span data-i18n="" class="menu-title">Previous sessions</span></a></li>
           <li class="{% if is_performance_active %}active {% endif %}nav-item"><a href="{% url 'exams:show_my_performance' %}"><i class="ft-bar-chart-2"></i><span data-i18n="" class="menu-title">Performance</span></a></li>
           <li class="{% if is_search_active %}active {% endif %}nav-item"><a href="{% url 'exams:search' %}"><i class="ft-search"></i><span data-i18n="" class="menu-title">Search</span></a></li>
 
 
-
+          {% if user.is_superuser or user.profile.is_examiner %}
+          <li class=" navigation-header"><span>Examiners</span><i data-toggle="tooltip" data-placement="right" data-original-title="Examiners" class=" ft-minus"></i>
+          <li class="{% if is_trigger_active %}active {% endif %}nav-item"><a href="{% url 'exams:list_triggers' %}"><i class="ft-edit"></i><span data-i18n="" class="menu-title">Examine</span></a></li>
+          <li class="{% if is_examiner_list_active %}active {% endif %}nav-item"><a href="{% url 'exams:list_examiner_sessions' %}"><i class="ft-bar-chart-2"></i><span data-i18n="" class="menu-title">Examinees' results</span></a></li>
+          {% endif %}
 
           {% if is_any_editor %}
           {% with pending_count=user|get_pending_action_count assigned_count=user.assigned_questions.count %}

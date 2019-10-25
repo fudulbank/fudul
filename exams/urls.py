@@ -56,6 +56,10 @@ urlpatterns =[
     url(r'^indicators/categories/$', RedirectView.as_view(pattern_name='show_indicator_index')),
     url(r'^indicators/categories/(?P<slugs>[/\d\w\-]+)/$', RedirectView.as_view(pattern_name='show_indicator_index')),
 
+    # Examiners' views
+    url(r'^examiner/$', views.list_triggers, name='list_triggers'),
+    url(r'^examiner/results/$', views.list_examiner_sessions, name='list_examiner_sessions'),
+
     url(r'^contributions/(?:(?P<user_pk>\d+)/)?$',views.list_contributions, name='list_contributions'),
 
     url(r'^(?P<slugs>[/\d\w\-]+)/(?P<exam_pk>\d+)/(?P<pk>\d+)/control/approve$', views.approve_question, name='approve_question'),

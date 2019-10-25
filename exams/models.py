@@ -544,6 +544,8 @@ class Session(models.Model):
                                        related_name="children",
                                        null=True,
                                        blank=True)
+    examinee_name = models.CharField(max_length=100, blank=True)
+    description = models.CharField(max_length=100, blank=True)
     share_results = models.BooleanField(default=True)
     secret_key = models.CharField(max_length=10)
     number_of_questions = models.PositiveIntegerField(null=True)
@@ -1032,3 +1034,16 @@ class Figure(models.Model):
 
     def __str__(self):
         return self.caption or self.figure.url
+
+class Trigger(models.Model):
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
+    description = models.CharField(max_length=100, blank=True)
+    number_of_questions = models.PositiveIntegerField(null=True,
+                                                      blank=True)
+
+    def get_number_of_questions(self):
+        return self.number_of_questions or \
+            self.exam.question_set.approved().count()
+
+    def __str__(self):
+        return f"{self.exam.name} ({self.description})"

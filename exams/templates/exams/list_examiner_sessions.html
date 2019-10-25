@@ -1,0 +1,206 @@
+{% extends 'base.html' %}{% load exam_utils static bootstrap3 %}
+
+{% block title %}Fudul | Examinees' results {% endblock %}
+
+{% block head %}
+<style>
+tr td:last-child{
+  text-align: center;
+}
+
+.tooltip ul{
+  text-align: left;
+}
+</style>
+<link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
+{% endblock %}
+
+{% block header_title %}
+<h1>Examinees' results</h1>
+{% endblock %}
+
+{% block breadcrumb %}
+      <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
+      <li class="breadcrumb-item active">Examinees' results</li>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-body">
+    {% if sessions.exists %}
+    <div class="card-block">
+      <button id="delete-all-sessions" class="btn btn-danger float-right"><i class="ft-trash-2"></i> Forgive all previous sessions</button>
+    </div>
+    {% endif %}
+    <div class="card-block">
+      <table class="table table-striped table-bordered datatable responsive" width="100%">
+         <thead>
+           <tr>
+             <th class="all">Session</th>
+             <th>Date</th>
+             <th>Examinee's name</th>
+             <th>Description</th>
+             <th># questions</th>
+             <th>Score</th>
+             <th class="all">Actions</th>
+           </tr>
+         </thead>
+         <tbody>
+         {% for session in sessions %}
+         {% with total_count=session.get_total_question_count category_slugs=session.exam.category.get_slugs %}
+         <tr data-pk="{{ session.pk }}">
+             <td data-html="true" data-toggle="tooltip" title="{{ total_count }} questions {% if session.subject_list %}on: <ul>{% for subject in session.subject_list %}<li>{{ subject.name }}</li>{% endfor %}</ul> {% endif %}"><a href="{% url 'exams:show_session' category_slugs session.exam.pk session.pk %}">{{ session.exam.name }} ({{ session.pk }})</a></td>
+             <td data-order="{{ session.submission_date|date:'U' }}">{{ session.submission_date }}</td>
+             <td>{{ session.examinee_name }}</td>
+             <td>{{ session.description }}</td>
+             <td>{{ total_count }}</td>
+             {% with total=total_count %}
+               {% include 'exams/partials/session_score_column.html' %}
+             {% endwith %}
+             <td>
+               <div class="dropdown">
+                 <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="ft-settings"></i> Actions</button>
+                 <div class="dropdown-menu">
+                   {% if session.session_mode == 'SOLVED' or session.session_mode == 'INCOMPLETE' or session.unused_question_count %}
+                   <a class="dropdown-item" href="{% url 'exams:show_session' category_slugs session.exam.pk session.pk %}"><i class="ft-play"></i> Resume</a>
+                   {% else %}
+                   <a class="dropdown-item" href="{% url 'exams:show_session_results' category_slugs session.exam.pk session.pk %}"><i class="ft-list"></i> View results</a>
+                   {% endif %}
+                   <button data-url="{% url 'exams:create_session_automatically' category_slugs session.exam.pk %}" data-selector="ALL" data-session-pk="{{ session.pk }}" class="dropdown-item automatic-creation"><i class="ft-rotate-ccw"></i> Re-examine on <strong>all</strong> session questions <span class="font-small-2">({{ total_count }})</span></button>
+                   {% if skipped_count %}
+                     <button data-url="{% url 'exams:create_session_automatically' category_slugs session.exam.pk %}" data-selector="SKIPPED" data-session-pk="{{ session.pk }}" class="dropdown-item automatic-creation"><i class="ft-rotate-ccw"></i> Re-examine on <strong>skipped</strong> session questions <span class="font-small-2">({{ skipped_count }})</span></button>
+                   {% endif %}
+                   {% if incorrect_count %}
+                     <button data-url="{% url 'exams:create_session_automatically' category_slugs session.exam.pk %}" data-selector="INCORRECT" data-session-pk="{{ session.pk }}" class="dropdown-item automatic-creation"><i class="ft-rotate-ccw"></i> Re-examine on <strong>incorrect</strong> session questions <span class="font-small-2">({{ incorrect_count }})</span></button>
+                   {% endif %}
+                   <a data-pk="{{ session.pk }}" class="dropdown-item confirm-delete-session"><i class="ft-trash-2"></i> Forgive</a>
+                 </div>
+               </div>
+             </td>
+           </tr>
+         {% endwith %}
+         {% endfor %}
+         </tbody>
+       </table>
+    </div><!--card-block-->
+  </div><!--card-body-->
+</div><!--card-->
+
+{% endblock %}
+{% block customscript %}
+{% with modal_id='confirm-delete-session-modal' is_small=True modal_content="<strong>Are you sure you want to forgive this session?</strong> By asking for forgiveness, you will be adjusting your performance statistics and reclaiming some 'used questions'." %}
+    {% include "exams/modals/common_edit_modal.html" %}
+{% endwith %}
+
+{% with modal_id='confirm-delete-all-modal' is_small=True modal_title="Forgive me all sessions" modal_content="<strong>Are you sure you want us to forgive <em>all</em> your previous sessions?</strong> By asking for forgiveness, you will be resetting your performance statistics and reclaiming all your 'used questions'." %}
+    {% include "exams/modals/common_edit_modal.html" %}
+{% endwith %}
+{% include 'partials/import_datatables.html' %}
+<script src="{% static 'js/toastr.js' %}"></script>
+
+    <script>
+    toastr.options.positionClass = "toast-top-left";
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip()
+
+        table = $(".datatable").DataTable({
+            "order": [[ 1, "desc" ]]
+        });
+
+        $("#delete-all-sessions").click(function(){
+          $(this).tooltip("hide");
+          $("#confirm-delete-all-modal").modal('show');
+        });
+        $("#confirm-delete-all-modal .submit-button").click(function () {
+            _paq.push(['trackEvent', 'list-previous-sessions', 'delete-all-sessions', 'delete-all-sessions']);
+		        /* Send the data using post */
+            $.ajax({url: "{% url 'exams:delete_session' %}",
+                    data: {deletion_type: 'all'},
+                    type: 'POST',
+                    cahe: 'false',
+                    success: function (data) {
+        		            if (data.success == 1) {
+        		                // show success message (using toastr)
+        		                toastr.info("All your sessions have been forgiven.");
+        										row = table.rows();
+        										row.remove().draw(false);
+                            $("#delete-all-sessions").hide();
+        										$("#confirm-delete-all-modal").modal('hide');
+        		            } else {
+        		                toastr.error(data.message);
+        		            }
+        		        }
+            });
+				});
+
+       $('.confirm-delete-session').tooltip({title: "<img class='img-fluid' src='{% static 'img/monerh/forgive-1.png' %}'><div style='direction: rtl' >أنا أخطيت ما أنكر<br>ولا فيه عذر يكفيني<br>سوى إني أحبك حيل<br>وإني دايما إنسان 🎶</div>",
+                                             html: true})
+
+        $deleteConfirmationButton = $("#confirm-delete-session-modal .submit-button")
+        $('tbody').on('click','.confirm-delete-session',function () {
+            $(this).tooltip("hide");
+            var pk = $(this).data('pk');
+            $deleteConfirmationButton.data('pk', pk);
+            $("#confirm-delete-session-modal .modal-title").html("Forgive me for session #" + pk);
+            $("#confirm-delete-session-modal").modal('show');
+        });
+
+        $deleteConfirmationButton.click(function () {
+            _paq.push(['trackEvent', 'list-previous-sessions', 'delete-single-session', 'delete-single-session']);
+		        /* get some values from elements on the page: */
+						var pk = $(this).data('pk');
+		        /* Send the data using post */
+            $.ajax({url: "{% url 'exams:delete_session' %}",
+                    data: {deletion_type: 'session',
+                           pk: pk},
+                    type: 'POST',
+                    cahe: 'false',
+                    success: function (data) {
+        		            if (data.success == 1) {
+        		                // show success message (using toastr)
+        		                toastr.info("Session #" + pk + " was forgiven.");
+
+        										row = table.row("tr[data-pk=" +  pk + "]");
+        										row.remove().draw(false);
+        										$("#confirm-delete-session-modal").modal('hide');
+        		            } else {
+        		                toastr.error(data.message);
+        		            }
+        		        }
+            });
+				});
+
+        $('tbody').on('click', '.automatic-creation',function () {
+            var selector = $(this).data('selector');
+
+            if (selector == 'ALL'){
+               _paq.push(['trackEvent', 'list-previous-sessions', 'create-automatic-session', 'automatic-all-in-session']);
+            } else if (selector == 'SKIPPED'){
+               _paq.push(['trackEvent', 'list-previous-sessions', 'create-automatic-session', 'automatic-skipped-in-session']);
+            }  else if (selector == 'INCORRECT'){
+               _paq.push(['trackEvent', 'list-previous-sessions', 'create-automatic-session', 'automatic-incorrect-in-session']);
+            }
+
+            // Disable all automatic creation buttons upon firing one.
+            $('.automatic-creation').addClass('disabled').attr('disabled', true);
+
+            var url = $(this).data('url');
+            var session_pk = $(this).data('session-pk');
+            toastr.success("A new session is being created.  Give us a second!");
+            $.ajax({url: url,
+                    data: {selector: selector, session_pk: session_pk},
+                    method: 'POST',
+                    success: function(data){
+                        if (data.success == 1) {
+                            window.location.href = data.url;
+                        } else {
+                          toastr.error(data.message);
+                        }
+                    }
+            });
+        });
+
+    });
+    </script>
+{% endblock %}

@@ -8,3 +8,4 @@ class TeamsConfig(AppConfig):
 
     def ready(self):
         post_save.connect(signals.mark_editors, sender="teams.Team", dispatch_uid="mark_editors")
+        post_save.connect(signals.mark_examiners, sender="teams.Team", dispatch_uid="mark_examiners")

@@ -18,6 +18,8 @@ class Team(models.Model):
                                      related_name="team_memberships")
     exams = models.ManyToManyField('exams.Exam',
                                    related_name="privileged_teams")
+    is_examiner = models.BooleanField('This group represents a group of examiners',
+                                      default=False)
 
     def get_member_count(self):
         return self.members.count()

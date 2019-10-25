@@ -139,6 +139,10 @@ class RuleAdmin(admin.ModelAdmin):
 class SuggestedChangeAdmin(admin.ModelAdmin):
     readonly_fields = ['revision', 'reviser', 'revision_date']
 
+class TriggerAdmin(admin.ModelAdmin):
+    list_display = ['exam', 'description']
+    autocomplete_fields = ['exam']
+
 class SessionAdmin(admin.ModelAdmin):
     readonly_fields = ['correct_answer_count',
                        'incorrect_answer_count',
@@ -168,5 +172,6 @@ admin.site.register(models.Rule, RuleAdmin)
 admin.site.register(models.Session, SessionAdmin)
 admin.site.register(models.SessionTheme, SessionThemeAdmin)
 admin.site.register(models.SuggestedChange, SuggestedChangeAdmin)
+admin.site.register(models.Trigger, TriggerAdmin)
 editor_site.register(models.Category, CategoryAdmin)
 editor_site.register(models.Exam, ExamAdmin)

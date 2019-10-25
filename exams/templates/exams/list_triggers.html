@@ -1,0 +1,94 @@
+{% extends 'base.html' %}{% load exam_utils static bootstrap3 %}
+
+{% block title %}Fudul | Examine {% endblock %}
+
+{% block header_title %}
+<h1>Examine</h1>
+{% endblock %}
+
+{% block breadcrumb %}
+      <li class="breadcrumb-item"><a href="{% url 'index' %}">Home page</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'exams:list_meta_categories' %}">Exams</a></li>
+      <li class="breadcrumb-item active">Examine</li>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-body">
+    <div class="card-block">
+      <table class="table table-striped table-bordered datatable responsive" width="100%">
+         <thead>
+           <tr>
+             <th class="all">Exam</th>
+             <th>Description</th>
+             <th># questions</th>
+             <th>Action</th>
+           </tr>
+         </thead>
+         <tbody>
+         {% for trigger in triggers %}
+         {% with category_slugs=trigger.exam.category.get_slugs %}
+         <tr data-pk="{{ trigger.pk }}">
+             <td data-priority="1"><a href="{% url 'exams:create_session' category_slugs trigger.exam_id %}">{{ trigger.exam.name }}</a></td>
+             <td>{{ trigger.description }}</td>
+             <td>{{ trigger.get_number_of_questions }}</td>
+             <td data-priority="2">
+               <button data-url="{% url 'exams:create_session_automatically' category_slugs trigger.exam.pk %}" data-selector="ALL" data-trigger-pk="{{ trigger.pk }}" class="btn btn-sm btn-primary ask-for-name"><i class="ft-play"></i> Examine</button>
+             </td>
+           </tr>
+         {% endwith %}
+         {% endfor %}
+         </tbody>
+       </table>
+    </div><!--card-block-->
+  </div><!--card-body-->
+</div><!--card-->
+
+{% endblock %}
+{% block customscript %}
+{% csrf_token %}
+{% with modal_id='enter-name' button_form="enter-name-form" is_small=True modal_title="Enter examinee's name" modal_content="<form id='enter-name-form'><div class='form-group'><label for='examinee_name'>Enter your name:</label><input id='examinee_name' type='text' autofocus required class='form-control'></div></form>" %}
+    {% include "exams/modals/common_edit_modal.html" %}
+{% endwith %}
+
+{% include 'partials/import_datatables.html' %}
+    <script src="{% static 'js/toastr.js' %}"></script>
+    <script>
+    'use strict';
+    toastr.options.positionClass = "toast-top-left";
+    $(function () {
+        var table = $(".datatable").DataTable({"order": [[ 1, "desc" ]]}),
+            csrftoken = $("[name=csrfmiddlewaretoken]").val(),
+            $triggerForm = $("#enter-name-form");
+
+        $('tbody').on('click', '.ask-for-name',function () {
+          var url = $(this).data('url'),
+              pk = $(this).closest('tr').data('pk');
+          $triggerForm.data('url', url).data('pk', pk);
+          $(this).tooltip("hide");
+          $("#enter-name").modal('show');
+        });
+
+        $triggerForm.submit(function (event){
+            event.preventDefault();
+						var pk = $(this).data('pk'),
+                url = $(this).data('url'),
+                examinee_name = $("#examinee_name").val();
+            toastr.success("A new session is being created.  Give us a second!");
+            $.ajax({url: url,
+                    data: {selector: 'ALL', trigger_pk: pk,
+                           examinee_name: examinee_name,
+                           csrfmiddlewaretoken: csrftoken},
+                    method: 'POST',
+                    success: function(data){
+                        if (data.success == 1) {
+                            window.location.href = data.url;
+                        } else {
+                          toastr.error(data.message);
+                        }
+                    }
+            });
+				});
+    });
+    </script>
+{% endblock %}

@@ -493,8 +493,11 @@ def create_session_automatically(request, slugs, exam_pk):
     selector = request.POST.get('selector')
     session_pk = request.POST.get('session_pk')
     subject_pk = request.POST.get('subject_pk')
+    trigger_pk = request.POST.get('trigger_pk')
+    examinee_name = request.POST.get('examinee_name', '')
 
-    if not selector or selector not in ['ALL', 'SKIPPED', 'INCORRECT']:
+    if not selector or selector not in ['ALL', 'SKIPPED', 'INCORRECT'] or \
+       trigger_pk and not examinee_name:
         return HttpResponseBadRequest()
 
     if subject_pk:
@@ -507,6 +510,12 @@ def create_session_automatically(request, slugs, exam_pk):
                                              exam=exam)
     else:
         original_session = None
+
+    if trigger_pk:
+        trigger = get_object_or_404(Trigger, pk=trigger_pk, exam=exam)
+        description = trigger.description 
+    else:
+        description = ""
 
     # PERMISSION CHECK
     if not category.can_user_access(request.user) or \
@@ -528,7 +537,9 @@ def create_session_automatically(request, slugs, exam_pk):
         session_mode = 'EXPLAINED'
 
     data = {'session_mode': session_mode,
-            'question_filter': selector}
+            'question_filter': selector,
+            'examinee_name': examinee_name,
+            'description': description}
     if subject:
         data['subjects'] = [subject_pk]
 
@@ -1165,6 +1176,7 @@ def delete_correction(request):
         correction.supporting_users.remove(new_submitter)
         template = get_template('exams/partials/show_answer_correction.html')
         context = {'choice': correction.choice, 'user': request.user}
+
         correction_html = template.render(context)
         return {'correction_html': correction_html}
     else:
@@ -1532,3 +1544,48 @@ def toggle_sharing_results(request):
     session.save()
 
     return {'share_results': session.share_results}
+
+@login_required
+@require_safe
+def list_triggers(request):
+    # PERMISSION CHECKS
+    if not request.user.is_superuser and \
+       not request.user.profile.is_examiner:
+        raise PermissionDenied
+
+    if request.user.is_superuser:
+        triggers = Trigger.objects.select_related('exam',
+                                               'exam__category')
+    else:
+        triggers = Trigger.objects.select_related('exam',
+                                                   'exam__category')\
+                                  .filter(exam__privileged_teams__is_examiner=True,
+                                          exam__privileged_teams__members=request.user)\
+                                  .distinct()
+    context = {'triggers': triggers}
+
+    return render(request, 'exams/list_triggers.html', context)
+
+@login_required
+@require_safe
+def list_examiner_sessions(request):
+    # PERMISSION CHECKS
+    if not request.user.is_superuser and \
+       not request.user.profile.is_examiner:
+        raise PermissionDenied
+
+    session_pool = Session.objects.select_for_session_list()\
+                                  .undeleted()\
+                                  .exclude(examinee_name="")\
+                                  .distinct()
+
+    if request.user.is_superuser:
+        sessions = session_pool
+    else:
+        sessions = session_pool.filter(exam__privileged_teams__members=request.user)\
+                               .distinct()
+
+    context = {'sessions': sessions}
+
+    return render(request, 'exams/list_examiner_sessions.html',
+                  context)
