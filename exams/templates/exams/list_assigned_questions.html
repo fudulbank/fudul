@@ -49,7 +49,7 @@ tbody tr td.action-button{
     </div>
 {% endblock %}
 {% block customscript %}
-
+{% csrf_token %}
 <div id="action-button" style="display: none">
   <div class="dropdown">
     <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="ft-settings"></i> Actions</button>
@@ -66,7 +66,8 @@ tbody tr td.action-button{
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js" integrity="sha384-kOzY9L5wBXCCeXrHKAMsNCiXCP+c9gu/TfMTC+vTjH542f0KEPZdw69IG2d4khx/" crossorigin="anonymous"></script>
 <script>
     $(function () {
-        tables = $(".datatable").DataTable({
+        var csrftoken = $("[name=csrfmiddlewaretoken]").val(),
+            tables = $(".datatable").DataTable({
             ajax: {url: '{% url "assigned-list" %}?format=json', dataSrc:""},
             deferRender: true,
             dom: 'Bfrtip',
@@ -119,20 +120,20 @@ tbody tr td.action-button{
         $("#clear-assignment").click(function(){
           var pks = []
           tables.rows( { selected: true } ).every(function(){
-            pk = this.data().question.id;
+            var pk = this.data().question.id;
             pks.push(pk)
           })
           var pks_str = pks.join(",")
           $.ajax({url: "{% url 'exams:assign_questions' %}",
                   method: 'POST',
-                  data: {pks: pks_str, clear: true},
+                  data: {pks: pks_str, clear: true, csrfmiddlewaretoken: csrftoken},
                   success: function(){
                     $("#selection-count").html("0");
-                    selectors = []
+                    var selectors = []
                     for (index in pks){
                       selectors.push(".question-id:contains(" + pks[index] + ")");
                     }
-                    selector_str = selectors.join(",")
+                    var selector_str = selectors.join(",")
                     tables.cells(selector_str).rows().remove().draw(false);
                   }}
           );
@@ -145,26 +146,28 @@ tbody tr td.action-button{
           show    : false,
         });
         $('tbody').on('click','tr td:not(.select-checkbox):not(.action-button)',function () {
-            $question_id_cell = $(this).siblings('.question-id');
-            question_id = tables.cell($question_id_cell).data();
-            url =  Urls['exams:show_question'](question_id);
+            var $question_id_cell = $(this).siblings('.question-id'),
+                question_id = tables.cell($question_id_cell).data(),
+                url =  Urls['exams:show_question'](question_id);
             $("#show-question-modal").modal('show');
             $("#show-question-modal .modal-title").html("Question #" + question_id);
             $("#show-question-modal .modal-body").load(url);
         });
 				$deleteConfirmationButton = $("#confirm-delete-question-modal .submit-button")
         $('tbody').on('click','.confirm-delete-question',function () {
-            var pk = $(this).data('pk');
-            var url = Urls['exams:delete_question'](pk);
+            var pk = $(this).data('pk'),
+                url = Urls['exams:delete_question'](pk);
             $deleteConfirmationButton.data('url', url).data('pk', pk);
             $("#confirm-delete-question-modal").modal('show');
         });
 				$deleteConfirmationButton.click(function () {
 				        /* get some values from elements on the page: */
-				        var url = $(this).data('url');
-								var pk = $(this).data('pk');
-				        /* Send the data using post */
-				        var posting = $.post(url);
+				        var url = $(this).data('url'),
+                    pk = $(this).data('pk'),
+                    /* Send the data using post */
+                    posting = $.post(url, {csrfmiddlewaretoken: csrftoken});
+
+
 				        posting.done(function (data) {
 				            if (data.success == 1) {
 				                // show success message (using toastr)

@@ -120,7 +120,6 @@ class QuestionAutocomplete(autocomplete.Select2QuerySetView):
 
 @login_required
 @require_POST
-@csrf.csrf_exempt
 @decorators.ajax_only
 def delete_question(request, pk):
     question_pool = Question.objects.undeleted()\

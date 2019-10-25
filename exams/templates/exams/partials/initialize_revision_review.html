@@ -1,11 +1,12 @@
 {% with modal_id='confirm-delete-revision-modal' is_small=True modal_title="Delete revision" modal_content="Are you sure you want to delete this revision?" %}{% load static %}
     {% include "exams/modals/common_edit_modal.html" %}
 {% endwith %}
-
+{% csrf_token %}
 <script src="{% static 'js/toastr.js' %}"></script>
 <script type="text/javascript">
 toastr.options.positionClass = "toast-top-left";
 function initializeReview(){
+    var csrftoken = $("[name=csrfmiddlewaretoken]").val(),
     $confirmRevisionDeletion = $("#confirm-delete-revision-modal .submit-button")
     $('.confirm-delete-revision').click(function () {
         var url = $(this).data('url');
@@ -18,7 +19,7 @@ function initializeReview(){
         var url = $(this).data('url');
 				var pk = $(this).data('pk');
         /* Send the data using post */
-        var posting = $.post(url);
+        var posting = $.post(url, {csrfmiddlewaretoken: csrftoken});
         posting.done(function (data) {
             if (data.success == 1) {
                 // The following applies in both list_revision and approve_user_contributions
@@ -40,7 +41,7 @@ function initializeReview(){
 				var pk = $(this).data('pk');
         row_selector = "tr[data-pk=" +  pk + "]";
         /* Send the data using post */
-        var posting = $.post(url);
+        var posting = $.post(url, {csrfmiddlewaretoken: csrftoken});
         posting.done(function (data) {
             if (data.success == 1) {
                 // show success message (using toastr)
@@ -74,7 +75,7 @@ function initializeReview(){
 				var pk = $(this).data('pk');
         row_selector = "tr[data-pk=" +  pk + "]";
         /* Send the data using post */
-        var posting = $.post(url);
+        var posting = $.post(url, {csrfmiddlewaretoken: csrftoken});
         posting.done(function (data) {
             if (data.success == 1) {
                 toastr.info("Revision is now marked as pending");

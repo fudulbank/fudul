@@ -78,7 +78,7 @@ tbody tr td.action-button{
     </div>
 {% endblock %}
 {% block customscript %}
-
+{% csrf_token %}
 <div id="action-button" style="display: none">
   <div class="dropdown">
     <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="ft-settings"></i> Actions</button>
@@ -97,47 +97,49 @@ tbody tr td.action-button{
 <script src="{% url 'js_reverse' %}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js" integrity="sha384-kOzY9L5wBXCCeXrHKAMsNCiXCP+c9gu/TfMTC+vTjH542f0KEPZdw69IG2d4khx/" crossorigin="anonymous"></script>
 <script>
-    EXAM_PK = {{ exam.pk }};
-    CATEGORY_SLUGS = '{{ category_slugs }}';
+  'use strict';
+    var EXAM_PK = {{ exam.pk }},
+        CATEGORY_SLUGS = '{{ category_slugs }}';
 
     $(function () {
-        tables = $(".datatable").DataTable({
-            ajax: {url: '{% url "summary-list" %}?exam_pk={{ exam.pk }}&selector={{ selector }}&format=json', dataSrc:""},
-            deferRender: true,
-            dom: 'Bfrtipl',
-            buttons: [
-              'selectAll',
-              'selectNone'
-            ],
-            columns: [
-              {data: function(){return ''}, orderable: false, visible: false, className: 'select-checkbox'},
-              {data: 'question.id', className: 'question-id'},
-              {data: 'summary'},
-              {data: 'assigned_editor', className: 'assigned-editor'},
-              {data: 'submission_date',
-               render: {'_': function(data){ return moment(data).format("MMM. D, YYYY, H:mm") },
-                        'sort': function(data){ return moment(data).valueOf()}}
-              },
-              //{data: function(){return ''}, orderable: false},
-              {data: 'question.id',
-               render: function(question_id){
-                    var $action_data = $('#action-button').clone();
-                    var list_revision_url = Urls['exams:list_revisions'](CATEGORY_SLUGS, EXAM_PK, question_id);
-                    var submit_revision_url = Urls['exams:submit_revision'](CATEGORY_SLUGS, EXAM_PK, question_id);
-                    $action_data.find('.list-revisions').attr('href', list_revision_url);
-                    $action_data.find('.submit-revision').attr('href', submit_revision_url);
-                    $action_data.find('.confirm-delete-question, .review-mnemonics').attr('data-pk', question_id);
-                    return $action_data.prop('innerHTML');
+        var csrftoken = $("[name=csrfmiddlewaretoken]").val(),
+            tables = $(".datatable").DataTable({
+              ajax: {url: '{% url "summary-list" %}?exam_pk={{ exam.pk }}&selector={{ selector }}&format=json', dataSrc:""},
+              deferRender: true,
+              dom: 'Bfrtipl',
+              buttons: [
+                'selectAll',
+                'selectNone'
+              ],
+              columns: [
+                {data: function(){return ''}, orderable: false, visible: false, className: 'select-checkbox'},
+                {data: 'question.id', className: 'question-id'},
+                {data: 'summary'},
+                {data: 'assigned_editor', className: 'assigned-editor'},
+                {data: 'submission_date',
+                 render: {'_': function(data){ return moment(data).format("MMM. D, YYYY, H:mm") },
+                          'sort': function(data){ return moment(data).valueOf()}}
                 },
-                orderable: false,
-                className: 'action-button'},
-            ],
-            select: {
-              style:    'os',
-              selector: 'td.select-checkbox'
-            },
-            order: [[ 4, "desc" ]]
-        });
+                //{data: function(){return ''}, orderable: false},
+                {data: 'question.id',
+                 render: function(question_id){
+                      var $action_data = $('#action-button').clone(),
+                          list_revision_url = Urls['exams:list_revisions'](CATEGORY_SLUGS, EXAM_PK, question_id),
+                          submit_revision_url = Urls['exams:submit_revision'](CATEGORY_SLUGS, EXAM_PK, question_id);
+                      $action_data.find('.list-revisions').attr('href', list_revision_url);
+                      $action_data.find('.submit-revision').attr('href', submit_revision_url);
+                      $action_data.find('.confirm-delete-question, .review-mnemonics').attr('data-pk', question_id);
+                      return $action_data.prop('innerHTML');
+                  },
+                  orderable: false,
+                  className: 'action-button'},
+              ],
+              select: {
+                style:    'os',
+                selector: 'td.select-checkbox'
+              },
+              order: [[ 4, "desc" ]]
+          });
 
         function controlButtons(){
           if (tables.rows({selected: true}).count()){
@@ -168,24 +170,25 @@ tbody tr td.action-button{
           var action = $(this).data('action')
           var pks = []
           tables.rows( { selected: true } ).every(function(){
-            pk = this.data().question.id;
+            var pk = this.data().question.id;
             pks.push(pk)
           })
-          pks_str = pks.join(",")
+          var pks_str = pks.join(",")
           if (action == 'assign'){
-            var editor_pk = $("#id_editor").val()
-            var clear = false
+            var editor_pk = $("#id_editor").val(),
+                clear = false
           } else if (action == 'clear'){
-            var editor_pk = null;
-            var clear = true;
+            var editor_pk = null,
+                clear = true;
           }
           $.ajax({url: "{% url 'exams:assign_questions' %}",
                   method: 'POST',
-                  data: {pks: pks_str, editor_pk: editor_pk, clear: clear},
+                  data: {pks: pks_str, editor_pk: editor_pk, clear: clear, csrfmiddlewaretoken: csrftoken},
                   success: function(){
-                    var editor_name = $("#id_editor").select2('data')[0].text;
+                    var user_pk = $("#id_editor").val(),
+                        editor_name = $("#id_editor option[value=" + user_pk + "]").text();
                     tables.rows( { selected: true } ).every(function(){
-                      data = this.data()
+                      var data = this.data()
                       if (action == 'assign'){
                         data.assigned_editor = editor_name;
                       } else if (action == 'clear'){
@@ -204,26 +207,25 @@ tbody tr td.action-button{
           show    : false,
         });
         $('tbody').on('click','tr td:not(.select-checkbox):not(.action-button)',function () {
-            $question_id_cell = $(this).siblings('.question-id');
-            question_id = tables.cell($question_id_cell).data();
-            url =  Urls['exams:show_question'](question_id);
+            var $question_id_cell = $(this).siblings('.question-id'),
+                question_id = tables.cell($question_id_cell).data(),
+                url =  Urls['exams:show_question'](question_id);
             $("#show-question-modal").modal('show');
             $("#show-question-modal .modal-title").html("Question #" + question_id);
             $("#show-question-modal .modal-body").load(url);
         });
-				$deleteConfirmationButton = $("#confirm-delete-question-modal .submit-button")
+				var $deleteConfirmationButton = $("#confirm-delete-question-modal .submit-button")
         $('tbody').on('click','.confirm-delete-question',function () {
-            var pk = $(this).data('pk');
-            var url = Urls['exams:delete_question'](pk);
+            var pk = $(this).data('pk'),
+                url = Urls['exams:delete_question'](pk);
             $deleteConfirmationButton.data('url', url).data('pk', pk);
             $("#confirm-delete-question-modal").modal('show');
         });
 				$deleteConfirmationButton.click(function () {
 				        /* get some values from elements on the page: */
-				        var url = $(this).data('url');
-								var pk = $(this).data('pk');
-				        /* Send the data using post */
-				        var posting = $.post(url);
+				        var url = $(this).data('url'),
+                    pk = $(this).data('pk'),
+                    posting = $.post(url, {csrfmiddlewaretoken: csrftoken});
 				        posting.done(function (data) {
 				            if (data.success == 1) {
 				                // show success message (using toastr)
@@ -246,9 +248,9 @@ tbody tr td.action-button{
           show    : false,
         });
         $('tbody').on('click', '.review-mnemonics', function () {
-            var question_pk = $(this).data('pk');
-            url = "{% url 'exams:contribute_mnemonics' %}?" + $.param({question_pk: question_pk})
-            title_part = tables.row(this).cell('.question-id').data();
+            var question_pk = $(this).data('pk'),
+                url = "{% url 'exams:contribute_mnemonics' %}?" + $.param({question_pk: question_pk}),
+                title_part = tables.row(this).cell('.question-id').data();
             $("#show-mnemonic-modal").modal('show');
             $("#show-mnemonic-modal .modal-title").html("Mnemonics of question #" + title_part);
             $("#show-mnemonic-modal .modal-body").load(url);
