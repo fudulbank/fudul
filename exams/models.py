@@ -1039,6 +1039,9 @@ class Trigger(models.Model):
     description = models.CharField(max_length=100, blank=True)
     number_of_questions = models.PositiveIntegerField(null=True,
                                                       blank=True)
+    session_mode = models.CharField(max_length=20,
+                                    choices=session_mode_choices,
+                                    default='UNEXPLAINED')
 
     def get_number_of_questions(self):
         return self.number_of_questions or \

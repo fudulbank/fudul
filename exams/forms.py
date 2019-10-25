@@ -495,8 +495,7 @@ class SessionForm(forms.ModelForm):
 
     class Meta:
         model = models.Session
-        fields = ['session_mode', 'number_of_questions',
-                  'description', 'examinee_name', 'exam_types',
+        fields = ['session_mode', 'number_of_questions', 'exam_types',
                   'sources', 'subjects', 'question_filter',
                   'difficulties']
 

@@ -488,6 +488,8 @@ def create_session(request, slugs, exam_pk):
 def create_session_automatically(request, slugs, exam_pk):
     category = Category.objects.get_from_slugs_or_404(slugs)
     exam = get_object_or_404(Exam, pk=exam_pk, category=category)
+    instance = Session(exam=exam,
+                       submitter=request.user)
 
     is_shared = request.POST.get('is_shared', False)
     selector = request.POST.get('selector')
@@ -513,9 +515,8 @@ def create_session_automatically(request, slugs, exam_pk):
 
     if trigger_pk:
         trigger = get_object_or_404(Trigger, pk=trigger_pk, exam=exam)
-        description = trigger.description 
-    else:
-        description = ""
+        instance.description = trigger.description
+        instance.examinee_name = examinee_name
 
     # PERMISSION CHECK
     if not category.can_user_access(request.user) or \
@@ -527,19 +528,16 @@ def create_session_automatically(request, slugs, exam_pk):
        not exam.can_user_edit(request.user):
         return render(request, "exams/coming_soon.html", {'exam': exam})
 
-    instance = Session(exam=exam,
-                       submitter=request.user)
-
     if is_shared:
         instance.parent_session = original_session
         session_mode = original_session.session_mode
+    elif trigger_pk:
+        session_mode = trigger.session_mode
     else:
         session_mode = 'EXPLAINED'
 
     data = {'session_mode': session_mode,
-            'question_filter': selector,
-            'examinee_name': examinee_name,
-            'description': description}
+            'question_filter': selector}
     if subject:
         data['subjects'] = [subject_pk]
 
