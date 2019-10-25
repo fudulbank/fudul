@@ -1,0 +1,15 @@
+{
+  "name": "fudulbank",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com-fuduluser1:fudulbank/fudul.git",
+  "author": "User 1 <user1@fudulbank.com>",
+  "license": "AGPL-3.0-or-later",
+  "devDependencies": {
+    "gulp": "^4.0.2",
+    "gulp-rename": "^1.4.0",
+    "gulp-sourcemaps": "^2.6.5",
+    "gulp-uglify": "^3.0.2",
+    "readable-stream": "^3.4.0"
+  }
+}

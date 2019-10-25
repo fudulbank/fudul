@@ -8,3 +8,6 @@ privileged_files/
 
 scripts/dumps/
 static_files/
+node_modules/
+*log
+*lock

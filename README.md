@@ -27,11 +27,6 @@ python3 manage.py loaddata core/fixtures/default_sites.json exams/fixutres/sessi
 python3 manage.py check_permissions
 ```
 
-In development set-ups only, in case you are changing minified JavaScripts, you will also need to install [UglifyJS](https://github.com/mishoo/UglifyJS2) (see Development Note below).  It can be installed via:
-```
-npm install uglify-js
-```
-
 In PostgreSQL set-ups, `django-notifications` is buggy as it uses an
 inappropriate field for generic relationship fields.  The following
 SQL statement (to be run a PostgreSQL production server), fix the bug.
@@ -42,6 +37,7 @@ ALTER COLUMN "actor_object_id" TYPE integer USING "actor_object_id"::integer,
 ALTER COLUMN "action_object_object_id" TYPE integer USING "action_object_object_id"::integer,
 ALTER COLUMN "target_object_id" TYPE integer USING "target_object_id"::integer;
 ```
+
 
 ## Cronjobs
 On production server, you will also need to schedule some cronjobs.
@@ -60,14 +56,24 @@ On Fudul's production server, we have these settings:
 0 0 * * * python3 /path/to/fudul/manage.py clearsessions
 ```
 
-# Deployment commands
-* We use [UglifyJS](https://github.com/mishoo/UglifyJS2) to minifiy the JavaScript behind show_session and to produce the source mapping.  When `exams/static/js/show_session.js` is edited, the `version` parameter in the `<script>` tag at `exams/templates/exams/show_session.html` needs to be updated (to purge the cache) and the following commands needs to be run to update the minified code:
+# Develeopment
+In development setups, make sure to activate the Pythin and Node.js
+virtual environments.  While not strictly required, they will make
+your life much easier:
 
 ```
-uglifyjs -c -m "toplevel,reserved=['$','g','initializeMnemonicInteractions']" --mangle-props "reserved=['$','g'],regex=/^__/" --source-map "url=show_session.min.js.map" show_session.js -o show_session.min.js
+source ../bin/activate
+pip install -r requirements.txt
+nodeenv -p
+# Re-activate the virtual environment after installing nodeenv. 
+source ../bin/activate
+# If you are editing the javascript files, run gulp to automatically minify them.
+gulp
 ```
 
-Then in the production server, make sure that the static files are updated:
+Then in the production server, make sure that the static files are
+updated:
+
 ```
 python3 manage.py collectstatic
 ```
