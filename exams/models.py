@@ -200,8 +200,7 @@ class Exam(models.Model):
         return sources
 
     def get_editors(self):
-        members = User.objects.filter(team_memberships__exams=self)
-        return members
+        return User.objects.filter(team_memberships__exams=self).distinict()
 
     def can_user_access(self, user):
         user_group = accounts.utils.get_profile_attr(user, 'group')
