@@ -70,13 +70,16 @@ class ExamAdmin(EditorModelAdmin):
     list_filter = ['was_announced']
     inlines = [SubjectInline, ExamDateInline]
     readonly_fields = ['is_deleted']
+    autocomplete_fields = ['category']
 
     def get_question_count(self, obj):
         return obj.question_set.undeleted().count()
     get_question_count.short_description = '# questions'
 
 class CategoryAdmin(EditorModelAdmin):
-    search_fields = ['name']
+    search_fields = ['name', 'parent_category__name',
+                     'parent_category__parent_category__name',
+                     'parent_category__parent_category__parent_category__name']
     inlines = [SourceInline]
 
 class RuleForm(forms.ModelForm):
