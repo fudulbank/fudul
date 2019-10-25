@@ -57,7 +57,7 @@
     'use strict';
     toastr.options.positionClass = "toast-top-left";
     $(function () {
-        var table = $(".datatable").DataTable({"order": [[ 1, "desc" ]]}),
+        var table = $(".datatable").DataTable({"order": [[ 0, "desc" ]]}),
             csrftoken = $("[name=csrfmiddlewaretoken]").val(),
             $triggerForm = $("#enter-name-form");
 
