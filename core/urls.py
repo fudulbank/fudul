@@ -3,7 +3,6 @@ from django.views.generic import TemplateView
 from . import views
 
 urlpatterns = [
-    url(r'^ajax/get_users$', views.UserAutocomplete.as_view(), name='user_autocomplete'),
     url(r'^privileged/(?P<path>.+)$', views.get_privileged_file, name='get_privileged_file'),
 
     url(r'^notifications/delete_all$', views.mark_all_notifications_as_deleted, name='mark_all_notifications_as_deleted'),
