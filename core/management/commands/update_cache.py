@@ -21,7 +21,7 @@ class Command(BaseCommand):
                 possible_pks = Question.objects.approved()\
                                                .filter(parent_question__isnull=True,
                                                        child_question__isnull=True,
-                                                       revision__choice__answer_correction__isnull=True)\
+                                                       best_revision__choices__answer_correction__isnull=True)\
                                                .values('pk')                                              
                 sample_question = Question.objects.filter(pk__in=possible_pks)\
                                                   .select_for_show_session()\
