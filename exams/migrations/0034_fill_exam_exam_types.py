@@ -14,7 +14,7 @@ def add_exam_types(apps, schema_editor):
         while category:
             exam_types |= category.exam_types.all()
             category = category.parent_category
-        exam.exam_types = exam_types
+        exam.exam_types.add(*exam_types)
 
 def remove_exam_types(apps, schema_editor):
     Exam = apps.get_model('exams', 'Exam')
