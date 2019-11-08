@@ -1514,8 +1514,9 @@ def get_shared_session_stats(request):
                              pk=question_pk,
                              is_deleted=False)
         for choice in question.best_revision.choice_list:
-            answer_count = Answer.objects.filter(choice=choice,
-                                                 session__parent_session_id=session_pk)\
+            answer_count = Answer.objects.filter(Q(session__parent_session_id=session_pk) | \
+                                                 Q(session_id=session_pk),
+                                                 choice=choice)\
                                          .count()
             stats['choices'].append(answer_count)
 
