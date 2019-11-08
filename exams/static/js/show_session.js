@@ -1249,7 +1249,8 @@ function prepareQuestions($questions){
 
 function setSharedStatTimer(){
   if (!window.g.__SHARED_STAT_TIMER && document.hasFocus() && $('.progress[data-has-finished="false"]').length){
-    window.g.__SHARED_STAT_TIMER = setInterval(fetchSharedStats, 5000);
+    var timeout = window.g.__IS_PRESENTER ? 2000 : 5000;
+    window.g.__SHARED_STAT_TIMER = setInterval(fetchSharedStats, timeout);
   }
 }
 
