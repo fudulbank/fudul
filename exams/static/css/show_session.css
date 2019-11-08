@@ -245,10 +245,6 @@ body[data-session-is-examinable="true"] .question-body[data-was-solved="false"] 
   margin-top: 20px;
 }
 
-.explanation-content{
-  overflow-x: auto;
-}
-
 .explanation-reference-header{
   font-size: 1.2rem;
 }
