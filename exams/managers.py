@@ -77,17 +77,15 @@ class QuestionQuerySet(models.QuerySet):
 
     def unsolved(self):
         return self.undeleted()\
-                   .filter(~Q(revision__choice__is_right=True),
-                           revision__is_deleted=False,
-                           revision__is_last=True)\
+                   .filter(~Q(best_revision__choices__is_right=True),
+                           best_revision__is_deleted=False)\
                    .distinct()
 
     def lacking_choices(self):
         return self.undeleted()\
-                   .filter(revision__is_deleted=False,
-                           revision__is_last=True)\
-                   .annotate(choice_count=Count('revision__choice'))\
-                   .filter(choice_count__lte=1)\
+                   .annotate(choice_count=Count('best_revision__choices'))\
+                   .filter(best_revision__is_deleted=False,
+                           choice_count__lte=1)\
                    .distinct()
 
     def with_issues(self):
