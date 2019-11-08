@@ -118,7 +118,7 @@ body[data-session-is-examinable="true"][data-has-finished="false"] #end{
     color: yellow;
 }
 
-.sharer-name{
+.sharer-name, #sharing-sidebar label{
   font-size: 0.8rem;
   line-height: 1.5;
 }
