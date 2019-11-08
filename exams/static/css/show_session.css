@@ -362,6 +362,12 @@ figcaption{
    animation: emphasized-hint 3s ease-in infinite alternate
 }
 
+.presneter-stat-container{
+  display: none;
+  max-width: 100%;
+  width: 600px;
+}
+
 /* == Start of selection hint ==  */
 /* This code below was adapted from https://github.com/Kikobeats/tweet-selection */
 @keyframes pop-upwards {

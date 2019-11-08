@@ -4,10 +4,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
-from django.urls import reverse
+from django.db.models import Prefetch
 from django.http import HttpResponseRedirect, Http404, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
 from django.template.loader import get_template
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators import csrf
 from django.views.decorators.cache import cache_page
@@ -1497,6 +1498,7 @@ def share_session(request, slugs, exam_pk, session_pk, secret_key=None):
 @decorators.ajax_only
 def get_shared_session_stats(request):
     session_pk = request.GET.get('session_pk')
+    question_pk = request.GET.get('question_pk')
     session = get_object_or_404(Session, pk=session_pk,
                                 is_deleted=False)
 
@@ -1504,7 +1506,19 @@ def get_shared_session_stats(request):
     if not session.can_user_access(request.user):
         raise PermissionDenied
 
-    stats = []
+    stats = {'sessions': []}
+
+    if question_pk:
+        stats['choices'] = []
+        question = get_object_or_404(Question.objects.select_for_show_session(),
+                             pk=question_pk,
+                             is_deleted=False)
+        for choice in question.best_revision.choice_list:
+            answer_count = Answer.objects.filter(choice=choice,
+                                                 session__parent_session_id=session_pk)\
+                                         .count()
+            stats['choices'].append(answer_count)
+
     for shared_session in Session.objects.get_shared(session)\
                                          .exclude(pk=session_pk):
         stat = {'pk': shared_session.pk,
@@ -1519,7 +1533,7 @@ def get_shared_session_stats(request):
                          'skipped_count': shared_session.skipped_answer_count})
         else:
             stat['count'] = shared_session.get_used_question_count()
-        stats.append(stat)
+        stats['sessions'].append(stat)
 
     return {'stats': stats}
 

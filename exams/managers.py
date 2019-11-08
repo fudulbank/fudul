@@ -166,12 +166,13 @@ class QuestionQuerySet(models.QuerySet):
         return self.filter(queries)
 
     def select_for_show_session(self):
-        from .models import Revision, Mnemonic 
+        from .models import Choice, Revision, Mnemonic 
         return self.select_related('best_revision',
                                    'latest_explanation_revision',
                                    'exam')\
                    .prefetch_related(Prefetch('sources', to_attr='source_list'),
-                                     Prefetch('best_revision__choices', to_attr='choice_list'),
+                                     Prefetch('best_revision__choices', Choice.objects.order_by('pk'),
+                                              to_attr='choice_list'),
                                      Prefetch('revision_set',
                                               Revision.objects.select_related('submitter',
                                                                               'submitter__profile').undeleted(),

@@ -7,7 +7,7 @@ var uglify = require('gulp-uglify');
 function compress () {
     var options = {mangle: {toplevel: true,
 			    reserved: ['$','g','initializeMnemonicInteractions']},
-		  };
+		   output: {comments: 'some'}};
     options.mangle.properties = {regex: /^__/}
 		  
   return pipeline(

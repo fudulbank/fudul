@@ -1,3 +1,4 @@
+ /* @license  AGPL-3.0-or-later*/
 'use strict';
 // g for global, which will be a reserved variable during mangling
 window.g = {};
@@ -10,6 +11,8 @@ window.g.__ANSWERS = null;
 window.g.__STATS = null;
 window.g.__HAS_CONSTRUCTED_NAVIGATION = false;
 window.g.__SHARED_STAT_TIMER = null;
+var urlParams = new URLSearchParams(window.location.search);
+window.g.__IS_PRESENTER = urlParams.has('presenter');
 
 // Sort SESSION_QUESTION_PKS per their global_sequences, if those
 // do not include any null values.  Otherwise, sort per pks.
@@ -152,6 +155,29 @@ function showQuestion(target, is_initial){
       window.g.__current_sequence == (previous_set_end_index + 10))
     ){
       fetchList(previous_set_start_index)
+  }
+
+  if (window.g.__IS_PRESENTER){
+    var question_id = window.g.__$current_question.data('question-id'),
+        chart_context = window.g.__$current_question.find('.presenter-stats').get(0).getContext('2d'),
+        choice_ids = [],
+        data = {datasets: [{data: []}], labels: []};
+
+    // The goal here is to get a sorted list of choices bassed on the id
+    window.g.__$current_question.find('tr[data-choice-pk]').each(function(){
+      var choice_id = $(this).data('choice-pk');
+      choice_ids.push(choice_id)
+    });
+    choice_ids.sort()
+    for (var i = 0; i < choice_ids.length; i++) {
+      var choice_id = choice_ids[i],
+          choice_text = $('#choice-text-' + choice_id).text();
+      data.labels.push(choice_text);
+    }
+    window.g.__$current_question.find('.presneter-stat-container').show();
+    var chart = new Chart(chart_context, {type: 'pie', data: data});
+    window.g.__chart = chart;
+    fetchSharedStats();
   }
 }
 
@@ -940,15 +966,31 @@ function fetchHighlights(){
 }
 
 function fetchSharedStats(){
+  // If the current session hasn't been initialized, abort this trial;
+  if (!window.g.__$current_question){
+    return
+  }
+  // Prevent overlapping requests.
+  clearSharedStatTimer();
+  if (window.g.__IS_PRESENTER) {
+    var question_pk = window.g.__$current_question.data('question-pk');
+  } else {
+    var question_pk = null;
+  }
   $.ajax({method: 'get',
           url: Urls['exams:get_shared_session_stats'](),
           data: {format: 'json',
-                 session_pk: window.SESSION_PK },
+                 session_pk: window.SESSION_PK,
+                 question_pk: question_pk},
           success: function(data){
             if (data.success){
-              for (var index in data.stats){
-                var stat = data.stats[index];
+              for (var index in data.stats.sessions){
+                var stat = data.stats.sessions[index];
                 updateSharedProgressBar(stat.pk, stat)
+              }
+              if (window.g.__IS_PRESENTER){
+                window.g.__chart.data.datasets[0].data = data.stats.choices;
+                window.g.__chart.update();
               }
               if (!$('.progress[data-has-finished="false"]').length){
                 clearSharedStatTimer();
@@ -958,6 +1000,8 @@ function fetchSharedStats(){
             }
           }
   });
+  // Re-enable the timer;
+  setSharedStatTimer();
 }
 
 function updateSharedProgressBar(session_pk, stat){
@@ -1227,16 +1271,6 @@ if (window.g.__isTablet || window.g.__isMobile){
   $('#keyboard-hint').addClass('d-none');
 }
 
-if (window.IS_SHARED){
-  $(window).on('focus', function(){
-    if ($('.progress[data-has-finished="false"]').length){
-      fetchSharedStats();
-    }
-    setSharedStatTimer();
-  });
-  $(window).on('blur', clearSharedStatTimer);
-}
-
 $(function() {
     var copy_share = new ClipboardJS('#share-session-copy');
     copy_share.on('success', function(e){
@@ -1258,6 +1292,16 @@ $(function() {
     $("#question-sequence").html(initial_question_sequence);
 
     initializeKeyboard();
+
+    if (window.IS_SHARED){
+      $(window).on('focus', function(){
+        if ($('.progress[data-has-finished="false"]').length){
+          fetchSharedStats();
+        }
+        setSharedStatTimer();
+      });
+      $(window).on('blur', clearSharedStatTimer);
+    }
 
     // Depending on user agent, we control tooltip initalization.
     // Note that this must NOT be overridden anywhere in the
