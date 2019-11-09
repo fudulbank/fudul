@@ -75,7 +75,7 @@
 {% endblock %}
 {% block customscript %}
 {% include 'partials/import_datatables.html' %}
-<script src="{% static 'js/toastr.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.js" integrity="sha384-awkppW2vvGcqchV4/Wqk1nZPrGJakjrkv9gwXzll5JebuFQNSbzeKwYhqFDa/y00" crossorigin="anonymous"></script>
 
 {% with modal_id='confirm-delete-exam-sessions-modal' is_small=True modal_content="<strong>Are you sure you want us to forgive you the sessions you took under this exam?</strong> By asking for forgiveness, you will be adjusting your performance statistics and reclaiming some 'used questions'." %}
     {% include "exams/modals/common_edit_modal.html" %}

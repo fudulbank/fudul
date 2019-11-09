@@ -105,7 +105,7 @@ th, td{
 {% endcache %}
 {% endblock %}
 {% block customscript %}
-<script src="{% static 'js/toastr.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.js" integrity="sha384-awkppW2vvGcqchV4/Wqk1nZPrGJakjrkv9gwXzll5JebuFQNSbzeKwYhqFDa/y00" crossorigin="anonymous"></script>
 
 {% include 'partials/import_datatables.html' %}
 {% with correct_count=session.correct_answer_count skipped_count=session.skipped_answer_count incorrect_count=session.incorrect_answer_count %}
