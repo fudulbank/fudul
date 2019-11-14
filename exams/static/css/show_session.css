@@ -78,6 +78,9 @@ body[data-session-is-examinable="true"][data-has-finished="false"] #end{
   cursor: pointer;
   display: inline-block;
   padding: 0 10px;
+  background: transparent;
+  border: 0;
+  font-weight: 700;
   /* For mobile devices */
   height: auto;
 }
@@ -125,17 +128,18 @@ body[data-session-is-examinable="true"][data-has-finished="false"] #end{
 
 #top-options {
     background-color: var(--tertiary-background-color);
-    color: var(--tertiary-font-color);
+    border-bottom: 1px solid var(--primary-background-color);
+    line-height: 32px;
+}
+
+#top-options .option{
+  color: var(--tertiary-font-color);
+  font-weight: 400;
 }
 
 .tooltip-inner {
     background-color: var(--tooltip-background-color);
     color: var(--tooltip-font-color);
-}
-
-#top-options{
-    border-bottom: 1px solid var(--primary-background-color);
-    line-height: 32px;
 }
 
 #mark.marked{
@@ -154,7 +158,7 @@ body[data-session-is-examinable="true"][data-has-finished="false"] #end{
 }
 
 /* Styling the exam name and "results" (which is a direct link) */
-#top-info a, a.option, #help-me-tooltip a{
+#top-info a, .option, a.option, #help-me-tooltip a{
     color: var(--secondary-font-color);
 }
 
@@ -162,7 +166,7 @@ body[data-session-is-examinable="true"][data-has-finished="false"] #end{
     text-decoration: none;
 }
 
-.form-control, .modal-content, .modal-content .close{
+.form-control, .modal-content, .modal-content .close, .navigate-row{
     color: var(--primary-font-color);
     background-color: var(--primary-background-color);
 }

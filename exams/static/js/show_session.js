@@ -11,8 +11,7 @@ window.g.__ANSWERS = null;
 window.g.__STATS = null;
 window.g.__HAS_CONSTRUCTED_NAVIGATION = false;
 window.g.__SHARED_STAT_TIMER = null;
-var urlParams = new URLSearchParams(window.location.search);
-window.g.__IS_PRESENTER = urlParams.has('presenter');
+window.g.__IS_PRESENTER = window.location.search.search(/[\?&]presenter=/) != -1;
 
 // Sort SESSION_QUESTION_PKS per their global_sequences, if those
 // do not include any null values.  Otherwise, sort per pks.
@@ -22,9 +21,7 @@ if (window.g.__SESSION_QUESTION_GLOBAL_SEQUENCES.indexOf(null) != -1){
   window.g.__SESSION_QUESTION_PKS = window.g.__SESSION_QUESTION_PKS.sort(function(a, b){return a - b});
 }
 
-showdown.setOption('headerLevelStart', 3);
-showdown.setOption('simpleLineBreaks', true);
-var converter = new showdown.Converter();
+var converter = new showdown.Converter({headerLevelStart: 3, simpleLineBreaks: true, noHeaderId: true});
 
 
 // Common selectors
@@ -566,9 +563,10 @@ function controlNavigationButtons(){
     // select whatever button that's visible
     var button_name = $("#end:visible, #results:visible").html();
     $("#next").tooltip({title: 'This is the last question.  You can click <kbd>' + button_name + '</kbd> to end this session.',
-                        html: true})
+                        html: true,
+                        sanitize: false})
   } else {
-    $("#next").tooltip();
+    $("#next").tooltip({sanitize: false});
     $("#next").css('cursor', 'pointer');
   }
 
@@ -865,7 +863,7 @@ function constructNavigationTable(){
      if (window.g.__MARKS){
        var is_marked = window.g.__MARKS.indexOf(question_pk) != -1 ? window.g.__is_marked_markup : '';
      }
-     var row = "<tr class='navigate-row text-center' data-question-sequence='" + question_sequence.toString() + "'><td>" + question_sequence.toString() + "</td><td class='d-sm-table-cell d-none'>" + question_pk.toString() + "</td><td class='d-sm-table-cell d-none is_marked'>" + is_marked + "</td><td class='was_solved'>" + was_solved +"</td></tr>";
+     var row = "<tr tabindex='0' class='navigate-row text-center' data-question-sequence='" + question_sequence.toString() + "'><td>" + question_sequence.toString() + "</td><td class='d-sm-table-cell d-none'>" + question_pk.toString() + "</td><td class='d-sm-table-cell d-none is_marked'>" + is_marked + "</td><td class='was_solved'>" + was_solved +"</td></tr>";
      tbody_content += row;
   }
 
@@ -1311,13 +1309,13 @@ $(function() {
     if (window.g.__isTablet){
       // In tablets, we don't want to show tooltips on the
       // 'Mark' button as well as navigation buttons.
-      $('[data-toggle="tooltip"]').not("#next, #previous, #mark").tooltip();
+      $('[data-toggle="tooltip"]').not("#next, #previous, #mark").tooltip({sanitize: false});
     } else if (window.g.__isMobile) {
       // In mobile phones, we don't want to show a tooltip on the
       // 'Mark' button
-      $('[data-toggle="tooltip"]').not(window.g.__$markButton).tooltip();
+      $('[data-toggle="tooltip"]').not(window.g.__$markButton).tooltip({sanitize: false});
     } else {
-      $('[data-toggle="tooltip"]').tooltip();
+      $('[data-toggle="tooltip"]').tooltip({sanitize: false});
     }
 
     var help_me_tooltip = $("#help-me-tooltip").get(0);

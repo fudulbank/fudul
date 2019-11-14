@@ -11,7 +11,7 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw" crossorigin="anonymous">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" integrity="sha384-Q8BgkilbsFGYNNiDqJm69hvDS7NCJWOodvfK/cwTyQD4VQA0qKzuPpvqNER1UC0F" crossorigin="anonymous">
         <link rel="stylesheet" href="{% static 'css/toastr.min.css' %}">
-        <link rel="stylesheet" href="{% static 'css/show_session.css' %}?v=2.8">
+        <link rel="stylesheet" href="{% static 'css/show_session.css' %}?v=2.9">
         <style>
         :root{
           --primary-background-color: {{ user.profile.session_theme.primary_background_color|default:default_session_theme.primary_background_color }};
@@ -44,39 +44,39 @@
         </div><!--top-info-->
         <div id="top-options" class="row text-center">
           <div class="col-auto pl-2 p-0">
-               <div class="option" id="contribute">
+               <button class="option" id="contribute">
                    <a data-placement="left" data-toggle="tooltip" title=" If you have any improvements on the question you can help us with, please submit it here.Your edits will be quickly available to public."> <i class="fas fa-pencil-alt"></i> Edit</a>
-               </div>
+               </button>
           </div>
            <div class="col-auto p-0 ml-auto">
-               <div id="mark" class="option" data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> you can also press <kbd>Alt+M</kbd> to toggle question mark.">
+               <button id="mark" class="option" data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> you can also press <kbd>Alt+M</kbd> to toggle question mark.">
                   <i id="mark-loading" class="fas fa-spinner fa-pulse fa-fw"></i>
                   <i class="fas fa-flag"></i> Mark
-               </div>
+               </button>
            </div>
 
            <div class="col-auto p-0">
-               <div data-toggle="modal" data-target="#NormalValues" class="option">
+               <button data-toggle="modal" data-target="#NormalValues" class="option">
                   <i class="fas fa-flask"></i>  <span class="d-sm-inline d-none">Lab values</span>
-               </div>
+               </button>
            </div>
 
            <div class="col-auto p-0">
-               <div id="settings" class="option">
+               <button id="settings" class="option">
                   <i class="fas fa-sliders-h"></i>  <span class="d-sm-inline d-none">Settings</span>
-               </div>
+               </button>
            </div>
            {% if session.is_examinable %}
            <div class="col-auto p-0">
-               <div id="share" class="emphasized option">
+               <button id="share" class="emphasized option">
                   <i class="fas fa-share-alt"></i> <span class="d-sm-inline d-none">Share</span>
-               </div>
+               </button>
            </div>
            {% endif %}
            <div class="col-auto pl-2">
-             <div id="keyboard-hint" data-toggle="tooltip" data-html="true" data-title="<h5>Keyboard shortcuts</h5><p><strong>Hint: </strong>  In Fudul, you can go through a whole exam without touching the mouse!  Here is how:</p><table id='keyboard-instructions'><tr><th><kbd>→</kbd></th><td>Go to next question.</td></tr><tr><th><kbd>←</kbd></th><td>Go to previous question.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>↑</kbd></th><td>Select previous choice.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>↓</kbd></th><td>Select next choice.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>Enter</kbd></th><td>Submit answer to current question.</td></tr><tr><th><kbd>Alt</kbd>+<kbd>M</kbd></th><td>Toggle mark on current question.</td></tr>{% if session.is_examinable %}<tr><th><kbd>Alt</kbd>+<kbd>U</kbd></th><td>Find an unsolved question in this session.</td></tr>{% endif %}</table>">
+             <button id="keyboard-hint" class="option px-0" data-toggle="tooltip" data-html="true" data-title="<h5>Keyboard shortcuts</h5><p><strong>Hint: </strong>  In Fudul, you can go through a whole exam without touching the mouse!  Here is how:</p><table id='keyboard-instructions'><tr><th><kbd>→</kbd></th><td>Go to next question.</td></tr><tr><th><kbd>←</kbd></th><td>Go to previous question.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>↑</kbd></th><td>Select previous choice.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>↓</kbd></th><td>Select next choice.</td></tr><tr><th><kbd>Ctrl</kbd>+<kbd>Enter</kbd></th><td>Submit answer to current question.</td></tr><tr><th><kbd>Alt</kbd>+<kbd>M</kbd></th><td>Toggle mark on current question.</td></tr>{% if session.is_examinable %}<tr><th><kbd>Alt</kbd>+<kbd>U</kbd></th><td>Find an unsolved question in this session.</td></tr>{% endif %}</table>">
                  <i data-toggle class="fas fa-keyboard ml-2"></i>
-             </div>
+             </button>
            </div>
         </div><!--top-options-->
 
@@ -131,20 +131,20 @@
           <div class="col-sm-6 text-sm-left order-2 order-sm-1">
            <a id="back" class="float-left float-sm-none option" href="{% url 'exams:create_session' category_slugs session.exam.pk %}"><i class="fas fa-sign-out-alt"></i> Back</a>
            <a id="results" class="float-left float-sm-none option" href="{% url 'exams:show_session_results' category_slugs session.exam.pk session.pk %}"><i class="far fa-check-square"></i> Results</a>
-           <div id="end" class="float-left float-sm-none option"><i class="fas fa-sign-out-alt"></i> End</div>
-           <div id="contributors" class="float-right float-sm-none option"><i class="fas fa-star"></i> Contributors</div>
-           <div id="help-me" class="float-right float-sm-none option d-none d-sm-inline-block"><i class="fas fa-comment"></i> Get help</div>
+           <button id="end" class="control-button float-left float-sm-none option"><i class="fas fa-sign-out-alt"></i> End</button>
+           <button id="contributors" class="control-button float-right float-sm-none option"><i class="fas fa-star"></i> Contributors</button>
+           <button id="help-me" class="control-button float-right float-sm-none option d-none d-sm-inline-block"><i class="fas fa-comment"></i> Get help</button>
           </div>
           <div class="col-sm-6 text-sm-right order-1 order-sm-2">
             <div class="row justify-content-end no-gutters">
               <div class="col-sm-auto col-5">
-                 <div data-action="previous" data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> You can also <span class='d-inline d-sm-none'>tap the left screen side</span><span class='d-none d-sm-inline'>press the left keyboard arrow (<kbd>←</kbd>)</span> to go back." id="previous" class="float-left float-sm-none option"><i class="fas fa-chevron-circle-left"></i> Previous</div>
+                 <button data-action="previous" data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> You can also <span class='d-inline d-sm-none'>tap the left screen side</span><span class='d-none d-sm-inline'>press the left keyboard arrow (<kbd>←</kbd>)</span> to go back." id="previous" class="control-button float-left float-sm-none option"><i class="fas fa-chevron-circle-left"></i> Previous</button>
               </div>
               <div class="col-sm-auto col-2">
-                 <div id="open-navigation" data-toggle="tooltip" data-html="true" data-title="Give us a second!  We are loading all questions for you. <img height='17' alt='🐣' src='https://cdnjs.cloudflare.com/ajax/libs/emojione/2.2.7/assets/png/1f423.png'>" class="option"><i class="fas fa-list"></i> <span class="d-none d-sm-inline">Navigate</span></div>
+                 <button id="open-navigation" data-toggle="tooltip" data-html="true" data-title="Give us a second!  We are loading all questions for you. <img height='17' alt='🐣' src='https://cdnjs.cloudflare.com/ajax/libs/emojione/2.2.7/assets/png/1f423.png'>" class="option"><i class="fas fa-list"></i> <span class="d-none d-sm-inline">Navigate</span></button>
               </div>
               <div class="col-sm-auto col-5">
-                 <div data-action="next" data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> You can also <span class='d-inline d-sm-none'>tap the right screen side</span><span class='d-none d-sm-inline'>press the right keyboard arrow (<kbd>→</kbd>)</span> to go next." id="next" class="float-right float-sm-none option">Next <i class="fas fa-chevron-circle-right"></i></div>
+                 <button data-action="next" data-toggle="tooltip" data-html="true" data-title="<strong>Hint:</strong> You can also <span class='d-inline d-sm-none'>tap the right screen side</span><span class='d-none d-sm-inline'>press the right keyboard arrow (<kbd>→</kbd>)</span> to go next." id="next" class="control-button float-right float-sm-none option">Next <i class="fas fa-chevron-circle-right"></i></button>
               </div>
             </div>
           </div>
@@ -178,7 +178,7 @@ window.SESSION_IS_EXAMINABLE = {% if session.is_examinable %}true{% else %}false
 window.USER_FIRST_NAME = "{{ user.profile.first_name }}";
 window.IS_SHARED = {%if is_shared %}true{% else %}false{% endif %};
         </script>
-        <script src="{% static 'js/show_session.min.js' %}?v=1.4"></script>
+        <script src="{% static 'js/show_session.min.js' %}?v=1.5"></script>
         {% include 'exams/partials/normal_values.html' %}
 
         {% with modal_id='confirm-end-modal' is_small=True confirm_link=True modal_title="End session" modal_content="<i class='text-danger fas fa-sign-out-alt'></i> Are you sure you want to end this session, and mark unsubmitted questions as unsolved?" %}
@@ -240,11 +240,11 @@ window.IS_SHARED = {%if is_shared %}true{% else %}false{% endif %};
             <button id="save-theme" class="mt-2 mb-1 btn btn-primary"><i class="far fa-save"></i> Save</button>
           </div>
           <div id="help-me-tooltip">
-            <a data-toggle="tooltip" data-html="true" title="<div style='direction: rtl;'> من حقك تعاتبني<br>من حقك تحاسبني<br>لكن مش من حقك<br>فى عواطفي تكدبني🎶</div>" target="_blank" rel="noopener" href="https://soundcloud.com/yaya26/4sdgcoaj9r6p"><img src="{% static 'img/monerh/reach-out.png' %}" class="img-fluid"></a>
+            <a data-toggle="tooltip" data-html="true" title="<div style='direction: rtl;'> من حقك تعاتبني<br>من حقك تحاسبني<br>لكن مش من حقك<br>فى عواطفي تكدبني🎶</div>" target="_blank" rel="noreferrer noopener" href="https://soundcloud.com/yaya26/4sdgcoaj9r6p"><img src="{% static 'img/monerh/reach-out.png' %}" class="img-fluid"></a>
             <p>Fudul is made better by your feedback and ideas!  Contact us right now:</p>
             <div class="row justify-content-center">
               <div class="col-12">
-                <a rel="noopener" target="_blank" href="https://t.me/FudulBot"><i class="fab fa-2x fa-telegram"></i><br>Telegram Live Chat</a>
+                <a rel="noreferrer noopener" target="_blank" href="https://t.me/FudulBot"><i class="fab fa-2x fa-telegram"></i><br>Telegram Live Chat</a>
               </div>
             </div>
             <div class="row justify-content-center mt-3 mb-2">
