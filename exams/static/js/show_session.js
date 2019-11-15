@@ -611,6 +611,7 @@ function initializeInteractions() {
         _paq.push(['trackEvent', 'show_session', 'see-contributors', 'see-contributors']);
     });
     $("#contributors").tooltip({html: true,
+                                sanitize: false,
                                 trigger: 'click',
                                 title: window.g.__$current_question.find(".tooltip-body").get(0)})
 
@@ -718,6 +719,7 @@ function submitChoice() {
         if ($correction_notification.length && $support_button.length && !(window.SESSION_MODE == 'UNEXPLAINED' && !$('body').data('has-finished'))){
           $choice_row.find('.check').tooltip({template: '<div class="tooltip hint" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>',
                                               html: true,
+                                              sanitize: false,
                                               title:"<strong>Are you sure that this is the right answer?</strong>  Vote to support this correction! <img height=\'17\' src=\'https://cdnjs.cloudflare.com/ajax/libs/emojione/2.2.7/assets/png/1f64a.png\'>",
                                               placement: 'right',
                                               trigger: 'manual'}).tooltip('show');
