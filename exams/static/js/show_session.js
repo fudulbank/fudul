@@ -705,7 +705,7 @@ function submitChoice() {
             choice_pk = $choice_row.data("choice-pk");
 
         // If there is a correction, we invite the user to vote:
-        if ($choice_row.data('is_right')){
+        if ($choice_row.data('is-right')){
           window.g.__STATS.correct_count += 1
         } else {
           window.g.__STATS.incorrect_count += 1
