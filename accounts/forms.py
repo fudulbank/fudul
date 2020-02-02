@@ -28,7 +28,7 @@ class CustomSignupForm(SignupFormOnlyEmail):
     display_full_name = forms.ChoiceField(choices=models.display_full_name_choices)
 
     def clean(self, *args, **kwargs):
-        cleaned_data = super(CustomSignupForm, self).clean(*args, **kwargs)
+        cleaned_data = super().clean(*args, **kwargs)
 
         if 'alternative_email' in cleaned_data:
             alternative_email = self.cleaned_data['alternative_email']
@@ -76,7 +76,7 @@ class CustomSignupForm(SignupFormOnlyEmail):
         Override the save method to save the new fields
         """
         # First save the parent form and get the user.
-        new_user = super(CustomSignupForm, self).save()
+        new_user = super().save()
 
         # Get the profile, the `save` method above creates a profile for each
         # user because it calls the manager method `create_user`.
@@ -134,7 +134,7 @@ class CustomEditProfileForm(forms.ModelForm):
                   'nickname', 'mobile_number','display_full_name']
 
     def clean(self):
-        cleaned_data = super(CustomEditProfileForm, self).clean()
+        cleaned_data = super().clean()
 
         # if 'institution' in cleaned_data:
         #     institution_name = cleaned_data['institution']
@@ -169,7 +169,7 @@ class CustomEditProfileForm(forms.ModelForm):
         return cleaned_data
 
     def save(self):
-        user_profile = super(CustomEditProfileForm, self).save()
+        user_profile = super().save()
 
         # user_profile.institution = self.cleaned_data['institution']
         # user_profile.group = self.cleaned_data.get('group', None)
@@ -196,7 +196,7 @@ class ChangePersonalEmailForm(forms.Form):
         address.
 
         """
-        super(ChangePersonalEmailForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         if not isinstance(user, User):
             raise TypeError("user must be an instance of %s" % User)
         else: self.user = user
@@ -205,7 +205,7 @@ class ChangePersonalEmailForm(forms.Form):
 
     def clean(self):
 
-        cleaned_data = super(ChangePersonalEmailForm, self).clean()
+        cleaned_data = super().clean()
 
         if 'alternative_email' in cleaned_data:
             alternative_email = self.cleaned_data['alternative_email']

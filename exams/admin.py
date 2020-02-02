@@ -84,7 +84,7 @@ class CategoryAdmin(EditorModelAdmin):
 
 class RuleForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-        super(RuleForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # Do not trim initial and tailing white spaces.
         self.fields['regex_pattern'].strip = False
         self.fields['regex_replacement'].strip = False

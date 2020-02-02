@@ -253,7 +253,7 @@ class SourceQuerySet(MetaInformationQuerySet):
     def order_by_exam_questions(self, exam):
         # Here, in addition to sorting by total question, we sort
         # alphabetically.
-        qs = super(SourceQuerySet, self).order_by_exam_questions(exam)
+        qs = super().order_by_exam_questions(exam)
         return qs.order_by('-total_questions', 'name')
 
 class CategoryQuerySet(models.QuerySet):

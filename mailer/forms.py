@@ -22,7 +22,7 @@ class TargetChoiceField(forms.ModelMultipleChoiceField):
 
 class MessageForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-        super(MessageForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['levels'] = TargetChoiceField(required=False,
                                                    queryset=Level.objects.all(),
                                                    widget=select2_widget)
@@ -34,7 +34,7 @@ class MessageForm(forms.ModelForm):
                                                         widget=select2_widget)
 
     def clean(self):
-        cleaned_data = super(MessageForm, self).clean()
+        cleaned_data = super().clean()
 
         if not 'target_type' in cleaned_data:
             return cleaned_data
