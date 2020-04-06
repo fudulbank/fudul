@@ -89,7 +89,7 @@ def update_session_stats(sender, instance, raw=None, **kwargs):
     session.save()
 
     # Set is_first
-    if instance.choice:
+    if choice:
         similar_answers = Answer.objects.filter(question_id=instance.question_id,
                                                 choice__isnull=False,
                                                 session__submitter_id=instance.session.submitter_id)\
