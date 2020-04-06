@@ -1,6 +1,6 @@
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-from exams.models import Category, Answer, Revision, ExplanationRevision
+from exams.models import Category, Answer, Revision, ExplanationRevision, Choice
 
 
 @receiver([post_save, post_delete], sender=Revision)
@@ -64,7 +64,10 @@ def update_latest_explanation_revision(sender, instance, raw=None, **kwargs):
 def update_session_stats(sender, instance, raw=None, **kwargs):
     if raw:
         return
-    choice = instance.choice
+    try:
+        choice = instance.choice
+    except Choice.DoesNotExist:
+        choice = None
     session = instance.session
     question_pool = session.get_questions()
 
