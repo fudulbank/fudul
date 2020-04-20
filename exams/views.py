@@ -175,7 +175,7 @@ def handle_question(request, exam_pk, question_pk=None):
                                              is_optional=True)
     revision_figure_formset = forms.RevisionFigureFormset(request.POST,
                                                           request.FILES,
-                                                          prefix='explanation-figures')
+                                                          prefix='revision-figures')
     explanation_figure_formset = forms.ExplanationFigureFormset(request.POST,
                                                                 request.FILES,
                                                                 prefix='explanation-figures')
