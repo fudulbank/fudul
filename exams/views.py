@@ -143,6 +143,7 @@ def delete_question(request, pk):
 @login_required
 @require_POST
 @decorators.ajax_only
+@csrf.csrf_exempt
 def handle_question(request, exam_pk, question_pk=None):
     exam = get_object_or_404(Exam.objects.select_related('category'),
                              pk=exam_pk)
