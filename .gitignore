@@ -11,3 +11,5 @@ static_files/
 node_modules/
 *log
 *lock
+dump.sh
+*dump*json*
