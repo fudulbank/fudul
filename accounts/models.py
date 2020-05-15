@@ -138,7 +138,8 @@ class PrimaryInterest(models.Model):
     name = models.CharField(max_length=100)
     parent = models.ForeignKey('self', null=True, blank=True,
                                on_delete=models.CASCADE,
-                               related_name="children")
+                               related_name="children",
+                               limit_choices_to={'parent__isnull': True})
 
     content_type = models.ForeignKey(ContentType,
                                      on_delete=models.CASCADE,
