@@ -146,12 +146,6 @@ class PrimaryInterest(models.Model):
     object_id = models.PositiveIntegerField(null=True, blank=True)
     content_object = GenericForeignKey('content_type', 'object_id')
 
-    exam = models.ForeignKey('exams.Exam', on_delete=models.CASCADE,
-                             null=True, blank=True)
-    category = models.ForeignKey('exams.Category',
-                                 on_delete=models.CASCADE,
-                                 null=True, blank=True)
-
     objects = managers.PrimaryInterestQuerySet.as_manager()
 
     def __str__(self):
