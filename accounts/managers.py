@@ -11,7 +11,7 @@ class PrimaryInterestQuerySet(models.QuerySet):
         return self.filter(parent__isnull=True)
 
     def with_children(self):
-        return self.filter(children__isnull=False)
+        return self.filter(children__isnull=False).distinct()
 
     def order_by_alphabet(self):
         return self.order_by('name')
