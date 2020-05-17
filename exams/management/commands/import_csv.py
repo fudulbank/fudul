@@ -121,7 +121,10 @@ class Command(BaseCommand):
         try:
             INDEXES['SEQUENCE'] = headers.index('Q#')
         except ValueError:
-            pass
+            try:
+                INDEXES['ANSWER'] = headers.index('Sequence')
+            except ValueError:
+                pass
 
         INDEXES['CHOICES'] = [headers.index(header_name)
                               for header_name in headers
